@@ -17,3 +17,12 @@ BOOL APIENTRY DllMain( HMODULE hModule,
     return TRUE;
 }
 
+extern "C" HRESULT WINAPI DllGetClassObject(REFCLSID rclsid, REFIID riid, void** ppv)
+{
+	return CLASS_E_CLASSNOTAVAILABLE;
+}
+
+extern "C" HRESULT WINAPI DllCanUnloadNow()
+{
+	return S_OK;
+}

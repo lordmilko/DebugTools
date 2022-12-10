@@ -21,4 +21,7 @@
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
+  <ItemGroup>
+    <None Include="$(MSBuildThisFileDirectory)Profiler.def" />
+  </ItemGroup>
 </Project>
