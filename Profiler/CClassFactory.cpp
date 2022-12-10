@@ -1,5 +1,6 @@
 #include "pch.h"
 #include "CClassFactory.h"
+#include "CCorProfilerCallback.h"
 
 #pragma region IUnknown
 
@@ -66,6 +67,23 @@ HRESULT CClassFactory::CreateInstance(IUnknown* pUnkOuter, REFIID riid, void** p
 {
 	if (pUnkOuter != nullptr)
 		return CLASS_E_NOAGGREGATION;
+
+	if (riid == __uuidof(ICorProfilerCallback2))
+	{
+		//All profilers written for .NET Framework 2+ must implement ICorProfilerCallback2
+		CCorProfilerCallback* pCallback = new CCorProfilerCallback();
+
+		if (pCallback == nullptr)
+			return E_OUTOFMEMORY;
+
+		/* Upon creation, the refcount is 0. QI will set the count to 1. CoCreateProfiler in eetoprofinterfaceimpl.cpp will
+		 * QI for ICorProfilerCallback2 just in case someone assigned their callback straight to ppvObject (meaning the pointer is wrong) (setting refcount to 2).
+		 * True ICorProfilerCallback2 pointer is returned to EEToProfInterfaceImpl::CreateProfiler(), and ReleaseHolder sets refcount back to 1.
+		 * 
+		 * CreateProfiler() will then check to see whether any additional ICorProfilerCallback* interfaces are supported. For each additional supported interface,
+		 * the refcount will increase by 1. In EEToProfInterfaceImpl::~EEToProfInterfaceImpl(), each m_pCallback* will be released, finally bringing the refcount to 0 and deleting our callback. */
+		return pCallback->QueryInterface(riid, ppvObject);
+	}
 
 	return E_NOINTERFACE;
 }
