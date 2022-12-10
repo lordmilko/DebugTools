@@ -10,6 +10,9 @@
     <Filter Include="Source Files">
       <UniqueIdentifier>{ece7e11c-4023-457e-90f9-d79198c7c1e7}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\Hooks">
+      <UniqueIdentifier>{c9a5d142-ee8e-45c4-80b0-774d9a333af6}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="$(MSBuildThisFileDirectory)pch.h">
@@ -20,6 +23,27 @@
     </ClInclude>
     <ClInclude Include="$(MSBuildThisFileDirectory)CCorProfilerCallback.h">
       <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)Hooks\EnterHook.h">
+      <Filter>Header Files\Hooks</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)Hooks\Hooks.h">
+      <Filter>Header Files\Hooks</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)Hooks\LeaveHook.h">
+      <Filter>Header Files\Hooks</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)Hooks\TailcallHook.h">
+      <Filter>Header Files\Hooks</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)Hooks\EnterHookWithInfo.h">
+      <Filter>Header Files\Hooks</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)Hooks\LeaveHookWithInfo.h">
+      <Filter>Header Files\Hooks</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)Hooks\TailcallHookWithInfo.h">
+      <Filter>Header Files\Hooks</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -35,5 +59,13 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="$(MSBuildThisFileDirectory)Profiler.def" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="$(MSBuildThisFileDirectory)Hooks\StubX64.asm">
+      <Filter>Header Files\Hooks</Filter>
+    </None>
+    <None Include="$(MSBuildThisFileDirectory)Hooks\StubX64WithInfo.asm">
+      <Filter>Header Files\Hooks</Filter>
+    </None>
   </ItemGroup>
 </Project>

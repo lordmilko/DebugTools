@@ -12,4 +12,9 @@
 #include <cor.h>
 #include <corprof.h>
 
+#define IfFailGoto(EXPR, LABEL) do { hr = (EXPR); if(FAILED(hr)) { goto LABEL;  } } while (0)
+#define IfFailRet(EXPR)         do { hr = (EXPR); if(FAILED(hr)) { return (hr); } } while (0)
+
+#define IfFailGo(EXPR) IfFailGoto(EXPR, ErrExit)
+
 #endif //PCH_H

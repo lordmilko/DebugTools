@@ -3,9 +3,19 @@
 class CCorProfilerCallback final : public ICorProfilerCallback3
 {
 public:
+	//The singular profiler instance of this process
+	static CCorProfilerCallback* g_pProfiler;
+
 	CCorProfilerCallback() : m_RefCount(0)
 	{
 	}
+
+	//Performs a one time registration function for each unique function that is JITted
+	static UINT_PTR __stdcall RecordFunction(FunctionID funcId, void* clientData, BOOL* pbHookFunction);
+
+	HRESULT SetEventMask();
+	HRESULT InstallHooks();
+	HRESULT InstallHooksWithInfo();
 
 #pragma region IUnknown
 	STDMETHODIMP_(ULONG) AddRef() override;
@@ -106,5 +116,7 @@ public:
 #pragma endregion
 
 private:
+	ICorProfilerInfo3* m_pInfo;
+
 	long m_RefCount;
 };

@@ -1,5 +1,6 @@
 #include "pch.h"
 #include "CCorProfilerCallback.h"
+#include "Hooks\Hooks.h"
 
 #pragma region IUnknown
 
@@ -59,14 +60,82 @@ HRESULT CCorProfilerCallback::QueryInterface(REFIID riid, void** ppvObject)
 #pragma endregion
 #pragma region ICorProfilerCallback
 
+/// <summary>
+/// Initializes the profiler, performing initial setup such as registering our event masks function mappers and function hooks.
+/// </summary>
+/// <param name="pICorProfilerInfoUnk">A clr!ProfToEEInterfaceImpl object that should be queried to retrieve an ICorProfilerInfo* interface.</param>
+/// <returns>A HRESULT that indicates success or failure. In the event of failure the profiler and its DLL will be unloaded.</returns>
 HRESULT CCorProfilerCallback::Initialize(IUnknown* pICorProfilerInfoUnk)
 {
-	return E_NOTIMPL;
+	HRESULT hr = S_OK;
+
+	IfFailGo(pICorProfilerInfoUnk->QueryInterface(&m_pInfo));
+
+	IfFailGo(m_pInfo->SetFunctionIDMapper2(RecordFunction, nullptr));
+
+	IfFailGo(SetEventMask());
+	IfFailGo(InstallHooksWithInfo());
+
+	g_pProfiler = this;
+
+ErrExit:
+	return hr;
 }
 
+//When you shut down a pure .NET application (i.e. not PowerShell which launches the CLR) EEShutDown may create a new thread that calls clr!EEShutDownProcForSTAThread calls EEShutDownHelper -> EEToProfInterfaceImpl::Shutdown -> ICorProfilerCallback::Shutdown
+//if you type "exit" in PowerShell this IS called - 
+
+/// <summary>
+/// Notifies the profiler that the application is shutting down.
+/// </summary>
+/// <returns>A HRESULT that indicates success or failure.</returns>
+/// <remarks>This method is not guaranteed to be called. In particular, it may not be called if the application is not purely managed (such as PowerShell, which starts unmanaged
+/// and then loads the runtime). When a process such as dnSpy exits, ceemain.cpp!EEShutDown creates a new thread -> clr!EEShutDownProcForSTAThread -> EEShutDownHelper -> EEToProfInterfaceImpl::Shutdown -> ICorProfilerCallback::Shutdown.
+/// PowerShell does not call Shutdown when closing out of the program normally, however when the "exit" command is executed, _wmainCRTStartup will call msvcrt!doexit, leading to clr!HandleExitProcessHelper calling EEShutDown, etc.</remarks>
 HRESULT CCorProfilerCallback::Shutdown()
 {
-	return E_NOTIMPL;
+	return S_OK;
+}
+
+#pragma endregion
+#pragma region CCorProfilerCallback
+
+CCorProfilerCallback* CCorProfilerCallback::g_pProfiler;
+
+//This function is called the very first time each function is JITted, allowing us to record that function's existence
+UINT_PTR __stdcall CCorProfilerCallback::RecordFunction(FunctionID funcId, void* clientData, BOOL* pbHookFunction)
+{
+	*pbHookFunction = true;
+	return funcId;
+}
+
+HRESULT CCorProfilerCallback::SetEventMask()
+{
+	DWORD flags = COR_PRF_MONITOR_ENTERLEAVE | COR_PRF_MONITOR_THREADS;
+
+	//WithInfo hooks won't be called unless advanced event flags are set
+	if (false)
+		flags |= COR_PRF_ENABLE_FUNCTION_ARGS | COR_PRF_ENABLE_FUNCTION_RETVAL | COR_PRF_ENABLE_FRAME_INFO;
+
+	return m_pInfo->SetEventMask(flags);
+}
+
+HRESULT CCorProfilerCallback::InstallHooks()
+{
+	return m_pInfo->SetEnterLeaveFunctionHooks3(
+		(FunctionEnter3*)EnterNaked,
+		(FunctionLeave3*)LeaveNaked,
+		(FunctionTailcall3*)TailcallNaked
+	);
+}
+
+HRESULT CCorProfilerCallback::InstallHooksWithInfo()
+{
+	return m_pInfo->SetEnterLeaveFunctionHooks3WithInfo(
+		(FunctionEnter3WithInfo*)EnterNakedWithInfo,
+		(FunctionLeave3WithInfo*)LeaveNakedWithInfo,
+		(FunctionTailcall3WithInfo*)TailcallNakedWithInfo
+	);
 }
 
 #pragma endregion

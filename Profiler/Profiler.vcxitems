@@ -5,6 +5,9 @@
     <HasSharedItems>true</HasSharedItems>
     <ItemsProjectGuid>{6911d380-ab7a-4039-9570-54b9e8314223}</ItemsProjectGuid>
   </PropertyGroup>
+  <ImportGroup Label="ExtensionSettings">
+    <Import Project="$(VCTargetsPath)\BuildCustomizations\masm.props" />
+  </ImportGroup>
   <ItemDefinitionGroup>
     <ClCompile>
       <AdditionalIncludeDirectories>%(AdditionalIncludeDirectories);$(MSBuildThisFileDirectory)</AdditionalIncludeDirectories>
@@ -16,7 +19,14 @@
   <ItemGroup>
     <ClInclude Include="$(MSBuildThisFileDirectory)CClassFactory.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)CCorProfilerCallback.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)Hooks\EnterHook.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)Hooks\EnterHookWithInfo.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)Hooks\Hooks.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)Hooks\LeaveHook.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)Hooks\LeaveHookWithInfo.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)pch.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)Hooks\TailcallHook.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)Hooks\TailcallHookWithInfo.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="$(MSBuildThisFileDirectory)CClassFactory.cpp" />
@@ -26,4 +36,15 @@
   <ItemGroup>
     <None Include="$(MSBuildThisFileDirectory)Profiler.def" />
   </ItemGroup>
+  <ItemGroup Condition="'$(Platform)' == 'x64'">
+    <MASM Include="$(MSBuildThisFileDirectory)Hooks\StubX64.asm" />
+    <MASM Include="$(MSBuildThisFileDirectory)Hooks\StubX64WithInfo.asm" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="$(MSBuildThisFileDirectory)Hooks\StubX64.asm" />
+    <None Include="$(MSBuildThisFileDirectory)Hooks\StubX64WithInfo.asm" />
+  </ItemGroup>
+  <ImportGroup Label="ExtensionTargets">
+    <Import Project="$(VCTargetsPath)\BuildCustomizations\masm.targets" />
+  </ImportGroup>
 </Project>
