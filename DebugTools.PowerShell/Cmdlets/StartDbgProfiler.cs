@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Specialized;
 using System.Diagnostics;
 using System.Linq;
 using System.Management.Automation;
@@ -21,28 +22,22 @@ namespace DebugTools.PowerShell
 
         protected override void ProcessRecord()
         {
-            var psi = new ProcessStartInfo
-            {
-                FileName = ProcessName,
-                WindowStyle = ProcessWindowStyle.Minimized,
-                UseShellExecute = true
-            };
-
-            //We need to use UseShellExecute in order to launch powershell.exe in a new window, but you can't add environment variables when using shell execute (since it doesn't use CreateProcess normally),
-            //so instead we just set the environment variables against ourself, which the new child process will inherit
-            Environment.SetEnvironmentVariable("COR_ENABLE_PROFILING", "1");
-            Environment.SetEnvironmentVariable("COR_PROFILER", ProfilerInfo.Guid.ToString("B"));
-            Environment.SetEnvironmentVariable("COR_PROFILER_PATH_32", ProfilerInfo.Profilerx86);
-            Environment.SetEnvironmentVariable("COR_PROFILER_PATH_64", ProfilerInfo.Profilerx64);
-            Environment.SetEnvironmentVariable("DEBUGTOOLS_PARENT_PID", Process.GetCurrentProcess().Id.ToString());
-
-            if (Dbg)
-                Environment.SetEnvironmentVariable("DEBUGTOOLS_WAITFORDEBUG", "1");
-
             var session = new ProfilerSession();
             ProfilerSessionState.Sessions.Add(session);
 
-            session.Start(psi);
+            var envVariables = new StringDictionary
+            {
+                { "COR_ENABLE_PROFILING", "1" },
+                { "COR_PROFILER", ProfilerInfo.Guid.ToString("B") },
+                { "COR_PROFILER_PATH_32", ProfilerInfo.Profilerx86 },
+                { "COR_PROFILER_PATH_64", ProfilerInfo.Profilerx64 },
+                { "DEBUGTOOLS_PARENT_PID", Process.GetCurrentProcess().Id.ToString() }
+            };
+
+            if (Dbg)
+                envVariables.Add("DEBUGTOOLS_WAITFORDEBUG", "1");
+
+            session.Start(ProcessName, envVariables);
 
             if (Dbg)
                 AttachDebugger(session.Process);
