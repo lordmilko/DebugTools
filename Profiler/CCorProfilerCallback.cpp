@@ -70,9 +70,14 @@ HRESULT CCorProfilerCallback::Initialize(IUnknown* pICorProfilerInfoUnk)
 #ifdef _DEBUG
 	OutputDebugStringW(L"Waiting for debugger to attach...");
 
-	while (!::IsDebuggerPresent())
-		::Sleep(100);
+	if (GetBoolEnv("DEBUGTOOLS_WAITFORDEBUG"))
+	{
+		while (!::IsDebuggerPresent())
+			::Sleep(100);
+	}	
 #endif
+
+	BindLifetimeToParentProcess();
 
 	HRESULT hr = S_OK;
 
@@ -142,6 +147,7 @@ ErrExit:
 #pragma region CCorProfilerCallback
 
 CCorProfilerCallback* CCorProfilerCallback::g_pProfiler;
+HANDLE CCorProfilerCallback::g_hExitProcess;
 
 //Thread local buffers (to avoid reallocating with each RecordFunction invocation that is made)
 #define NAME_BUFFER_SIZE 512
@@ -251,6 +257,54 @@ HRESULT CCorProfilerCallback::InstallHooksWithInfo()
 		(FunctionLeave3WithInfo*)LeaveNakedWithInfo,
 		(FunctionTailcall3WithInfo*)TailcallNakedWithInfo
 	);
+}
+
+HRESULT CCorProfilerCallback::BindLifetimeToParentProcess()
+{
+#define BUFFER_SIZE 100
+
+	HANDLE hParentProcess;
+
+	CHAR envBuffer[BUFFER_SIZE];
+	DWORD parentProcessId;
+
+	DWORD actualSize = GetEnvironmentVariableA("DEBUGTOOLS_PARENT_PID", envBuffer, BUFFER_SIZE);
+
+	if (actualSize == 0 || actualSize >= BUFFER_SIZE)
+		goto Exit;
+
+	parentProcessId = strtol(envBuffer, NULL, 10);
+
+	//The only access right that is mandatory is SYNCHRONIZE; without this
+	//RegisterWaitForSingleObject will throw an exception
+	hParentProcess = OpenProcess(SYNCHRONIZE, FALSE, parentProcessId);
+
+	if(!RegisterWaitForSingleObject(
+		&g_hExitProcess,
+		hParentProcess,
+		ExitProcessCallback,
+		NULL,
+		INFINITE,
+		WT_EXECUTEONLYONCE
+	))
+	{
+		return HRESULT_FROM_WIN32(GetLastError());
+	}
+
+Exit:
+	return S_OK;
+}
+
+void NTAPI CCorProfilerCallback::ExitProcessCallback(
+	_In_ PVOID   lpParameter,
+	_In_ BOOLEAN TimerOrWaitFired
+)
+{
+#pragma warning(push)
+#pragma warning(disable: 6031) //return value ignored
+	UnregisterWait(g_hExitProcess);
+	ExitProcess(0);
+#pragma warning(pop)
 }
 
 #pragma endregion

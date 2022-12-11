@@ -5,6 +5,7 @@ class CCorProfilerCallback final : public ICorProfilerCallback3
 public:
 	//The singular profiler instance of this process
 	static CCorProfilerCallback* g_pProfiler;
+	static HANDLE g_hExitProcess;
 
 	CCorProfilerCallback() :
 		m_pInfo(nullptr),
@@ -15,10 +16,12 @@ public:
 	//Performs a one time registration function for each unique function that is JITted
 	static UINT_PTR __stdcall RecordFunction(FunctionID funcId, void* clientData, BOOL* pbHookFunction);
 	static BOOL ShouldHook();
+	static void NTAPI ExitProcessCallback(_In_ PVOID   lpParameter, _In_ BOOLEAN TimerOrWaitFired);
 
 	HRESULT SetEventMask();
 	HRESULT InstallHooks();
 	HRESULT InstallHooksWithInfo();
+	HRESULT BindLifetimeToParentProcess();
 
 #pragma region IUnknown
 	STDMETHODIMP_(ULONG) AddRef() override;

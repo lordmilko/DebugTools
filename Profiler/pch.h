@@ -19,4 +19,11 @@
 #define IfFailGo(EXPR) IfFailGoto(EXPR, ErrExit)
 #define IfFailWin32Go(EXPR) IfFailWin32Goto(EXPR, ErrExit)
 
+inline BOOL GetBoolEnv(LPCSTR name)
+{
+	CHAR buffer[2];
+	DWORD size = GetEnvironmentVariableA(name, buffer, 2);
+	return size == 1 && buffer[0] == '1';
+}
+
 #endif //PCH_H
