@@ -14,6 +14,7 @@ public:
 
 	//Performs a one time registration function for each unique function that is JITted
 	static UINT_PTR __stdcall RecordFunction(FunctionID funcId, void* clientData, BOOL* pbHookFunction);
+	static BOOL ShouldHook();
 
 	HRESULT SetEventMask();
 	HRESULT InstallHooks();

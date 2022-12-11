@@ -67,6 +67,13 @@ HRESULT CCorProfilerCallback::QueryInterface(REFIID riid, void** ppvObject)
 /// <returns>A HRESULT that indicates success or failure. In the event of failure the profiler and its DLL will be unloaded.</returns>
 HRESULT CCorProfilerCallback::Initialize(IUnknown* pICorProfilerInfoUnk)
 {
+#ifdef _DEBUG
+	OutputDebugStringW(L"Waiting for debugger to attach...");
+
+	while (!::IsDebuggerPresent())
+		::Sleep(100);
+#endif
+
 	HRESULT hr = S_OK;
 
 	IfFailGo(pICorProfilerInfoUnk->QueryInterface(&m_pInfo));
@@ -168,21 +175,53 @@ UINT_PTR __stdcall CCorProfilerCallback::RecordFunction(FunctionID funcId, void*
 	//Get the ModuleID
 	IfFailGo(pInfo->GetFunctionInfo2(funcId, NULL, NULL, &moduleId, NULL, 0, NULL, NULL));
 
+	//Get the module name
+	IfFailGo(pInfo->GetModuleInfo(moduleId, NULL, NAME_BUFFER_SIZE, NULL, moduleName, NULL));
+
+	if (!ShouldHook())
+	{
+		*pbHookFunction = FALSE;
+		goto Exit;
+	}
+
 	//Get the method name and mdTypeDef
 	IfFailGo(pMDI->GetMethodProps(methodDef, &typeDef, methodName, NAME_BUFFER_SIZE, NULL, NULL, NULL, NULL, NULL, NULL));
 
 	//Get the type name
 	IfFailGo(pMDI->GetTypeDefProps(typeDef, typeName, NAME_BUFFER_SIZE, NULL, NULL, NULL));
 
-	//Get the module name
-	IfFailGo(pInfo->GetModuleInfo(moduleId, NULL, NAME_BUFFER_SIZE, NULL, moduleName, NULL));
-
 	//Write the event
 	EventWriteMethodInfoEvent(funcId, methodName, typeName, moduleName);
 
 ErrExit:
 	*pbHookFunction = true;
+
+Exit:
 	return funcId;
+}
+
+LPCWSTR blacklist[] = {
+	L"mscorlib.dll",
+	L"System.Core.dll"
+};
+
+BOOL CCorProfilerCallback::ShouldHook()
+{
+	WCHAR* ptr = wcsrchr(moduleName, '\\');
+
+	//Path doesn't contain a slash; assume we should hook it
+	if (!ptr)
+		return TRUE;
+
+	ptr++;
+
+	for (LPCWSTR &item : blacklist)
+	{
+		if (!lstrcmpiW(item, ptr))
+			return FALSE;
+	}
+
+	return TRUE;
 }
 
 HRESULT CCorProfilerCallback::SetEventMask()
