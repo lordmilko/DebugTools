@@ -1,0 +1,3509 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+(gc "C:\Program Files (x86)\Windows Kits\NETFXSDK\4.8\Include\um\CorError.h"|sls "#define"|sls "0x"|sls "EMAKEHR") -replace "#define (.+?) .+0x(.+?)\)",'$1 $2' | foreach {
+$split = $_ -split ' '
+
+@"
+<HResult Name="$($split[0])">
+    <HRValue>0x8013$($split[1])</HRValue>
+</HResult>
+"@
+}|clip
+-->
+<AutoVisualizer xmlns="http://schemas.microsoft.com/vstudio/debugger/natvis/2010">
+	<HResult Name="CEE_E_ENTRYPOINT">
+		<HRValue>0x80131000</HRValue>
+	</HResult>
+	<HResult Name="CEE_E_CVTRES_NOT_FOUND">
+		<HRValue>0x80131001</HRValue>
+	</HResult>
+	<HResult Name="MSEE_E_LOADLIBFAILED">
+		<HRValue>0x80131010</HRValue>
+	</HResult>
+	<HResult Name="MSEE_E_GETPROCFAILED">
+		<HRValue>0x80131011</HRValue>
+	</HResult>
+	<HResult Name="MSEE_E_MULTCOPIESLOADED">
+		<HRValue>0x80131012</HRValue>
+	</HResult>
+	<HResult Name="COR_E_TYPEUNLOADED">
+		<HRValue>0x80131013</HRValue>
+	</HResult>
+	<HResult Name="COR_E_APPDOMAINUNLOADED">
+		<HRValue>0x80131014</HRValue>
+	</HResult>
+	<HResult Name="COR_E_CANNOTUNLOADAPPDOMAIN">
+		<HRValue>0x80131015</HRValue>
+	</HResult>
+	<HResult Name="MSEE_E_ASSEMBLYLOADINPROGRESS">
+		<HRValue>0x80131016</HRValue>
+	</HResult>
+	<HResult Name="MSEE_E_CANNOTCREATEAPPDOMAIN">
+		<HRValue>0x80131017</HRValue>
+	</HResult>
+	<HResult Name="COR_E_ASSEMBLYEXPECTED">
+		<HRValue>0x80131018</HRValue>
+	</HResult>
+	<HResult Name="COR_E_FIXUPSINEXE">
+		<HRValue>0x80131019</HRValue>
+	</HResult>
+	<HResult Name="COR_E_NO_LOADLIBRARY_ALLOWED">
+		<HRValue>0x8013101a</HRValue>
+	</HResult>
+	<HResult Name="COR_E_NEWER_RUNTIME">
+		<HRValue>0x8013101b</HRValue>
+	</HResult>
+	<HResult Name="COR_E_CANNOT_SET_POLICY">
+		<HRValue>0x8013101c</HRValue>
+	</HResult>
+	<HResult Name="COR_E_CANNOT_SPECIFY_EVIDENCE">
+		<HRValue>0x8013101d</HRValue>
+	</HResult>
+	<HResult Name="COR_E_MULTIMODULEASSEMBLIESDIALLOWED">
+		<HRValue>0x8013101e</HRValue>
+	</HResult>
+	<HResult Name="HOST_E_DEADLOCK">
+		<HRValue>0x80131020</HRValue>
+	</HResult>
+	<HResult Name="HOST_E_INTERRUPTED">
+		<HRValue>0x80131021</HRValue>
+	</HResult>
+	<HResult Name="HOST_E_INVALIDOPERATION">
+		<HRValue>0x80131022</HRValue>
+	</HResult>
+	<HResult Name="HOST_E_CLRNOTAVAILABLE">
+		<HRValue>0x80131023</HRValue>
+	</HResult>
+	<HResult Name="HOST_E_TIMEOUT">
+		<HRValue>0x80131024</HRValue>
+	</HResult>
+	<HResult Name="HOST_E_NOT_OWNER">
+		<HRValue>0x80131025</HRValue>
+	</HResult>
+	<HResult Name="HOST_E_ABANDONED">
+		<HRValue>0x80131026</HRValue>
+	</HResult>
+	<HResult Name="HOST_E_EXITPROCESS_THREADABORT">
+		<HRValue>0x80131027</HRValue>
+	</HResult>
+	<HResult Name="HOST_E_EXITPROCESS_ADUNLOAD">
+		<HRValue>0x80131028</HRValue>
+	</HResult>
+	<HResult Name="HOST_E_EXITPROCESS_TIMEOUT">
+		<HRValue>0x80131029</HRValue>
+	</HResult>
+	<HResult Name="HOST_E_EXITPROCESS_OUTOFMEMORY">
+		<HRValue>0x8013102a</HRValue>
+	</HResult>
+	<HResult Name="HOST_E_EXITPROCESS_STACKOVERFLOW">
+		<HRValue>0x8013102b</HRValue>
+	</HResult>
+	<HResult Name="COR_E_MODULE_HASH_CHECK_FAILED">
+		<HRValue>0x80131039</HRValue>
+	</HResult>
+	<HResult Name="FUSION_E_REF_DEF_MISMATCH">
+		<HRValue>0x80131040</HRValue>
+	</HResult>
+	<HResult Name="FUSION_E_INVALID_PRIVATE_ASM_LOCATION">
+		<HRValue>0x80131041</HRValue>
+	</HResult>
+	<HResult Name="FUSION_E_ASM_MODULE_MISSING">
+		<HRValue>0x80131042</HRValue>
+	</HResult>
+	<HResult Name="FUSION_E_UNEXPECTED_MODULE_FOUND">
+		<HRValue>0x80131043</HRValue>
+	</HResult>
+	<HResult Name="FUSION_E_PRIVATE_ASM_DISALLOWED">
+		<HRValue>0x80131044</HRValue>
+	</HResult>
+	<HResult Name="FUSION_E_SIGNATURE_CHECK_FAILED">
+		<HRValue>0x80131045</HRValue>
+	</HResult>
+	<HResult Name="FUSION_E_DATABASE_ERROR">
+		<HRValue>0x80131046</HRValue>
+	</HResult>
+	<HResult Name="FUSION_E_INVALID_NAME">
+		<HRValue>0x80131047</HRValue>
+	</HResult>
+	<HResult Name="FUSION_E_CODE_DOWNLOAD_DISABLED">
+		<HRValue>0x80131048</HRValue>
+	</HResult>
+	<HResult Name="FUSION_E_UNINSTALL_DISALLOWED">
+		<HRValue>0x80131049</HRValue>
+	</HResult>
+	<HResult Name="CLR_E_APP_CONFIG_NOT_ALLOWED_IN_APPX_PROCESS">
+		<HRValue>0x8013104a</HRValue>
+	</HResult>
+	<HResult Name="FUSION_E_HOST_GAC_ASM_MISMATCH">
+		<HRValue>0x80131050</HRValue>
+	</HResult>
+	<HResult Name="FUSION_E_LOADFROM_BLOCKED">
+		<HRValue>0x80131051</HRValue>
+	</HResult>
+	<HResult Name="FUSION_E_CACHEFILE_FAILED">
+		<HRValue>0x80131052</HRValue>
+	</HResult>
+	<HResult Name="FUSION_E_APP_DOMAIN_LOCKED">
+		<HRValue>0x80131053</HRValue>
+	</HResult>
+	<HResult Name="FUSION_E_CONFIGURATION_ERROR">
+		<HRValue>0x80131054</HRValue>
+	</HResult>
+	<HResult Name="FUSION_E_MANIFEST_PARSE_ERROR">
+		<HRValue>0x80131055</HRValue>
+	</HResult>
+	<HResult Name="FUSION_E_INVALID_ASSEMBLY_REFERENCE">
+		<HRValue>0x80131056</HRValue>
+	</HResult>
+	<HResult Name="COR_E_ASSEMBLY_NOT_EXPECTED">
+		<HRValue>0x80131057</HRValue>
+	</HResult>
+	<HResult Name="COR_E_LOADING_REFERENCE_ASSEMBLY">
+		<HRValue>0x80131058</HRValue>
+	</HResult>
+	<HResult Name="COR_E_NI_AND_RUNTIME_VERSION_MISMATCH">
+		<HRValue>0x80131059</HRValue>
+	</HResult>
+	<HResult Name="COR_E_LOADING_WINMD_REFERENCE_ASSEMBLY">
+		<HRValue>0x80131069</HRValue>
+	</HResult>
+	<HResult Name="CLDB_E_FILE_BADREAD">
+		<HRValue>0x80131100</HRValue>
+	</HResult>
+	<HResult Name="CLDB_E_FILE_BADWRITE">
+		<HRValue>0x80131101</HRValue>
+	</HResult>
+	<HResult Name="CLDB_E_FILE_READONLY">
+		<HRValue>0x80131103</HRValue>
+	</HResult>
+	<HResult Name="CLDB_E_NAME_ERROR">
+		<HRValue>0x80131105</HRValue>
+	</HResult>
+	<HResult Name="CLDB_E_TRUNCATION">
+		<HRValue>0x80131106</HRValue>
+	</HResult>
+	<HResult Name="CLDB_E_FILE_OLDVER">
+		<HRValue>0x80131107</HRValue>
+	</HResult>
+	<HResult Name="CLDB_E_RELOCATED">
+		<HRValue>0x80131108</HRValue>
+	</HResult>
+	<HResult Name="CLDB_E_SMDUPLICATE">
+		<HRValue>0x8013110a</HRValue>
+	</HResult>
+	<HResult Name="CLDB_E_NO_DATA">
+		<HRValue>0x8013110b</HRValue>
+	</HResult>
+	<HResult Name="CLDB_E_READONLY">
+		<HRValue>0x8013110c</HRValue>
+	</HResult>
+	<HResult Name="CLDB_E_INCOMPATIBLE">
+		<HRValue>0x8013110d</HRValue>
+	</HResult>
+	<HResult Name="CLDB_E_FILE_CORRUPT">
+		<HRValue>0x8013110e</HRValue>
+	</HResult>
+	<HResult Name="CLDB_E_SCHEMA_VERNOTFOUND">
+		<HRValue>0x8013110f</HRValue>
+	</HResult>
+	<HResult Name="CLDB_E_BADUPDATEMODE">
+		<HRValue>0x80131110</HRValue>
+	</HResult>
+	<HResult Name="CLDB_E_INDEX_NONULLKEYS">
+		<HRValue>0x80131121</HRValue>
+	</HResult>
+	<HResult Name="CLDB_E_INDEX_DUPLICATE">
+		<HRValue>0x80131122</HRValue>
+	</HResult>
+	<HResult Name="CLDB_E_INDEX_BADTYPE">
+		<HRValue>0x80131123</HRValue>
+	</HResult>
+	<HResult Name="CLDB_E_INDEX_NOTFOUND">
+		<HRValue>0x80131124</HRValue>
+	</HResult>
+	<HResult Name="CLDB_E_RECORD_NOTFOUND">
+		<HRValue>0x80131130</HRValue>
+	</HResult>
+	<HResult Name="CLDB_E_RECORD_OVERFLOW">
+		<HRValue>0x80131131</HRValue>
+	</HResult>
+	<HResult Name="CLDB_E_RECORD_DUPLICATE">
+		<HRValue>0x80131132</HRValue>
+	</HResult>
+	<HResult Name="CLDB_E_RECORD_PKREQUIRED">
+		<HRValue>0x80131133</HRValue>
+	</HResult>
+	<HResult Name="CLDB_E_RECORD_DELETED">
+		<HRValue>0x80131134</HRValue>
+	</HResult>
+	<HResult Name="CLDB_E_RECORD_OUTOFORDER">
+		<HRValue>0x80131135</HRValue>
+	</HResult>
+	<HResult Name="CLDB_E_COLUMN_OVERFLOW">
+		<HRValue>0x80131140</HRValue>
+	</HResult>
+	<HResult Name="CLDB_E_COLUMN_READONLY">
+		<HRValue>0x80131141</HRValue>
+	</HResult>
+	<HResult Name="CLDB_E_COLUMN_SPECIALCOL">
+		<HRValue>0x80131142</HRValue>
+	</HResult>
+	<HResult Name="CLDB_E_COLUMN_PKNONULLS">
+		<HRValue>0x80131143</HRValue>
+	</HResult>
+	<HResult Name="CLDB_E_TABLE_CANTDROP">
+		<HRValue>0x80131150</HRValue>
+	</HResult>
+	<HResult Name="CLDB_E_OBJECT_NOTFOUND">
+		<HRValue>0x80131151</HRValue>
+	</HResult>
+	<HResult Name="CLDB_E_OBJECT_COLNOTFOUND">
+		<HRValue>0x80131152</HRValue>
+	</HResult>
+	<HResult Name="CLDB_E_VECTOR_BADINDEX">
+		<HRValue>0x80131153</HRValue>
+	</HResult>
+	<HResult Name="CLDB_E_TOO_BIG">
+		<HRValue>0x80131154</HRValue>
+	</HResult>
+	<HResult Name="META_E_INVALID_TOKEN_TYPE">
+		<HRValue>0x8013115f</HRValue>
+	</HResult>
+	<HResult Name="TLBX_E_INVALID_TYPEINFO">
+		<HRValue>0x80131160</HRValue>
+	</HResult>
+	<HResult Name="TLBX_E_INVALID_TYPEINFO_UNNAMED">
+		<HRValue>0x80131161</HRValue>
+	</HResult>
+	<HResult Name="TLBX_E_CTX_NESTED">
+		<HRValue>0x80131162</HRValue>
+	</HResult>
+	<HResult Name="TLBX_E_ERROR_MESSAGE">
+		<HRValue>0x80131163</HRValue>
+	</HResult>
+	<HResult Name="TLBX_E_CANT_SAVE">
+		<HRValue>0x80131164</HRValue>
+	</HResult>
+	<HResult Name="TLBX_W_LIBNOTREGISTERED">
+		<HRValue>0x80131165</HRValue>
+	</HResult>
+	<HResult Name="TLBX_E_CANTLOADLIBRARY">
+		<HRValue>0x80131166</HRValue>
+	</HResult>
+	<HResult Name="TLBX_E_BAD_VT_TYPE">
+		<HRValue>0x80131167</HRValue>
+	</HResult>
+	<HResult Name="TLBX_E_NO_MSCOREE_TLB">
+		<HRValue>0x80131168</HRValue>
+	</HResult>
+	<HResult Name="TLBX_E_BAD_MSCOREE_TLB">
+		<HRValue>0x80131169</HRValue>
+	</HResult>
+	<HResult Name="TLBX_E_TLB_EXCEPTION">
+		<HRValue>0x8013116a</HRValue>
+	</HResult>
+	<HResult Name="TLBX_E_MULTIPLE_LCIDS">
+		<HRValue>0x8013116b</HRValue>
+	</HResult>
+	<HResult Name="TLBX_E_AMBIGUOUS_RETURN">
+		<HRValue>0x8013116d</HRValue>
+	</HResult>
+	<HResult Name="TLBX_E_DUPLICATE_TYPE_NAME">
+		<HRValue>0x8013116e</HRValue>
+	</HResult>
+	<HResult Name="TLBX_I_NONSEQUENTIALSTRUCT">
+		<HRValue>0x80131172</HRValue>
+	</HResult>
+	<HResult Name="TLBX_I_RESOLVEREFFAILED">
+		<HRValue>0x80131174</HRValue>
+	</HResult>
+	<HResult Name="TLBX_E_ASANY">
+		<HRValue>0x80131175</HRValue>
+	</HResult>
+	<HResult Name="TLBX_E_INVALIDLCIDPARAM">
+		<HRValue>0x80131176</HRValue>
+	</HResult>
+	<HResult Name="TLBX_E_LCIDONDISPONLYITF">
+		<HRValue>0x80131177</HRValue>
+	</HResult>
+	<HResult Name="TLBX_E_NONPUBLIC_FIELD">
+		<HRValue>0x80131178</HRValue>
+	</HResult>
+	<HResult Name="TLBX_E_BAD_NAMES">
+		<HRValue>0x8013117b</HRValue>
+	</HResult>
+	<HResult Name="TLBX_E_GENERICINST_SIGNATURE">
+		<HRValue>0x8013117d</HRValue>
+	</HResult>
+	<HResult Name="TLBX_E_GENERICPAR_SIGNATURE">
+		<HRValue>0x8013117e</HRValue>
+	</HResult>
+	<HResult Name="META_E_DUPLICATE">
+		<HRValue>0x80131180</HRValue>
+	</HResult>
+	<HResult Name="META_E_GUID_REQUIRED">
+		<HRValue>0x80131181</HRValue>
+	</HResult>
+	<HResult Name="META_E_TYPEDEF_MISMATCH">
+		<HRValue>0x80131182</HRValue>
+	</HResult>
+	<HResult Name="META_E_MERGE_COLLISION">
+		<HRValue>0x80131183</HRValue>
+	</HResult>
+	<HResult Name="TLBX_E_NO_SAFEHANDLE_ARRAYS">
+		<HRValue>0x80131186</HRValue>
+	</HResult>
+	<HResult Name="META_E_METHD_NOT_FOUND">
+		<HRValue>0x80131187</HRValue>
+	</HResult>
+	<HResult Name="META_E_FIELD_NOT_FOUND">
+		<HRValue>0x80131188</HRValue>
+	</HResult>
+	<HResult Name="META_E_PARAM_MISMATCH">
+		<HRValue>0x80131189</HRValue>
+	</HResult>
+	<HResult Name="META_E_BADMETADATA">
+		<HRValue>0x8013118a</HRValue>
+	</HResult>
+	<HResult Name="META_E_INTFCEIMPL_NOT_FOUND">
+		<HRValue>0x8013118b</HRValue>
+	</HResult>
+	<HResult Name="TLBX_E_NO_CRITICALHANDLE_ARRAYS">
+		<HRValue>0x8013118c</HRValue>
+	</HResult>
+	<HResult Name="META_E_CLASS_LAYOUT_INCONSISTENT">
+		<HRValue>0x8013118d</HRValue>
+	</HResult>
+	<HResult Name="META_E_FIELD_MARSHAL_NOT_FOUND">
+		<HRValue>0x8013118e</HRValue>
+	</HResult>
+	<HResult Name="META_E_METHODSEM_NOT_FOUND">
+		<HRValue>0x8013118f</HRValue>
+	</HResult>
+	<HResult Name="META_E_EVENT_NOT_FOUND">
+		<HRValue>0x80131190</HRValue>
+	</HResult>
+	<HResult Name="META_E_PROP_NOT_FOUND">
+		<HRValue>0x80131191</HRValue>
+	</HResult>
+	<HResult Name="META_E_BAD_SIGNATURE">
+		<HRValue>0x80131192</HRValue>
+	</HResult>
+	<HResult Name="META_E_BAD_INPUT_PARAMETER">
+		<HRValue>0x80131193</HRValue>
+	</HResult>
+	<HResult Name="META_E_METHDIMPL_INCONSISTENT">
+		<HRValue>0x80131194</HRValue>
+	</HResult>
+	<HResult Name="META_E_MD_INCONSISTENCY">
+		<HRValue>0x80131195</HRValue>
+	</HResult>
+	<HResult Name="META_E_CANNOTRESOLVETYPEREF">
+		<HRValue>0x80131196</HRValue>
+	</HResult>
+	<HResult Name="META_E_STRINGSPACE_FULL">
+		<HRValue>0x80131198</HRValue>
+	</HResult>
+	<HResult Name="META_E_UNEXPECTED_REMAP">
+		<HRValue>0x80131199</HRValue>
+	</HResult>
+	<HResult Name="META_E_HAS_UNMARKALL">
+		<HRValue>0x8013119a</HRValue>
+	</HResult>
+	<HResult Name="META_E_MUST_CALL_UNMARKALL">
+		<HRValue>0x8013119b</HRValue>
+	</HResult>
+	<HResult Name="META_E_GENERICPARAM_INCONSISTENT">
+		<HRValue>0x8013119c</HRValue>
+	</HResult>
+	<HResult Name="META_E_EVENT_COUNTS">
+		<HRValue>0x8013119d</HRValue>
+	</HResult>
+	<HResult Name="META_E_PROPERTY_COUNTS">
+		<HRValue>0x8013119e</HRValue>
+	</HResult>
+	<HResult Name="META_E_TYPEDEF_MISSING">
+		<HRValue>0x8013119f</HRValue>
+	</HResult>
+	<HResult Name="TLBX_E_CANT_LOAD_MODULE">
+		<HRValue>0x801311a0</HRValue>
+	</HResult>
+	<HResult Name="TLBX_E_CANT_LOAD_CLASS">
+		<HRValue>0x801311a1</HRValue>
+	</HResult>
+	<HResult Name="TLBX_E_NULL_MODULE">
+		<HRValue>0x801311a2</HRValue>
+	</HResult>
+	<HResult Name="TLBX_E_NO_CLSID_KEY">
+		<HRValue>0x801311a3</HRValue>
+	</HResult>
+	<HResult Name="TLBX_E_CIRCULAR_EXPORT">
+		<HRValue>0x801311a4</HRValue>
+	</HResult>
+	<HResult Name="TLBX_E_CIRCULAR_IMPORT">
+		<HRValue>0x801311a5</HRValue>
+	</HResult>
+	<HResult Name="TLBX_E_BAD_NATIVETYPE">
+		<HRValue>0x801311a6</HRValue>
+	</HResult>
+	<HResult Name="TLBX_E_BAD_VTABLE">
+		<HRValue>0x801311a7</HRValue>
+	</HResult>
+	<HResult Name="TLBX_E_CRM_NON_STATIC">
+		<HRValue>0x801311a8</HRValue>
+	</HResult>
+	<HResult Name="TLBX_E_CRM_INVALID_SIG">
+		<HRValue>0x801311a9</HRValue>
+	</HResult>
+	<HResult Name="TLBX_E_CLASS_LOAD_EXCEPTION">
+		<HRValue>0x801311aa</HRValue>
+	</HResult>
+	<HResult Name="TLBX_E_UNKNOWN_SIGNATURE">
+		<HRValue>0x801311ab</HRValue>
+	</HResult>
+	<HResult Name="TLBX_E_REFERENCED_TYPELIB">
+		<HRValue>0x801311ac</HRValue>
+	</HResult>
+	<HResult Name="TLBX_E_INVALID_NAMESPACE">
+		<HRValue>0x801311ad</HRValue>
+	</HResult>
+	<HResult Name="TLBX_E_LAYOUT_ERROR">
+		<HRValue>0x801311ae</HRValue>
+	</HResult>
+	<HResult Name="TLBX_E_NOTIUNKNOWN">
+		<HRValue>0x801311af</HRValue>
+	</HResult>
+	<HResult Name="TLBX_E_NONVISIBLEVALUECLASS">
+		<HRValue>0x801311b0</HRValue>
+	</HResult>
+	<HResult Name="TLBX_E_LPTSTR_NOT_ALLOWED">
+		<HRValue>0x801311b1</HRValue>
+	</HResult>
+	<HResult Name="TLBX_E_AUTO_CS_NOT_ALLOWED">
+		<HRValue>0x801311b2</HRValue>
+	</HResult>
+	<HResult Name="TLBX_E_ENUM_VALUE_INVALID">
+		<HRValue>0x801311b5</HRValue>
+	</HResult>
+	<HResult Name="TLBX_E_DUPLICATE_IID">
+		<HRValue>0x801311b6</HRValue>
+	</HResult>
+	<HResult Name="TLBX_E_NO_NESTED_ARRAYS">
+		<HRValue>0x801311b7</HRValue>
+	</HResult>
+	<HResult Name="TLBX_E_PARAM_ERROR_NAMED">
+		<HRValue>0x801311b8</HRValue>
+	</HResult>
+	<HResult Name="TLBX_E_PARAM_ERROR_UNNAMED">
+		<HRValue>0x801311b9</HRValue>
+	</HResult>
+	<HResult Name="TLBX_E_AGNOST_SIGNATURE">
+		<HRValue>0x801311ba</HRValue>
+	</HResult>
+	<HResult Name="TLBX_E_CONVERT_FAIL">
+		<HRValue>0x801311bb</HRValue>
+	</HResult>
+	<HResult Name="TLBX_W_DUAL_NOT_DISPATCH">
+		<HRValue>0x801311bc</HRValue>
+	</HResult>
+	<HResult Name="TLBX_E_BAD_SIGNATURE">
+		<HRValue>0x801311bd</HRValue>
+	</HResult>
+	<HResult Name="TLBX_E_ARRAY_NEEDS_NT_FIXED">
+		<HRValue>0x801311be</HRValue>
+	</HResult>
+	<HResult Name="TLBX_E_CLASS_NEEDS_NT_INTF">
+		<HRValue>0x801311bf</HRValue>
+	</HResult>
+	<HResult Name="META_E_CA_INVALID_TARGET">
+		<HRValue>0x801311c0</HRValue>
+	</HResult>
+	<HResult Name="META_E_CA_INVALID_VALUE">
+		<HRValue>0x801311c1</HRValue>
+	</HResult>
+	<HResult Name="META_E_CA_INVALID_BLOB">
+		<HRValue>0x801311c2</HRValue>
+	</HResult>
+	<HResult Name="META_E_CA_REPEATED_ARG">
+		<HRValue>0x801311c3</HRValue>
+	</HResult>
+	<HResult Name="META_E_CA_UNKNOWN_ARGUMENT">
+		<HRValue>0x801311c4</HRValue>
+	</HResult>
+	<HResult Name="META_E_CA_VARIANT_NYI">
+		<HRValue>0x801311c5</HRValue>
+	</HResult>
+	<HResult Name="META_E_CA_ARRAY_NYI">
+		<HRValue>0x801311c6</HRValue>
+	</HResult>
+	<HResult Name="META_E_CA_UNEXPECTED_TYPE">
+		<HRValue>0x801311c7</HRValue>
+	</HResult>
+	<HResult Name="META_E_CA_INVALID_ARGTYPE">
+		<HRValue>0x801311c8</HRValue>
+	</HResult>
+	<HResult Name="META_E_CA_INVALID_ARG_FOR_TYPE">
+		<HRValue>0x801311c9</HRValue>
+	</HResult>
+	<HResult Name="META_E_CA_INVALID_UUID">
+		<HRValue>0x801311ca</HRValue>
+	</HResult>
+	<HResult Name="META_E_CA_INVALID_MARSHALAS_FIELDS">
+		<HRValue>0x801311cb</HRValue>
+	</HResult>
+	<HResult Name="META_E_CA_NT_FIELDONLY">
+		<HRValue>0x801311cc</HRValue>
+	</HResult>
+	<HResult Name="META_E_CA_NEGATIVE_PARAMINDEX">
+		<HRValue>0x801311cd</HRValue>
+	</HResult>
+	<HResult Name="META_E_CA_NEGATIVE_MULTIPLIER">
+		<HRValue>0x801311ce</HRValue>
+	</HResult>
+	<HResult Name="META_E_CA_NEGATIVE_CONSTSIZE">
+		<HRValue>0x801311cf</HRValue>
+	</HResult>
+	<HResult Name="META_E_CA_FIXEDSTR_SIZE_REQUIRED">
+		<HRValue>0x801311d0</HRValue>
+	</HResult>
+	<HResult Name="META_E_CA_CUSTMARSH_TYPE_REQUIRED">
+		<HRValue>0x801311d1</HRValue>
+	</HResult>
+	<HResult Name="META_E_CA_FILENAME_REQUIRED">
+		<HRValue>0x801311d2</HRValue>
+	</HResult>
+	<HResult Name="TLBX_W_NO_PROPS_IN_EVENTS">
+		<HRValue>0x801311d3</HRValue>
+	</HResult>
+	<HResult Name="META_E_NOT_IN_ENC_MODE">
+		<HRValue>0x801311d4</HRValue>
+	</HResult>
+	<HResult Name="META_E_METHOD_COUNTS">
+		<HRValue>0x801311d6</HRValue>
+	</HResult>
+	<HResult Name="META_E_FIELD_COUNTS">
+		<HRValue>0x801311d7</HRValue>
+	</HResult>
+	<HResult Name="META_E_PARAM_COUNTS">
+		<HRValue>0x801311d8</HRValue>
+	</HResult>
+	<HResult Name="TLBX_E_TYPED_REF">
+		<HRValue>0x801311da</HRValue>
+	</HResult>
+	<HResult Name="TLBX_E_BITNESS_MISMATCH">
+		<HRValue>0x801311e1</HRValue>
+	</HResult>
+	<HResult Name="TLBX_E_EVENT_WITH_NEWENUM">
+		<HRValue>0x801311e2</HRValue>
+	</HResult>
+	<HResult Name="TLBX_E_PROPGET_WITHOUT_RETURN">
+		<HRValue>0x801311e3</HRValue>
+	</HResult>
+	<HResult Name="META_E_MISMATCHED_VISIBLITY">
+		<HRValue>0x801311e4</HRValue>
+	</HResult>
+	<HResult Name="META_E_CA_BAD_FRIENDS_ARGS">
+		<HRValue>0x801311e5</HRValue>
+	</HResult>
+	<HResult Name="META_E_CA_FRIENDS_SN_REQUIRED">
+		<HRValue>0x801311e6</HRValue>
+	</HResult>
+	<HResult Name="VLDTR_E_RID_OUTOFRANGE">
+		<HRValue>0x80131203</HRValue>
+	</HResult>
+	<HResult Name="VLDTR_E_CDTKN_OUTOFRANGE">
+		<HRValue>0x80131204</HRValue>
+	</HResult>
+	<HResult Name="VLDTR_E_CDRID_OUTOFRANGE">
+		<HRValue>0x80131205</HRValue>
+	</HResult>
+	<HResult Name="VLDTR_E_STRING_INVALID">
+		<HRValue>0x80131206</HRValue>
+	</HResult>
+	<HResult Name="VLDTR_E_GUID_INVALID">
+		<HRValue>0x80131207</HRValue>
+	</HResult>
+	<HResult Name="VLDTR_E_BLOB_INVALID">
+		<HRValue>0x80131208</HRValue>
+	</HResult>
+	<HResult Name="VLDTR_E_MOD_MULTI">
+		<HRValue>0x80131209</HRValue>
+	</HResult>
+	<HResult Name="VLDTR_E_MOD_NULLMVID">
+		<HRValue>0x8013120a</HRValue>
+	</HResult>
+	<HResult Name="VLDTR_E_TR_NAMENULL">
+		<HRValue>0x8013120b</HRValue>
+	</HResult>
+	<HResult Name="VLDTR_E_TR_DUP">
+		<HRValue>0x8013120c</HRValue>
+	</HResult>
+	<HResult Name="VLDTR_E_TD_NAMENULL">
+		<HRValue>0x8013120d</HRValue>
+	</HResult>
+	<HResult Name="VLDTR_E_TD_DUPNAME">
+		<HRValue>0x8013120e</HRValue>
+	</HResult>
+	<HResult Name="VLDTR_E_TD_DUPGUID">
+		<HRValue>0x8013120f</HRValue>
+	</HResult>
+	<HResult Name="VLDTR_E_TD_NOTIFACEOBJEXTNULL">
+		<HRValue>0x80131210</HRValue>
+	</HResult>
+	<HResult Name="VLDTR_E_TD_OBJEXTENDSNONNULL">
+		<HRValue>0x80131211</HRValue>
+	</HResult>
+	<HResult Name="VLDTR_E_TD_EXTENDSSEALED">
+		<HRValue>0x80131212</HRValue>
+	</HResult>
+	<HResult Name="VLDTR_E_TD_DLTNORTSPCL">
+		<HRValue>0x80131213</HRValue>
+	</HResult>
+	<HResult Name="VLDTR_E_TD_RTSPCLNOTDLT">
+		<HRValue>0x80131214</HRValue>
+	</HResult>
+	<HResult Name="VLDTR_E_MI_DECLPRIV">
+		<HRValue>0x80131215</HRValue>
+	</HResult>
+	<HResult Name="VLDTR_E_AS_BADNAME">
+		<HRValue>0x80131216</HRValue>
+	</HResult>
+	<HResult Name="VLDTR_E_FILE_SYSNAME">
+		<HRValue>0x80131217</HRValue>
+	</HResult>
+	<HResult Name="VLDTR_E_MI_BODYSTATIC">
+		<HRValue>0x80131218</HRValue>
+	</HResult>
+	<HResult Name="VLDTR_E_TD_IFACENOTABS">
+		<HRValue>0x80131219</HRValue>
+	</HResult>
+	<HResult Name="VLDTR_E_TD_IFACEPARNOTNIL">
+		<HRValue>0x8013121a</HRValue>
+	</HResult>
+	<HResult Name="VLDTR_E_TD_IFACEGUIDNULL">
+		<HRValue>0x8013121b</HRValue>
+	</HResult>
+	<HResult Name="VLDTR_E_MI_DECLFINAL">
+		<HRValue>0x8013121c</HRValue>
+	</HResult>
+	<HResult Name="VLDTR_E_TD_VTNOTSEAL">
+		<HRValue>0x8013121d</HRValue>
+	</HResult>
+	<HResult Name="VLDTR_E_PD_BADFLAGS">
+		<HRValue>0x8013121e</HRValue>
+	</HResult>
+	<HResult Name="VLDTR_E_IFACE_DUP">
+		<HRValue>0x8013121f</HRValue>
+	</HResult>
+	<HResult Name="VLDTR_E_MR_NAMENULL">
+		<HRValue>0x80131220</HRValue>
+	</HResult>
+	<HResult Name="VLDTR_E_MR_VTBLNAME">
+		<HRValue>0x80131221</HRValue>
+	</HResult>
+	<HResult Name="VLDTR_E_MR_DELNAME">
+		<HRValue>0x80131222</HRValue>
+	</HResult>
+	<HResult Name="VLDTR_E_MR_PARNIL">
+		<HRValue>0x80131223</HRValue>
+	</HResult>
+	<HResult Name="VLDTR_E_MR_BADCALLINGCONV">
+		<HRValue>0x80131224</HRValue>
+	</HResult>
+	<HResult Name="VLDTR_E_MR_NOTVARARG">
+		<HRValue>0x80131225</HRValue>
+	</HResult>
+	<HResult Name="VLDTR_E_MR_NAMEDIFF">
+		<HRValue>0x80131226</HRValue>
+	</HResult>
+	<HResult Name="VLDTR_E_MR_SIGDIFF">
+		<HRValue>0x80131227</HRValue>
+	</HResult>
+	<HResult Name="VLDTR_E_MR_DUP">
+		<HRValue>0x80131228</HRValue>
+	</HResult>
+	<HResult Name="VLDTR_E_CL_TDAUTO">
+		<HRValue>0x80131229</HRValue>
+	</HResult>
+	<HResult Name="VLDTR_E_CL_BADPCKSZ">
+		<HRValue>0x8013122a</HRValue>
+	</HResult>
+	<HResult Name="VLDTR_E_CL_DUP">
+		<HRValue>0x8013122b</HRValue>
+	</HResult>
+	<HResult Name="VLDTR_E_FL_BADOFFSET">
+		<HRValue>0x8013122c</HRValue>
+	</HResult>
+	<HResult Name="VLDTR_E_FL_TDNIL">
+		<HRValue>0x8013122d</HRValue>
+	</HResult>
+	<HResult Name="VLDTR_E_FL_NOCL">
+		<HRValue>0x8013122e</HRValue>
+	</HResult>
+	<HResult Name="VLDTR_E_FL_TDNOTEXPLCT">
+		<HRValue>0x8013122f</HRValue>
+	</HResult>
+	<HResult Name="VLDTR_E_FL_FLDSTATIC">
+		<HRValue>0x80131230</HRValue>
+	</HResult>
+	<HResult Name="VLDTR_E_FL_DUP">
+		<HRValue>0x80131231</HRValue>
+	</HResult>
+	<HResult Name="VLDTR_E_MODREF_NAMENULL">
+		<HRValue>0x80131232</HRValue>
+	</HResult>
+	<HResult Name="VLDTR_E_MODREF_DUP">
+		<HRValue>0x80131233</HRValue>
+	</HResult>
+	<HResult Name="VLDTR_E_TR_BADSCOPE">
+		<HRValue>0x80131234</HRValue>
+	</HResult>
+	<HResult Name="VLDTR_E_TD_NESTEDNOENCL">
+		<HRValue>0x80131235</HRValue>
+	</HResult>
+	<HResult Name="VLDTR_E_TD_EXTTRRES">
+		<HRValue>0x80131236</HRValue>
+	</HResult>
+	<HResult Name="VLDTR_E_SIGNULL">
+		<HRValue>0x80131237</HRValue>
+	</HResult>
+	<HResult Name="VLDTR_E_SIGNODATA">
+		<HRValue>0x80131238</HRValue>
+	</HResult>
+	<HResult Name="VLDTR_E_MD_BADCALLINGCONV">
+		<HRValue>0x80131239</HRValue>
+	</HResult>
+	<HResult Name="VLDTR_E_MD_THISSTATIC">
+		<HRValue>0x8013123a</HRValue>
+	</HResult>
+	<HResult Name="VLDTR_E_MD_NOTTHISNOTSTATIC">
+		<HRValue>0x8013123b</HRValue>
+	</HResult>
+	<HResult Name="VLDTR_E_MD_NOARGCNT">
+		<HRValue>0x8013123c</HRValue>
+	</HResult>
+	<HResult Name="VLDTR_E_SIG_MISSELTYPE">
+		<HRValue>0x8013123d</HRValue>
+	</HResult>
+	<HResult Name="VLDTR_E_SIG_MISSTKN">
+		<HRValue>0x8013123e</HRValue>
+	</HResult>
+	<HResult Name="VLDTR_E_SIG_TKNBAD">
+		<HRValue>0x8013123f</HRValue>
+	</HResult>
+	<HResult Name="VLDTR_E_SIG_MISSFPTR">
+		<HRValue>0x80131240</HRValue>
+	</HResult>
+	<HResult Name="VLDTR_E_SIG_MISSFPTRARGCNT">
+		<HRValue>0x80131241</HRValue>
+	</HResult>
+	<HResult Name="VLDTR_E_SIG_MISSRANK">
+		<HRValue>0x80131242</HRValue>
+	</HResult>
+	<HResult Name="VLDTR_E_SIG_MISSNSIZE">
+		<HRValue>0x80131243</HRValue>
+	</HResult>
+	<HResult Name="VLDTR_E_SIG_MISSSIZE">
+		<HRValue>0x80131244</HRValue>
+	</HResult>
+	<HResult Name="VLDTR_E_SIG_MISSNLBND">
+		<HRValue>0x80131245</HRValue>
+	</HResult>
+	<HResult Name="VLDTR_E_SIG_MISSLBND">
+		<HRValue>0x80131246</HRValue>
+	</HResult>
+	<HResult Name="VLDTR_E_SIG_BADELTYPE">
+		<HRValue>0x80131247</HRValue>
+	</HResult>
+	<HResult Name="VLDTR_E_SIG_MISSVASIZE">
+		<HRValue>0x80131248</HRValue>
+	</HResult>
+	<HResult Name="VLDTR_E_FD_BADCALLINGCONV">
+		<HRValue>0x80131249</HRValue>
+	</HResult>
+	<HResult Name="VLDTR_E_MD_NAMENULL">
+		<HRValue>0x8013124a</HRValue>
+	</HResult>
+	<HResult Name="VLDTR_E_MD_PARNIL">
+		<HRValue>0x8013124b</HRValue>
+	</HResult>
+	<HResult Name="VLDTR_E_MD_DUP">
+		<HRValue>0x8013124c</HRValue>
+	</HResult>
+	<HResult Name="VLDTR_E_FD_NAMENULL">
+		<HRValue>0x8013124d</HRValue>
+	</HResult>
+	<HResult Name="VLDTR_E_FD_PARNIL">
+		<HRValue>0x8013124e</HRValue>
+	</HResult>
+	<HResult Name="VLDTR_E_FD_DUP">
+		<HRValue>0x8013124f</HRValue>
+	</HResult>
+	<HResult Name="VLDTR_E_AS_MULTI">
+		<HRValue>0x80131250</HRValue>
+	</HResult>
+	<HResult Name="VLDTR_E_AS_NAMENULL">
+		<HRValue>0x80131251</HRValue>
+	</HResult>
+	<HResult Name="VLDTR_E_SIG_TOKTYPEMISMATCH">
+		<HRValue>0x80131252</HRValue>
+	</HResult>
+	<HResult Name="VLDTR_E_CL_TDINTF">
+		<HRValue>0x80131253</HRValue>
+	</HResult>
+	<HResult Name="VLDTR_E_ASOS_OSPLTFRMIDINVAL">
+		<HRValue>0x80131254</HRValue>
+	</HResult>
+	<HResult Name="VLDTR_E_AR_NAMENULL">
+		<HRValue>0x80131255</HRValue>
+	</HResult>
+	<HResult Name="VLDTR_E_TD_ENCLNOTNESTED">
+		<HRValue>0x80131256</HRValue>
+	</HResult>
+	<HResult Name="VLDTR_E_AROS_OSPLTFRMIDINVAL">
+		<HRValue>0x80131257</HRValue>
+	</HResult>
+	<HResult Name="VLDTR_E_FILE_NAMENULL">
+		<HRValue>0x80131258</HRValue>
+	</HResult>
+	<HResult Name="VLDTR_E_CT_NAMENULL">
+		<HRValue>0x80131259</HRValue>
+	</HResult>
+	<HResult Name="VLDTR_E_TD_EXTENDSCHILD">
+		<HRValue>0x8013125a</HRValue>
+	</HResult>
+	<HResult Name="VLDTR_E_MAR_NAMENULL">
+		<HRValue>0x8013125b</HRValue>
+	</HResult>
+	<HResult Name="VLDTR_E_FILE_DUP">
+		<HRValue>0x8013125c</HRValue>
+	</HResult>
+	<HResult Name="VLDTR_E_FILE_NAMEFULLQLFD">
+		<HRValue>0x8013125d</HRValue>
+	</HResult>
+	<HResult Name="VLDTR_E_CT_DUP">
+		<HRValue>0x8013125e</HRValue>
+	</HResult>
+	<HResult Name="VLDTR_E_MAR_DUP">
+		<HRValue>0x8013125f</HRValue>
+	</HResult>
+	<HResult Name="VLDTR_E_MAR_NOTPUBPRIV">
+		<HRValue>0x80131260</HRValue>
+	</HResult>
+	<HResult Name="VLDTR_E_TD_ENUMNOVALUE">
+		<HRValue>0x80131261</HRValue>
+	</HResult>
+	<HResult Name="VLDTR_E_TD_ENUMVALSTATIC">
+		<HRValue>0x80131262</HRValue>
+	</HResult>
+	<HResult Name="VLDTR_E_TD_ENUMVALNOTSN">
+		<HRValue>0x80131263</HRValue>
+	</HResult>
+	<HResult Name="VLDTR_E_TD_ENUMFLDNOTST">
+		<HRValue>0x80131264</HRValue>
+	</HResult>
+	<HResult Name="VLDTR_E_TD_ENUMFLDNOTLIT">
+		<HRValue>0x80131265</HRValue>
+	</HResult>
+	<HResult Name="VLDTR_E_TD_ENUMNOLITFLDS">
+		<HRValue>0x80131266</HRValue>
+	</HResult>
+	<HResult Name="VLDTR_E_TD_ENUMFLDSIGMISMATCH">
+		<HRValue>0x80131267</HRValue>
+	</HResult>
+	<HResult Name="VLDTR_E_TD_ENUMVALNOT1ST">
+		<HRValue>0x80131268</HRValue>
+	</HResult>
+	<HResult Name="VLDTR_E_FD_NOTVALUERTSN">
+		<HRValue>0x80131269</HRValue>
+	</HResult>
+	<HResult Name="VLDTR_E_FD_VALUEPARNOTENUM">
+		<HRValue>0x8013126a</HRValue>
+	</HResult>
+	<HResult Name="VLDTR_E_FD_INSTINIFACE">
+		<HRValue>0x8013126b</HRValue>
+	</HResult>
+	<HResult Name="VLDTR_E_FD_NOTPUBINIFACE">
+		<HRValue>0x8013126c</HRValue>
+	</HResult>
+	<HResult Name="VLDTR_E_FMD_GLOBALNOTPUBPRIVSC">
+		<HRValue>0x8013126d</HRValue>
+	</HResult>
+	<HResult Name="VLDTR_E_FMD_GLOBALNOTSTATIC">
+		<HRValue>0x8013126e</HRValue>
+	</HResult>
+	<HResult Name="VLDTR_E_FD_GLOBALNORVA">
+		<HRValue>0x8013126f</HRValue>
+	</HResult>
+	<HResult Name="VLDTR_E_MD_CTORZERORVA">
+		<HRValue>0x80131270</HRValue>
+	</HResult>
+	<HResult Name="VLDTR_E_FD_MARKEDNOMARSHAL">
+		<HRValue>0x80131271</HRValue>
+	</HResult>
+	<HResult Name="VLDTR_E_FD_MARSHALNOTMARKED">
+		<HRValue>0x80131272</HRValue>
+	</HResult>
+	<HResult Name="VLDTR_E_FD_MARKEDNODEFLT">
+		<HRValue>0x80131273</HRValue>
+	</HResult>
+	<HResult Name="VLDTR_E_FD_DEFLTNOTMARKED">
+		<HRValue>0x80131274</HRValue>
+	</HResult>
+	<HResult Name="VLDTR_E_FMD_MARKEDNOSECUR">
+		<HRValue>0x80131275</HRValue>
+	</HResult>
+	<HResult Name="VLDTR_E_FMD_SECURNOTMARKED">
+		<HRValue>0x80131276</HRValue>
+	</HResult>
+	<HResult Name="VLDTR_E_FMD_PINVOKENOTSTATIC">
+		<HRValue>0x80131277</HRValue>
+	</HResult>
+	<HResult Name="VLDTR_E_FMD_MARKEDNOPINVOKE">
+		<HRValue>0x80131278</HRValue>
+	</HResult>
+	<HResult Name="VLDTR_E_FMD_PINVOKENOTMARKED">
+		<HRValue>0x80131279</HRValue>
+	</HResult>
+	<HResult Name="VLDTR_E_FMD_BADIMPLMAP">
+		<HRValue>0x8013127a</HRValue>
+	</HResult>
+	<HResult Name="VLDTR_E_IMAP_BADMODREF">
+		<HRValue>0x8013127b</HRValue>
+	</HResult>
+	<HResult Name="VLDTR_E_IMAP_BADMEMBER">
+		<HRValue>0x8013127c</HRValue>
+	</HResult>
+	<HResult Name="VLDTR_E_IMAP_BADIMPORTNAME">
+		<HRValue>0x8013127d</HRValue>
+	</HResult>
+	<HResult Name="VLDTR_E_IMAP_BADCALLCONV">
+		<HRValue>0x8013127e</HRValue>
+	</HResult>
+	<HResult Name="VLDTR_E_FMD_BADACCESSFLAG">
+		<HRValue>0x8013127f</HRValue>
+	</HResult>
+	<HResult Name="VLDTR_E_FD_INITONLYANDLITERAL">
+		<HRValue>0x80131280</HRValue>
+	</HResult>
+	<HResult Name="VLDTR_E_FD_LITERALNOTSTATIC">
+		<HRValue>0x80131281</HRValue>
+	</HResult>
+	<HResult Name="VLDTR_E_FMD_RTSNNOTSN">
+		<HRValue>0x80131282</HRValue>
+	</HResult>
+	<HResult Name="VLDTR_E_MD_ABSTPARNOTABST">
+		<HRValue>0x80131283</HRValue>
+	</HResult>
+	<HResult Name="VLDTR_E_MD_NOTSTATABSTININTF">
+		<HRValue>0x80131284</HRValue>
+	</HResult>
+	<HResult Name="VLDTR_E_MD_NOTPUBININTF">
+		<HRValue>0x80131285</HRValue>
+	</HResult>
+	<HResult Name="VLDTR_E_MD_CTORININTF">
+		<HRValue>0x80131286</HRValue>
+	</HResult>
+	<HResult Name="VLDTR_E_MD_GLOBALCTORCCTOR">
+		<HRValue>0x80131287</HRValue>
+	</HResult>
+	<HResult Name="VLDTR_E_MD_CTORSTATIC">
+		<HRValue>0x80131288</HRValue>
+	</HResult>
+	<HResult Name="VLDTR_E_MD_CTORNOTSNRTSN">
+		<HRValue>0x80131289</HRValue>
+	</HResult>
+	<HResult Name="VLDTR_E_MD_CTORVIRT">
+		<HRValue>0x8013128a</HRValue>
+	</HResult>
+	<HResult Name="VLDTR_E_MD_CTORABST">
+		<HRValue>0x8013128b</HRValue>
+	</HResult>
+	<HResult Name="VLDTR_E_MD_CCTORNOTSTATIC">
+		<HRValue>0x8013128c</HRValue>
+	</HResult>
+	<HResult Name="VLDTR_E_MD_ZERORVA">
+		<HRValue>0x8013128d</HRValue>
+	</HResult>
+	<HResult Name="VLDTR_E_MD_FINNOTVIRT">
+		<HRValue>0x8013128e</HRValue>
+	</HResult>
+	<HResult Name="VLDTR_E_MD_STATANDFINORVIRT">
+		<HRValue>0x8013128f</HRValue>
+	</HResult>
+	<HResult Name="VLDTR_E_MD_ABSTANDFINAL">
+		<HRValue>0x80131290</HRValue>
+	</HResult>
+	<HResult Name="VLDTR_E_MD_ABSTANDIMPL">
+		<HRValue>0x80131291</HRValue>
+	</HResult>
+	<HResult Name="VLDTR_E_MD_ABSTANDPINVOKE">
+		<HRValue>0x80131292</HRValue>
+	</HResult>
+	<HResult Name="VLDTR_E_MD_ABSTNOTVIRT">
+		<HRValue>0x80131293</HRValue>
+	</HResult>
+	<HResult Name="VLDTR_E_MD_NOTABSTNOTIMPL">
+		<HRValue>0x80131294</HRValue>
+	</HResult>
+	<HResult Name="VLDTR_E_MD_NOTABSTBADFLAGSRVA">
+		<HRValue>0x80131295</HRValue>
+	</HResult>
+	<HResult Name="VLDTR_E_MD_PRIVSCOPENORVA">
+		<HRValue>0x80131296</HRValue>
+	</HResult>
+	<HResult Name="VLDTR_E_MD_GLOBALABSTORVIRT">
+		<HRValue>0x80131297</HRValue>
+	</HResult>
+	<HResult Name="VLDTR_E_SIG_LONGFORM">
+		<HRValue>0x80131298</HRValue>
+	</HResult>
+	<HResult Name="VLDTR_E_MD_MULTIPLESEMANTICS">
+		<HRValue>0x80131299</HRValue>
+	</HResult>
+	<HResult Name="VLDTR_E_MD_INVALIDSEMANTICS">
+		<HRValue>0x8013129a</HRValue>
+	</HResult>
+	<HResult Name="VLDTR_E_MD_SEMANTICSNOTEXIST">
+		<HRValue>0x8013129b</HRValue>
+	</HResult>
+	<HResult Name="VLDTR_E_MI_DECLNOTVIRT">
+		<HRValue>0x8013129c</HRValue>
+	</HResult>
+	<HResult Name="VLDTR_E_FMD_GLOBALITEM">
+		<HRValue>0x8013129d</HRValue>
+	</HResult>
+	<HResult Name="VLDTR_E_MD_MULTSEMANTICFLAGS">
+		<HRValue>0x8013129e</HRValue>
+	</HResult>
+	<HResult Name="VLDTR_E_MD_NOSEMANTICFLAGS">
+		<HRValue>0x8013129f</HRValue>
+	</HResult>
+	<HResult Name="VLDTR_E_FD_FLDINIFACE">
+		<HRValue>0x801312a0</HRValue>
+	</HResult>
+	<HResult Name="VLDTR_E_AS_HASHALGID">
+		<HRValue>0x801312a1</HRValue>
+	</HResult>
+	<HResult Name="VLDTR_E_AS_PROCID">
+		<HRValue>0x801312a2</HRValue>
+	</HResult>
+	<HResult Name="VLDTR_E_AR_PROCID">
+		<HRValue>0x801312a3</HRValue>
+	</HResult>
+	<HResult Name="VLDTR_E_CN_PARENTRANGE">
+		<HRValue>0x801312a4</HRValue>
+	</HResult>
+	<HResult Name="VLDTR_E_AS_BADFLAGS">
+		<HRValue>0x801312a5</HRValue>
+	</HResult>
+	<HResult Name="VLDTR_E_TR_HASTYPEDEF">
+		<HRValue>0x801312a6</HRValue>
+	</HResult>
+	<HResult Name="VLDTR_E_IFACE_BADIMPL">
+		<HRValue>0x801312a7</HRValue>
+	</HResult>
+	<HResult Name="VLDTR_E_IFACE_BADIFACE">
+		<HRValue>0x801312a8</HRValue>
+	</HResult>
+	<HResult Name="VLDTR_E_TD_SECURNOTMARKED">
+		<HRValue>0x801312a9</HRValue>
+	</HResult>
+	<HResult Name="VLDTR_E_TD_MARKEDNOSECUR">
+		<HRValue>0x801312aa</HRValue>
+	</HResult>
+	<HResult Name="VLDTR_E_MD_CCTORHASARGS">
+		<HRValue>0x801312ab</HRValue>
+	</HResult>
+	<HResult Name="VLDTR_E_CT_BADIMPL">
+		<HRValue>0x801312ac</HRValue>
+	</HResult>
+	<HResult Name="VLDTR_E_MI_ALIENBODY">
+		<HRValue>0x801312ad</HRValue>
+	</HResult>
+	<HResult Name="VLDTR_E_MD_CCTORCALLCONV">
+		<HRValue>0x801312ae</HRValue>
+	</HResult>
+	<HResult Name="VLDTR_E_MI_BADCLASS">
+		<HRValue>0x801312af</HRValue>
+	</HResult>
+	<HResult Name="VLDTR_E_MI_CLASSISINTF">
+		<HRValue>0x801312b0</HRValue>
+	</HResult>
+	<HResult Name="VLDTR_E_MI_BADDECL">
+		<HRValue>0x801312b1</HRValue>
+	</HResult>
+	<HResult Name="VLDTR_E_MI_BADBODY">
+		<HRValue>0x801312b2</HRValue>
+	</HResult>
+	<HResult Name="VLDTR_E_MI_DUP">
+		<HRValue>0x801312b3</HRValue>
+	</HResult>
+	<HResult Name="VLDTR_E_FD_BADPARENT">
+		<HRValue>0x801312b4</HRValue>
+	</HResult>
+	<HResult Name="VLDTR_E_MD_PARAMOUTOFSEQ">
+		<HRValue>0x801312b5</HRValue>
+	</HResult>
+	<HResult Name="VLDTR_E_MD_PARASEQTOOBIG">
+		<HRValue>0x801312b6</HRValue>
+	</HResult>
+	<HResult Name="VLDTR_E_MD_PARMMARKEDNOMARSHAL">
+		<HRValue>0x801312b7</HRValue>
+	</HResult>
+	<HResult Name="VLDTR_E_MD_PARMMARSHALNOTMARKED">
+		<HRValue>0x801312b8</HRValue>
+	</HResult>
+	<HResult Name="VLDTR_E_MD_PARMMARKEDNODEFLT">
+		<HRValue>0x801312ba</HRValue>
+	</HResult>
+	<HResult Name="VLDTR_E_MD_PARMDEFLTNOTMARKED">
+		<HRValue>0x801312bb</HRValue>
+	</HResult>
+	<HResult Name="VLDTR_E_PR_BADSCOPE">
+		<HRValue>0x801312bc</HRValue>
+	</HResult>
+	<HResult Name="VLDTR_E_PR_NONAME">
+		<HRValue>0x801312bd</HRValue>
+	</HResult>
+	<HResult Name="VLDTR_E_PR_NOSIG">
+		<HRValue>0x801312be</HRValue>
+	</HResult>
+	<HResult Name="VLDTR_E_PR_DUP">
+		<HRValue>0x801312bf</HRValue>
+	</HResult>
+	<HResult Name="VLDTR_E_PR_BADCALLINGCONV">
+		<HRValue>0x801312c0</HRValue>
+	</HResult>
+	<HResult Name="VLDTR_E_PR_MARKEDNODEFLT">
+		<HRValue>0x801312c1</HRValue>
+	</HResult>
+	<HResult Name="VLDTR_E_PR_DEFLTNOTMARKED">
+		<HRValue>0x801312c2</HRValue>
+	</HResult>
+	<HResult Name="VLDTR_E_PR_BADSEMANTICS">
+		<HRValue>0x801312c3</HRValue>
+	</HResult>
+	<HResult Name="VLDTR_E_PR_BADMETHOD">
+		<HRValue>0x801312c4</HRValue>
+	</HResult>
+	<HResult Name="VLDTR_E_PR_ALIENMETHOD">
+		<HRValue>0x801312c5</HRValue>
+	</HResult>
+	<HResult Name="VLDTR_E_CN_BLOBNOTNULL">
+		<HRValue>0x801312c6</HRValue>
+	</HResult>
+	<HResult Name="VLDTR_E_CN_BLOBNULL">
+		<HRValue>0x801312c7</HRValue>
+	</HResult>
+	<HResult Name="VLDTR_E_EV_BADSCOPE">
+		<HRValue>0x801312c8</HRValue>
+	</HResult>
+	<HResult Name="VLDTR_E_EV_NONAME">
+		<HRValue>0x801312ca</HRValue>
+	</HResult>
+	<HResult Name="VLDTR_E_EV_DUP">
+		<HRValue>0x801312cb</HRValue>
+	</HResult>
+	<HResult Name="VLDTR_E_EV_BADEVTYPE">
+		<HRValue>0x801312cc</HRValue>
+	</HResult>
+	<HResult Name="VLDTR_E_EV_EVTYPENOTCLASS">
+		<HRValue>0x801312cd</HRValue>
+	</HResult>
+	<HResult Name="VLDTR_E_EV_BADSEMANTICS">
+		<HRValue>0x801312ce</HRValue>
+	</HResult>
+	<HResult Name="VLDTR_E_EV_BADMETHOD">
+		<HRValue>0x801312cf</HRValue>
+	</HResult>
+	<HResult Name="VLDTR_E_EV_ALIENMETHOD">
+		<HRValue>0x801312d0</HRValue>
+	</HResult>
+	<HResult Name="VLDTR_E_EV_NOADDON">
+		<HRValue>0x801312d1</HRValue>
+	</HResult>
+	<HResult Name="VLDTR_E_EV_NOREMOVEON">
+		<HRValue>0x801312d2</HRValue>
+	</HResult>
+	<HResult Name="VLDTR_E_CT_DUPTDNAME">
+		<HRValue>0x801312d3</HRValue>
+	</HResult>
+	<HResult Name="VLDTR_E_MAR_BADOFFSET">
+		<HRValue>0x801312d4</HRValue>
+	</HResult>
+	<HResult Name="VLDTR_E_DS_BADOWNER">
+		<HRValue>0x801312d5</HRValue>
+	</HResult>
+	<HResult Name="VLDTR_E_DS_BADFLAGS">
+		<HRValue>0x801312d6</HRValue>
+	</HResult>
+	<HResult Name="VLDTR_E_DS_NOBLOB">
+		<HRValue>0x801312d7</HRValue>
+	</HResult>
+	<HResult Name="VLDTR_E_MAR_BADIMPL">
+		<HRValue>0x801312d8</HRValue>
+	</HResult>
+	<HResult Name="VLDTR_E_MR_VARARGCALLINGCONV">
+		<HRValue>0x801312da</HRValue>
+	</HResult>
+	<HResult Name="VLDTR_E_MD_CTORNOTVOID">
+		<HRValue>0x801312db</HRValue>
+	</HResult>
+	<HResult Name="VLDTR_E_EV_FIRENOTVOID">
+		<HRValue>0x801312dc</HRValue>
+	</HResult>
+	<HResult Name="VLDTR_E_AS_BADLOCALE">
+		<HRValue>0x801312dd</HRValue>
+	</HResult>
+	<HResult Name="VLDTR_E_CN_PARENTTYPE">
+		<HRValue>0x801312de</HRValue>
+	</HResult>
+	<HResult Name="VLDTR_E_SIG_SENTINMETHODDEF">
+		<HRValue>0x801312df</HRValue>
+	</HResult>
+	<HResult Name="VLDTR_E_SIG_SENTMUSTVARARG">
+		<HRValue>0x801312e0</HRValue>
+	</HResult>
+	<HResult Name="VLDTR_E_SIG_MULTSENTINELS">
+		<HRValue>0x801312e1</HRValue>
+	</HResult>
+	<HResult Name="VLDTR_E_SIG_LASTSENTINEL">
+		<HRValue>0x801312e2</HRValue>
+	</HResult>
+	<HResult Name="VLDTR_E_SIG_MISSARG">
+		<HRValue>0x801312e3</HRValue>
+	</HResult>
+	<HResult Name="VLDTR_E_SIG_BYREFINFIELD">
+		<HRValue>0x801312e4</HRValue>
+	</HResult>
+	<HResult Name="VLDTR_E_MD_SYNCMETHODINVTYPE">
+		<HRValue>0x801312e5</HRValue>
+	</HResult>
+	<HResult Name="VLDTR_E_TD_NAMETOOLONG">
+		<HRValue>0x801312e6</HRValue>
+	</HResult>
+	<HResult Name="VLDTR_E_AS_PROCDUP">
+		<HRValue>0x801312e7</HRValue>
+	</HResult>
+	<HResult Name="VLDTR_E_ASOS_DUP">
+		<HRValue>0x801312e8</HRValue>
+	</HResult>
+	<HResult Name="VLDTR_E_MAR_BADFLAGS">
+		<HRValue>0x801312e9</HRValue>
+	</HResult>
+	<HResult Name="VLDTR_E_CT_NOTYPEDEFID">
+		<HRValue>0x801312ea</HRValue>
+	</HResult>
+	<HResult Name="VLDTR_E_FILE_BADFLAGS">
+		<HRValue>0x801312eb</HRValue>
+	</HResult>
+	<HResult Name="VLDTR_E_FILE_NULLHASH">
+		<HRValue>0x801312ec</HRValue>
+	</HResult>
+	<HResult Name="VLDTR_E_MOD_NONAME">
+		<HRValue>0x801312ed</HRValue>
+	</HResult>
+	<HResult Name="VLDTR_E_MOD_NAMEFULLQLFD">
+		<HRValue>0x801312ee</HRValue>
+	</HResult>
+	<HResult Name="VLDTR_E_TD_RTSPCLNOTSPCL">
+		<HRValue>0x801312ef</HRValue>
+	</HResult>
+	<HResult Name="VLDTR_E_TD_EXTENDSIFACE">
+		<HRValue>0x801312f0</HRValue>
+	</HResult>
+	<HResult Name="VLDTR_E_MD_CTORPINVOKE">
+		<HRValue>0x801312f1</HRValue>
+	</HResult>
+	<HResult Name="VLDTR_E_TD_SYSENUMNOTCLASS">
+		<HRValue>0x801312f2</HRValue>
+	</HResult>
+	<HResult Name="VLDTR_E_TD_SYSENUMNOTEXTVTYPE">
+		<HRValue>0x801312f3</HRValue>
+	</HResult>
+	<HResult Name="VLDTR_E_MI_SIGMISMATCH">
+		<HRValue>0x801312f4</HRValue>
+	</HResult>
+	<HResult Name="VLDTR_E_TD_ENUMHASMETHODS">
+		<HRValue>0x801312f5</HRValue>
+	</HResult>
+	<HResult Name="VLDTR_E_TD_ENUMIMPLIFACE">
+		<HRValue>0x801312f6</HRValue>
+	</HResult>
+	<HResult Name="VLDTR_E_TD_ENUMHASPROP">
+		<HRValue>0x801312f7</HRValue>
+	</HResult>
+	<HResult Name="VLDTR_E_TD_ENUMHASEVENT">
+		<HRValue>0x801312f8</HRValue>
+	</HResult>
+	<HResult Name="VLDTR_E_TD_BADMETHODLST">
+		<HRValue>0x801312f9</HRValue>
+	</HResult>
+	<HResult Name="VLDTR_E_TD_BADFIELDLST">
+		<HRValue>0x801312fa</HRValue>
+	</HResult>
+	<HResult Name="VLDTR_E_CN_BADTYPE">
+		<HRValue>0x801312fb</HRValue>
+	</HResult>
+	<HResult Name="VLDTR_E_TD_ENUMNOINSTFLD">
+		<HRValue>0x801312fc</HRValue>
+	</HResult>
+	<HResult Name="VLDTR_E_TD_ENUMMULINSTFLD">
+		<HRValue>0x801312fd</HRValue>
+	</HResult>
+	<HResult Name="VLDTR_E_INTERRUPTED">
+		<HRValue>0x801312fe</HRValue>
+	</HResult>
+	<HResult Name="VLDTR_E_NOTINIT">
+		<HRValue>0x801312ff</HRValue>
+	</HResult>
+	<HResult Name="CORDBG_E_UNRECOVERABLE_ERROR">
+		<HRValue>0x80131300</HRValue>
+	</HResult>
+	<HResult Name="CORDBG_E_PROCESS_TERMINATED">
+		<HRValue>0x80131301</HRValue>
+	</HResult>
+	<HResult Name="CORDBG_E_PROCESS_NOT_SYNCHRONIZED">
+		<HRValue>0x80131302</HRValue>
+	</HResult>
+	<HResult Name="CORDBG_E_CLASS_NOT_LOADED">
+		<HRValue>0x80131303</HRValue>
+	</HResult>
+	<HResult Name="CORDBG_E_IL_VAR_NOT_AVAILABLE">
+		<HRValue>0x80131304</HRValue>
+	</HResult>
+	<HResult Name="CORDBG_E_BAD_REFERENCE_VALUE">
+		<HRValue>0x80131305</HRValue>
+	</HResult>
+	<HResult Name="CORDBG_E_FIELD_NOT_AVAILABLE">
+		<HRValue>0x80131306</HRValue>
+	</HResult>
+	<HResult Name="CORDBG_E_NON_NATIVE_FRAME">
+		<HRValue>0x80131307</HRValue>
+	</HResult>
+	<HResult Name="CORDBG_E_NONCONTINUABLE_EXCEPTION">
+		<HRValue>0x80131308</HRValue>
+	</HResult>
+	<HResult Name="CORDBG_E_CODE_NOT_AVAILABLE">
+		<HRValue>0x80131309</HRValue>
+	</HResult>
+	<HResult Name="CORDBG_E_FUNCTION_NOT_IL">
+		<HRValue>0x8013130a</HRValue>
+	</HResult>
+	<HResult Name="CORDBG_E_CANT_SET_IP_INTO_FINALLY">
+		<HRValue>0x8013130e</HRValue>
+	</HResult>
+	<HResult Name="CORDBG_E_CANT_SET_IP_OUT_OF_FINALLY">
+		<HRValue>0x8013130f</HRValue>
+	</HResult>
+	<HResult Name="CORDBG_E_CANT_SET_IP_INTO_CATCH">
+		<HRValue>0x80131310</HRValue>
+	</HResult>
+	<HResult Name="CORDBG_E_SET_IP_NOT_ALLOWED_ON_NONLEAF_FRAME">
+		<HRValue>0x80131311</HRValue>
+	</HResult>
+	<HResult Name="CORDBG_E_SET_IP_IMPOSSIBLE">
+		<HRValue>0x80131312</HRValue>
+	</HResult>
+	<HResult Name="CORDBG_E_FUNC_EVAL_BAD_START_POINT">
+		<HRValue>0x80131313</HRValue>
+	</HResult>
+	<HResult Name="CORDBG_E_INVALID_OBJECT">
+		<HRValue>0x80131314</HRValue>
+	</HResult>
+	<HResult Name="CORDBG_E_FUNC_EVAL_NOT_COMPLETE">
+		<HRValue>0x80131315</HRValue>
+	</HResult>
+	<HResult Name="CORDBG_E_INPROC_NOT_IMPL">
+		<HRValue>0x80131318</HRValue>
+	</HResult>
+	<HResult Name="CORDBG_E_STATIC_VAR_NOT_AVAILABLE">
+		<HRValue>0x8013131a</HRValue>
+	</HResult>
+	<HResult Name="CORDBG_E_OBJECT_IS_NOT_COPYABLE_VALUE_CLASS">
+		<HRValue>0x8013131b</HRValue>
+	</HResult>
+	<HResult Name="CORDBG_E_CANT_SETIP_INTO_OR_OUT_OF_FILTER">
+		<HRValue>0x8013131c</HRValue>
+	</HResult>
+	<HResult Name="CORDBG_E_CANT_CHANGE_JIT_SETTING_FOR_ZAP_MODULE">
+		<HRValue>0x8013131d</HRValue>
+	</HResult>
+	<HResult Name="CORDBG_E_CANT_SET_IP_OUT_OF_FINALLY_ON_WIN64">
+		<HRValue>0x8013131e</HRValue>
+	</HResult>
+	<HResult Name="CORDBG_E_CANT_SET_IP_OUT_OF_CATCH_ON_WIN64">
+		<HRValue>0x8013131f</HRValue>
+	</HResult>
+	<HResult Name="CORDBG_E_REMOTE_CONNECTION_CONN_RESET">
+		<HRValue>0x80131320</HRValue>
+	</HResult>
+	<HResult Name="CORDBG_E_REMOTE_CONNECTION_KEEP_ALIVE">
+		<HRValue>0x80131321</HRValue>
+	</HResult>
+	<HResult Name="CORDBG_E_REMOTE_CONNECTION_FATAL_ERROR">
+		<HRValue>0x80131322</HRValue>
+	</HResult>
+	<HResult Name="CORDBG_E_CANT_SET_TO_JMC">
+		<HRValue>0x80131323</HRValue>
+	</HResult>
+	<HResult Name="CORDBG_E_NO_CONTEXT_FOR_INTERNAL_FRAME">
+		<HRValue>0x80131325</HRValue>
+	</HResult>
+	<HResult Name="CORDBG_E_NOT_CHILD_FRAME">
+		<HRValue>0x80131326</HRValue>
+	</HResult>
+	<HResult Name="CORDBG_E_NON_MATCHING_CONTEXT">
+		<HRValue>0x80131327</HRValue>
+	</HResult>
+	<HResult Name="CORDBG_E_PAST_END_OF_STACK">
+		<HRValue>0x80131328</HRValue>
+	</HResult>
+	<HResult Name="CORDBG_E_FUNC_EVAL_CANNOT_UPDATE_REGISTER_IN_NONLEAF_FRAME">
+		<HRValue>0x80131329</HRValue>
+	</HResult>
+	<HResult Name="CORDBG_E_BAD_THREAD_STATE">
+		<HRValue>0x8013132d</HRValue>
+	</HResult>
+	<HResult Name="CORDBG_E_DEBUGGER_ALREADY_ATTACHED">
+		<HRValue>0x8013132e</HRValue>
+	</HResult>
+	<HResult Name="CORDBG_E_SUPERFLOUS_CONTINUE">
+		<HRValue>0x8013132f</HRValue>
+	</HResult>
+	<HResult Name="CORDBG_E_SET_VALUE_NOT_ALLOWED_ON_NONLEAF_FRAME">
+		<HRValue>0x80131330</HRValue>
+	</HResult>
+	<HResult Name="CORDBG_E_ENC_EH_MAX_NESTING_LEVEL_CANT_INCREASE">
+		<HRValue>0x80131331</HRValue>
+	</HResult>
+	<HResult Name="CORDBG_E_ENC_MODULE_NOT_ENC_ENABLED">
+		<HRValue>0x80131332</HRValue>
+	</HResult>
+	<HResult Name="CORDBG_E_SET_IP_NOT_ALLOWED_ON_EXCEPTION">
+		<HRValue>0x80131333</HRValue>
+	</HResult>
+	<HResult Name="CORDBG_E_VARIABLE_IS_ACTUALLY_LITERAL">
+		<HRValue>0x80131334</HRValue>
+	</HResult>
+	<HResult Name="CORDBG_E_PROCESS_DETACHED">
+		<HRValue>0x80131335</HRValue>
+	</HResult>
+	<HResult Name="CORDBG_E_ENC_METHOD_SIG_CHANGED">
+		<HRValue>0x80131336</HRValue>
+	</HResult>
+	<HResult Name="CORDBG_E_ENC_METHOD_NO_LOCAL_SIG">
+		<HRValue>0x80131337</HRValue>
+	</HResult>
+	<HResult Name="CORDBG_E_ENC_CANT_ADD_FIELD_TO_VALUE_OR_LAYOUT_CLASS">
+		<HRValue>0x80131338</HRValue>
+	</HResult>
+	<HResult Name="CORDBG_E_ENC_CANT_CHANGE_FIELD">
+		<HRValue>0x80131339</HRValue>
+	</HResult>
+	<HResult Name="CORDBG_E_ENC_CANT_ADD_NON_PRIVATE_MEMBER">
+		<HRValue>0x8013133a</HRValue>
+	</HResult>
+	<HResult Name="CORDBG_E_FIELD_NOT_STATIC">
+		<HRValue>0x8013133b</HRValue>
+	</HResult>
+	<HResult Name="CORDBG_E_FIELD_NOT_INSTANCE">
+		<HRValue>0x8013133c</HRValue>
+	</HResult>
+	<HResult Name="CORDBG_E_ENC_ZAPPED_WITHOUT_ENC">
+		<HRValue>0x8013133d</HRValue>
+	</HResult>
+	<HResult Name="CORDBG_E_ENC_BAD_METHOD_INFO">
+		<HRValue>0x8013133e</HRValue>
+	</HResult>
+	<HResult Name="CORDBG_E_ENC_JIT_CANT_UPDATE">
+		<HRValue>0x8013133f</HRValue>
+	</HResult>
+	<HResult Name="CORDBG_E_ENC_MISSING_CLASS">
+		<HRValue>0x80131340</HRValue>
+	</HResult>
+	<HResult Name="CORDBG_E_ENC_INTERNAL_ERROR">
+		<HRValue>0x80131341</HRValue>
+	</HResult>
+	<HResult Name="CORDBG_E_ENC_HANGING_FIELD">
+		<HRValue>0x80131342</HRValue>
+	</HResult>
+	<HResult Name="CORDBG_E_MODULE_NOT_LOADED">
+		<HRValue>0x80131343</HRValue>
+	</HResult>
+	<HResult Name="CORDBG_E_ENC_CANT_CHANGE_SUPERCLASS">
+		<HRValue>0x80131344</HRValue>
+	</HResult>
+	<HResult Name="CORDBG_E_UNABLE_TO_SET_BREAKPOINT">
+		<HRValue>0x80131345</HRValue>
+	</HResult>
+	<HResult Name="CORDBG_E_DEBUGGING_NOT_POSSIBLE">
+		<HRValue>0x80131346</HRValue>
+	</HResult>
+	<HResult Name="CORDBG_E_KERNEL_DEBUGGER_ENABLED">
+		<HRValue>0x80131347</HRValue>
+	</HResult>
+	<HResult Name="CORDBG_E_KERNEL_DEBUGGER_PRESENT">
+		<HRValue>0x80131348</HRValue>
+	</HResult>
+	<HResult Name="CORDBG_E_HELPER_THREAD_DEAD">
+		<HRValue>0x80131349</HRValue>
+	</HResult>
+	<HResult Name="CORDBG_E_INTERFACE_INHERITANCE_CANT_CHANGE">
+		<HRValue>0x8013134a</HRValue>
+	</HResult>
+	<HResult Name="CORDBG_E_INCOMPATIBLE_PROTOCOL">
+		<HRValue>0x8013134b</HRValue>
+	</HResult>
+	<HResult Name="CORDBG_E_TOO_MANY_PROCESSES">
+		<HRValue>0x8013134c</HRValue>
+	</HResult>
+	<HResult Name="CORDBG_E_INTEROP_NOT_SUPPORTED">
+		<HRValue>0x8013134d</HRValue>
+	</HResult>
+	<HResult Name="CORDBG_E_NO_REMAP_BREAKPIONT">
+		<HRValue>0x8013134e</HRValue>
+	</HResult>
+	<HResult Name="CORDBG_E_OBJECT_NEUTERED">
+		<HRValue>0x8013134f</HRValue>
+	</HResult>
+	<HResult Name="CORPROF_E_FUNCTION_NOT_COMPILED">
+		<HRValue>0x80131350</HRValue>
+	</HResult>
+	<HResult Name="CORPROF_E_DATAINCOMPLETE">
+		<HRValue>0x80131351</HRValue>
+	</HResult>
+	<HResult Name="CORPROF_E_NOT_REJITABLE_METHODS">
+		<HRValue>0x80131352</HRValue>
+	</HResult>
+	<HResult Name="CORPROF_E_CANNOT_UPDATE_METHOD">
+		<HRValue>0x80131353</HRValue>
+	</HResult>
+	<HResult Name="CORPROF_E_FUNCTION_NOT_IL">
+		<HRValue>0x80131354</HRValue>
+	</HResult>
+	<HResult Name="CORPROF_E_NOT_MANAGED_THREAD">
+		<HRValue>0x80131355</HRValue>
+	</HResult>
+	<HResult Name="CORPROF_E_CALL_ONLY_FROM_INIT">
+		<HRValue>0x80131356</HRValue>
+	</HResult>
+	<HResult Name="CORPROF_E_INPROC_NOT_ENABLED">
+		<HRValue>0x80131357</HRValue>
+	</HResult>
+	<HResult Name="CORPROF_E_JITMAPS_NOT_ENABLED">
+		<HRValue>0x80131358</HRValue>
+	</HResult>
+	<HResult Name="CORPROF_E_INPROC_ALREADY_BEGUN">
+		<HRValue>0x80131359</HRValue>
+	</HResult>
+	<HResult Name="CORPROF_E_INPROC_NOT_AVAILABLE">
+		<HRValue>0x8013135a</HRValue>
+	</HResult>
+	<HResult Name="CORPROF_E_NOT_YET_AVAILABLE">
+		<HRValue>0x8013135b</HRValue>
+	</HResult>
+	<HResult Name="CORPROF_E_TYPE_IS_PARAMETERIZED">
+		<HRValue>0x8013135c</HRValue>
+	</HResult>
+	<HResult Name="CORPROF_E_FUNCTION_IS_PARAMETERIZED">
+		<HRValue>0x8013135d</HRValue>
+	</HResult>
+	<HResult Name="CORPROF_E_STACKSNAPSHOT_INVALID_TGT_THREAD">
+		<HRValue>0x8013135e</HRValue>
+	</HResult>
+	<HResult Name="CORPROF_E_STACKSNAPSHOT_UNMANAGED_CTX">
+		<HRValue>0x8013135f</HRValue>
+	</HResult>
+	<HResult Name="CORPROF_E_STACKSNAPSHOT_UNSAFE">
+		<HRValue>0x80131360</HRValue>
+	</HResult>
+	<HResult Name="CORPROF_E_STACKSNAPSHOT_ABORTED">
+		<HRValue>0x80131361</HRValue>
+	</HResult>
+	<HResult Name="CORPROF_E_LITERALS_HAVE_NO_ADDRESS">
+		<HRValue>0x80131362</HRValue>
+	</HResult>
+	<HResult Name="CORPROF_E_UNSUPPORTED_CALL_SEQUENCE">
+		<HRValue>0x80131363</HRValue>
+	</HResult>
+	<HResult Name="CORPROF_E_ASYNCHRONOUS_UNSAFE">
+		<HRValue>0x80131364</HRValue>
+	</HResult>
+	<HResult Name="CORPROF_E_CLASSID_IS_ARRAY">
+		<HRValue>0x80131365</HRValue>
+	</HResult>
+	<HResult Name="CORPROF_E_CLASSID_IS_COMPOSITE">
+		<HRValue>0x80131366</HRValue>
+	</HResult>
+	<HResult Name="CORPROF_E_PROFILER_DETACHING">
+		<HRValue>0x80131367</HRValue>
+	</HResult>
+	<HResult Name="CORPROF_E_PROFILER_NOT_ATTACHABLE">
+		<HRValue>0x80131368</HRValue>
+	</HResult>
+	<HResult Name="CORPROF_E_UNRECOGNIZED_PIPE_MSG_FORMAT">
+		<HRValue>0x80131369</HRValue>
+	</HResult>
+	<HResult Name="CORPROF_E_PROFILER_ALREADY_ACTIVE">
+		<HRValue>0x8013136a</HRValue>
+	</HResult>
+	<HResult Name="CORPROF_E_PROFILEE_INCOMPATIBLE_WITH_TRIGGER">
+		<HRValue>0x8013136b</HRValue>
+	</HResult>
+	<HResult Name="CORPROF_E_IPC_FAILED">
+		<HRValue>0x8013136c</HRValue>
+	</HResult>
+	<HResult Name="CORPROF_E_PROFILEE_PROCESS_NOT_FOUND">
+		<HRValue>0x8013136d</HRValue>
+	</HResult>
+	<HResult Name="CORPROF_E_CALLBACK3_REQUIRED">
+		<HRValue>0x8013136e</HRValue>
+	</HResult>
+	<HResult Name="CORPROF_E_UNSUPPORTED_FOR_ATTACHING_PROFILER">
+		<HRValue>0x8013136f</HRValue>
+	</HResult>
+	<HResult Name="CORPROF_E_IRREVERSIBLE_INSTRUMENTATION_PRESENT">
+		<HRValue>0x80131370</HRValue>
+	</HResult>
+	<HResult Name="CORPROF_E_RUNTIME_UNINITIALIZED">
+		<HRValue>0x80131371</HRValue>
+	</HResult>
+	<HResult Name="CORPROF_E_IMMUTABLE_FLAGS_SET">
+		<HRValue>0x80131372</HRValue>
+	</HResult>
+	<HResult Name="CORPROF_E_PROFILER_NOT_YET_INITIALIZED">
+		<HRValue>0x80131373</HRValue>
+	</HResult>
+	<HResult Name="CORPROF_E_INCONSISTENT_WITH_FLAGS">
+		<HRValue>0x80131374</HRValue>
+	</HResult>
+	<HResult Name="CORPROF_E_PROFILER_CANCEL_ACTIVATION">
+		<HRValue>0x80131375</HRValue>
+	</HResult>
+	<HResult Name="CORPROF_E_CONCURRENT_GC_NOT_PROFILABLE">
+		<HRValue>0x80131376</HRValue>
+	</HResult>
+	<HResult Name="CORPROF_E_INCONSISTENT_FLAGS_WITH_HOST_PROTECTION_SETTING">
+		<HRValue>0x80131377</HRValue>
+	</HResult>
+	<HResult Name="CORPROF_E_DEBUGGING_DISABLED">
+		<HRValue>0x80131378</HRValue>
+	</HResult>
+	<HResult Name="CORPROF_E_TIMEOUT_WAITING_FOR_CONCURRENT_GC">
+		<HRValue>0x80131379</HRValue>
+	</HResult>
+	<HResult Name="CORPROF_E_MODULE_IS_DYNAMIC">
+		<HRValue>0x8013137a</HRValue>
+	</HResult>
+	<HResult Name="CORPROF_E_CALLBACK4_REQUIRED">
+		<HRValue>0x8013137b</HRValue>
+	</HResult>
+	<HResult Name="CORPROF_E_REJIT_NOT_ENABLED">
+		<HRValue>0x8013137c</HRValue>
+	</HResult>
+	<HResult Name="CORPROF_E_ACTIVE_REJIT_REQUEST_NOT_FOUND">
+		<HRValue>0x8013137d</HRValue>
+	</HResult>
+	<HResult Name="CORPROF_E_FUNCTION_IS_COLLECTIBLE">
+		<HRValue>0x8013137e</HRValue>
+	</HResult>
+	<HResult Name="CORPROF_E_REJIT_REQUIRES_DISABLE_NGEN">
+		<HRValue>0x8013137f</HRValue>
+	</HResult>
+	<HResult Name="CORPROF_E_CALLBACK6_REQUIRED">
+		<HRValue>0x80131380</HRValue>
+	</HResult>
+	<HResult Name="CORPROF_E_CALLBACK7_REQUIRED">
+		<HRValue>0x80131382</HRValue>
+	</HResult>
+	<HResult Name="SECURITY_E_XML_TO_ASN_ENCODING">
+		<HRValue>0x80131400</HRValue>
+	</HResult>
+	<HResult Name="SECURITY_E_INCOMPATIBLE_SHARE">
+		<HRValue>0x80131401</HRValue>
+	</HResult>
+	<HResult Name="SECURITY_E_UNVERIFIABLE">
+		<HRValue>0x80131402</HRValue>
+	</HResult>
+	<HResult Name="SECURITY_E_INCOMPATIBLE_EVIDENCE">
+		<HRValue>0x80131403</HRValue>
+	</HResult>
+	<HResult Name="CORSEC_E_DECODE_SET">
+		<HRValue>0x80131410</HRValue>
+	</HResult>
+	<HResult Name="CORSEC_E_ENCODE_SET">
+		<HRValue>0x80131411</HRValue>
+	</HResult>
+	<HResult Name="CORSEC_E_UNSUPPORTED_FORMAT">
+		<HRValue>0x80131412</HRValue>
+	</HResult>
+	<HResult Name="SN_CRYPTOAPI_CALL_FAILED">
+		<HRValue>0x80131413</HRValue>
+	</HResult>
+	<HResult Name="CORSEC_E_CRYPTOAPI_CALL_FAILED">
+		<HRValue>0x80131413</HRValue>
+	</HResult>
+	<HResult Name="SN_NO_SUITABLE_CSP">
+		<HRValue>0x80131414</HRValue>
+	</HResult>
+	<HResult Name="CORSEC_E_NO_SUITABLE_CSP">
+		<HRValue>0x80131414</HRValue>
+	</HResult>
+	<HResult Name="CORSEC_E_INVALID_ATTR">
+		<HRValue>0x80131415</HRValue>
+	</HResult>
+	<HResult Name="CORSEC_E_POLICY_EXCEPTION">
+		<HRValue>0x80131416</HRValue>
+	</HResult>
+	<HResult Name="CORSEC_E_MIN_GRANT_FAIL">
+		<HRValue>0x80131417</HRValue>
+	</HResult>
+	<HResult Name="CORSEC_E_NO_EXEC_PERM">
+		<HRValue>0x80131418</HRValue>
+	</HResult>
+	<HResult Name="CORSEC_E_XMLSYNTAX">
+		<HRValue>0x80131419</HRValue>
+	</HResult>
+	<HResult Name="CORSEC_E_INVALID_STRONGNAME">
+		<HRValue>0x8013141a</HRValue>
+	</HResult>
+	<HResult Name="CORSEC_E_MISSING_STRONGNAME">
+		<HRValue>0x8013141b</HRValue>
+	</HResult>
+	<HResult Name="CORSEC_E_CONTAINER_NOT_FOUND">
+		<HRValue>0x8013141c</HRValue>
+	</HResult>
+	<HResult Name="CORSEC_E_INVALID_IMAGE_FORMAT">
+		<HRValue>0x8013141d</HRValue>
+	</HResult>
+	<HResult Name="CORSEC_E_INVALID_PUBLICKEY">
+		<HRValue>0x8013141e</HRValue>
+	</HResult>
+	<HResult Name="CORSEC_E_SIGNATURE_MISMATCH">
+		<HRValue>0x80131420</HRValue>
+	</HResult>
+	<HResult Name="SN_E_PUBLICKEY_MISMATCH">
+		<HRValue>0x80131421</HRValue>
+	</HResult>
+	<HResult Name="CORSEC_E_INVALID_SIGNATUREKEY">
+		<HRValue>0x80131422</HRValue>
+	</HResult>
+	<HResult Name="CORSEC_E_INVALID_COUNTERSIGNATURE">
+		<HRValue>0x80131423</HRValue>
+	</HResult>
+	<HResult Name="CORSEC_E_CRYPTO">
+		<HRValue>0x80131430</HRValue>
+	</HResult>
+	<HResult Name="CORSEC_E_CRYPTO_UNEX_OPER">
+		<HRValue>0x80131431</HRValue>
+	</HResult>
+	<HResult Name="CORSECATTR_E_BAD_ATTRIBUTE">
+		<HRValue>0x8013143a</HRValue>
+	</HResult>
+	<HResult Name="CORSECATTR_E_MISSING_CONSTRUCTOR">
+		<HRValue>0x8013143b</HRValue>
+	</HResult>
+	<HResult Name="CORSECATTR_E_FAILED_TO_CREATE_PERM">
+		<HRValue>0x8013143c</HRValue>
+	</HResult>
+	<HResult Name="CORSECATTR_E_BAD_ACTION_ASM">
+		<HRValue>0x8013143d</HRValue>
+	</HResult>
+	<HResult Name="CORSECATTR_E_BAD_ACTION_OTHER">
+		<HRValue>0x8013143e</HRValue>
+	</HResult>
+	<HResult Name="CORSECATTR_E_BAD_PARENT">
+		<HRValue>0x8013143f</HRValue>
+	</HResult>
+	<HResult Name="CORSECATTR_E_TRUNCATED">
+		<HRValue>0x80131440</HRValue>
+	</HResult>
+	<HResult Name="CORSECATTR_E_BAD_VERSION">
+		<HRValue>0x80131441</HRValue>
+	</HResult>
+	<HResult Name="CORSECATTR_E_BAD_ACTION">
+		<HRValue>0x80131442</HRValue>
+	</HResult>
+	<HResult Name="CORSECATTR_E_NO_SELF_REF">
+		<HRValue>0x80131443</HRValue>
+	</HResult>
+	<HResult Name="CORSECATTR_E_BAD_NONCAS">
+		<HRValue>0x80131444</HRValue>
+	</HResult>
+	<HResult Name="CORSECATTR_E_ASSEMBLY_LOAD_FAILED">
+		<HRValue>0x80131445</HRValue>
+	</HResult>
+	<HResult Name="CORSECATTR_E_ASSEMBLY_LOAD_FAILED_EX">
+		<HRValue>0x80131446</HRValue>
+	</HResult>
+	<HResult Name="CORSECATTR_E_TYPE_LOAD_FAILED">
+		<HRValue>0x80131447</HRValue>
+	</HResult>
+	<HResult Name="CORSECATTR_E_TYPE_LOAD_FAILED_EX">
+		<HRValue>0x80131448</HRValue>
+	</HResult>
+	<HResult Name="CORSECATTR_E_ABSTRACT">
+		<HRValue>0x80131449</HRValue>
+	</HResult>
+	<HResult Name="CORSECATTR_E_UNSUPPORTED_TYPE">
+		<HRValue>0x8013144a</HRValue>
+	</HResult>
+	<HResult Name="CORSECATTR_E_UNSUPPORTED_ENUM_TYPE">
+		<HRValue>0x8013144b</HRValue>
+	</HResult>
+	<HResult Name="CORSECATTR_E_NO_FIELD">
+		<HRValue>0x8013144c</HRValue>
+	</HResult>
+	<HResult Name="CORSECATTR_E_NO_PROPERTY">
+		<HRValue>0x8013144d</HRValue>
+	</HResult>
+	<HResult Name="CORSECATTR_E_EXCEPTION">
+		<HRValue>0x8013144e</HRValue>
+	</HResult>
+	<HResult Name="CORSECATTR_E_EXCEPTION_HR">
+		<HRValue>0x8013144f</HRValue>
+	</HResult>
+	<HResult Name="ISS_E_ISOSTORE_START">
+		<HRValue>0x80131450</HRValue>
+	</HResult>
+	<HResult Name="ISS_E_ISOSTORE">
+		<HRValue>0x80131450</HRValue>
+	</HResult>
+	<HResult Name="ISS_E_OPEN_STORE_FILE">
+		<HRValue>0x80131460</HRValue>
+	</HResult>
+	<HResult Name="ISS_E_OPEN_FILE_MAPPING">
+		<HRValue>0x80131461</HRValue>
+	</HResult>
+	<HResult Name="ISS_E_MAP_VIEW_OF_FILE">
+		<HRValue>0x80131462</HRValue>
+	</HResult>
+	<HResult Name="ISS_E_GET_FILE_SIZE">
+		<HRValue>0x80131463</HRValue>
+	</HResult>
+	<HResult Name="ISS_E_CREATE_MUTEX">
+		<HRValue>0x80131464</HRValue>
+	</HResult>
+	<HResult Name="ISS_E_LOCK_FAILED">
+		<HRValue>0x80131465</HRValue>
+	</HResult>
+	<HResult Name="ISS_E_FILE_WRITE">
+		<HRValue>0x80131466</HRValue>
+	</HResult>
+	<HResult Name="ISS_E_SET_FILE_POINTER">
+		<HRValue>0x80131467</HRValue>
+	</HResult>
+	<HResult Name="ISS_E_CREATE_DIR">
+		<HRValue>0x80131468</HRValue>
+	</HResult>
+	<HResult Name="ISS_E_STORE_NOT_OPEN">
+		<HRValue>0x80131469</HRValue>
+	</HResult>
+	<HResult Name="ISS_E_CORRUPTED_STORE_FILE">
+		<HRValue>0x80131480</HRValue>
+	</HResult>
+	<HResult Name="ISS_E_STORE_VERSION">
+		<HRValue>0x80131481</HRValue>
+	</HResult>
+	<HResult Name="ISS_E_FILE_NOT_MAPPED">
+		<HRValue>0x80131482</HRValue>
+	</HResult>
+	<HResult Name="ISS_E_BLOCK_SIZE_TOO_SMALL">
+		<HRValue>0x80131483</HRValue>
+	</HResult>
+	<HResult Name="ISS_E_ALLOC_TOO_LARGE">
+		<HRValue>0x80131484</HRValue>
+	</HResult>
+	<HResult Name="ISS_E_USAGE_WILL_EXCEED_QUOTA">
+		<HRValue>0x80131485</HRValue>
+	</HResult>
+	<HResult Name="ISS_E_TABLE_ROW_NOT_FOUND">
+		<HRValue>0x80131486</HRValue>
+	</HResult>
+	<HResult Name="ISS_E_DEPRECATE">
+		<HRValue>0x801314a0</HRValue>
+	</HResult>
+	<HResult Name="ISS_E_CALLER">
+		<HRValue>0x801314a1</HRValue>
+	</HResult>
+	<HResult Name="ISS_E_PATH_LENGTH">
+		<HRValue>0x801314a2</HRValue>
+	</HResult>
+	<HResult Name="ISS_E_MACHINE">
+		<HRValue>0x801314a3</HRValue>
+	</HResult>
+	<HResult Name="ISS_E_MACHINE_DACL">
+		<HRValue>0x801314a4</HRValue>
+	</HResult>
+	<HResult Name="ISS_E_ISOSTORE_END">
+		<HRValue>0x801314ff</HRValue>
+	</HResult>
+	<HResult Name="COR_E_EXCEPTION">
+		<HRValue>0x80131500</HRValue>
+	</HResult>
+	<HResult Name="COR_E_SYSTEM">
+		<HRValue>0x80131501</HRValue>
+	</HResult>
+	<HResult Name="COR_E_ARGUMENTOUTOFRANGE">
+		<HRValue>0x80131502</HRValue>
+	</HResult>
+	<HResult Name="COR_E_ARRAYTYPEMISMATCH">
+		<HRValue>0x80131503</HRValue>
+	</HResult>
+	<HResult Name="COR_E_CONTEXTMARSHAL">
+		<HRValue>0x80131504</HRValue>
+	</HResult>
+	<HResult Name="COR_E_TIMEOUT">
+		<HRValue>0x80131505</HRValue>
+	</HResult>
+	<HResult Name="COR_E_EXECUTIONENGINE">
+		<HRValue>0x80131506</HRValue>
+	</HResult>
+	<HResult Name="COR_E_FIELDACCESS">
+		<HRValue>0x80131507</HRValue>
+	</HResult>
+	<HResult Name="COR_E_INDEXOUTOFRANGE">
+		<HRValue>0x80131508</HRValue>
+	</HResult>
+	<HResult Name="COR_E_INVALIDOPERATION">
+		<HRValue>0x80131509</HRValue>
+	</HResult>
+	<HResult Name="COR_E_SECURITY">
+		<HRValue>0x8013150a</HRValue>
+	</HResult>
+	<HResult Name="COR_E_REMOTING">
+		<HRValue>0x8013150b</HRValue>
+	</HResult>
+	<HResult Name="COR_E_SERIALIZATION">
+		<HRValue>0x8013150c</HRValue>
+	</HResult>
+	<HResult Name="COR_E_VERIFICATION">
+		<HRValue>0x8013150d</HRValue>
+	</HResult>
+	<HResult Name="COR_E_SERVER">
+		<HRValue>0x8013150e</HRValue>
+	</HResult>
+	<HResult Name="COR_E_SERVICEDCOMPONENT">
+		<HRValue>0x8013150f</HRValue>
+	</HResult>
+	<HResult Name="COR_E_METHODACCESS">
+		<HRValue>0x80131510</HRValue>
+	</HResult>
+	<HResult Name="COR_E_MISSINGFIELD">
+		<HRValue>0x80131511</HRValue>
+	</HResult>
+	<HResult Name="COR_E_MISSINGMEMBER">
+		<HRValue>0x80131512</HRValue>
+	</HResult>
+	<HResult Name="COR_E_MISSINGMETHOD">
+		<HRValue>0x80131513</HRValue>
+	</HResult>
+	<HResult Name="COR_E_MULTICASTNOTSUPPORTED">
+		<HRValue>0x80131514</HRValue>
+	</HResult>
+	<HResult Name="COR_E_NOTSUPPORTED">
+		<HRValue>0x80131515</HRValue>
+	</HResult>
+	<HResult Name="COR_E_OVERFLOW">
+		<HRValue>0x80131516</HRValue>
+	</HResult>
+	<HResult Name="COR_E_RANK">
+		<HRValue>0x80131517</HRValue>
+	</HResult>
+	<HResult Name="COR_E_SYNCHRONIZATIONLOCK">
+		<HRValue>0x80131518</HRValue>
+	</HResult>
+	<HResult Name="COR_E_THREADINTERRUPTED">
+		<HRValue>0x80131519</HRValue>
+	</HResult>
+	<HResult Name="COR_E_MEMBERACCESS">
+		<HRValue>0x8013151a</HRValue>
+	</HResult>
+	<HResult Name="COR_E_THREADSTATE">
+		<HRValue>0x80131520</HRValue>
+	</HResult>
+	<HResult Name="COR_E_THREADSTOP">
+		<HRValue>0x80131521</HRValue>
+	</HResult>
+	<HResult Name="COR_E_TYPELOAD">
+		<HRValue>0x80131522</HRValue>
+	</HResult>
+	<HResult Name="COR_E_ENTRYPOINTNOTFOUND">
+		<HRValue>0x80131523</HRValue>
+	</HResult>
+	<HResult Name="COR_E_DLLNOTFOUND">
+		<HRValue>0x80131524</HRValue>
+	</HResult>
+	<HResult Name="COR_E_THREADSTART">
+		<HRValue>0x80131525</HRValue>
+	</HResult>
+	<HResult Name="COR_E_INVALIDCOMOBJECT">
+		<HRValue>0x80131527</HRValue>
+	</HResult>
+	<HResult Name="COR_E_NOTFINITENUMBER">
+		<HRValue>0x80131528</HRValue>
+	</HResult>
+	<HResult Name="COR_E_DUPLICATEWAITOBJECT">
+		<HRValue>0x80131529</HRValue>
+	</HResult>
+	<HResult Name="COR_E_SEMAPHOREFULL">
+		<HRValue>0x8013152b</HRValue>
+	</HResult>
+	<HResult Name="COR_E_WAITHANDLECANNOTBEOPENED">
+		<HRValue>0x8013152c</HRValue>
+	</HResult>
+	<HResult Name="COR_E_ABANDONEDMUTEX">
+		<HRValue>0x8013152d</HRValue>
+	</HResult>
+	<HResult Name="COR_E_THREADABORTED">
+		<HRValue>0x80131530</HRValue>
+	</HResult>
+	<HResult Name="COR_E_INVALIDOLEVARIANTTYPE">
+		<HRValue>0x80131531</HRValue>
+	</HResult>
+	<HResult Name="COR_E_MISSINGMANIFESTRESOURCE">
+		<HRValue>0x80131532</HRValue>
+	</HResult>
+	<HResult Name="COR_E_SAFEARRAYTYPEMISMATCH">
+		<HRValue>0x80131533</HRValue>
+	</HResult>
+	<HResult Name="COR_E_TYPEINITIALIZATION">
+		<HRValue>0x80131534</HRValue>
+	</HResult>
+	<HResult Name="COR_E_MARSHALDIRECTIVE">
+		<HRValue>0x80131535</HRValue>
+	</HResult>
+	<HResult Name="COR_E_MISSINGSATELLITEASSEMBLY">
+		<HRValue>0x80131536</HRValue>
+	</HResult>
+	<HResult Name="COR_E_FORMAT">
+		<HRValue>0x80131537</HRValue>
+	</HResult>
+	<HResult Name="COR_E_SAFEARRAYRANKMISMATCH">
+		<HRValue>0x80131538</HRValue>
+	</HResult>
+	<HResult Name="COR_E_PLATFORMNOTSUPPORTED">
+		<HRValue>0x80131539</HRValue>
+	</HResult>
+	<HResult Name="COR_E_INVALIDPROGRAM">
+		<HRValue>0x8013153a</HRValue>
+	</HResult>
+	<HResult Name="COR_E_OPERATIONCANCELED">
+		<HRValue>0x8013153b</HRValue>
+	</HResult>
+	<HResult Name="COR_E_INSUFFICIENTMEMORY">
+		<HRValue>0x8013153d</HRValue>
+	</HResult>
+	<HResult Name="COR_E_RUNTIMEWRAPPED">
+		<HRValue>0x8013153e</HRValue>
+	</HResult>
+	<HResult Name="COR_E_DEVICESNOTSUPPORTED">
+		<HRValue>0x80131540</HRValue>
+	</HResult>
+	<HResult Name="COR_E_DATAMISALIGNED">
+		<HRValue>0x80131541</HRValue>
+	</HResult>
+	<HResult Name="COR_E_CODECONTRACTFAILED">
+		<HRValue>0x80131542</HRValue>
+	</HResult>
+	<HResult Name="COR_E_TYPEACCESS">
+		<HRValue>0x80131543</HRValue>
+	</HResult>
+	<HResult Name="COR_E_ACCESSING_CCW">
+		<HRValue>0x80131544</HRValue>
+	</HResult>
+	<HResult Name="COR_E_MAXMETHODSIZE">
+		<HRValue>0x80131545</HRValue>
+	</HResult>
+	<HResult Name="COR_E_KEYNOTFOUND">
+		<HRValue>0x80131577</HRValue>
+	</HResult>
+	<HResult Name="COR_E_INSUFFICIENTEXECUTIONSTACK">
+		<HRValue>0x80131578</HRValue>
+	</HResult>
+	<HResult Name="COR_E_APPLICATION">
+		<HRValue>0x80131600</HRValue>
+	</HResult>
+	<HResult Name="COR_E_INVALIDFILTERCRITERIA">
+		<HRValue>0x80131601</HRValue>
+	</HResult>
+	<HResult Name="COR_E_REFLECTIONTYPELOAD">
+		<HRValue>0x80131602</HRValue>
+	</HResult>
+	<HResult Name="COR_E_TARGET">
+		<HRValue>0x80131603</HRValue>
+	</HResult>
+	<HResult Name="COR_E_TARGETINVOCATION">
+		<HRValue>0x80131604</HRValue>
+	</HResult>
+	<HResult Name="COR_E_CUSTOMATTRIBUTEFORMAT">
+		<HRValue>0x80131605</HRValue>
+	</HResult>
+	<HResult Name="COR_E_IO">
+		<HRValue>0x80131620</HRValue>
+	</HResult>
+	<HResult Name="COR_E_FILELOAD">
+		<HRValue>0x80131621</HRValue>
+	</HResult>
+	<HResult Name="COR_E_OBJECTDISPOSED">
+		<HRValue>0x80131622</HRValue>
+	</HResult>
+	<HResult Name="COR_E_FAILFAST">
+		<HRValue>0x80131623</HRValue>
+	</HResult>
+	<HResult Name="COR_E_HOSTPROTECTION">
+		<HRValue>0x80131640</HRValue>
+	</HResult>
+	<HResult Name="COR_E_ILLEGAL_REENTRANCY">
+		<HRValue>0x80131641</HRValue>
+	</HResult>
+	<HResult Name="CLR_E_SHIM_RUNTIMELOAD">
+		<HRValue>0x80131700</HRValue>
+	</HResult>
+	<HResult Name="CLR_E_SHIM_RUNTIMEEXPORT">
+		<HRValue>0x80131701</HRValue>
+	</HResult>
+	<HResult Name="CLR_E_SHIM_INSTALLROOT">
+		<HRValue>0x80131702</HRValue>
+	</HResult>
+	<HResult Name="CLR_E_SHIM_INSTALLCOMP">
+		<HRValue>0x80131703</HRValue>
+	</HResult>
+	<HResult Name="CLR_E_SHIM_LEGACYRUNTIMEALREADYBOUND">
+		<HRValue>0x80131704</HRValue>
+	</HResult>
+	<HResult Name="CLR_E_SHIM_SHUTDOWNINPROGRESS">
+		<HRValue>0x80131705</HRValue>
+	</HResult>
+	<HResult Name="VER_E_HRESULT">
+		<HRValue>0x80131801</HRValue>
+	</HResult>
+	<HResult Name="VER_E_OFFSET">
+		<HRValue>0x80131802</HRValue>
+	</HResult>
+	<HResult Name="VER_E_OPCODE">
+		<HRValue>0x80131803</HRValue>
+	</HResult>
+	<HResult Name="VER_E_OPERAND">
+		<HRValue>0x80131804</HRValue>
+	</HResult>
+	<HResult Name="VER_E_TOKEN">
+		<HRValue>0x80131805</HRValue>
+	</HResult>
+	<HResult Name="VER_E_EXCEPT">
+		<HRValue>0x80131806</HRValue>
+	</HResult>
+	<HResult Name="VER_E_STACK_SLOT">
+		<HRValue>0x80131807</HRValue>
+	</HResult>
+	<HResult Name="VER_E_LOC">
+		<HRValue>0x80131808</HRValue>
+	</HResult>
+	<HResult Name="VER_E_ARG">
+		<HRValue>0x80131809</HRValue>
+	</HResult>
+	<HResult Name="VER_E_FOUND">
+		<HRValue>0x8013180a</HRValue>
+	</HResult>
+	<HResult Name="VER_E_EXPECTED">
+		<HRValue>0x8013180b</HRValue>
+	</HResult>
+	<HResult Name="VER_E_LOC_BYNAME">
+		<HRValue>0x8013180c</HRValue>
+	</HResult>
+	<HResult Name="VER_E_UNKNOWN_OPCODE">
+		<HRValue>0x80131810</HRValue>
+	</HResult>
+	<HResult Name="VER_E_SIG_CALLCONV">
+		<HRValue>0x80131811</HRValue>
+	</HResult>
+	<HResult Name="VER_E_SIG_ELEMTYPE">
+		<HRValue>0x80131812</HRValue>
+	</HResult>
+	<HResult Name="VER_E_RET_SIG">
+		<HRValue>0x80131814</HRValue>
+	</HResult>
+	<HResult Name="VER_E_FIELD_SIG">
+		<HRValue>0x80131815</HRValue>
+	</HResult>
+	<HResult Name="VER_E_OPEN_DLGT_PROT_ACC">
+		<HRValue>0x80131816</HRValue>
+	</HResult>
+	<HResult Name="VER_E_INTERNAL">
+		<HRValue>0x80131818</HRValue>
+	</HResult>
+	<HResult Name="VER_E_STACK_TOO_LARGE">
+		<HRValue>0x80131819</HRValue>
+	</HResult>
+	<HResult Name="VER_E_ARRAY_NAME_LONG">
+		<HRValue>0x8013181a</HRValue>
+	</HResult>
+	<HResult Name="VER_E_FALLTHRU">
+		<HRValue>0x80131820</HRValue>
+	</HResult>
+	<HResult Name="VER_E_TRY_GTEQ_END">
+		<HRValue>0x80131821</HRValue>
+	</HResult>
+	<HResult Name="VER_E_TRYEND_GT_CS">
+		<HRValue>0x80131822</HRValue>
+	</HResult>
+	<HResult Name="VER_E_HND_GTEQ_END">
+		<HRValue>0x80131823</HRValue>
+	</HResult>
+	<HResult Name="VER_E_HNDEND_GT_CS">
+		<HRValue>0x80131824</HRValue>
+	</HResult>
+	<HResult Name="VER_E_FLT_GTEQ_CS">
+		<HRValue>0x80131825</HRValue>
+	</HResult>
+	<HResult Name="VER_E_TRY_START">
+		<HRValue>0x80131826</HRValue>
+	</HResult>
+	<HResult Name="VER_E_HND_START">
+		<HRValue>0x80131827</HRValue>
+	</HResult>
+	<HResult Name="VER_E_FLT_START">
+		<HRValue>0x80131828</HRValue>
+	</HResult>
+	<HResult Name="VER_E_TRY_OVERLAP">
+		<HRValue>0x80131829</HRValue>
+	</HResult>
+	<HResult Name="VER_E_TRY_EQ_HND_FIL">
+		<HRValue>0x8013182a</HRValue>
+	</HResult>
+	<HResult Name="VER_E_TRY_SHARE_FIN_FAL">
+		<HRValue>0x8013182b</HRValue>
+	</HResult>
+	<HResult Name="VER_E_HND_OVERLAP">
+		<HRValue>0x8013182c</HRValue>
+	</HResult>
+	<HResult Name="VER_E_HND_EQ">
+		<HRValue>0x8013182d</HRValue>
+	</HResult>
+	<HResult Name="VER_E_FIL_OVERLAP">
+		<HRValue>0x8013182e</HRValue>
+	</HResult>
+	<HResult Name="VER_E_FIL_EQ">
+		<HRValue>0x8013182f</HRValue>
+	</HResult>
+	<HResult Name="VER_E_FIL_CONT_TRY">
+		<HRValue>0x80131830</HRValue>
+	</HResult>
+	<HResult Name="VER_E_FIL_CONT_HND">
+		<HRValue>0x80131831</HRValue>
+	</HResult>
+	<HResult Name="VER_E_FIL_CONT_FIL">
+		<HRValue>0x80131832</HRValue>
+	</HResult>
+	<HResult Name="VER_E_FIL_GTEQ_CS">
+		<HRValue>0x80131833</HRValue>
+	</HResult>
+	<HResult Name="VER_E_FIL_START">
+		<HRValue>0x80131834</HRValue>
+	</HResult>
+	<HResult Name="VER_E_FALLTHRU_EXCEP">
+		<HRValue>0x80131835</HRValue>
+	</HResult>
+	<HResult Name="VER_E_FALLTHRU_INTO_HND">
+		<HRValue>0x80131836</HRValue>
+	</HResult>
+	<HResult Name="VER_E_FALLTHRU_INTO_FIL">
+		<HRValue>0x80131837</HRValue>
+	</HResult>
+	<HResult Name="VER_E_LEAVE">
+		<HRValue>0x80131838</HRValue>
+	</HResult>
+	<HResult Name="VER_E_RETHROW">
+		<HRValue>0x80131839</HRValue>
+	</HResult>
+	<HResult Name="VER_E_ENDFINALLY">
+		<HRValue>0x8013183a</HRValue>
+	</HResult>
+	<HResult Name="VER_E_ENDFILTER">
+		<HRValue>0x8013183b</HRValue>
+	</HResult>
+	<HResult Name="VER_E_ENDFILTER_MISSING">
+		<HRValue>0x8013183c</HRValue>
+	</HResult>
+	<HResult Name="VER_E_BR_INTO_TRY">
+		<HRValue>0x8013183d</HRValue>
+	</HResult>
+	<HResult Name="VER_E_BR_INTO_HND">
+		<HRValue>0x8013183e</HRValue>
+	</HResult>
+	<HResult Name="VER_E_BR_INTO_FIL">
+		<HRValue>0x8013183f</HRValue>
+	</HResult>
+	<HResult Name="VER_E_BR_OUTOF_TRY">
+		<HRValue>0x80131840</HRValue>
+	</HResult>
+	<HResult Name="VER_E_BR_OUTOF_HND">
+		<HRValue>0x80131841</HRValue>
+	</HResult>
+	<HResult Name="VER_E_BR_OUTOF_FIL">
+		<HRValue>0x80131842</HRValue>
+	</HResult>
+	<HResult Name="VER_E_BR_OUTOF_FIN">
+		<HRValue>0x80131843</HRValue>
+	</HResult>
+	<HResult Name="VER_E_RET_FROM_TRY">
+		<HRValue>0x80131844</HRValue>
+	</HResult>
+	<HResult Name="VER_E_RET_FROM_HND">
+		<HRValue>0x80131845</HRValue>
+	</HResult>
+	<HResult Name="VER_E_RET_FROM_FIL">
+		<HRValue>0x80131846</HRValue>
+	</HResult>
+	<HResult Name="VER_E_BAD_JMP_TARGET">
+		<HRValue>0x80131847</HRValue>
+	</HResult>
+	<HResult Name="VER_E_PATH_LOC">
+		<HRValue>0x80131848</HRValue>
+	</HResult>
+	<HResult Name="VER_E_PATH_THIS">
+		<HRValue>0x80131849</HRValue>
+	</HResult>
+	<HResult Name="VER_E_PATH_STACK">
+		<HRValue>0x8013184a</HRValue>
+	</HResult>
+	<HResult Name="VER_E_PATH_STACK_DEPTH">
+		<HRValue>0x8013184b</HRValue>
+	</HResult>
+	<HResult Name="VER_E_THIS">
+		<HRValue>0x8013184c</HRValue>
+	</HResult>
+	<HResult Name="VER_E_THIS_UNINIT_EXCEP">
+		<HRValue>0x8013184d</HRValue>
+	</HResult>
+	<HResult Name="VER_E_THIS_UNINIT_STORE">
+		<HRValue>0x8013184e</HRValue>
+	</HResult>
+	<HResult Name="VER_E_THIS_UNINIT_RET">
+		<HRValue>0x8013184f</HRValue>
+	</HResult>
+	<HResult Name="VER_E_THIS_UNINIT_V_RET">
+		<HRValue>0x80131850</HRValue>
+	</HResult>
+	<HResult Name="VER_E_THIS_UNINIT_BR">
+		<HRValue>0x80131851</HRValue>
+	</HResult>
+	<HResult Name="VER_E_LDFTN_CTOR">
+		<HRValue>0x80131852</HRValue>
+	</HResult>
+	<HResult Name="VER_E_STACK_NOT_EQ">
+		<HRValue>0x80131853</HRValue>
+	</HResult>
+	<HResult Name="VER_E_STACK_UNEXPECTED">
+		<HRValue>0x80131854</HRValue>
+	</HResult>
+	<HResult Name="VER_E_STACK_EXCEPTION">
+		<HRValue>0x80131855</HRValue>
+	</HResult>
+	<HResult Name="VER_E_STACK_OVERFLOW">
+		<HRValue>0x80131856</HRValue>
+	</HResult>
+	<HResult Name="VER_E_STACK_UNDERFLOW">
+		<HRValue>0x80131857</HRValue>
+	</HResult>
+	<HResult Name="VER_E_STACK_EMPTY">
+		<HRValue>0x80131858</HRValue>
+	</HResult>
+	<HResult Name="VER_E_STACK_UNINIT">
+		<HRValue>0x80131859</HRValue>
+	</HResult>
+	<HResult Name="VER_E_STACK_I_I4_I8">
+		<HRValue>0x8013185a</HRValue>
+	</HResult>
+	<HResult Name="VER_E_STACK_R_R4_R8">
+		<HRValue>0x8013185b</HRValue>
+	</HResult>
+	<HResult Name="VER_E_STACK_NO_R_I8">
+		<HRValue>0x8013185c</HRValue>
+	</HResult>
+	<HResult Name="VER_E_STACK_NUMERIC">
+		<HRValue>0x8013185d</HRValue>
+	</HResult>
+	<HResult Name="VER_E_STACK_OBJREF">
+		<HRValue>0x8013185e</HRValue>
+	</HResult>
+	<HResult Name="VER_E_STACK_P_OBJREF">
+		<HRValue>0x8013185f</HRValue>
+	</HResult>
+	<HResult Name="VER_E_STACK_BYREF">
+		<HRValue>0x80131860</HRValue>
+	</HResult>
+	<HResult Name="VER_E_STACK_METHOD">
+		<HRValue>0x80131861</HRValue>
+	</HResult>
+	<HResult Name="VER_E_STACK_ARRAY_SD">
+		<HRValue>0x80131862</HRValue>
+	</HResult>
+	<HResult Name="VER_E_STACK_VALCLASS">
+		<HRValue>0x80131863</HRValue>
+	</HResult>
+	<HResult Name="VER_E_STACK_P_VALCLASS">
+		<HRValue>0x80131864</HRValue>
+	</HResult>
+	<HResult Name="VER_E_STACK_NO_VALCLASS">
+		<HRValue>0x80131865</HRValue>
+	</HResult>
+	<HResult Name="VER_E_LOC_DEAD">
+		<HRValue>0x80131866</HRValue>
+	</HResult>
+	<HResult Name="VER_E_LOC_NUM">
+		<HRValue>0x80131867</HRValue>
+	</HResult>
+	<HResult Name="VER_E_ARG_NUM">
+		<HRValue>0x80131868</HRValue>
+	</HResult>
+	<HResult Name="VER_E_TOKEN_RESOLVE">
+		<HRValue>0x80131869</HRValue>
+	</HResult>
+	<HResult Name="VER_E_TOKEN_TYPE">
+		<HRValue>0x8013186a</HRValue>
+	</HResult>
+	<HResult Name="VER_E_TOKEN_TYPE_MEMBER">
+		<HRValue>0x8013186b</HRValue>
+	</HResult>
+	<HResult Name="VER_E_TOKEN_TYPE_FIELD">
+		<HRValue>0x8013186c</HRValue>
+	</HResult>
+	<HResult Name="VER_E_TOKEN_TYPE_SIG">
+		<HRValue>0x8013186d</HRValue>
+	</HResult>
+	<HResult Name="VER_E_UNVERIFIABLE">
+		<HRValue>0x8013186e</HRValue>
+	</HResult>
+	<HResult Name="VER_E_LDSTR_OPERAND">
+		<HRValue>0x8013186f</HRValue>
+	</HResult>
+	<HResult Name="VER_E_RET_PTR_TO_STACK">
+		<HRValue>0x80131870</HRValue>
+	</HResult>
+	<HResult Name="VER_E_RET_VOID">
+		<HRValue>0x80131871</HRValue>
+	</HResult>
+	<HResult Name="VER_E_RET_MISSING">
+		<HRValue>0x80131872</HRValue>
+	</HResult>
+	<HResult Name="VER_E_RET_EMPTY">
+		<HRValue>0x80131873</HRValue>
+	</HResult>
+	<HResult Name="VER_E_RET_UNINIT">
+		<HRValue>0x80131874</HRValue>
+	</HResult>
+	<HResult Name="VER_E_ARRAY_ACCESS">
+		<HRValue>0x80131875</HRValue>
+	</HResult>
+	<HResult Name="VER_E_ARRAY_V_STORE">
+		<HRValue>0x80131876</HRValue>
+	</HResult>
+	<HResult Name="VER_E_ARRAY_SD">
+		<HRValue>0x80131877</HRValue>
+	</HResult>
+	<HResult Name="VER_E_ARRAY_SD_PTR">
+		<HRValue>0x80131878</HRValue>
+	</HResult>
+	<HResult Name="VER_E_ARRAY_FIELD">
+		<HRValue>0x80131879</HRValue>
+	</HResult>
+	<HResult Name="VER_E_ARGLIST">
+		<HRValue>0x8013187a</HRValue>
+	</HResult>
+	<HResult Name="VER_E_VALCLASS">
+		<HRValue>0x8013187b</HRValue>
+	</HResult>
+	<HResult Name="VER_E_METHOD_ACCESS">
+		<HRValue>0x8013187c</HRValue>
+	</HResult>
+	<HResult Name="VER_E_FIELD_ACCESS">
+		<HRValue>0x8013187d</HRValue>
+	</HResult>
+	<HResult Name="VER_E_DEAD">
+		<HRValue>0x8013187e</HRValue>
+	</HResult>
+	<HResult Name="VER_E_FIELD_STATIC">
+		<HRValue>0x8013187f</HRValue>
+	</HResult>
+	<HResult Name="VER_E_FIELD_NO_STATIC">
+		<HRValue>0x80131880</HRValue>
+	</HResult>
+	<HResult Name="VER_E_ADDR">
+		<HRValue>0x80131881</HRValue>
+	</HResult>
+	<HResult Name="VER_E_ADDR_BYREF">
+		<HRValue>0x80131882</HRValue>
+	</HResult>
+	<HResult Name="VER_E_ADDR_LITERAL">
+		<HRValue>0x80131883</HRValue>
+	</HResult>
+	<HResult Name="VER_E_INITONLY">
+		<HRValue>0x80131884</HRValue>
+	</HResult>
+	<HResult Name="VER_E_THROW">
+		<HRValue>0x80131885</HRValue>
+	</HResult>
+	<HResult Name="VER_E_CALLVIRT_VALCLASS">
+		<HRValue>0x80131886</HRValue>
+	</HResult>
+	<HResult Name="VER_E_CALL_SIG">
+		<HRValue>0x80131887</HRValue>
+	</HResult>
+	<HResult Name="VER_E_CALL_STATIC">
+		<HRValue>0x80131888</HRValue>
+	</HResult>
+	<HResult Name="VER_E_CTOR">
+		<HRValue>0x80131889</HRValue>
+	</HResult>
+	<HResult Name="VER_E_CTOR_VIRT">
+		<HRValue>0x8013188a</HRValue>
+	</HResult>
+	<HResult Name="VER_E_CTOR_OR_SUPER">
+		<HRValue>0x8013188b</HRValue>
+	</HResult>
+	<HResult Name="VER_E_CTOR_MUL_INIT">
+		<HRValue>0x8013188c</HRValue>
+	</HResult>
+	<HResult Name="VER_E_SIG">
+		<HRValue>0x8013188d</HRValue>
+	</HResult>
+	<HResult Name="VER_E_SIG_ARRAY">
+		<HRValue>0x8013188e</HRValue>
+	</HResult>
+	<HResult Name="VER_E_SIG_ARRAY_PTR">
+		<HRValue>0x8013188f</HRValue>
+	</HResult>
+	<HResult Name="VER_E_SIG_ARRAY_BYREF">
+		<HRValue>0x80131890</HRValue>
+	</HResult>
+	<HResult Name="VER_E_SIG_ELEM_PTR">
+		<HRValue>0x80131891</HRValue>
+	</HResult>
+	<HResult Name="VER_E_SIG_VARARG">
+		<HRValue>0x80131892</HRValue>
+	</HResult>
+	<HResult Name="VER_E_SIG_VOID">
+		<HRValue>0x80131893</HRValue>
+	</HResult>
+	<HResult Name="VER_E_SIG_BYREF_BYREF">
+		<HRValue>0x80131894</HRValue>
+	</HResult>
+	<HResult Name="VER_E_CODE_SIZE_ZERO">
+		<HRValue>0x80131896</HRValue>
+	</HResult>
+	<HResult Name="VER_E_BAD_VARARG">
+		<HRValue>0x80131897</HRValue>
+	</HResult>
+	<HResult Name="VER_E_TAIL_CALL">
+		<HRValue>0x80131898</HRValue>
+	</HResult>
+	<HResult Name="VER_E_TAIL_BYREF">
+		<HRValue>0x80131899</HRValue>
+	</HResult>
+	<HResult Name="VER_E_TAIL_RET">
+		<HRValue>0x8013189a</HRValue>
+	</HResult>
+	<HResult Name="VER_E_TAIL_RET_VOID">
+		<HRValue>0x8013189b</HRValue>
+	</HResult>
+	<HResult Name="VER_E_TAIL_RET_TYPE">
+		<HRValue>0x8013189c</HRValue>
+	</HResult>
+	<HResult Name="VER_E_TAIL_STACK_EMPTY">
+		<HRValue>0x8013189d</HRValue>
+	</HResult>
+	<HResult Name="VER_E_METHOD_END">
+		<HRValue>0x8013189e</HRValue>
+	</HResult>
+	<HResult Name="VER_E_BAD_BRANCH">
+		<HRValue>0x8013189f</HRValue>
+	</HResult>
+	<HResult Name="VER_E_FIN_OVERLAP">
+		<HRValue>0x801318a0</HRValue>
+	</HResult>
+	<HResult Name="VER_E_LEXICAL_NESTING">
+		<HRValue>0x801318a1</HRValue>
+	</HResult>
+	<HResult Name="VER_E_VOLATILE">
+		<HRValue>0x801318a2</HRValue>
+	</HResult>
+	<HResult Name="VER_E_UNALIGNED">
+		<HRValue>0x801318a3</HRValue>
+	</HResult>
+	<HResult Name="VER_E_INNERMOST_FIRST">
+		<HRValue>0x801318a4</HRValue>
+	</HResult>
+	<HResult Name="VER_E_CALLI_VIRTUAL">
+		<HRValue>0x801318a5</HRValue>
+	</HResult>
+	<HResult Name="VER_E_CALL_ABSTRACT">
+		<HRValue>0x801318a6</HRValue>
+	</HResult>
+	<HResult Name="VER_E_STACK_UNEXP_ARRAY">
+		<HRValue>0x801318a7</HRValue>
+	</HResult>
+	<HResult Name="VER_E_NOT_IN_GC_HEAP">
+		<HRValue>0x801318a8</HRValue>
+	</HResult>
+	<HResult Name="VER_E_TRY_N_EMPTY_STACK">
+		<HRValue>0x801318a9</HRValue>
+	</HResult>
+	<HResult Name="VER_E_DLGT_CTOR">
+		<HRValue>0x801318aa</HRValue>
+	</HResult>
+	<HResult Name="VER_E_DLGT_BB">
+		<HRValue>0x801318ab</HRValue>
+	</HResult>
+	<HResult Name="VER_E_DLGT_PATTERN">
+		<HRValue>0x801318ac</HRValue>
+	</HResult>
+	<HResult Name="VER_E_DLGT_LDFTN">
+		<HRValue>0x801318ad</HRValue>
+	</HResult>
+	<HResult Name="VER_E_FTN_ABSTRACT">
+		<HRValue>0x801318ae</HRValue>
+	</HResult>
+	<HResult Name="VER_E_SIG_C_VC">
+		<HRValue>0x801318af</HRValue>
+	</HResult>
+	<HResult Name="VER_E_SIG_VC_C">
+		<HRValue>0x801318b0</HRValue>
+	</HResult>
+	<HResult Name="VER_E_BOX_PTR_TO_STACK">
+		<HRValue>0x801318b1</HRValue>
+	</HResult>
+	<HResult Name="VER_E_SIG_BYREF_TB_AH">
+		<HRValue>0x801318b2</HRValue>
+	</HResult>
+	<HResult Name="VER_E_SIG_ARRAY_TB_AH">
+		<HRValue>0x801318b3</HRValue>
+	</HResult>
+	<HResult Name="VER_E_ENDFILTER_STACK">
+		<HRValue>0x801318b4</HRValue>
+	</HResult>
+	<HResult Name="VER_E_DLGT_SIG_I">
+		<HRValue>0x801318b5</HRValue>
+	</HResult>
+	<HResult Name="VER_E_DLGT_SIG_O">
+		<HRValue>0x801318b6</HRValue>
+	</HResult>
+	<HResult Name="VER_E_RA_PTR_TO_STACK">
+		<HRValue>0x801318b7</HRValue>
+	</HResult>
+	<HResult Name="VER_E_CATCH_VALUE_TYPE">
+		<HRValue>0x801318b8</HRValue>
+	</HResult>
+	<HResult Name="VER_E_CATCH_BYREF">
+		<HRValue>0x801318b9</HRValue>
+	</HResult>
+	<HResult Name="VER_E_FIL_PRECEED_HND">
+		<HRValue>0x801318ba</HRValue>
+	</HResult>
+	<HResult Name="VER_E_LDVIRTFTN_STATIC">
+		<HRValue>0x801318bb</HRValue>
+	</HResult>
+	<HResult Name="VER_E_CALLVIRT_STATIC">
+		<HRValue>0x801318bc</HRValue>
+	</HResult>
+	<HResult Name="VER_E_INITLOCALS">
+		<HRValue>0x801318bd</HRValue>
+	</HResult>
+	<HResult Name="VER_E_BR_TO_EXCEPTION">
+		<HRValue>0x801318be</HRValue>
+	</HResult>
+	<HResult Name="VER_E_CALL_CTOR">
+		<HRValue>0x801318bf</HRValue>
+	</HResult>
+	<HResult Name="VER_E_VALCLASS_OBJREF_VAR">
+		<HRValue>0x801318c0</HRValue>
+	</HResult>
+	<HResult Name="VER_E_STACK_P_VALCLASS_OBJREF_VAR">
+		<HRValue>0x801318c1</HRValue>
+	</HResult>
+	<HResult Name="VER_E_SIG_VAR_PARAM">
+		<HRValue>0x801318c2</HRValue>
+	</HResult>
+	<HResult Name="VER_E_SIG_MVAR_PARAM">
+		<HRValue>0x801318c3</HRValue>
+	</HResult>
+	<HResult Name="VER_E_SIG_VAR_ARG">
+		<HRValue>0x801318c4</HRValue>
+	</HResult>
+	<HResult Name="VER_E_SIG_MVAR_ARG">
+		<HRValue>0x801318c5</HRValue>
+	</HResult>
+	<HResult Name="VER_E_SIG_GENERICINST">
+		<HRValue>0x801318c6</HRValue>
+	</HResult>
+	<HResult Name="VER_E_SIG_METHOD_INST">
+		<HRValue>0x801318c7</HRValue>
+	</HResult>
+	<HResult Name="VER_E_SIG_METHOD_PARENT_INST">
+		<HRValue>0x801318c8</HRValue>
+	</HResult>
+	<HResult Name="VER_E_SIG_FIELD_PARENT_INST">
+		<HRValue>0x801318c9</HRValue>
+	</HResult>
+	<HResult Name="VER_E_CALLCONV_NOT_GENERICINST">
+		<HRValue>0x801318ca</HRValue>
+	</HResult>
+	<HResult Name="VER_E_TOKEN_BAD_METHOD_SPEC">
+		<HRValue>0x801318cb</HRValue>
+	</HResult>
+	<HResult Name="VER_E_BAD_READONLY_PREFIX">
+		<HRValue>0x801318cc</HRValue>
+	</HResult>
+	<HResult Name="VER_E_BAD_CONSTRAINED_PREFIX">
+		<HRValue>0x801318cd</HRValue>
+	</HResult>
+	<HResult Name="VER_E_CIRCULAR_VAR_CONSTRAINTS">
+		<HRValue>0x801318ce</HRValue>
+	</HResult>
+	<HResult Name="VER_E_CIRCULAR_MVAR_CONSTRAINTS">
+		<HRValue>0x801318cf</HRValue>
+	</HResult>
+	<HResult Name="VER_E_UNSATISFIED_METHOD_INST">
+		<HRValue>0x801318d0</HRValue>
+	</HResult>
+	<HResult Name="VER_E_UNSATISFIED_METHOD_PARENT_INST">
+		<HRValue>0x801318d1</HRValue>
+	</HResult>
+	<HResult Name="VER_E_UNSATISFIED_FIELD_PARENT_INST">
+		<HRValue>0x801318d2</HRValue>
+	</HResult>
+	<HResult Name="VER_E_UNSATISFIED_BOX_OPERAND">
+		<HRValue>0x801318d3</HRValue>
+	</HResult>
+	<HResult Name="VER_E_CONSTRAINED_CALL_WITH_NON_BYREF_THIS">
+		<HRValue>0x801318d4</HRValue>
+	</HResult>
+	<HResult Name="VER_E_CONSTRAINED_OF_NON_VARIABLE_TYPE">
+		<HRValue>0x801318d5</HRValue>
+	</HResult>
+	<HResult Name="VER_E_READONLY_UNEXPECTED_CALLEE">
+		<HRValue>0x801318d6</HRValue>
+	</HResult>
+	<HResult Name="VER_E_READONLY_ILLEGAL_WRITE">
+		<HRValue>0x801318d7</HRValue>
+	</HResult>
+	<HResult Name="VER_E_READONLY_IN_MKREFANY">
+		<HRValue>0x801318d8</HRValue>
+	</HResult>
+	<HResult Name="VER_E_UNALIGNED_ALIGNMENT">
+		<HRValue>0x801318d9</HRValue>
+	</HResult>
+	<HResult Name="VER_E_TAILCALL_INSIDE_EH">
+		<HRValue>0x801318da</HRValue>
+	</HResult>
+	<HResult Name="VER_E_BACKWARD_BRANCH">
+		<HRValue>0x801318db</HRValue>
+	</HResult>
+	<HResult Name="VER_E_CALL_TO_VTYPE_BASE">
+		<HRValue>0x801318dc</HRValue>
+	</HResult>
+	<HResult Name="VER_E_NEWOBJ_OF_ABSTRACT_CLASS">
+		<HRValue>0x801318dd</HRValue>
+	</HResult>
+	<HResult Name="VER_E_UNMANAGED_POINTER">
+		<HRValue>0x801318de</HRValue>
+	</HResult>
+	<HResult Name="VER_E_LDFTN_NON_FINAL_VIRTUAL">
+		<HRValue>0x801318df</HRValue>
+	</HResult>
+	<HResult Name="VER_E_FIELD_OVERLAP">
+		<HRValue>0x801318e0</HRValue>
+	</HResult>
+	<HResult Name="VER_E_THIS_MISMATCH">
+		<HRValue>0x801318e1</HRValue>
+	</HResult>
+	<HResult Name="VER_E_STACK_I_I4">
+		<HRValue>0x801318e2</HRValue>
+	</HResult>
+	<HResult Name="VER_E_BAD_PE">
+		<HRValue>0x801318f0</HRValue>
+	</HResult>
+	<HResult Name="VER_E_BAD_MD">
+		<HRValue>0x801318f1</HRValue>
+	</HResult>
+	<HResult Name="VER_E_BAD_APPDOMAIN">
+		<HRValue>0x801318f2</HRValue>
+	</HResult>
+	<HResult Name="VER_E_TYPELOAD">
+		<HRValue>0x801318f3</HRValue>
+	</HResult>
+	<HResult Name="VER_E_PE_LOAD">
+		<HRValue>0x801318f4</HRValue>
+	</HResult>
+	<HResult Name="VER_E_WRITE_RVA_STATIC">
+		<HRValue>0x801318f5</HRValue>
+	</HResult>
+	<HResult Name="VER_E_INITIALIZE_ARRAY_MISSING_TOKEN">
+		<HRValue>0x801318f6</HRValue>
+	</HResult>
+	<HResult Name="COR_E_SqlException">
+		<HRValue>0x80131904</HRValue>
+	</HResult>
+	<HResult Name="COR_E_Data">
+		<HRValue>0x80131920</HRValue>
+	</HResult>
+	<HResult Name="COR_E_DataDeletedRowInaccessible">
+		<HRValue>0x80131921</HRValue>
+	</HResult>
+	<HResult Name="COR_E_DataDuplicateName">
+		<HRValue>0x80131922</HRValue>
+	</HResult>
+	<HResult Name="COR_E_DataInRowChangingEvent">
+		<HRValue>0x80131923</HRValue>
+	</HResult>
+	<HResult Name="COR_E_DataInvalidConstraint">
+		<HRValue>0x80131924</HRValue>
+	</HResult>
+	<HResult Name="COR_E_DataMissingPrimaryKey">
+		<HRValue>0x80131925</HRValue>
+	</HResult>
+	<HResult Name="COR_E_DataNoNullAllowed">
+		<HRValue>0x80131926</HRValue>
+	</HResult>
+	<HResult Name="COR_E_DataReadOnly">
+		<HRValue>0x80131927</HRValue>
+	</HResult>
+	<HResult Name="COR_E_DataRowNotInTable">
+		<HRValue>0x80131928</HRValue>
+	</HResult>
+	<HResult Name="COR_E_DataVersionNotFound">
+		<HRValue>0x80131929</HRValue>
+	</HResult>
+	<HResult Name="COR_E_DataConstraint">
+		<HRValue>0x8013192a</HRValue>
+	</HResult>
+	<HResult Name="COR_E_StrongTyping">
+		<HRValue>0x8013192b</HRValue>
+	</HResult>
+	<HResult Name="COR_E_SqlType">
+		<HRValue>0x80131930</HRValue>
+	</HResult>
+	<HResult Name="COR_E_SqlNullValue">
+		<HRValue>0x80131931</HRValue>
+	</HResult>
+	<HResult Name="COR_E_SqlTruncate">
+		<HRValue>0x80131932</HRValue>
+	</HResult>
+	<HResult Name="COR_E_AdapterMapping">
+		<HRValue>0x80131933</HRValue>
+	</HResult>
+	<HResult Name="COR_E_DataAdapter">
+		<HRValue>0x80131934</HRValue>
+	</HResult>
+	<HResult Name="COR_E_DBConcurrency">
+		<HRValue>0x80131935</HRValue>
+	</HResult>
+	<HResult Name="COR_E_OperationAborted">
+		<HRValue>0x80131936</HRValue>
+	</HResult>
+	<HResult Name="COR_E_InvalidUdt">
+		<HRValue>0x80131937</HRValue>
+	</HResult>
+	<HResult Name="COR_E_OdbcException">
+		<HRValue>0x80131937</HRValue>
+	</HResult>
+	<HResult Name="COR_E_OracleException">
+		<HRValue>0x80131938</HRValue>
+	</HResult>
+	<HResult Name="COR_E_Xml">
+		<HRValue>0x80131940</HRValue>
+	</HResult>
+	<HResult Name="COR_E_XmlSchema">
+		<HRValue>0x80131941</HRValue>
+	</HResult>
+	<HResult Name="COR_E_XmlXslt">
+		<HRValue>0x80131942</HRValue>
+	</HResult>
+	<HResult Name="COR_E_XmlXPath">
+		<HRValue>0x80131943</HRValue>
+	</HResult>
+	<HResult Name="COR_E_XmlQuery">
+		<HRValue>0x80131944</HRValue>
+	</HResult>
+	<HResult Name="VLDTR_E_IFACE_NOTIFACE">
+		<HRValue>0x80131b00</HRValue>
+	</HResult>
+	<HResult Name="VLDTR_E_FD_RVAHASNORVA">
+		<HRValue>0x80131b01</HRValue>
+	</HResult>
+	<HResult Name="VLDTR_E_FD_RVAHASZERORVA">
+		<HRValue>0x80131b02</HRValue>
+	</HResult>
+	<HResult Name="VLDTR_E_MD_RVAANDIMPLMAP">
+		<HRValue>0x80131b03</HRValue>
+	</HResult>
+	<HResult Name="VLDTR_E_TD_EXTRAFLAGS">
+		<HRValue>0x80131b04</HRValue>
+	</HResult>
+	<HResult Name="VLDTR_E_TD_EXTENDSITSELF">
+		<HRValue>0x80131b05</HRValue>
+	</HResult>
+	<HResult Name="VLDTR_E_TD_SYSVTNOTEXTOBJ">
+		<HRValue>0x80131b06</HRValue>
+	</HResult>
+	<HResult Name="VLDTR_E_TD_EXTTYPESPEC">
+		<HRValue>0x80131b07</HRValue>
+	</HResult>
+	<HResult Name="VLDTR_E_TD_VTNOSIZE">
+		<HRValue>0x80131b09</HRValue>
+	</HResult>
+	<HResult Name="VLDTR_E_TD_IFACESEALED">
+		<HRValue>0x80131b0a</HRValue>
+	</HResult>
+	<HResult Name="VLDTR_E_NC_BADNESTED">
+		<HRValue>0x80131b0b</HRValue>
+	</HResult>
+	<HResult Name="VLDTR_E_NC_BADENCLOSER">
+		<HRValue>0x80131b0c</HRValue>
+	</HResult>
+	<HResult Name="VLDTR_E_NC_DUP">
+		<HRValue>0x80131b0d</HRValue>
+	</HResult>
+	<HResult Name="VLDTR_E_NC_DUPENCLOSER">
+		<HRValue>0x80131b0e</HRValue>
+	</HResult>
+	<HResult Name="VLDTR_E_FRVA_ZERORVA">
+		<HRValue>0x80131b0f</HRValue>
+	</HResult>
+	<HResult Name="VLDTR_E_FRVA_BADFIELD">
+		<HRValue>0x80131b10</HRValue>
+	</HResult>
+	<HResult Name="VLDTR_E_FRVA_DUPRVA">
+		<HRValue>0x80131b11</HRValue>
+	</HResult>
+	<HResult Name="VLDTR_E_FRVA_DUPFIELD">
+		<HRValue>0x80131b12</HRValue>
+	</HResult>
+	<HResult Name="VLDTR_E_EP_BADTOKEN">
+		<HRValue>0x80131b13</HRValue>
+	</HResult>
+	<HResult Name="VLDTR_E_EP_INSTANCE">
+		<HRValue>0x80131b14</HRValue>
+	</HResult>
+	<HResult Name="VLDTR_E_TD_ENUMFLDBADTYPE">
+		<HRValue>0x80131b15</HRValue>
+	</HResult>
+	<HResult Name="VLDTR_E_MD_BADRVA">
+		<HRValue>0x80131b16</HRValue>
+	</HResult>
+	<HResult Name="VLDTR_E_FD_LITERALNODEFAULT">
+		<HRValue>0x80131b17</HRValue>
+	</HResult>
+	<HResult Name="VLDTR_E_IFACE_METHNOTIMPL">
+		<HRValue>0x80131b18</HRValue>
+	</HResult>
+	<HResult Name="VLDTR_E_CA_BADPARENT">
+		<HRValue>0x80131b19</HRValue>
+	</HResult>
+	<HResult Name="VLDTR_E_CA_BADTYPE">
+		<HRValue>0x80131b1a</HRValue>
+	</HResult>
+	<HResult Name="VLDTR_E_CA_NOTCTOR">
+		<HRValue>0x80131b1b</HRValue>
+	</HResult>
+	<HResult Name="VLDTR_E_CA_BADSIG">
+		<HRValue>0x80131b1c</HRValue>
+	</HResult>
+	<HResult Name="VLDTR_E_CA_NOSIG">
+		<HRValue>0x80131b1d</HRValue>
+	</HResult>
+	<HResult Name="VLDTR_E_CA_BADPROLOG">
+		<HRValue>0x80131b1e</HRValue>
+	</HResult>
+	<HResult Name="VLDTR_E_MD_BADLOCALSIGTOK">
+		<HRValue>0x80131b1f</HRValue>
+	</HResult>
+	<HResult Name="VLDTR_E_MD_BADHEADER">
+		<HRValue>0x80131b20</HRValue>
+	</HResult>
+	<HResult Name="VLDTR_E_EP_TOOMANYARGS">
+		<HRValue>0x80131b21</HRValue>
+	</HResult>
+	<HResult Name="VLDTR_E_EP_BADRET">
+		<HRValue>0x80131b22</HRValue>
+	</HResult>
+	<HResult Name="VLDTR_E_EP_BADARG">
+		<HRValue>0x80131b23</HRValue>
+	</HResult>
+	<HResult Name="VLDTR_E_SIG_BADVOID">
+		<HRValue>0x80131b24</HRValue>
+	</HResult>
+	<HResult Name="VLDTR_E_IFACE_METHMULTIMPL">
+		<HRValue>0x80131b25</HRValue>
+	</HResult>
+	<HResult Name="VLDTR_E_GP_NAMENULL">
+		<HRValue>0x80131b26</HRValue>
+	</HResult>
+	<HResult Name="VLDTR_E_GP_OWNERNIL">
+		<HRValue>0x80131b27</HRValue>
+	</HResult>
+	<HResult Name="VLDTR_E_GP_DUPNAME">
+		<HRValue>0x80131b28</HRValue>
+	</HResult>
+	<HResult Name="VLDTR_E_GP_DUPNUMBER">
+		<HRValue>0x80131b29</HRValue>
+	</HResult>
+	<HResult Name="VLDTR_E_GP_NONSEQ_BY_OWNER">
+		<HRValue>0x80131b2a</HRValue>
+	</HResult>
+	<HResult Name="VLDTR_E_GP_NONSEQ_BY_NUMBER">
+		<HRValue>0x80131b2b</HRValue>
+	</HResult>
+	<HResult Name="VLDTR_E_GP_UNEXPECTED_OWNER_FOR_VARIANT_VAR">
+		<HRValue>0x80131b2c</HRValue>
+	</HResult>
+	<HResult Name="VLDTR_E_GP_ILLEGAL_VARIANT_MVAR">
+		<HRValue>0x80131b2d</HRValue>
+	</HResult>
+	<HResult Name="VLDTR_E_GP_ILLEGAL_VARIANCE_FLAGS">
+		<HRValue>0x80131b2e</HRValue>
+	</HResult>
+	<HResult Name="VLDTR_E_GP_REFANDVALUETYPE">
+		<HRValue>0x80131b2f</HRValue>
+	</HResult>
+	<HResult Name="VLDTR_E_GPC_OWNERNIL">
+		<HRValue>0x80131b30</HRValue>
+	</HResult>
+	<HResult Name="VLDTR_E_GPC_DUP">
+		<HRValue>0x80131b31</HRValue>
+	</HResult>
+	<HResult Name="VLDTR_E_GPC_NONCONTIGUOUS">
+		<HRValue>0x80131b32</HRValue>
+	</HResult>
+	<HResult Name="VLDTR_E_MS_METHODNIL">
+		<HRValue>0x80131b33</HRValue>
+	</HResult>
+	<HResult Name="VLDTR_E_MS_DUP">
+		<HRValue>0x80131b34</HRValue>
+	</HResult>
+	<HResult Name="VLDTR_E_MS_BADCALLINGCONV">
+		<HRValue>0x80131b35</HRValue>
+	</HResult>
+	<HResult Name="VLDTR_E_MS_MISSARITY">
+		<HRValue>0x80131b36</HRValue>
+	</HResult>
+	<HResult Name="VLDTR_E_MS_MISSARG">
+		<HRValue>0x80131b37</HRValue>
+	</HResult>
+	<HResult Name="VLDTR_E_MS_ARITYMISMATCH">
+		<HRValue>0x80131b38</HRValue>
+	</HResult>
+	<HResult Name="VLDTR_E_MS_METHODNOTGENERIC">
+		<HRValue>0x80131b39</HRValue>
+	</HResult>
+	<HResult Name="VLDTR_E_SIG_MISSARITY">
+		<HRValue>0x80131b3a</HRValue>
+	</HResult>
+	<HResult Name="VLDTR_E_SIG_ARITYMISMATCH">
+		<HRValue>0x80131b3b</HRValue>
+	</HResult>
+	<HResult Name="VLDTR_E_MD_GENERIC_CCTOR">
+		<HRValue>0x80131b3c</HRValue>
+	</HResult>
+	<HResult Name="VLDTR_E_MD_GENERIC_CTOR">
+		<HRValue>0x80131b3d</HRValue>
+	</HResult>
+	<HResult Name="VLDTR_E_MD_GENERIC_IMPORT">
+		<HRValue>0x80131b3e</HRValue>
+	</HResult>
+	<HResult Name="VLDTR_E_MD_GENERIC_BADCALLCONV">
+		<HRValue>0x80131b3f</HRValue>
+	</HResult>
+	<HResult Name="VLDTR_E_EP_GENERIC_METHOD">
+		<HRValue>0x80131b40</HRValue>
+	</HResult>
+	<HResult Name="VLDTR_E_MD_MISSARITY">
+		<HRValue>0x80131b41</HRValue>
+	</HResult>
+	<HResult Name="VLDTR_E_MD_ARITYZERO">
+		<HRValue>0x80131b42</HRValue>
+	</HResult>
+	<HResult Name="VLDTR_E_SIG_ARITYZERO">
+		<HRValue>0x80131b43</HRValue>
+	</HResult>
+	<HResult Name="VLDTR_E_MS_ARITYZERO">
+		<HRValue>0x80131b44</HRValue>
+	</HResult>
+	<HResult Name="VLDTR_E_MD_GPMISMATCH">
+		<HRValue>0x80131b45</HRValue>
+	</HResult>
+	<HResult Name="VLDTR_E_EP_GENERIC_TYPE">
+		<HRValue>0x80131b46</HRValue>
+	</HResult>
+	<HResult Name="VLDTR_E_MI_DECLNOTGENERIC">
+		<HRValue>0x80131b47</HRValue>
+	</HResult>
+	<HResult Name="VLDTR_E_MI_IMPLNOTGENERIC">
+		<HRValue>0x80131b48</HRValue>
+	</HResult>
+	<HResult Name="VLDTR_E_MI_ARITYMISMATCH">
+		<HRValue>0x80131b49</HRValue>
+	</HResult>
+	<HResult Name="VLDTR_E_TD_EXTBADTYPESPEC">
+		<HRValue>0x80131b4a</HRValue>
+	</HResult>
+	<HResult Name="VLDTR_E_SIG_BYREFINST">
+		<HRValue>0x80131b4b</HRValue>
+	</HResult>
+	<HResult Name="VLDTR_E_MS_BYREFINST">
+		<HRValue>0x80131b4c</HRValue>
+	</HResult>
+	<HResult Name="VLDTR_E_TS_EMPTY">
+		<HRValue>0x80131b4d</HRValue>
+	</HResult>
+	<HResult Name="VLDTR_E_TS_HASSENTINALS">
+		<HRValue>0x80131b4e</HRValue>
+	</HResult>
+	<HResult Name="VLDTR_E_TD_GENERICHASEXPLAYOUT">
+		<HRValue>0x80131b4f</HRValue>
+	</HResult>
+	<HResult Name="VLDTR_E_SIG_BADTOKTYPE">
+		<HRValue>0x80131b50</HRValue>
+	</HResult>
+	<HResult Name="VLDTR_E_IFACE_METHNOTIMPLTHISMOD">
+		<HRValue>0x80131b51</HRValue>
+	</HResult>
+	<HResult Name="TLBX_E_CIRCULAR_EXPORT2">
+		<HRValue>0x80131b52</HRValue>
+	</HResult>
+	<HResult Name="CORDBG_E_THREAD_NOT_SCHEDULED">
+		<HRValue>0x80131c00</HRValue>
+	</HResult>
+	<HResult Name="CORDBG_E_HANDLE_HAS_BEEN_DISPOSED">
+		<HRValue>0x80131c01</HRValue>
+	</HResult>
+	<HResult Name="CORDBG_E_NONINTERCEPTABLE_EXCEPTION">
+		<HRValue>0x80131c02</HRValue>
+	</HResult>
+	<HResult Name="CORDBG_E_CANT_UNWIND_ABOVE_CALLBACK">
+		<HRValue>0x80131c03</HRValue>
+	</HResult>
+	<HResult Name="CORDBG_E_INTERCEPT_FRAME_ALREADY_SET">
+		<HRValue>0x80131c04</HRValue>
+	</HResult>
+	<HResult Name="CORDBG_E_NO_NATIVE_PATCH_AT_ADDR">
+		<HRValue>0x80131c05</HRValue>
+	</HResult>
+	<HResult Name="CORDBG_E_MUST_BE_INTEROP_DEBUGGING">
+		<HRValue>0x80131c06</HRValue>
+	</HResult>
+	<HResult Name="CORDBG_E_NATIVE_PATCH_ALREADY_AT_ADDR">
+		<HRValue>0x80131c07</HRValue>
+	</HResult>
+	<HResult Name="CORDBG_E_TIMEOUT">
+		<HRValue>0x80131c08</HRValue>
+	</HResult>
+	<HResult Name="CORDBG_E_CANT_CALL_ON_THIS_THREAD">
+		<HRValue>0x80131c09</HRValue>
+	</HResult>
+	<HResult Name="CORDBG_E_ENC_INFOLESS_METHOD">
+		<HRValue>0x80131c0a</HRValue>
+	</HResult>
+	<HResult Name="CORDBG_E_ENC_NESTED_HANLDERS">
+		<HRValue>0x80131c0b</HRValue>
+	</HResult>
+	<HResult Name="CORDBG_E_ENC_IN_FUNCLET">
+		<HRValue>0x80131c0c</HRValue>
+	</HResult>
+	<HResult Name="CORDBG_E_ENC_LOCALLOC">
+		<HRValue>0x80131c0d</HRValue>
+	</HResult>
+	<HResult Name="CORDBG_E_ENC_EDIT_NOT_SUPPORTED">
+		<HRValue>0x80131c0e</HRValue>
+	</HResult>
+	<HResult Name="CORDBG_E_FEABORT_DELAYED_UNTIL_THREAD_RESUMED">
+		<HRValue>0x80131c0f</HRValue>
+	</HResult>
+	<HResult Name="CORDBG_E_NOTREADY">
+		<HRValue>0x80131c10</HRValue>
+	</HResult>
+	<HResult Name="CORDBG_E_CANNOT_RESOLVE_ASSEMBLY">
+		<HRValue>0x80131c11</HRValue>
+	</HResult>
+	<HResult Name="CORDBG_E_MUST_BE_IN_LOAD_MODULE">
+		<HRValue>0x80131c12</HRValue>
+	</HResult>
+	<HResult Name="CORDBG_E_CANNOT_BE_ON_ATTACH">
+		<HRValue>0x80131c13</HRValue>
+	</HResult>
+	<HResult Name="CORDBG_E_NGEN_NOT_SUPPORTED">
+		<HRValue>0x80131c14</HRValue>
+	</HResult>
+	<HResult Name="CORDBG_E_ILLEGAL_SHUTDOWN_ORDER">
+		<HRValue>0x80131c15</HRValue>
+	</HResult>
+	<HResult Name="CORDBG_E_CANNOT_DEBUG_FIBER_PROCESS">
+		<HRValue>0x80131c16</HRValue>
+	</HResult>
+	<HResult Name="CORDBG_E_MUST_BE_IN_CREATE_PROCESS">
+		<HRValue>0x80131c17</HRValue>
+	</HResult>
+	<HResult Name="CORDBG_E_DETACH_FAILED_OUTSTANDING_EVALS">
+		<HRValue>0x80131c18</HRValue>
+	</HResult>
+	<HResult Name="CORDBG_E_DETACH_FAILED_OUTSTANDING_STEPPERS">
+		<HRValue>0x80131c19</HRValue>
+	</HResult>
+	<HResult Name="CORDBG_E_CANT_INTEROP_STEP_OUT">
+		<HRValue>0x80131c20</HRValue>
+	</HResult>
+	<HResult Name="CORDBG_E_DETACH_FAILED_OUTSTANDING_BREAKPOINTS">
+		<HRValue>0x80131c21</HRValue>
+	</HResult>
+	<HResult Name="CORDBG_E_ILLEGAL_IN_STACK_OVERFLOW">
+		<HRValue>0x80131c22</HRValue>
+	</HResult>
+	<HResult Name="CORDBG_E_ILLEGAL_AT_GC_UNSAFE_POINT">
+		<HRValue>0x80131c23</HRValue>
+	</HResult>
+	<HResult Name="CORDBG_E_ILLEGAL_IN_PROLOG">
+		<HRValue>0x80131c24</HRValue>
+	</HResult>
+	<HResult Name="CORDBG_E_ILLEGAL_IN_NATIVE_CODE">
+		<HRValue>0x80131c25</HRValue>
+	</HResult>
+	<HResult Name="CORDBG_E_ILLEGAL_IN_OPTIMIZED_CODE">
+		<HRValue>0x80131c26</HRValue>
+	</HResult>
+	<HResult Name="CORDBG_E_MINIDUMP_UNSUPPORTED">
+		<HRValue>0x80131c27</HRValue>
+	</HResult>
+	<HResult Name="CORDBG_E_APPDOMAIN_MISMATCH">
+		<HRValue>0x80131c28</HRValue>
+	</HResult>
+	<HResult Name="CORDBG_E_CONTEXT_UNVAILABLE">
+		<HRValue>0x80131c29</HRValue>
+	</HResult>
+	<HResult Name="CORDBG_E_UNCOMPATIBLE_PLATFORMS">
+		<HRValue>0x80131c30</HRValue>
+	</HResult>
+	<HResult Name="CORDBG_E_DEBUGGING_DISABLED">
+		<HRValue>0x80131c31</HRValue>
+	</HResult>
+	<HResult Name="CORDBG_E_DETACH_FAILED_ON_ENC">
+		<HRValue>0x80131c32</HRValue>
+	</HResult>
+	<HResult Name="CORDBG_E_CURRENT_EXCEPTION_IS_OUTSIDE_CURRENT_EXECUTION_SCOPE">
+		<HRValue>0x80131c33</HRValue>
+	</HResult>
+	<HResult Name="CORDBG_E_HELPER_MAY_DEADLOCK">
+		<HRValue>0x80131c34</HRValue>
+	</HResult>
+	<HResult Name="CORDBG_E_MISSING_METADATA">
+		<HRValue>0x80131c35</HRValue>
+	</HResult>
+	<HResult Name="CORDBG_E_TARGET_INCONSISTENT">
+		<HRValue>0x80131c36</HRValue>
+	</HResult>
+	<HResult Name="CORDBG_E_DETACH_FAILED_OUTSTANDING_TARGET_RESOURCES">
+		<HRValue>0x80131c37</HRValue>
+	</HResult>
+	<HResult Name="CORDBG_E_TARGET_READONLY">
+		<HRValue>0x80131c38</HRValue>
+	</HResult>
+	<HResult Name="CORDBG_E_MISMATCHED_CORWKS_AND_DACWKS_DLLS">
+		<HRValue>0x80131c39</HRValue>
+	</HResult>
+	<HResult Name="CORDBG_E_MODULE_LOADED_FROM_DISK">
+		<HRValue>0x80131c3a</HRValue>
+	</HResult>
+	<HResult Name="CORDBG_E_SYMBOLS_NOT_AVAILABLE">
+		<HRValue>0x80131c3b</HRValue>
+	</HResult>
+	<HResult Name="CORDBG_E_DEBUG_COMPONENT_MISSING">
+		<HRValue>0x80131c3c</HRValue>
+	</HResult>
+	<HResult Name="CORDBG_E_REMOTE_MISMATCHED_CERTS">
+		<HRValue>0x80131c3d</HRValue>
+	</HResult>
+	<HResult Name="CORDBG_E_REMOTE_NETWORK_FAILURE">
+		<HRValue>0x80131c3e</HRValue>
+	</HResult>
+	<HResult Name="CORDBG_E_REMOTE_NO_LISTENER">
+		<HRValue>0x80131c3f</HRValue>
+	</HResult>
+	<HResult Name="CORDBG_E_REMOTE_UNKNOWN_TARGET">
+		<HRValue>0x80131c40</HRValue>
+	</HResult>
+	<HResult Name="CORDBG_E_REMOTE_INVALID_CONFIG">
+		<HRValue>0x80131c41</HRValue>
+	</HResult>
+	<HResult Name="CORDBG_E_REMOTE_MISMATCHED_PROTOCOLS">
+		<HRValue>0x80131c42</HRValue>
+	</HResult>
+	<HResult Name="CORDBG_E_LIBRARY_PROVIDER_ERROR">
+		<HRValue>0x80131c43</HRValue>
+	</HResult>
+	<HResult Name="CORDBG_E_NOT_CLR">
+		<HRValue>0x80131c44</HRValue>
+	</HResult>
+	<HResult Name="CORDBG_E_MISSING_DATA_TARGET_INTERFACE">
+		<HRValue>0x80131c45</HRValue>
+	</HResult>
+	<HResult Name="CORDBG_E_UNSUPPORTED_DEBUGGING_MODEL">
+		<HRValue>0x80131c46</HRValue>
+	</HResult>
+	<HResult Name="CORDBG_E_UNSUPPORTED_FORWARD_COMPAT">
+		<HRValue>0x80131c47</HRValue>
+	</HResult>
+	<HResult Name="CORDBG_E_UNSUPPORTED_VERSION_STRUCT">
+		<HRValue>0x80131c48</HRValue>
+	</HResult>
+	<HResult Name="CORDBG_E_READVIRTUAL_FAILURE">
+		<HRValue>0x80131c49</HRValue>
+	</HResult>
+	<HResult Name="CORDBG_E_VALUE_POINTS_TO_FUNCTION">
+		<HRValue>0x80131c4a</HRValue>
+	</HResult>
+	<HResult Name="CORDBG_E_CORRUPT_OBJECT">
+		<HRValue>0x80131c4b</HRValue>
+	</HResult>
+	<HResult Name="CORDBG_E_GC_STRUCTURES_INVALID">
+		<HRValue>0x80131c4c</HRValue>
+	</HResult>
+	<HResult Name="CORDBG_E_INVALID_OPCODE">
+		<HRValue>0x80131c4d</HRValue>
+	</HResult>
+	<HResult Name="CORDBG_E_UNSUPPORTED">
+		<HRValue>0x80131c4e</HRValue>
+	</HResult>
+	<HResult Name="CORDBG_E_MISSING_DEBUGGER_EXPORTS">
+		<HRValue>0x80131c4f</HRValue>
+	</HResult>
+	<HResult Name="CORDBG_E_DATA_TARGET_ERROR">
+		<HRValue>0x80131c61</HRValue>
+	</HResult>
+	<HResult Name="CORDBG_E_CODE_HAS_NO_METADATA">
+		<HRValue>0x80131c62</HRValue>
+	</HResult>
+	<HResult Name="CORDBG_E_CODE_UNRECOGNIZED">
+		<HRValue>0x80131c63</HRValue>
+	</HResult>
+	<HResult Name="CORDBG_E_NO_IMAGE_AVAILABLE">
+		<HRValue>0x80131c64</HRValue>
+	</HResult>
+	<HResult Name="CORDBG_E_TYPE_NOT_FOUND">
+		<HRValue>0x80131c65</HRValue>
+	</HResult>
+	<HResult Name="CORDBG_E_VTABLE_HAS_NO_METADATA">
+		<HRValue>0x80131c66</HRValue>
+	</HResult>
+	<HResult Name="CORDBG_E_NO_GENERIC_INFO">
+		<HRValue>0x80131c67</HRValue>
+	</HResult>
+	<HResult Name="PEFMT_E_NO_CONTENTS">
+		<HRValue>0x80131d00</HRValue>
+	</HResult>
+	<HResult Name="PEFMT_E_NO_NTHEADERS">
+		<HRValue>0x80131d01</HRValue>
+	</HResult>
+	<HResult Name="PEFMT_E_64BIT">
+		<HRValue>0x80131d02</HRValue>
+	</HResult>
+	<HResult Name="PEFMT_E_NO_CORHEADER">
+		<HRValue>0x80131d03</HRValue>
+	</HResult>
+	<HResult Name="PEFMT_E_NOT_ILONLY">
+		<HRValue>0x80131d04</HRValue>
+	</HResult>
+	<HResult Name="PEFMT_E_IMPORT_DLLS">
+		<HRValue>0x80131d05</HRValue>
+	</HResult>
+	<HResult Name="PEFMT_E_EXE_NOENTRYPOINT">
+		<HRValue>0x80131d06</HRValue>
+	</HResult>
+	<HResult Name="PEFMT_E_BASE_RELOCS">
+		<HRValue>0x80131d07</HRValue>
+	</HResult>
+	<HResult Name="PEFMT_E_ENTRYPOINT">
+		<HRValue>0x80131d08</HRValue>
+	</HResult>
+	<HResult Name="PEFMT_E_ZERO_SIZEOFCODE">
+		<HRValue>0x80131d09</HRValue>
+	</HResult>
+	<HResult Name="PEFMT_E_BAD_CORHEADER">
+		<HRValue>0x80131d0a</HRValue>
+	</HResult>
+	<HResult Name="PEFMT_E_32BIT">
+		<HRValue>0x80131d0b</HRValue>
+	</HResult>
+	<HResult Name="CLR_OPTSVC_E_CONTROLLER_INTERRUPT">
+		<HRValue>0x80131e00</HRValue>
+	</HResult>
+	<HResult Name="NGEN_FAILED_GET_DEPENDENCIES">
+		<HRValue>0x80131f00</HRValue>
+	</HResult>
+	<HResult Name="NGEN_FAILED_NATIVE_IMAGE_DELETE">
+		<HRValue>0x80131f01</HRValue>
+	</HResult>
+	<HResult Name="NGEN_E_TOO_MANY_INTERFACES">
+		<HRValue>0x80131f02</HRValue>
+	</HResult>
+	<HResult Name="NGEN_E_OLDER_RUNTIME">
+		<HRValue>0x80131f03</HRValue>
+	</HResult>
+	<HResult Name="NGEN_E_WORKER_UNEXPECTED_EXIT">
+		<HRValue>0x80131f04</HRValue>
+	</HResult>
+	<HResult Name="NGEN_E_WORKER_UNEXPECTED_SYNC">
+		<HRValue>0x80131f05</HRValue>
+	</HResult>
+	<HResult Name="NGEN_E_SYS_ASM_NI_MISSING">
+		<HRValue>0x80131f06</HRValue>
+	</HResult>
+	<HResult Name="NGEN_E_EXE_MACHINE_TYPE_MISMATCH">
+		<HRValue>0x80131f07</HRValue>
+	</HResult>
+	<HResult Name="NGEN_E_ASSEMBLY_EXCLUSION_FILE_PARSE_ERROR">
+		<HRValue>0x80131f08</HRValue>
+	</HResult>
+	<HResult Name="NGEN_E_HARDBOUND_DEPENDENCY_MISSING">
+		<HRValue>0x80131f09</HRValue>
+	</HResult>
+	<HResult Name="NGEN_E_NOT_RUNNING_IN_EXPECTED_PACKAGE">
+		<HRValue>0x80131f0a</HRValue>
+	</HResult>
+	<HResult Name="NGEN_E_FILE_NOT_ASSEMBLY">
+		<HRValue>0x80131f0b</HRValue>
+	</HResult>
+	<HResult Name="CLDB_E_INTERNALERROR">
+		<HRValue>0x80131fff</HRValue>
+	</HResult>
+	<HResult Name="CLR_E_BIND_ASSEMBLY_VERSION_TOO_LOW">
+		<HRValue>0x80132000</HRValue>
+	</HResult>
+	<HResult Name="CLR_E_BIND_ASSEMBLY_PUBLIC_KEY_MISMATCH">
+		<HRValue>0x80132001</HRValue>
+	</HResult>
+	<HResult Name="CLR_E_BIND_IMAGE_UNAVAILABLE">
+		<HRValue>0x80132002</HRValue>
+	</HResult>
+	<HResult Name="CLR_E_BIND_UNRECOGNIZED_IDENTITY_FORMAT">
+		<HRValue>0x80132003</HRValue>
+	</HResult>
+	<HResult Name="CLR_E_BIND_ASSEMBLY_NOT_FOUND">
+		<HRValue>0x80132004</HRValue>
+	</HResult>
+	<HResult Name="CLR_E_BIND_TYPE_NOT_FOUND">
+		<HRValue>0x80132005</HRValue>
+	</HResult>
+	<HResult Name="CLR_E_BIND_SYS_ASM_NI_MISSING">
+		<HRValue>0x80132006</HRValue>
+	</HResult>
+	<HResult Name="CLR_E_BIND_NI_SECURITY_FAILURE">
+		<HRValue>0x80132007</HRValue>
+	</HResult>
+	<HResult Name="CLR_E_BIND_NI_DEP_IDENTITY_MISMATCH">
+		<HRValue>0x80132008</HRValue>
+	</HResult>
+	<HResult Name="CLR_E_GC_OOM">
+		<HRValue>0x80132009</HRValue>
+	</HResult>
+</AutoVisualizer>

@@ -6,7 +6,9 @@ public:
 	//The singular profiler instance of this process
 	static CCorProfilerCallback* g_pProfiler;
 
-	CCorProfilerCallback() : m_RefCount(0)
+	CCorProfilerCallback() :
+		m_pInfo(nullptr),
+		m_RefCount(0)
 	{
 	}
 
@@ -53,8 +55,8 @@ public:
 	STDMETHODIMP JITCachedFunctionSearchFinished(FunctionID functionId, COR_PRF_JIT_CACHE result) override { return S_OK; }
 	STDMETHODIMP JITFunctionPitched(FunctionID functionId) override { return S_OK; }
 	STDMETHODIMP JITInlining(FunctionID callerId, FunctionID calleeId, BOOL* pfShouldInline) override { return S_OK; }
-	STDMETHODIMP ThreadCreated(ThreadID threadId) override { return S_OK;  }
-	STDMETHODIMP ThreadDestroyed(ThreadID threadId) override { return S_OK; }
+	STDMETHODIMP ThreadCreated(ThreadID threadId) override;
+	STDMETHODIMP ThreadDestroyed(ThreadID threadId) override;
 	STDMETHODIMP ThreadAssignedToOSThread(ThreadID managedThreadId, ULONG osThreadId) override { return S_OK; }
 	STDMETHODIMP RemotingClientInvocationStarted() override { return S_OK; }
 	STDMETHODIMP RemotingClientSendingMessage(GUID* pCookie, BOOL fIsAsync) override { return S_OK; }

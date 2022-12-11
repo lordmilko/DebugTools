@@ -19,6 +19,7 @@
   <ItemGroup>
     <ClInclude Include="$(MSBuildThisFileDirectory)CClassFactory.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)CCorProfilerCallback.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)DebugToolsProfiler.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)Hooks\EnterHook.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)Hooks\EnterHookWithInfo.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)Hooks\Hooks.h" />
@@ -34,6 +35,8 @@
     <ClCompile Include="$(MSBuildThisFileDirectory)dllmain.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="$(MSBuildThisFileDirectory)DebugToolsProfiler.man" />
+    <None Include="$(MSBuildThisFileDirectory)generateManifest.cmd" />
     <None Include="$(MSBuildThisFileDirectory)Profiler.def" />
   </ItemGroup>
   <ItemGroup Condition="'$(Platform)' == 'x64'">
@@ -43,6 +46,9 @@
   <ItemGroup>
     <None Include="$(MSBuildThisFileDirectory)Hooks\StubX64.asm" />
     <None Include="$(MSBuildThisFileDirectory)Hooks\StubX64WithInfo.asm" />
+  </ItemGroup>
+  <ItemGroup>
+    <Natvis Include="$(MSBuildThisFileDirectory)Profiler.natvis" />
   </ItemGroup>
   <ImportGroup Label="ExtensionTargets">
     <Import Project="$(VCTargetsPath)\BuildCustomizations\masm.targets" />

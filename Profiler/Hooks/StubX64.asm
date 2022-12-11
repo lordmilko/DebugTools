@@ -19,7 +19,7 @@ EnterNaked PROC FRAME
     push    rax
     .allocstack 8
 
-SaveVolIntRegs:
+SaveVolIntRegs_Enter:
     push    rcx
     .allocstack 8
 
@@ -38,7 +38,7 @@ SaveVolIntRegs:
     push    r11
     .allocstack 8
 
-DoneSaveVolIntRegs:
+DoneSaveVolIntRegs_Enter:
     ; reserve space for floating point registers to be saved
     sub     rsp, SIZEOF_STACK_ALLOC
     .allocstack SIZEOF_STACK_ALLOC
@@ -47,7 +47,7 @@ DoneSaveVolIntRegs:
     movdqa  [rsp + OFFSETOF_XMM_SAVE + 0h], xmm0
     .savexmm128 xmm0, OFFSETOF_XMM_SAVE + 0h
     
-SaveVolFPRegs:
+SaveVolFPRegs_Enter:
     ; save volatile floating point registers
     movdqa  [rsp + OFFSETOF_XMM_SAVE + 10h], xmm1
     .savexmm128 xmm1, OFFSETOF_XMM_SAVE + 10h
@@ -64,7 +64,7 @@ SaveVolFPRegs:
     movdqa  [rsp + OFFSETOF_XMM_SAVE + 50h], xmm5
     .savexmm128 xmm5, OFFSETOF_XMM_SAVE + 50h
 
-DoneSaveVolFPRegs:
+DoneSaveVolFPRegs_Enter:
     .endprolog
 
     ; call C++ helper
@@ -73,7 +73,7 @@ DoneSaveVolFPRegs:
     ; restore floating-point return register
     movdqa                  xmm0, [rsp + OFFSETOF_XMM_SAVE + 0h]
 
-RestoreVolFPRegs:
+RestoreVolFPRegs_Enter:
     ; restore volatile floating point registers
     movdqa                  xmm1, [rsp + OFFSETOF_XMM_SAVE + 10h]
     movdqa                  xmm2, [rsp + OFFSETOF_XMM_SAVE + 20h]
@@ -81,11 +81,11 @@ RestoreVolFPRegs:
     movdqa                  xmm4, [rsp + OFFSETOF_XMM_SAVE + 40h]
     movdqa                  xmm5, [rsp + OFFSETOF_XMM_SAVE + 50h]
 
-DoneRestoreVolFPRegs:
+DoneRestoreVolFPRegs_Enter:
     ; restore the stack pointer 
     add                     rsp, SIZEOF_STACK_ALLOC
 
-RestoreVolIntRegs:
+RestoreVolIntRegs_Enter:
     ; restore volatile integer registers
     pop                     r11
     pop                     r10
@@ -94,7 +94,7 @@ RestoreVolIntRegs:
     pop                     rdx
     pop                     rcx
 
-DoneRestoreVolIntRegs:
+DoneRestoreVolIntRegs_Enter:
     ; restore integer return register
     pop                     rax
 
@@ -112,7 +112,7 @@ LeaveNaked PROC FRAME
     push    rax
     .allocstack 8
 
-SaveVolIntRegs:
+SaveVolIntRegs_Leave:
     push    rcx
     .allocstack 8
 
@@ -131,7 +131,7 @@ SaveVolIntRegs:
     push    r11
     .allocstack 8
 
-DoneSaveVolIntRegs:
+DoneSaveVolIntRegs_Leave:
     ; reserve space for floating point registers to be saved
     sub     rsp, SIZEOF_STACK_ALLOC
     .allocstack SIZEOF_STACK_ALLOC
@@ -140,7 +140,7 @@ DoneSaveVolIntRegs:
     movdqa  [rsp + OFFSETOF_XMM_SAVE + 0h], xmm0
     .savexmm128 xmm0, OFFSETOF_XMM_SAVE + 0h
     
-SaveVolFPRegs:
+SaveVolFPRegs_Leave:
     ; save volatile floating point registers
     movdqa  [rsp + OFFSETOF_XMM_SAVE + 10h], xmm1
     .savexmm128 xmm1, OFFSETOF_XMM_SAVE + 10h
@@ -157,7 +157,7 @@ SaveVolFPRegs:
     movdqa  [rsp + OFFSETOF_XMM_SAVE + 50h], xmm5
     .savexmm128 xmm5, OFFSETOF_XMM_SAVE + 50h
 
-DoneSaveVolFPRegs:
+DoneSaveVolFPRegs_Leave:
     .endprolog
 
     ; call C++ helper
@@ -166,7 +166,7 @@ DoneSaveVolFPRegs:
     ; restore floating-point return register
     movdqa                  xmm0, [rsp + OFFSETOF_XMM_SAVE + 0h]
 
-RestoreVolFPRegs:
+RestoreVolFPRegs_Leave:
     ; restore volatile floating point registers
     movdqa                  xmm1, [rsp + OFFSETOF_XMM_SAVE + 10h]
     movdqa                  xmm2, [rsp + OFFSETOF_XMM_SAVE + 20h]
@@ -174,11 +174,11 @@ RestoreVolFPRegs:
     movdqa                  xmm4, [rsp + OFFSETOF_XMM_SAVE + 40h]
     movdqa                  xmm5, [rsp + OFFSETOF_XMM_SAVE + 50h]
 
-DoneRestoreVolFPRegs:
+DoneRestoreVolFPRegs_Leave:
     ; restore the stack pointer 
     add                     rsp, SIZEOF_STACK_ALLOC
 
-RestoreVolIntRegs:
+RestoreVolIntRegs_Leave:
     ; restore volatile integer registers
     pop                     r11
     pop                     r10
@@ -187,7 +187,7 @@ RestoreVolIntRegs:
     pop                     rdx
     pop                     rcx
 
-DoneRestoreVolIntRegs:
+DoneRestoreVolIntRegs_Leave:
     ; restore integer return register
     pop                     rax
 
@@ -205,7 +205,7 @@ TailcallNaked PROC FRAME
     push    rax
     .allocstack 8
 
-SaveVolIntRegs:
+SaveVolIntRegs_Tailcall:
     push    rcx
     .allocstack 8
 
@@ -224,7 +224,7 @@ SaveVolIntRegs:
     push    r11
     .allocstack 8
 
-DoneSaveVolIntRegs:
+DoneSaveVolIntRegs_Tailcall:
     ; reserve space for floating point registers to be saved
     sub     rsp, SIZEOF_STACK_ALLOC
     .allocstack SIZEOF_STACK_ALLOC
@@ -233,7 +233,7 @@ DoneSaveVolIntRegs:
     movdqa  [rsp + OFFSETOF_XMM_SAVE + 0h], xmm0
     .savexmm128 xmm0, OFFSETOF_XMM_SAVE + 0h
     
-SaveVolFPRegs:
+SaveVolFPRegs_Tailcall:
     ; save volatile floating point registers
     movdqa  [rsp + OFFSETOF_XMM_SAVE + 10h], xmm1
     .savexmm128 xmm1, OFFSETOF_XMM_SAVE + 10h
@@ -250,7 +250,7 @@ SaveVolFPRegs:
     movdqa  [rsp + OFFSETOF_XMM_SAVE + 50h], xmm5
     .savexmm128 xmm5, OFFSETOF_XMM_SAVE + 50h
 
-DoneSaveVolFPRegs:
+DoneSaveVolFPRegs_Tailcall:
     .endprolog
 
     ; call C++ helper
@@ -259,7 +259,7 @@ DoneSaveVolFPRegs:
     ; restore floating-point return register
     movdqa                  xmm0, [rsp + OFFSETOF_XMM_SAVE + 0h]
 
-RestoreVolFPRegs:
+RestoreVolFPRegs_Tailcall:
     ; restore volatile floating point registers
     movdqa                  xmm1, [rsp + OFFSETOF_XMM_SAVE + 10h]
     movdqa                  xmm2, [rsp + OFFSETOF_XMM_SAVE + 20h]
@@ -267,11 +267,11 @@ RestoreVolFPRegs:
     movdqa                  xmm4, [rsp + OFFSETOF_XMM_SAVE + 40h]
     movdqa                  xmm5, [rsp + OFFSETOF_XMM_SAVE + 50h]
 
-DoneRestoreVolFPRegs:
+DoneRestoreVolFPRegs_Tailcall:
     ; restore the stack pointer 
     add                     rsp, SIZEOF_STACK_ALLOC
 
-RestoreVolIntRegs:
+RestoreVolIntRegs_Tailcall:
     ; restore volatile integer registers
     pop                     r11
     pop                     r10
@@ -280,7 +280,7 @@ RestoreVolIntRegs:
     pop                     rdx
     pop                     rcx
 
-DoneRestoreVolIntRegs:
+DoneRestoreVolIntRegs_Tailcall:
     ; restore integer return register
     pop                     rax
 

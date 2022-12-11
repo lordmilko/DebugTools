@@ -3,8 +3,11 @@
 #pragma warning(push)
 #pragma warning(disable: 4102) //unreferenced label
 
+// Can't be declared inline because x64 assembly won't work
+// ReSharper disable once CppNonInlineFunctionDefinitionInHeaderFile
 extern "C" void STDMETHODCALLTYPE LeaveStub(FunctionIDOrClientID functionId)
 {
+    EventWriteCallExitEvent(functionId.functionID);
 }
 
 #ifdef _X86_

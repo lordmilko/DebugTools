@@ -45,6 +45,9 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)Hooks\TailcallHookWithInfo.h">
       <Filter>Header Files\Hooks</Filter>
     </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)DebugToolsProfiler.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="$(MSBuildThisFileDirectory)dllmain.cpp">
@@ -58,14 +61,25 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <None Include="$(MSBuildThisFileDirectory)Profiler.def" />
-  </ItemGroup>
-  <ItemGroup>
     <None Include="$(MSBuildThisFileDirectory)Hooks\StubX64.asm">
       <Filter>Header Files\Hooks</Filter>
     </None>
     <None Include="$(MSBuildThisFileDirectory)Hooks\StubX64WithInfo.asm">
       <Filter>Header Files\Hooks</Filter>
     </None>
+    <None Include="$(MSBuildThisFileDirectory)Profiler.def">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="$(MSBuildThisFileDirectory)DebugToolsProfiler.man">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="$(MSBuildThisFileDirectory)generateManifest.cmd">
+      <Filter>Resource Files</Filter>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <Natvis Include="$(MSBuildThisFileDirectory)Profiler.natvis">
+      <Filter>Resource Files</Filter>
+    </Natvis>
   </ItemGroup>
 </Project>

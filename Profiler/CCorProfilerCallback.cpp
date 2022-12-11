@@ -74,16 +74,14 @@ HRESULT CCorProfilerCallback::Initialize(IUnknown* pICorProfilerInfoUnk)
 	IfFailGo(m_pInfo->SetFunctionIDMapper2(RecordFunction, nullptr));
 
 	IfFailGo(SetEventMask());
-	IfFailGo(InstallHooksWithInfo());
+	IfFailGo(InstallHooks());
+	IfFailWin32Go(EventRegisterDebugToolsProfiler());
 
 	g_pProfiler = this;
 
 ErrExit:
 	return hr;
 }
-
-//When you shut down a pure .NET application (i.e. not PowerShell which launches the CLR) EEShutDown may create a new thread that calls clr!EEShutDownProcForSTAThread calls EEShutDownHelper -> EEToProfInterfaceImpl::Shutdown -> ICorProfilerCallback::Shutdown
-//if you type "exit" in PowerShell this IS called - 
 
 /// <summary>
 /// Notifies the profiler that the application is shutting down.
@@ -97,14 +95,92 @@ HRESULT CCorProfilerCallback::Shutdown()
 	return S_OK;
 }
 
+/// <summary>
+/// Notifies the profiler that a thread has been created.
+/// </summary>
+/// <param name="threadId">The managed ID of the thread that was created.</param>
+/// <returns>A HRESULT that indicates whether the profiler encountered an error processing the event.</returns>
+HRESULT CCorProfilerCallback::ThreadCreated(ThreadID threadId)
+{
+	HRESULT hr = S_OK;
+
+	DWORD win32ThreadId;
+	IfFailGo(m_pInfo->GetThreadInfo(threadId, &win32ThreadId));
+
+	EventWriteThreadCreateEvent(win32ThreadId);
+
+ErrExit:
+	return hr;
+}
+
+/// <summary>
+/// Notifies the profiler that a thread has been destroyed.
+/// </summary>
+/// <param name="threadId">The managed ID of the thread that was destroyed.</param>
+/// <returns>A HRESULT that indicates whether the profiler encountered an error processing the event.</returns>
+HRESULT CCorProfilerCallback::ThreadDestroyed(ThreadID threadId)
+{
+	HRESULT hr = S_OK;
+
+	DWORD win32ThreadId;
+	IfFailGo(m_pInfo->GetThreadInfo(threadId, &win32ThreadId));
+
+	EventWriteThreadDestroyEvent(win32ThreadId);
+
+ErrExit:
+	return hr;
+}
+
 #pragma endregion
 #pragma region CCorProfilerCallback
 
 CCorProfilerCallback* CCorProfilerCallback::g_pProfiler;
 
-//This function is called the very first time each function is JITted, allowing us to record that function's existence
+//Thread local buffers (to avoid reallocating with each RecordFunction invocation that is made)
+#define NAME_BUFFER_SIZE 512
+
+thread_local WCHAR methodName[NAME_BUFFER_SIZE];
+thread_local WCHAR typeName[NAME_BUFFER_SIZE];
+thread_local WCHAR moduleName[NAME_BUFFER_SIZE];
+
+/// <summary>
+/// A function that is called exactly once for each function that is JITted. Allows the profiler to report on the function,
+/// and decide whether the function should be hooked or not.
+/// </summary>
+/// <param name="funcId">The ID of the function that is being JITted.</param>
+/// <param name="clientData">The client data that was passed to ICorProfilerInfo3::SetFunctionIDMapper2()</param>
+/// <param name="pbHookFunction">A value that must be set by this function indicating whether the function identified by funcId should be hooked or not.</param>
+/// <returns>The original funcId that was passed into this function.</returns>
 UINT_PTR __stdcall CCorProfilerCallback::RecordFunction(FunctionID funcId, void* clientData, BOOL* pbHookFunction)
 {
+	HRESULT hr = S_OK;
+
+	ICorProfilerInfo3* pInfo = g_pProfiler->m_pInfo;
+	IMetaDataImport* pMDI;
+
+	mdMethodDef methodDef;
+	mdTypeDef typeDef;
+	ModuleID moduleId;
+
+	//Get the IMetaDataImport and mdMethodDef
+	IfFailGo(pInfo->GetTokenAndMetaDataFromFunction(funcId, IID_IMetaDataImport, reinterpret_cast<IUnknown**>(&pMDI), &methodDef));
+
+	//Get the ModuleID
+	IfFailGo(pInfo->GetFunctionInfo2(funcId, NULL, NULL, &moduleId, NULL, 0, NULL, NULL));
+
+	//Get the method name and mdTypeDef
+	IfFailGo(pMDI->GetMethodProps(methodDef, &typeDef, methodName, NAME_BUFFER_SIZE, NULL, NULL, NULL, NULL, NULL, NULL));
+
+	//Get the type name
+	IfFailGo(pMDI->GetTypeDefProps(typeDef, typeName, NAME_BUFFER_SIZE, NULL, NULL, NULL));
+
+	//Get the module name
+	IfFailGo(pInfo->GetModuleInfo(moduleId, NULL, NAME_BUFFER_SIZE, NULL, moduleName, NULL));
+
+	//Write the event
+	EventWriteMethodInfoEvent(funcId, methodName, typeName, moduleName);
+
+ErrExit:
 	*pbHookFunction = true;
 	return funcId;
 }
