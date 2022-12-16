@@ -3,22 +3,26 @@ using System.Collections.Specialized;
 using System.Diagnostics;
 using System.Linq;
 using System.Management.Automation;
+using System.Management.Automation.Host;
 using System.Runtime.InteropServices;
 using System.Runtime.InteropServices.ComTypes;
 using System.Threading;
 using System.Threading.Tasks;
 using Debugger = System.Diagnostics.Debugger;
 
-namespace DebugTools.PowerShell
+namespace DebugTools.PowerShell.Cmdlets
 {
     [Cmdlet(VerbsLifecycle.Start, "DbgProfiler")]
-    public class StartDbgProfiler : PSCmdlet
+    public class StartDbgProfiler : ProfilerCmdlet
     {
         [Parameter(Mandatory = true, Position = 0)]
         public string ProcessName { get; set; }
 
         [Parameter(Mandatory = false)]
         public SwitchParameter Dbg { get; set; }
+
+        [Parameter(Mandatory = false)]
+        public SwitchParameter TraceStart { get; set; }
 
         protected override void ProcessRecord()
         {
@@ -37,10 +41,34 @@ namespace DebugTools.PowerShell
             if (Dbg)
                 envVariables.Add("DEBUGTOOLS_WAITFORDEBUG", "1");
 
-            session.Start(ProcessName, envVariables);
+            session.Start(CancellationToken, ProcessName, envVariables, TraceStart, process =>
+            {
+                if (Dbg)
+                    AttachDebugger(process);
+            });
 
-            if (Dbg)
-                AttachDebugger(session.Process);
+            if (TraceStart)
+            {
+                StartCtrlCHandler();
+
+                var record = new ProgressRecord(1, "Start-DbgProfiler", "Tracing... (Ctrl+C to end)");
+                WriteProgress(record);
+
+                ThreadStack[] threadStack;
+
+                try
+                {
+                    threadStack = session.Trace(CancellationToken);
+                }
+                finally
+                {
+                    record.RecordType = ProgressRecordType.Completed;
+                    WriteProgress(record);
+                }
+
+                foreach (var item in threadStack)
+                    WriteObject(item.Root);
+            }
         }
 
         public static void AttachDebugger(Process target)

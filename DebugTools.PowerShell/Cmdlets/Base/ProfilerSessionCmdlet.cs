@@ -4,7 +4,7 @@ using System.Management.Automation;
 
 namespace DebugTools.PowerShell.Cmdlets
 {
-    public abstract class ProfilerSessionCmdlet : PSCmdlet
+    public abstract class ProfilerSessionCmdlet : ProfilerCmdlet
     {
         [Parameter(Mandatory = false, ValueFromPipeline = true)]
         public ProfilerSession Session { get; set; }

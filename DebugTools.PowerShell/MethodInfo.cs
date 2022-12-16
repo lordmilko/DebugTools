@@ -3,6 +3,9 @@ using System.IO;
 
 namespace DebugTools.PowerShell
 {
+    /// <summary>
+    /// Describes a method that is known to the profiler.
+    /// </summary>
     [DebuggerDisplay("{ModuleName,nq} {TypeName,nq}.{MethodName,nq}")]
     public class MethodInfo
     {
@@ -22,6 +25,11 @@ namespace DebugTools.PowerShell
             ModulePath = modulePath;
             TypeName = typeName;
             MethodName = methodName;
+        }
+
+        public override string ToString()
+        {
+            return $"{TypeName}.{MethodName}";
         }
     }
 }

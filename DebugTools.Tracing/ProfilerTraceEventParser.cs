@@ -13,6 +13,7 @@ namespace DebugTools.Tracing
             public const int MethodInfo = 4;
             public const int ThreadCreate = 5;
             public const int ThreadDestroy = 6;
+            public const int ThreadName = 7;
         }
 
         /// <summary>
@@ -65,6 +66,12 @@ namespace DebugTools.Tracing
             remove => source.UnregisterEventTemplate(value, EventId.ThreadDestroy, ProviderGuid);
         }
 
+        public event Action<ThreadNameArgs> ThreadName
+        {
+            add => source.RegisterEventTemplate(ThreadNameTemplate(value));
+            remove => source.UnregisterEventTemplate(value, EventId.ThreadName, ProviderGuid);
+        }
+
         #endregion
 
         public ProfilerTraceEventParser(TraceEventSource source, bool dontRegister = false) : base(source, dontRegister)
@@ -107,6 +114,8 @@ namespace DebugTools.Tracing
         private static ThreadArgs ThreadCreateTemplate(Action<ThreadArgs> action) => new ThreadArgs(action, EventId.ThreadCreate, 0, null, Guid.Empty, 0, null, ProviderGuid, ProviderName);
 
         private static ThreadArgs ThreadDestroyTemplate(Action<ThreadArgs> action) => new ThreadArgs(action, EventId.ThreadDestroy, 0, null, Guid.Empty, 0, null, ProviderGuid, ProviderName);
+
+        private static ThreadNameArgs ThreadNameTemplate(Action<ThreadNameArgs> action) => new ThreadNameArgs(action, EventId.ThreadName, 0, null, Guid.Empty, 0, null, ProviderGuid, ProviderName);
 
         #endregion
     }

@@ -13,6 +13,12 @@ public:
 	{
 	}
 
+	~CCorProfilerCallback()
+	{
+		if (m_pInfo)
+			m_pInfo->Release();
+	}
+
 	//Performs a one time registration function for each unique function that is JITted
 	static UINT_PTR __stdcall RecordFunction(FunctionID funcId, void* clientData, BOOL* pbHookFunction);
 	static BOOL ShouldHook();
@@ -105,7 +111,7 @@ public:
 	STDMETHODIMP Shutdown() override;
 #pragma endregion
 #pragma region ICorProfilerCallback2
-	STDMETHODIMP ThreadNameChanged(ThreadID threadId, ULONG cchName, WCHAR* name) override { return S_OK; }
+	STDMETHODIMP ThreadNameChanged(ThreadID threadId, ULONG cchName, WCHAR* name) override;
 	STDMETHODIMP GarbageCollectionStarted(int cGenerations, BOOL generationCollected[], COR_PRF_GC_REASON reason) override { return S_OK; }
 	STDMETHODIMP SurvivingReferences(ULONG cSurvivingObjectIDRanges, ObjectID objectIDRangeStart[], ULONG cObjectIDRangeLength[]) override { return S_OK; }
 

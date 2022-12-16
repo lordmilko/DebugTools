@@ -1,8 +1,11 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.Diagnostics;
+using System.IO.Pipes;
+using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
@@ -21,9 +24,22 @@ namespace DebugTools.PowerShell
 
         public Thread Thread { get; }
 
-        public ConcurrentBag<MethodInfo> Methods { get; } = new ConcurrentBag<MethodInfo>();
+        public ConcurrentDictionary<long, MethodInfo> Methods { get; } = new ConcurrentDictionary<long, MethodInfo>();
 
         public bool HasExited => Process.HasExited;
+
+        private NamedPipeClientStream pipe;
+
+        private Dictionary<int, ThreadStack> threadCache = new Dictionary<int, ThreadStack>();
+        private Dictionary<int, string> threadNames = new Dictionary<int, string>();
+
+        private bool collectStackTrace;
+        private bool stopping;
+        private DateTime stopTime;
+
+        private CancellationTokenSource traceCTS;
+
+        internal ThreadStack[] LastTrace { get; private set; }
 
         public ProfilerSession()
         {
@@ -37,7 +53,75 @@ namespace DebugTools.PowerShell
 
             parser.MethodInfo += v =>
             {
-                Methods.Add(new MethodInfo(v.FunctionID, v.ModuleName, v.TypeName, v.MethodName));
+                Methods[v.FunctionID] = new MethodInfo(v.FunctionID, v.ModuleName, v.TypeName, v.MethodName);
+            };
+
+            parser.CallEnter += v =>
+            {
+                if (stopping && v.TimeStamp > stopTime)
+                {
+                    collectStackTrace = false;
+                    stopping = false;
+                    traceCTS.Cancel();
+                }
+
+                if (collectStackTrace)
+                {
+                    bool setName = false;
+
+                    if (!threadCache.TryGetValue(v.ThreadID, out var threadStack))
+                    {
+                        threadStack = new ThreadStack();
+                        threadCache[v.ThreadID] = threadStack;
+
+                        setName = true;
+                    }
+
+                    threadStack.AddMethod(v, Methods[v.FunctionID]);
+
+                    if (setName && threadNames.TryGetValue(v.ThreadID, out var name))
+                        threadStack.Root.ThreadName = name;
+                }
+            };
+
+            parser.CallExit += v =>
+            {
+                if (stopping && v.TimeStamp > stopTime)
+                {
+                    collectStackTrace = false;
+                    stopping = false;
+                    traceCTS.Cancel();
+                }
+
+                if (collectStackTrace)
+                {
+                    if (threadCache.TryGetValue(v.ThreadID, out var threadStack))
+                        threadStack.EndCall();
+                }
+            };
+
+            parser.Tailcall += v =>
+            {
+                if (stopping && v.TimeStamp > stopTime)
+                {
+                    collectStackTrace = false;
+                    stopping = false;
+                    traceCTS.Cancel();
+                }
+
+                if (collectStackTrace)
+                {
+                    if (threadCache.TryGetValue(v.ThreadID, out var threadStack))
+                        threadStack.Tailcall(v, Methods[v.FunctionID]);
+                }
+            };
+
+            parser.ThreadName += v =>
+            {
+                threadNames[v.ThreadID] = v.ThreadName;
+
+                if (threadCache.TryGetValue(v.ThreadID, out var stack))
+                    stack.Root.ThreadName = v.ThreadName;
             };
 
             TraceEventSession.EnableProvider(ProfilerTraceEventParser.ProviderGuid);
@@ -45,11 +129,21 @@ namespace DebugTools.PowerShell
             Thread = new Thread(ThreadProc);
         }
 
-        public void Start(string processName, StringDictionary envVariables)
+        public void Start(CancellationToken cancellationToken, string processName, StringDictionary envVariables, bool traceStart, Action<Process> onStart)
         {
+            collectStackTrace = traceStart;
+
             Thread.Start();
 
             Process = CreateProcess(processName, envVariables);
+
+            onStart?.Invoke(Process);
+
+            pipe = new NamedPipeClientStream(".", $"DebugToolsProfilerPipe_{Process.Id}", PipeDirection.Out);
+
+            //This will wait for the pipe to be created if it doesn't exist yet
+            //wait async, with a cancellation token
+            pipe.ConnectAsync(10000, cancellationToken).GetAwaiter().GetResult();
         }
 
         private Process CreateProcess(string processName, StringDictionary envVariables)
@@ -141,10 +235,46 @@ namespace DebugTools.PowerShell
             return "DebugTools_Profiler_" + ++maxId;
         }
 
+        public ThreadStack[] Trace(CancellationToken cancellationToken)
+        {
+            traceCTS = new CancellationTokenSource();
+
+            collectStackTrace = true;
+
+            cancellationToken.Register(() =>
+            {
+                stopTime = DateTime.Now;
+                stopping = true;
+                Console.WriteLine("Stopping...");
+            });
+
+            cancellationToken.WaitHandle.WaitOne();
+
+            traceCTS.Token.WaitHandle.WaitOne();
+
+            LastTrace = threadCache.Values.ToArray();
+
+            threadCache.Clear();
+
+            return LastTrace;
+        }
+
         public void Dispose()
         {
             //Upon disposing the session the thread will end
             TraceEventSession?.Dispose();
+            pipe?.Dispose();
+
+            if (!HasExited)
+            {
+                try
+                {
+                    Process.Kill();
+                }
+                finally
+                {
+                }
+            }
         }
     }
 }

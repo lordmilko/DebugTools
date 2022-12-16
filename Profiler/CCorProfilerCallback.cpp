@@ -144,6 +144,22 @@ ErrExit:
 }
 
 #pragma endregion
+#pragma region ICorProfilerCallback2
+
+HRESULT CCorProfilerCallback::ThreadNameChanged(ThreadID threadId, ULONG cchName, WCHAR* name)
+{
+	WCHAR copy[100];
+
+	//MSDN states the name is not guaranteed to be null terminated, so we make a copy just in case
+	StringCchCopyN(copy, 100, name, cchName);
+	copy[cchName + 1] = '\0';
+
+	EventWriteThreadNameEvent(copy);
+
+	return S_OK;
+}
+
+#pragma endregion
 #pragma region CCorProfilerCallback
 
 CCorProfilerCallback* CCorProfilerCallback::g_pProfiler;
@@ -169,7 +185,7 @@ UINT_PTR __stdcall CCorProfilerCallback::RecordFunction(FunctionID funcId, void*
 	HRESULT hr = S_OK;
 
 	ICorProfilerInfo3* pInfo = g_pProfiler->m_pInfo;
-	IMetaDataImport* pMDI;
+	IMetaDataImport* pMDI = nullptr;
 
 	mdMethodDef methodDef;
 	mdTypeDef typeDef;
@@ -200,6 +216,9 @@ UINT_PTR __stdcall CCorProfilerCallback::RecordFunction(FunctionID funcId, void*
 	EventWriteMethodInfoEvent(funcId, methodName, typeName, moduleName);
 
 ErrExit:
+	if (pMDI)
+		pMDI->Release();
+
 	*pbHookFunction = true;
 
 Exit:
@@ -208,7 +227,14 @@ Exit:
 
 LPCWSTR blacklist[] = {
 	L"mscorlib.dll",
-	L"System.Core.dll"
+	L"System.dll",
+	L"System.Core.dll",
+	L"System.Xml.dll",
+	L"Microsoft.VisualStudio.Telemetry.dll",
+	L"Newtonsoft.Json.dll",
+	L"PresentationFramework.dll",
+	L"PresentationCore.dll",
+	L"WindowsBase.dll"
 };
 
 BOOL CCorProfilerCallback::ShouldHook()
