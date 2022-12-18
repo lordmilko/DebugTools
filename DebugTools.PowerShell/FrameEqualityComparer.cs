@@ -11,7 +11,7 @@ namespace DebugTools.PowerShell
             if (x is MethodFrame m1 && y is MethodFrame m2)
                 return m1.MethodInfo.Equals(m2.MethodInfo);
 
-            return Equals(x, y);
+            return ReferenceEquals(x, y);
         }
 
         public int GetHashCode(IFrame obj)

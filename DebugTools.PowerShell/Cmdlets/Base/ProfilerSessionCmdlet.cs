@@ -6,7 +6,8 @@ namespace DebugTools.PowerShell.Cmdlets
 {
     public abstract class ProfilerSessionCmdlet : ProfilerCmdlet
     {
-        [Parameter(Mandatory = false, ValueFromPipeline = true)]
+        //Can't pipe because StackFrameCmdlet will be super slow binding trying to figure out which parameter to bind to
+        [Parameter(Mandatory = false)]
         public ProfilerSession Session { get; set; }
 
         protected sealed override void ProcessRecord()

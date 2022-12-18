@@ -1,6 +1,7 @@
 #include "pch.h"
 #include "CCorProfilerCallback.h"
 #include "Hooks\Hooks.h"
+#include <strsafe.h>
 
 #pragma region IUnknown
 

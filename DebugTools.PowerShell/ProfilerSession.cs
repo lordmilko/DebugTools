@@ -77,7 +77,7 @@ namespace DebugTools.PowerShell
                         setName = true;
                     }
 
-                    threadStack.AddMethod(v, Methods[v.FunctionID]);
+                    threadStack.AddMethod(v, GetMethodSafe(v.FunctionID));
 
                     if (setName && threadNames.TryGetValue(v.ThreadID, out var name))
                         threadStack.Root.ThreadName = name;
@@ -112,7 +112,7 @@ namespace DebugTools.PowerShell
                 if (collectStackTrace)
                 {
                     if (threadCache.TryGetValue(v.ThreadID, out var threadStack))
-                        threadStack.Tailcall(v, Methods[v.FunctionID]);
+                        threadStack.Tailcall(v, GetMethodSafe(v.FunctionID));
                 }
             };
 
@@ -127,6 +127,16 @@ namespace DebugTools.PowerShell
             TraceEventSession.EnableProvider(ProfilerTraceEventParser.ProviderGuid);
 
             Thread = new Thread(ThreadProc);
+        }
+
+        private MethodInfo GetMethodSafe(long functionId)
+        {
+            if (Methods.TryGetValue(functionId, out var value))
+                return value;
+
+            value = new MethodInfo(functionId, "Unknown", "Unknown", "Unknown");
+            Methods[functionId] = value;
+            return value;
         }
 
         public void Start(CancellationToken cancellationToken, string processName, StringDictionary envVariables, bool traceStart, Action<Process> onStart)
@@ -257,6 +267,33 @@ namespace DebugTools.PowerShell
             threadCache.Clear();
 
             return LastTrace;
+        }
+
+        public void ExecuteCommand(MessageType messageType, object value)
+        {
+            var buffer = new byte[1004];
+
+            var bytes = BitConverter.GetBytes((int) messageType);
+
+            var pos = 0;
+
+            for (; pos < bytes.Length; pos++)
+                buffer[pos] = bytes[pos];
+
+            switch(value)
+            {
+                case long l:
+                    bytes = BitConverter.GetBytes(l);
+                    break;
+
+                default:
+                    throw new NotImplementedException($"Don't know how to handle value of type '{value.GetType().Name}'.");
+            }
+
+            for (var i = 0; i < bytes.Length && pos < buffer.Length; pos++, i++)
+                buffer[pos] = bytes[i];
+
+            pipe.Write(buffer, 0, buffer.Length);
         }
 
         public void Dispose()

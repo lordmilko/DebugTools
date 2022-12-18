@@ -17,8 +17,11 @@ namespace DebugTools.PowerShell.Cmdlets
         [Parameter(Mandatory = false)]
         public SwitchParameter Unique { get; set; }
 
-        [Parameter(Mandatory = true, Position = 0)]
+        [Parameter(Mandatory = false, Position = 0)]
         public string[] Include { get; set; }
+
+        [Parameter(Mandatory = false)]
+        public string[] Exclude { get; set; }
 
         [Parameter(Mandatory = false)]
         public string[] Highlight { get; set; }
@@ -40,6 +43,7 @@ namespace DebugTools.PowerShell.Cmdlets
                 findDbgProfilerStackFrame = new FindDbgProfilerStackFrame
                 {
                     Include = Include,
+                    Exclude = Exclude,
                     Unique = Unique
                 };
 
@@ -132,6 +136,7 @@ namespace DebugTools.PowerShell.Cmdlets
                             ThreadName = r.ThreadName
                         };
 
+                        newItem = newRoot;
                         newParent = newRoot;
                     }
                     else if (item is MethodFrame m)
@@ -150,7 +155,7 @@ namespace DebugTools.PowerShell.Cmdlets
                 else
                     newParent = newItem;
 
-                if (frames.Contains(item))
+                if (frames.Contains(item, FrameEqualityComparer.Instance))
                     highlightFrames.Add(newItem);
             }
 
@@ -159,6 +164,8 @@ namespace DebugTools.PowerShell.Cmdlets
 
         private void Print(IFrame item, int level, string indent, bool last, bool first = false)
         {
+            CancellationToken.ThrowIfCancellationRequested();
+
             Console.Write(indent);
 
             if (!first)

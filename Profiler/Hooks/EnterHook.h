@@ -15,12 +15,10 @@ void __declspec(naked) EnterNaked(FunctionIDOrClientID functionIDOrClientID)
 {
     __asm
     {
-#ifdef DEBUG
-        // Set up EBP Frame (easy debugging)
-        // Turned off in release mode to save cycles
+        //The method prologue will push the function ID onto the stack; reset ESP so it's correctly visible within this function.
+        //This is not optional, in Debug or Release
         push ebp
         mov ebp, esp
-#endif
 
         // Make space for locals.
         sub esp, __LOCAL_SIZE
@@ -83,11 +81,8 @@ RestoreFPRegsDone:
         // Pop off locals
         add esp, __LOCAL_SIZE
 
-#ifdef DEBUG
         // Restore EBP
-        // Turned off in release mode to save cycles
         pop ebp
-#endif
 
         // stdcall: Callee cleans up args from stack on return
         ret SIZE functionIDOrClientID

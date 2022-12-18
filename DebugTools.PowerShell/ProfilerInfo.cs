@@ -12,7 +12,7 @@ namespace DebugTools.PowerShell
 
         static ProfilerInfo()
         {
-            var dll = new Uri(typeof(InvokeDbgProfiler).Assembly.CodeBase);
+            var dll = new Uri(typeof(ProfilerInfo).Assembly.CodeBase);
             var root = dll.Host + dll.PathAndQuery + dll.Fragment;
             var rootStr = Uri.UnescapeDataString(root);
 
