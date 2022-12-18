@@ -26,7 +26,7 @@ namespace DebugTools.Profiler
 
         private NamedPipeClientStream pipe;
 
-        private Dictionary<int, ThreadStack> threadCache = new Dictionary<int, ThreadStack>();
+        public Dictionary<int, ThreadStack> ThreadCache { get; } = new Dictionary<int, ThreadStack>();
         private Dictionary<int, string> threadNames = new Dictionary<int, string>();
 
         private bool collectStackTrace;
@@ -65,10 +65,10 @@ namespace DebugTools.Profiler
                 {
                     bool setName = false;
 
-                    if (!threadCache.TryGetValue(v.ThreadID, out var threadStack))
+                    if (!ThreadCache.TryGetValue(v.ThreadID, out var threadStack))
                     {
                         threadStack = new ThreadStack();
-                        threadCache[v.ThreadID] = threadStack;
+                        ThreadCache[v.ThreadID] = threadStack;
 
                         setName = true;
                     }
@@ -91,7 +91,7 @@ namespace DebugTools.Profiler
 
                 if (collectStackTrace)
                 {
-                    if (threadCache.TryGetValue(v.ThreadID, out var threadStack))
+                    if (ThreadCache.TryGetValue(v.ThreadID, out var threadStack))
                         threadStack.EndCall();
                 }
             };
@@ -107,7 +107,7 @@ namespace DebugTools.Profiler
 
                 if (collectStackTrace)
                 {
-                    if (threadCache.TryGetValue(v.ThreadID, out var threadStack))
+                    if (ThreadCache.TryGetValue(v.ThreadID, out var threadStack))
                         threadStack.Tailcall(v, GetMethodSafe(v.FunctionID));
                 }
             };
@@ -116,8 +116,14 @@ namespace DebugTools.Profiler
             {
                 threadNames[v.ThreadID] = v.ThreadName;
 
-                if (threadCache.TryGetValue(v.ThreadID, out var stack))
+                if (ThreadCache.TryGetValue(v.ThreadID, out var stack))
                     stack.Root.ThreadName = v.ThreadName;
+            };
+
+            parser.Shutdown += v =>
+            {
+                //Calling Dispose() guarantees an immediate stop
+                TraceEventSession.Dispose();
             };
 
             TraceEventSession.EnableProvider(ProfilerTraceEventParser.ProviderGuid);
@@ -143,11 +149,27 @@ namespace DebugTools.Profiler
 
             Process = ProfilerInfo.CreateProcess(processName, flags);
 
+            var pipeCTS = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+
+            Process.EnableRaisingEvents = true;
+            Process.Exited += (s, e) =>
+            {
+                pipeCTS.Cancel();
+            };
+
             pipe = new NamedPipeClientStream(".", $"DebugToolsProfilerPipe_{Process.Id}", PipeDirection.Out);
 
             //This will wait for the pipe to be created if it doesn't exist yet
             //wait async, with a cancellation token
-            pipe.ConnectAsync(10000, cancellationToken).GetAwaiter().GetResult();
+            try
+            {
+                pipe.ConnectAsync(10000, pipeCTS.Token).GetAwaiter().GetResult();
+            }
+            catch (OperationCanceledException)
+            {
+                if (!Process.HasExited)
+                    throw;
+            }
         }
 
         private void ThreadProc()
@@ -182,9 +204,9 @@ namespace DebugTools.Profiler
 
             traceCTS.Token.WaitHandle.WaitOne();
 
-            LastTrace = threadCache.Values.ToArray();
+            LastTrace = ThreadCache.Values.ToArray();
 
-            threadCache.Clear();
+            ThreadCache.Clear();
 
             return LastTrace;
         }

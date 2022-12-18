@@ -659,7 +659,7 @@ Remarks:
 #endif // MCGEN_DISABLE_PROVIDER_CODE_GENERATION
 
 //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-// Provider "DebugToolsProfiler" event count 7
+// Provider "DebugToolsProfiler" event count 8
 //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 // Provider GUID = c6f30827-dd2d-4fee-ad2e-bba0ce6cbd8f
@@ -675,6 +675,7 @@ EXTERN_C __declspec(selectany) const GUID DebugToolsProfiler = {0xc6f30827, 0xdd
 #define CallKeyword 0x8000000000
 #define InfoKeyword 0x1
 #define ThreadKeyword 0x2
+#define SystemKeyword 0x4
 
 //
 // Event Descriptors
@@ -693,6 +694,8 @@ EXTERN_C __declspec(selectany) const EVENT_DESCRIPTOR ThreadDestroyEvent = {0x6,
 #define ThreadDestroyEvent_value 0x6
 EXTERN_C __declspec(selectany) const EVENT_DESCRIPTOR ThreadNameEvent = {0x7, 0x0, 0x0, 0x5, 0x0, 0x0, 0x2};
 #define ThreadNameEvent_value 0x7
+EXTERN_C __declspec(selectany) const EVENT_DESCRIPTOR ShutdownEvent = {0x8, 0x0, 0x0, 0x5, 0x0, 0x0, 0x4};
+#define ShutdownEvent_value 0x8
 
 //
 // MCGEN_DISABLE_PROVIDER_CODE_GENERATION macro:
@@ -706,13 +709,13 @@ EXTERN_C __declspec(selectany) const EVENT_DESCRIPTOR ThreadNameEvent = {0x7, 0x
 // These variables are for use by MC-generated code and should not be used directly.
 //
 EXTERN_C __declspec(selectany) DECLSPEC_CACHEALIGN ULONG DebugToolsProfilerEnableBits[1];
-EXTERN_C __declspec(selectany) const ULONGLONG DebugToolsProfilerKeywords[3] = {0x8000000000, 0x1, 0x2};
-EXTERN_C __declspec(selectany) const unsigned char DebugToolsProfilerLevels[3] = {5, 5, 5};
+EXTERN_C __declspec(selectany) const ULONGLONG DebugToolsProfilerKeywords[4] = {0x8000000000, 0x1, 0x2, 0x4};
+EXTERN_C __declspec(selectany) const unsigned char DebugToolsProfilerLevels[4] = {5, 5, 5, 5};
 
 //
 // Provider context
 //
-EXTERN_C __declspec(selectany) MCGEN_TRACE_CONTEXT DebugToolsProfiler_Context = {0, (ULONG_PTR)DebugToolsProfiler_Traits, 0, 0, 0, 0, 0, 0, 3, DebugToolsProfilerEnableBits, DebugToolsProfilerKeywords, DebugToolsProfilerLevels};
+EXTERN_C __declspec(selectany) MCGEN_TRACE_CONTEXT DebugToolsProfiler_Context = {0, (ULONG_PTR)DebugToolsProfiler_Traits, 0, 0, 0, 0, 0, 0, 4, DebugToolsProfilerEnableBits, DebugToolsProfilerKeywords, DebugToolsProfilerLevels};
 
 //
 // Provider REGHANDLE
@@ -807,7 +810,7 @@ _mcgen_PASTE2(_mcgen_RegisterForContext_DebugToolsProfiler_, MCGEN_EVENTREGISTER
 {
     RtlZeroMemory(pContext, sizeof(*pContext));
     pContext->Context.Logger = (ULONG_PTR)DebugToolsProfiler_Traits;
-    pContext->Context.EnableBitsCount = 3;
+    pContext->Context.EnableBitsCount = 4;
     pContext->Context.EnableBitMask = pContext->EnableBits;
     pContext->Context.EnableKeyWords = DebugToolsProfilerKeywords;
     pContext->Context.EnableLevel = DebugToolsProfilerLevels;
@@ -990,6 +993,29 @@ _mcgen_CheckContextType_DebugToolsProfiler(_In_ McGenContext_DebugToolsProfiler*
 // This macro is for use by MC-generated code and should not be used directly.
 #define _mcgen_TEMPLATE_FOR_ThreadNameEvent _mcgen_PASTE2(McTemplateU0z_, MCGEN_EVENTWRITETRANSFER)
 
+//
+// Enablement check macro for event "ShutdownEvent"
+//
+#define EventEnabledShutdownEvent() _mcgen_EVENT_BIT_SET(DebugToolsProfilerEnableBits, 3)
+#define EventEnabledShutdownEvent_ForContext(pContext) _mcgen_EVENT_BIT_SET(_mcgen_CheckContextType_DebugToolsProfiler(pContext)->EnableBits, 3)
+
+//
+// Event write macros for event "ShutdownEvent"
+//
+#define EventWriteShutdownEvent() \
+        MCGEN_EVENT_ENABLED(ShutdownEvent) \
+        ? _mcgen_TEMPLATE_FOR_ShutdownEvent(&DebugToolsProfiler_Context, &ShutdownEvent) : 0
+#define EventWriteShutdownEvent_AssumeEnabled() \
+        _mcgen_TEMPLATE_FOR_ShutdownEvent(&DebugToolsProfiler_Context, &ShutdownEvent)
+#define EventWriteShutdownEvent_ForContext(pContext) \
+        MCGEN_EVENT_ENABLED_FORCONTEXT(pContext, ShutdownEvent) \
+        ? _mcgen_TEMPLATE_FOR_ShutdownEvent(&(pContext)->Context, &ShutdownEvent) : 0
+#define EventWriteShutdownEvent_ForContextAssumeEnabled(pContext) \
+        _mcgen_TEMPLATE_FOR_ShutdownEvent(&_mcgen_CheckContextType_DebugToolsProfiler(pContext)->Context, &ShutdownEvent)
+
+// This macro is for use by MC-generated code and should not be used directly.
+#define _mcgen_TEMPLATE_FOR_ShutdownEvent _mcgen_PASTE2(McTemplateU0_, MCGEN_EVENTWRITETRANSFER)
+
 #endif // MCGEN_DISABLE_PROVIDER_CODE_GENERATION
 
 //
@@ -1002,6 +1028,27 @@ _mcgen_CheckContextType_DebugToolsProfiler(_In_ McGenContext_DebugToolsProfiler*
 //
 // Template Functions
 //
+
+//
+// Function for template "(default)" (and possibly others).
+// This function is for use by MC-generated code and should not be used directly.
+//
+#ifndef McTemplateU0_def
+#define McTemplateU0_def
+ETW_INLINE
+ULONG
+_mcgen_PASTE2(McTemplateU0_, MCGEN_EVENTWRITETRANSFER)(
+    _In_ PMCGEN_TRACE_CONTEXT Context,
+    _In_ PCEVENT_DESCRIPTOR Descriptor
+    )
+{
+#define McTemplateU0_ARGCOUNT 0
+
+    EVENT_DATA_DESCRIPTOR EventData[McTemplateU0_ARGCOUNT + 1];
+
+    return McGenEventWrite(Context, Descriptor, NULL, McTemplateU0_ARGCOUNT + 1, EventData);
+}
+#endif // McTemplateU0_def
 
 //
 // Function for template "CallArgs" (and possibly others).

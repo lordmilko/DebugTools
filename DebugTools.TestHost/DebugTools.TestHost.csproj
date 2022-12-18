@@ -1,14 +1,14 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
+    <OutputType>Exe</OutputType>
     <TargetFramework>net472</TargetFramework>
 	  <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
 	  <OutputPath>$(SolutionDir)artifacts\bin\$(Configuration)</OutputPath>
   </PropertyGroup>
 
   <ItemGroup>
-	  <PackageReference Include="envdte80" Version="8.0.3" />
-		<PackageReference Include="Microsoft.Diagnostics.Tracing.TraceEvent" Version="3.0.6" />
+    <Compile Include="..\Profiler.Tests\ProfilerTestType.cs" Link="ProfilerTestType.cs" />
   </ItemGroup>
 
 </Project>

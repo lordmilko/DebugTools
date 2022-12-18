@@ -6,7 +6,7 @@ namespace DebugTools.Profiler
     {
         IFrame Parent { get; set; }
 
-        List<IFrame> Children { get; set; }
+        List<MethodFrame> Children { get; set; }
 
         RootFrame GetRoot();
     }

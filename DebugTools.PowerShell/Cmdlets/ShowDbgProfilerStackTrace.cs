@@ -147,7 +147,7 @@ namespace DebugTools.PowerShell.Cmdlets
                             Parent = newParent,
                             MethodInfo = m.MethodInfo
                         };
-                        newParent.Children.Add(newItem);
+                        newParent.Children.Add((MethodFrame) newItem);
                         newParent = newItem;
                     }
 
@@ -190,7 +190,7 @@ namespace DebugTools.PowerShell.Cmdlets
             else
                 Console.WriteLine(str);
 
-            IList<IFrame> children = item.Children;
+            IList<MethodFrame> children = item.Children;
 
             if (level < Depth || Unlimited || children.Count == 0)
             {

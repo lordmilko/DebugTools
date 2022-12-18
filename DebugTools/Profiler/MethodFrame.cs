@@ -8,7 +8,7 @@ namespace DebugTools.Profiler
 
         public MethodInfo MethodInfo { get; set; }
 
-        public List<IFrame> Children { get; set; } = new List<IFrame>();
+        public List<MethodFrame> Children { get; set; } = new List<MethodFrame>();
 
         public int HashCode => GetHashCode();
 

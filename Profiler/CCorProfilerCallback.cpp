@@ -69,7 +69,7 @@ HRESULT CCorProfilerCallback::QueryInterface(REFIID riid, void** ppvObject)
 HRESULT CCorProfilerCallback::Initialize(IUnknown* pICorProfilerInfoUnk)
 {
 #ifdef _DEBUG
-	OutputDebugStringW(L"Waiting for debugger to attach...");
+	OutputDebugStringW(L"Waiting for debugger to attach...\n");
 
 	if (GetBoolEnv("DEBUGTOOLS_WAITFORDEBUG"))
 	{
@@ -105,6 +105,7 @@ ErrExit:
 /// PowerShell does not call Shutdown when closing out of the program normally, however when the "exit" command is executed, _wmainCRTStartup will call msvcrt!doexit, leading to clr!HandleExitProcessHelper calling EEShutDown, etc.</remarks>
 HRESULT CCorProfilerCallback::Shutdown()
 {
+	EventWriteShutdownEvent();
 	return S_OK;
 }
 
@@ -173,6 +174,16 @@ thread_local WCHAR methodName[NAME_BUFFER_SIZE];
 thread_local WCHAR typeName[NAME_BUFFER_SIZE];
 thread_local WCHAR moduleName[NAME_BUFFER_SIZE];
 
+thread_local WCHAR debugBuffer[2000];
+
+void dprintf(LPCWSTR format, ...)
+{
+	va_list args;
+	va_start(args, format);
+	vswprintf_s(debugBuffer, format, args);
+	va_end(args);
+}
+
 /// <summary>
 /// A function that is called exactly once for each function that is JITted. Allows the profiler to report on the function,
 /// and decide whether the function should be hooked or not.
@@ -230,6 +241,7 @@ LPCWSTR blacklist[] = {
 	L"mscorlib.dll",
 	L"System.dll",
 	L"System.Core.dll",
+	L"System.Configuration.dll",
 	L"System.Xml.dll",
 	L"Microsoft.VisualStudio.Telemetry.dll",
 	L"Newtonsoft.Json.dll",
