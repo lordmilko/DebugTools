@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace DebugTools.PowerShell
+namespace DebugTools
 {
     public struct STARTUPINFO
     {
@@ -18,7 +18,7 @@ namespace DebugTools.PowerShell
         public STARTF dwFlags;
         public ShowWindow wShowWindow;
         public short cbReserved2;
-        private IntPtr lpReserved2;
+        public IntPtr lpReserved2;
         public IntPtr hStdInput;
         public IntPtr hStdOutput;
         public IntPtr hStdError;

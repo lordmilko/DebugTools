@@ -1,8 +1,8 @@
 ﻿using System.Collections.Generic;
 
-namespace DebugTools.PowerShell
+namespace DebugTools.Profiler
 {
-    class MethodFrame : IFrame
+    public class MethodFrame : IFrame
     {
         public IFrame Parent { get; set; }
 

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Management.Automation;
 using System.Threading;
+using DebugTools.Profiler;
 
 namespace DebugTools.PowerShell.Cmdlets
 {

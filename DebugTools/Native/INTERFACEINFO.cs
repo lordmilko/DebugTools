@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Runtime.InteropServices;
 
-namespace DebugTools.PowerShell
+namespace DebugTools
 {
     [StructLayout(LayoutKind.Sequential, Pack = 4)]
     public struct INTERFACEINFO

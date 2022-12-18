@@ -2,7 +2,7 @@
 using System.Runtime.InteropServices;
 using System.Runtime.InteropServices.ComTypes;
 
-namespace DebugTools.PowerShell
+namespace DebugTools
 {
     internal static class NativeMethods
     {

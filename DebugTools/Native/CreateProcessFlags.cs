@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace DebugTools.PowerShell
+namespace DebugTools
 {
     [Flags]
     public enum CreateProcessFlags : uint

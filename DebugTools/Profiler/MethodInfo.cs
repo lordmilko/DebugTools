@@ -1,7 +1,7 @@
 ﻿using System.Diagnostics;
 using System.IO;
 
-namespace DebugTools.PowerShell
+namespace DebugTools.Profiler
 {
     /// <summary>
     /// Describes a method that is known to the profiler.

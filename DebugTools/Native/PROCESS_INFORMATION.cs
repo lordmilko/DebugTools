@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace DebugTools.PowerShell
+namespace DebugTools
 {
     public struct PROCESS_INFORMATION
     {

@@ -1,12 +1,12 @@
 ﻿using DebugTools.Tracing;
 
-namespace DebugTools.PowerShell
+namespace DebugTools.Profiler
 {
     public class ThreadStack
     {
         public IFrame Current { get; set; }
 
-        internal RootFrame Root => Current.GetRoot();
+        public RootFrame Root => Current.GetRoot();
 
         public void AddMethod(CallArgs args, MethodInfo method)
         {

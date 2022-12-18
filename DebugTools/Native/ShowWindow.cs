@@ -1,4 +1,4 @@
-﻿namespace DebugTools.PowerShell
+﻿namespace DebugTools
 {
     public enum ShowWindow : ushort
     {

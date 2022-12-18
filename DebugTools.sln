@@ -9,7 +9,7 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Profiler.x64", "Profiler.x6
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Profiler.x86", "Profiler.x86\Profiler.x86.vcxproj", "{7A67E69F-D319-45CF-B94E-D9A7E24616BF}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DebugTools.Tracing", "DebugTools.Tracing\DebugTools.Tracing.csproj", "{6DAFFE6D-D925-4355-A83B-81A4F8F7EC1C}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DebugTools", "DebugTools\DebugTools.csproj", "{6DAFFE6D-D925-4355-A83B-81A4F8F7EC1C}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DebugTools.PowerShell", "DebugTools.PowerShell\DebugTools.PowerShell.csproj", "{9F008B7C-FF81-41B0-8EF9-EF7EFA27700C}"
 EndProject

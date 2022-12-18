@@ -7,11 +7,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="envdte80" Version="8.0.3" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <ProjectReference Include="..\DebugTools.Tracing\DebugTools.Tracing.csproj" />
+    <ProjectReference Include="..\DebugTools\DebugTools.csproj" />
   </ItemGroup>
 
   <ItemGroup>

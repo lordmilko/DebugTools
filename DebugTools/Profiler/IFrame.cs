@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-namespace DebugTools.PowerShell
+namespace DebugTools.Profiler
 {
     public interface IFrame
     {
