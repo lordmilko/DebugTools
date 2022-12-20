@@ -44,10 +44,6 @@
     <MASM Include="$(MSBuildThisFileDirectory)Hooks\StubX64WithInfo.asm" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="$(MSBuildThisFileDirectory)Hooks\StubX64.asm" />
-    <None Include="$(MSBuildThisFileDirectory)Hooks\StubX64WithInfo.asm" />
-  </ItemGroup>
-  <ItemGroup>
     <Natvis Include="$(MSBuildThisFileDirectory)Profiler.natvis" />
   </ItemGroup>
   <ImportGroup Label="ExtensionTargets">

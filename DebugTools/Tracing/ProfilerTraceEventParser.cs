@@ -11,10 +11,11 @@ namespace DebugTools.Tracing
             public const int CallExit = 2;
             public const int Tailcall = 3;
             public const int MethodInfo = 4;
-            public const int ThreadCreate = 5;
-            public const int ThreadDestroy = 6;
-            public const int ThreadName = 7;
-            public const int Shutdown = 8;
+            public const int MethodInfoDetailed = 5;
+            public const int ThreadCreate = 6;
+            public const int ThreadDestroy = 7;
+            public const int ThreadName = 8;
+            public const int Shutdown = 9;
         }
 
         /// <summary>
@@ -53,6 +54,12 @@ namespace DebugTools.Tracing
         {
             add => source.RegisterEventTemplate(MethodInfoTemplate(value));
             remove => source.UnregisterEventTemplate(value, EventId.MethodInfo, ProviderGuid);
+        }
+
+        public event Action<MethodInfoDetailedArgs> MethodInfoDetailed
+        {
+            add => source.RegisterEventTemplate(MethodInfoDetailedTemplate(value));
+            remove => source.UnregisterEventTemplate(value, EventId.MethodInfoDetailed, ProviderGuid);
         }
 
         public event Action<ThreadArgs> ThreadCreate
@@ -117,6 +124,8 @@ namespace DebugTools.Tracing
         private static CallArgs TailcallTemplate(Action<CallArgs> action) => new CallArgs(action, EventId.Tailcall, 0, null, Guid.Empty, 0, null, ProviderGuid, ProviderName);
 
         private static MethodInfoArgs MethodInfoTemplate(Action<MethodInfoArgs> action) => new MethodInfoArgs(action, EventId.MethodInfo, 0, null, Guid.Empty, 0, null, ProviderGuid, ProviderName);
+
+        private static MethodInfoDetailedArgs MethodInfoDetailedTemplate(Action<MethodInfoDetailedArgs> action) => new MethodInfoDetailedArgs(action, EventId.MethodInfoDetailed, 0, null, Guid.Empty, 0, null, ProviderGuid, ProviderName);
 
         private static ThreadArgs ThreadCreateTemplate(Action<ThreadArgs> action) => new ThreadArgs(action, EventId.ThreadCreate, 0, null, Guid.Empty, 0, null, ProviderGuid, ProviderName);
 

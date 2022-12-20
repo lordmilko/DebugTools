@@ -1,16 +1,11 @@
 using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Threading;
-using DebugTools;
 using DebugTools.Profiler;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace Profiler.Tests
 {
     [TestClass]
-    public class ProfilerTests
+    public class ProfilerTests : BaseTest
     {
         [TestMethod]
         public void Profiler_NoArgs() =>
@@ -38,29 +33,18 @@ namespace Profiler.Tests
             });
         }
 
-        private void Test(ProfilerTestType type, Action<Validator> validate)
+
+        [TestMethod]
+        public void Profiler_Detailed_NoArgs()
         {
-            using (var session = new ProfilerSession())
+            Test(ProfilerTestType.NoArgs, v =>
             {
-                var flags = new List<ProfilerEnvFlags>();
 
-                var wait = new AutoResetEvent(false);
-
-                session.TraceEventSession.Source.Completed += () => wait.Set();
-
-                session.Start(CancellationToken.None, $"{ProfilerInfo.TestHost} {type}", flags.ToArray(), true);
-
-                session.Process.WaitForExit();
-
-                wait.WaitOne();
-
-                var threadStacks = session.ThreadCache.Values.ToArray();
-                var methods = session.Methods.Values.ToArray();
-
-                var validator = new Validator(threadStacks, methods);
-
-                validate(validator);
-            }
+                v.HasFrame("NoArgs");
+            }, ProfilerEnvFlags.Detailed);
         }
+
+        internal void Test(ProfilerTestType type, Action<Validator> validate, params ProfilerEnvFlags[] flags) =>
+            TestInternal(TestType.Profiler, type.ToString(), validate, flags);
     }
 }

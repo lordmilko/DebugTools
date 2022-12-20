@@ -61,12 +61,6 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <None Include="$(MSBuildThisFileDirectory)Hooks\StubX64.asm">
-      <Filter>Header Files\Hooks</Filter>
-    </None>
-    <None Include="$(MSBuildThisFileDirectory)Hooks\StubX64WithInfo.asm">
-      <Filter>Header Files\Hooks</Filter>
-    </None>
     <None Include="$(MSBuildThisFileDirectory)Profiler.def">
       <Filter>Resource Files</Filter>
     </None>

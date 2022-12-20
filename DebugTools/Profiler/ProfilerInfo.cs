@@ -10,7 +10,8 @@ namespace DebugTools.Profiler
 {
     public enum ProfilerEnvFlags
     {
-        WaitForDebugger
+        WaitForDebugger,
+        Detailed
     }
 
     public class ProfilerInfo
@@ -39,14 +40,14 @@ namespace DebugTools.Profiler
             TestHost = Path.Combine(InstallationRoot, "DebugTools.TestHost.exe");
         }
 
-        public static Process CreateProcess(string processName, params ProfilerEnvFlags[] flags)
+        public static Process CreateProcess(string processName, Action<Process> startCallback = null, params ProfilerEnvFlags[] flags)
         {
             var envVariables = new StringDictionary
             {
                 { "COR_ENABLE_PROFILING", "1" },
-                { "COR_PROFILER", ProfilerInfo.Guid.ToString("B") },
-                { "COR_PROFILER_PATH_32", ProfilerInfo.Profilerx86 },
-                { "COR_PROFILER_PATH_64", ProfilerInfo.Profilerx64 },
+                { "COR_PROFILER", Guid.ToString("B") },
+                { "COR_PROFILER_PATH_32", Profilerx86 },
+                { "COR_PROFILER_PATH_64", Profilerx64 },
                 { "DEBUGTOOLS_PARENT_PID", Process.GetCurrentProcess().Id.ToString() }
             };
 
@@ -57,8 +58,17 @@ namespace DebugTools.Profiler
                 switch (flag)
                 {
                     case ProfilerEnvFlags.WaitForDebugger:
-                        needDebug = true;
-                        envVariables.Add("DEBUGTOOLS_WAITFORDEBUG", "1");
+                        //If we're not being debugged, there's no point trying to tell the target process that it needs to be debugged as well
+                        if (Debugger.IsAttached)
+                        {
+                            needDebug = true;
+                            envVariables.Add("DEBUGTOOLS_WAITFORDEBUG", "1");
+                        }
+                        
+                        break;
+
+                    case ProfilerEnvFlags.Detailed:
+                        envVariables.Add("DEBUGTOOLS_DETAILED", "1");
                         break;
 
                     default:
@@ -76,7 +86,7 @@ namespace DebugTools.Profiler
                 wShowWindow = ShowWindow.Minimized
             };
 
-            PROCESS_INFORMATION pi = new PROCESS_INFORMATION();
+            PROCESS_INFORMATION pi;
 
             //You MUST ensure all global environment variables are defined; otherwise certain programs that assume these variables exist (such as PowerShell) may crash
             foreach (DictionaryEntry environmentVariable in Environment.GetEnvironmentVariables())
@@ -93,7 +103,7 @@ namespace DebugTools.Profiler
                     ref processAttribs,
                     ref threadAttribs,
                     true,
-                    CreateProcessFlags.CREATE_NEW_CONSOLE,
+                    CreateProcessFlags.CREATE_NEW_CONSOLE | CreateProcessFlags.CREATE_SUSPENDED,
                     envPtr,
                     Environment.CurrentDirectory,
                     ref si,
@@ -106,10 +116,14 @@ namespace DebugTools.Profiler
                     Marshal.ThrowExceptionForHR(err);
                 }
 
+                var process = Process.GetProcessById(pi.dwProcessId);
+
+                startCallback?.Invoke(process);
+
+                NativeMethods.ResumeThread(pi.hThread);
+
                 NativeMethods.CloseHandle(pi.hProcess);
                 NativeMethods.CloseHandle(pi.hThread);
-
-                var process = Process.GetProcessById(pi.dwProcessId);
 
                 if (needDebug)
                     VsDebugger.Attach(process);

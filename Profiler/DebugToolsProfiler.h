@@ -659,7 +659,7 @@ Remarks:
 #endif // MCGEN_DISABLE_PROVIDER_CODE_GENERATION
 
 //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-// Provider "DebugToolsProfiler" event count 8
+// Provider "DebugToolsProfiler" event count 9
 //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 // Provider GUID = c6f30827-dd2d-4fee-ad2e-bba0ce6cbd8f
@@ -688,14 +688,16 @@ EXTERN_C __declspec(selectany) const EVENT_DESCRIPTOR TailcallEvent = {0x3, 0x0,
 #define TailcallEvent_value 0x3
 EXTERN_C __declspec(selectany) const EVENT_DESCRIPTOR MethodInfoEvent = {0x4, 0x0, 0x0, 0x5, 0x0, 0x0, 0x1};
 #define MethodInfoEvent_value 0x4
-EXTERN_C __declspec(selectany) const EVENT_DESCRIPTOR ThreadCreateEvent = {0x5, 0x0, 0x0, 0x5, 0x0, 0x0, 0x2};
-#define ThreadCreateEvent_value 0x5
-EXTERN_C __declspec(selectany) const EVENT_DESCRIPTOR ThreadDestroyEvent = {0x6, 0x0, 0x0, 0x5, 0x0, 0x0, 0x2};
-#define ThreadDestroyEvent_value 0x6
-EXTERN_C __declspec(selectany) const EVENT_DESCRIPTOR ThreadNameEvent = {0x7, 0x0, 0x0, 0x5, 0x0, 0x0, 0x2};
-#define ThreadNameEvent_value 0x7
-EXTERN_C __declspec(selectany) const EVENT_DESCRIPTOR ShutdownEvent = {0x8, 0x0, 0x0, 0x5, 0x0, 0x0, 0x4};
-#define ShutdownEvent_value 0x8
+EXTERN_C __declspec(selectany) const EVENT_DESCRIPTOR MethodInfoDetailedEvent = {0x5, 0x0, 0x0, 0x5, 0x0, 0x0, 0x1};
+#define MethodInfoDetailedEvent_value 0x5
+EXTERN_C __declspec(selectany) const EVENT_DESCRIPTOR ThreadCreateEvent = {0x6, 0x0, 0x0, 0x5, 0x0, 0x0, 0x2};
+#define ThreadCreateEvent_value 0x6
+EXTERN_C __declspec(selectany) const EVENT_DESCRIPTOR ThreadDestroyEvent = {0x7, 0x0, 0x0, 0x5, 0x0, 0x0, 0x2};
+#define ThreadDestroyEvent_value 0x7
+EXTERN_C __declspec(selectany) const EVENT_DESCRIPTOR ThreadNameEvent = {0x8, 0x0, 0x0, 0x5, 0x0, 0x0, 0x2};
+#define ThreadNameEvent_value 0x8
+EXTERN_C __declspec(selectany) const EVENT_DESCRIPTOR ShutdownEvent = {0x9, 0x0, 0x0, 0x5, 0x0, 0x0, 0x4};
+#define ShutdownEvent_value 0x9
 
 //
 // MCGEN_DISABLE_PROVIDER_CODE_GENERATION macro:
@@ -925,6 +927,29 @@ _mcgen_CheckContextType_DebugToolsProfiler(_In_ McGenContext_DebugToolsProfiler*
 #define _mcgen_TEMPLATE_FOR_MethodInfoEvent _mcgen_PASTE2(McTemplateU0xzzz_, MCGEN_EVENTWRITETRANSFER)
 
 //
+// Enablement check macro for event "MethodInfoDetailedEvent"
+//
+#define EventEnabledMethodInfoDetailedEvent() _mcgen_EVENT_BIT_SET(DebugToolsProfilerEnableBits, 1)
+#define EventEnabledMethodInfoDetailedEvent_ForContext(pContext) _mcgen_EVENT_BIT_SET(_mcgen_CheckContextType_DebugToolsProfiler(pContext)->EnableBits, 1)
+
+//
+// Event write macros for event "MethodInfoDetailedEvent"
+//
+#define EventWriteMethodInfoDetailedEvent(FunctionID, MethodName, TypeName, ModuleName, Token, SigBlobLength, SigBlob) \
+        MCGEN_EVENT_ENABLED(MethodInfoDetailedEvent) \
+        ? _mcgen_TEMPLATE_FOR_MethodInfoDetailedEvent(&DebugToolsProfiler_Context, &MethodInfoDetailedEvent, FunctionID, MethodName, TypeName, ModuleName, Token, SigBlobLength, SigBlob) : 0
+#define EventWriteMethodInfoDetailedEvent_AssumeEnabled(FunctionID, MethodName, TypeName, ModuleName, Token, SigBlobLength, SigBlob) \
+        _mcgen_TEMPLATE_FOR_MethodInfoDetailedEvent(&DebugToolsProfiler_Context, &MethodInfoDetailedEvent, FunctionID, MethodName, TypeName, ModuleName, Token, SigBlobLength, SigBlob)
+#define EventWriteMethodInfoDetailedEvent_ForContext(pContext, FunctionID, MethodName, TypeName, ModuleName, Token, SigBlobLength, SigBlob) \
+        MCGEN_EVENT_ENABLED_FORCONTEXT(pContext, MethodInfoDetailedEvent) \
+        ? _mcgen_TEMPLATE_FOR_MethodInfoDetailedEvent(&(pContext)->Context, &MethodInfoDetailedEvent, FunctionID, MethodName, TypeName, ModuleName, Token, SigBlobLength, SigBlob) : 0
+#define EventWriteMethodInfoDetailedEvent_ForContextAssumeEnabled(pContext, FunctionID, MethodName, TypeName, ModuleName, Token, SigBlobLength, SigBlob) \
+        _mcgen_TEMPLATE_FOR_MethodInfoDetailedEvent(&_mcgen_CheckContextType_DebugToolsProfiler(pContext)->Context, &MethodInfoDetailedEvent, FunctionID, MethodName, TypeName, ModuleName, Token, SigBlobLength, SigBlob)
+
+// This macro is for use by MC-generated code and should not be used directly.
+#define _mcgen_TEMPLATE_FOR_MethodInfoDetailedEvent _mcgen_PASTE2(McTemplateU0xzzzqqbr5_, MCGEN_EVENTWRITETRANSFER)
+
+//
 // Enablement check macro for event "ThreadCreateEvent"
 //
 #define EventEnabledThreadCreateEvent() _mcgen_EVENT_BIT_SET(DebugToolsProfilerEnableBits, 2)
@@ -1112,6 +1137,54 @@ _mcgen_PASTE2(McTemplateU0xzzz_, MCGEN_EVENTWRITETRANSFER)(
     return McGenEventWrite(Context, Descriptor, NULL, McTemplateU0xzzz_ARGCOUNT + 1, EventData);
 }
 #endif // McTemplateU0xzzz_def
+
+//
+// Function for template "MethodInfoDetailedArgs" (and possibly others).
+// This function is for use by MC-generated code and should not be used directly.
+//
+#ifndef McTemplateU0xzzzqqbr5_def
+#define McTemplateU0xzzzqqbr5_def
+ETW_INLINE
+ULONG
+_mcgen_PASTE2(McTemplateU0xzzzqqbr5_, MCGEN_EVENTWRITETRANSFER)(
+    _In_ PMCGEN_TRACE_CONTEXT Context,
+    _In_ PCEVENT_DESCRIPTOR Descriptor,
+    _In_ const unsigned __int64  _Arg0,
+    _In_opt_ PCWSTR  _Arg1,
+    _In_opt_ PCWSTR  _Arg2,
+    _In_opt_ PCWSTR  _Arg3,
+    _In_ const unsigned int  _Arg4,
+    _In_ const unsigned int  _Arg5,
+    _In_reads_(_Arg5) const unsigned char*  _Arg6
+    )
+{
+#define McTemplateU0xzzzqqbr5_ARGCOUNT 7
+
+    EVENT_DATA_DESCRIPTOR EventData[McTemplateU0xzzzqqbr5_ARGCOUNT + 1];
+
+    EventDataDescCreate(&EventData[1],&_Arg0, sizeof(const unsigned __int64)  );
+
+    EventDataDescCreate(&EventData[2],
+                        (_Arg1 != NULL) ? _Arg1 : L"NULL",
+                        (_Arg1 != NULL) ? (ULONG)((wcslen(_Arg1) + 1) * sizeof(WCHAR)) : (ULONG)sizeof(L"NULL"));
+
+    EventDataDescCreate(&EventData[3],
+                        (_Arg2 != NULL) ? _Arg2 : L"NULL",
+                        (_Arg2 != NULL) ? (ULONG)((wcslen(_Arg2) + 1) * sizeof(WCHAR)) : (ULONG)sizeof(L"NULL"));
+
+    EventDataDescCreate(&EventData[4],
+                        (_Arg3 != NULL) ? _Arg3 : L"NULL",
+                        (_Arg3 != NULL) ? (ULONG)((wcslen(_Arg3) + 1) * sizeof(WCHAR)) : (ULONG)sizeof(L"NULL"));
+
+    EventDataDescCreate(&EventData[5],&_Arg4, sizeof(const unsigned int)  );
+
+    EventDataDescCreate(&EventData[6],&_Arg5, sizeof(const unsigned int)  );
+
+    EventDataDescCreate(&EventData[7],_Arg6, (ULONG)sizeof(char)*_Arg5);
+
+    return McGenEventWrite(Context, Descriptor, NULL, McTemplateU0xzzzqqbr5_ARGCOUNT + 1, EventData);
+}
+#endif // McTemplateU0xzzzqqbr5_def
 
 //
 // Function for template "ThreadNameArgs" (and possibly others).

@@ -202,6 +202,10 @@ UINT_PTR __stdcall CCorProfilerCallback::RecordFunction(FunctionID funcId, void*
 	mdMethodDef methodDef;
 	mdTypeDef typeDef;
 	ModuleID moduleId;
+	PCCOR_SIGNATURE pSigBlob = nullptr;
+	ULONG cbSigBlob = 0;
+
+	BOOL detailed;
 
 	//Get the IMetaDataImport and mdMethodDef
 	IfFailGo(pInfo->GetTokenAndMetaDataFromFunction(funcId, IID_IMetaDataImport, reinterpret_cast<IUnknown**>(&pMDI), &methodDef));
@@ -218,14 +222,50 @@ UINT_PTR __stdcall CCorProfilerCallback::RecordFunction(FunctionID funcId, void*
 		goto Exit;
 	}
 
-	//Get the method name and mdTypeDef
-	IfFailGo(pMDI->GetMethodProps(methodDef, &typeDef, methodName, NAME_BUFFER_SIZE, NULL, NULL, NULL, NULL, NULL, NULL));
+	detailed = GetBoolEnv("DEBUGTOOLS_DETAILED");
+
+	if (detailed)
+	{
+		//Get the method name, mdTypeDef and sigblob
+		IfFailGo(pMDI->GetMethodProps(
+			methodDef,
+			&typeDef,
+			methodName,
+			NAME_BUFFER_SIZE,
+			NULL,
+			NULL,
+			&pSigBlob,
+			&cbSigBlob,
+			NULL,
+			NULL
+		));
+	}
+	else
+	{
+		//Get the method name and mdTypeDef
+		IfFailGo(pMDI->GetMethodProps(
+			methodDef,
+			&typeDef,
+			methodName,
+			NAME_BUFFER_SIZE,
+			NULL,
+			NULL,
+			NULL,
+			NULL,
+			NULL,
+			NULL
+		));
+	}
 
 	//Get the type name
 	IfFailGo(pMDI->GetTypeDefProps(typeDef, typeName, NAME_BUFFER_SIZE, NULL, NULL, NULL));
 
 	//Write the event
-	EventWriteMethodInfoEvent(funcId, methodName, typeName, moduleName);
+
+	if (detailed)
+		EventWriteMethodInfoDetailedEvent(funcId, methodName, typeName, moduleName, methodDef, cbSigBlob, pSigBlob);
+	else
+		EventWriteMethodInfoEvent(funcId, methodName, typeName, moduleName);
 
 ErrExit:
 	if (pMDI)

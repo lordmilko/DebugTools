@@ -21,7 +21,7 @@ namespace DebugTools.PowerShell.Cmdlets
 
             try
             {
-                threadStack = Session.Trace(CancellationToken);
+                threadStack = Session.Trace(TokenSource);
             }
             finally
             {

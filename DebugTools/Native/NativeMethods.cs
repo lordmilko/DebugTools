@@ -27,6 +27,9 @@ namespace DebugTools
             [In] ref STARTUPINFO lpStartupInfo,
             out PROCESS_INFORMATION lpProcessInformation);
 
+        [DllImport(Kernel32, SetLastError = true)]
+        internal static extern int ResumeThread(IntPtr hThread);
+
         #region ole32.dll
 
         [DllImport(Ole32, SetLastError = true)]

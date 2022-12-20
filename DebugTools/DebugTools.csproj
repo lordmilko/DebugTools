@@ -4,11 +4,14 @@
     <TargetFramework>net472</TargetFramework>
 	  <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
 	  <OutputPath>$(SolutionDir)artifacts\bin\$(Configuration)</OutputPath>
+	  <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
 
   <ItemGroup>
 	  <PackageReference Include="envdte80" Version="8.0.3" />
 		<PackageReference Include="Microsoft.Diagnostics.Tracing.TraceEvent" Version="3.0.6" />
+
+	  <ProjectReference Include="..\..\ClrDebug\ClrDebug\ClrDebug.csproj" />
   </ItemGroup>
 
 </Project>

@@ -10,7 +10,7 @@ namespace DebugTools.PowerShell.Cmdlets
 {
     public abstract class ProfilerCmdlet : PSCmdlet
     {
-        private readonly CancellationTokenSource TokenSource = new CancellationTokenSource();
+        internal readonly CancellationTokenSource TokenSource = new CancellationTokenSource();
 
         internal CancellationToken CancellationToken => TokenSource.Token;
 

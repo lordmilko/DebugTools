@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO.Pipes;
 using System.Linq;
+using System.Text.RegularExpressions;
 using System.Threading;
 using DebugTools.Tracing;
 using Microsoft.Diagnostics.Tracing.Session;
@@ -13,6 +14,7 @@ namespace DebugTools.Profiler
     public class ProfilerSession : IDisposable
     {
         private static int maxId;
+        private const string SessionPrefix = "DebugTools_Profiler_";
 
         public Process Process { get; private set; }
 
@@ -22,7 +24,7 @@ namespace DebugTools.Profiler
 
         public ConcurrentDictionary<long, MethodInfo> Methods { get; } = new ConcurrentDictionary<long, MethodInfo>();
 
-        public bool HasExited => Process.HasExited;
+        public bool HasExited => Process?.HasExited ?? true;
 
         private NamedPipeClientStream pipe;
 
@@ -34,6 +36,10 @@ namespace DebugTools.Profiler
         private DateTime stopTime;
 
         private CancellationTokenSource traceCTS;
+        private CancellationTokenSource userCTS;
+
+        private DateTime lastEvent;
+        private Thread cancelThread;
 
         public ThreadStack[] LastTrace { get; private set; }
 
@@ -52,14 +58,14 @@ namespace DebugTools.Profiler
                 Methods[v.FunctionID] = new MethodInfo(v.FunctionID, v.ModuleName, v.TypeName, v.MethodName);
             };
 
+            parser.MethodInfoDetailed += v =>
+            {
+                Methods[v.FunctionID] = new MethodInfoDetailed(v.FunctionID, v.ModuleName, v.TypeName, v.MethodName, v.Token, v.SigBlob, v.SigBlobLength);
+            };
+
             parser.CallEnter += v =>
             {
-                if (stopping && v.TimeStamp > stopTime)
-                {
-                    collectStackTrace = false;
-                    stopping = false;
-                    traceCTS.Cancel();
-                }
+                ProcessStopping(v.TimeStamp);
 
                 if (collectStackTrace)
                 {
@@ -82,12 +88,7 @@ namespace DebugTools.Profiler
 
             parser.CallExit += v =>
             {
-                if (stopping && v.TimeStamp > stopTime)
-                {
-                    collectStackTrace = false;
-                    stopping = false;
-                    traceCTS.Cancel();
-                }
+                ProcessStopping(v.TimeStamp);
 
                 if (collectStackTrace)
                 {
@@ -98,12 +99,7 @@ namespace DebugTools.Profiler
 
             parser.Tailcall += v =>
             {
-                if (stopping && v.TimeStamp > stopTime)
-                {
-                    collectStackTrace = false;
-                    stopping = false;
-                    traceCTS.Cancel();
-                }
+                ProcessStopping(v.TimeStamp);
 
                 if (collectStackTrace)
                 {
@@ -124,11 +120,27 @@ namespace DebugTools.Profiler
             {
                 //Calling Dispose() guarantees an immediate stop
                 TraceEventSession.Dispose();
+
+                traceCTS?.Cancel();
+                userCTS?.Cancel();
             };
 
-            TraceEventSession.EnableProvider(ProfilerTraceEventParser.ProviderGuid);
-
             Thread = new Thread(ThreadProc);
+        }
+
+        private void ProcessStopping(DateTime timeStamp)
+        {
+            if (stopping)
+            {
+                lastEvent = DateTime.Now;
+
+                if (timeStamp > stopTime)
+                {
+                    collectStackTrace = false;
+                    stopping = false;
+                    traceCTS.Cancel();
+                }
+            }
         }
 
         private MethodInfo GetMethodSafe(long functionId)
@@ -145,17 +157,34 @@ namespace DebugTools.Profiler
         {
             collectStackTrace = traceStart;
 
-            Thread.Start();
-
-            Process = ProfilerInfo.CreateProcess(processName, flags);
-
             var pipeCTS = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
 
-            Process.EnableRaisingEvents = true;
-            Process.Exited += (s, e) =>
+            Process = ProfilerInfo.CreateProcess(processName, p =>
             {
-                pipeCTS.Cancel();
-            };
+                var options = new TraceEventProviderOptions {ProcessIDFilter = new[] {p.Id}};
+
+                TraceEventSession.EnableProvider(ProfilerTraceEventParser.ProviderGuid, options: options);
+
+                Thread.Start();
+
+                p.EnableRaisingEvents = true;
+                p.Exited += (s, e) =>
+                {
+                    pipeCTS.Cancel();
+                    userCTS?.Cancel();
+                    traceCTS.Token.Register(() =>
+                    {
+                        //Calling Dispose() guarantees an immediate stop
+                        TraceEventSession.Dispose();
+                    });
+
+                    //There's no guarantee that any more events are going to be received. If we go 2 seconds without receiving any more events, we'll shut everything down
+
+                    cancelThread = new Thread(CancelTraceThreadProc);
+
+                    cancelThread.Start();
+                };
+            }, flags);
 
             pipe = new NamedPipeClientStream(".", $"DebugToolsProfilerPipe_{Process.Id}", PipeDirection.Out);
 
@@ -172,6 +201,25 @@ namespace DebugTools.Profiler
             }
         }
 
+        private void CancelTraceThreadProc()
+        {
+            lastEvent = DateTime.Now;
+
+            while (true)
+            {
+                //If we go more than 2 seconds without receiving a new event after the process has shutdown, we'll assume no more events are incoming
+                var threshold = DateTime.Now.AddSeconds(-2);
+
+                if (threshold > lastEvent)
+                {
+                    traceCTS.Cancel();
+                    break;
+                }
+                else
+                    Thread.Sleep(100);
+            }
+        }
+
         private void ThreadProc()
         {
             TraceEventSession.Source.Process();
@@ -179,28 +227,43 @@ namespace DebugTools.Profiler
 
         private void TryCloseSession(string sessionName)
         {
-            TraceEventSession.GetActiveSession(sessionName)?.Dispose();
+            var sessions = TraceEventSession.GetActiveSessionNames().Where(n => n.StartsWith(SessionPrefix)).ToArray();
+
+            var processes = Process.GetProcesses();
+
+            foreach (var session in sessions)
+            {
+                var match = Regex.Match(session, $"{SessionPrefix}(.+?)_.+?");
+
+                if (match.Success && int.TryParse(match.Groups[1].Value, out var pid))
+                {
+                    if (processes.All(p => p.Id != pid))
+                        TraceEventSession.GetActiveSession(session)?.Stop();
+                }
+            }
         }
 
         private string GetNextSessionName()
         {
-            return "DebugTools_Profiler_" + ++maxId;
+            return $"{SessionPrefix}{Process.GetCurrentProcess().Id}_" + ++maxId;
         }
 
-        public ThreadStack[] Trace(CancellationToken cancellationToken)
+        public ThreadStack[] Trace(CancellationTokenSource userCTS)
         {
+            this.userCTS = userCTS;
+
             traceCTS = new CancellationTokenSource();
 
             collectStackTrace = true;
 
-            cancellationToken.Register(() =>
+            userCTS.Token.Register(() =>
             {
                 stopTime = DateTime.Now;
                 stopping = true;
                 Console.WriteLine("Stopping...");
             });
 
-            cancellationToken.WaitHandle.WaitOne();
+            userCTS.Token.WaitHandle.WaitOne();
 
             traceCTS.Token.WaitHandle.WaitOne();
 

@@ -14,6 +14,9 @@ namespace DebugTools.PowerShell.Cmdlets
         public SwitchParameter Dbg { get; set; }
 
         [Parameter(Mandatory = false)]
+        public SwitchParameter Detailed { get; set; }
+
+        [Parameter(Mandatory = false)]
         public SwitchParameter TraceStart { get; set; }
 
         protected override void ProcessRecord()
@@ -25,6 +28,9 @@ namespace DebugTools.PowerShell.Cmdlets
 
             if (Dbg)
                 flags.Add(ProfilerEnvFlags.WaitForDebugger);
+
+            if (Detailed)
+                flags.Add(ProfilerEnvFlags.Detailed);
 
             session.Start(CancellationToken, ProcessName, flags.ToArray(), TraceStart);
 
@@ -39,7 +45,7 @@ namespace DebugTools.PowerShell.Cmdlets
 
                 try
                 {
-                    threadStack = session.Trace(CancellationToken);
+                    threadStack = session.Trace(TokenSource);
                 }
                 finally
                 {
