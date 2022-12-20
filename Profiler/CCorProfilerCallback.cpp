@@ -78,9 +78,10 @@ HRESULT CCorProfilerCallback::Initialize(IUnknown* pICorProfilerInfoUnk)
 	}	
 #endif
 
-	BindLifetimeToParentProcess();
-
 	HRESULT hr = S_OK;
+
+	BindLifetimeToParentProcess();
+	IfFailGo(m_Communication.Initialize());
 
 	IfFailGo(pICorProfilerInfoUnk->QueryInterface(&m_pInfo));
 

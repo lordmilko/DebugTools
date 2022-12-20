@@ -26,4 +26,6 @@ inline BOOL GetBoolEnv(LPCSTR name)
 	return size == 1 && buffer[0] == '1';
 }
 
+void dprintf(LPCWSTR format, ...);
+
 #endif //PCH_H

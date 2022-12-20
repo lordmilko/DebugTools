@@ -1,5 +1,7 @@
 #pragma once
 
+#include "CCommunication.h"
+
 class CCorProfilerCallback final : public ICorProfilerCallback3
 {
 public:
@@ -127,8 +129,10 @@ public:
 	HRESULT STDMETHODCALLTYPE ProfilerDetachSucceeded(void) override { return S_OK; }
 #pragma endregion
 
-private:
 	ICorProfilerInfo3* m_pInfo;
+
+private:
+	CCommunication m_Communication;
 
 	long m_RefCount;
 };
