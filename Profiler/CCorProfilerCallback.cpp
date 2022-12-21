@@ -198,7 +198,7 @@ UINT_PTR __stdcall CCorProfilerCallback::RecordFunction(FunctionID funcId, void*
     HRESULT hr = S_OK;
 
     ICorProfilerInfo3* pInfo = g_pProfiler->m_pInfo;
-    IMetaDataImport* pMDI = nullptr;
+    IMetaDataImport2* pMDI = nullptr;
 
     mdMethodDef methodDef;
     mdTypeDef typeDef;

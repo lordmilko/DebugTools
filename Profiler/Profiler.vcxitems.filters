@@ -63,6 +63,9 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)CSigReader.h">
       <Filter>Header Files\SigBlob</Filter>
     </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)ISigParameter.h">
+      <Filter>Header Files\SigBlob</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="$(MSBuildThisFileDirectory)dllmain.cpp">
