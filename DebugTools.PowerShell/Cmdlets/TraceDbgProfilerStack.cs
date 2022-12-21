@@ -12,25 +12,26 @@ namespace DebugTools.PowerShell.Cmdlets
 
         protected override void ProcessRecordEx()
         {
-            StartCtrlCHandler();
-
-            var record = new ProgressRecord(1, "Trace-DbgProfilerStack", "Tracing... (Ctrl+C to end)");
-            WriteProgress(record);
-
-            ThreadStack[] threadStack;
-
-            try
+            using (CtrlCHandler())
             {
-                threadStack = Session.Trace(TokenSource);
-            }
-            finally
-            {
-                record.RecordType = ProgressRecordType.Completed;
+                var record = new ProgressRecord(1, "Trace-DbgProfilerStack", "Tracing... (Ctrl+C to end)");
                 WriteProgress(record);
-            }
 
-            foreach (var item in threadStack)
-                WriteObject(item.Root);
+                ThreadStack[] threadStack;
+
+                try
+                {
+                    threadStack = Session.Trace(TokenSource);
+                }
+                finally
+                {
+                    record.RecordType = ProgressRecordType.Completed;
+                    WriteProgress(record);
+                }
+
+                foreach (var item in threadStack)
+                    WriteObject(item.Root);
+            }
         }
 
         private void Console_CancelKeyPress(object sender, ConsoleCancelEventArgs e)

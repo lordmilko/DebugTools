@@ -1,10 +1,7 @@
 ﻿using System;
-using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Management.Automation;
-using System.Management.Automation.Host;
 using System.Threading;
-using System.Threading.Tasks;
 
 namespace DebugTools.PowerShell.Cmdlets
 {
@@ -26,46 +23,12 @@ namespace DebugTools.PowerShell.Cmdlets
             TokenSource.Cancel();
         }
 
-        protected void StartCtrlCHandler()
+        protected IDisposable CtrlCHandler() => new CtrlCHandler(Console_CancelKeyPress);
+
+        private bool Console_CancelKeyPress(int controltype)
         {
-            Task.Run(() =>
-            {
-                var original = Console.TreatControlCAsInput;
-
-                try
-                {
-                    Console.TreatControlCAsInput = true;
-
-                    bool lastWasCtrl = false;
-
-                    while (true)
-                    {
-                        var key = this.Host.UI.RawUI.ReadKey(
-                            ReadKeyOptions.AllowCtrlC | ReadKeyOptions.IncludeKeyUp | ReadKeyOptions.NoEcho);
-
-                        Debug.WriteLine(key);
-
-                        //Our makeshift Ctrl+C handler is a bit crap sometimes and detects a perfectly coherent Ctrl+C
-                        //as a CTRL followed by a C; as such, track whether it most likely looks like the user attempted to do a Ctrl+C
-                        if (key.VirtualKeyCode == 17)
-                            lastWasCtrl = true;
-                        else if (key.VirtualKeyCode == 67 && lastWasCtrl)
-                            break;
-                        else
-                            lastWasCtrl = false;
-
-                        if ((key.ControlKeyState == ControlKeyStates.LeftCtrlPressed ||
-                             key.ControlKeyState == ControlKeyStates.RightCtrlPressed) && key.Character == 3)
-                            break;
-                    }
-
-                    TokenSource.Cancel();
-                }
-                finally
-                {
-                    Console.TreatControlCAsInput = original;
-                }
-            });
+            TokenSource.Cancel();
+            return true;
         }
 
         /// <summary>

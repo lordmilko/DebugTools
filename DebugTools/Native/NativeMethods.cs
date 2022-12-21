@@ -4,7 +4,9 @@ using System.Runtime.InteropServices.ComTypes;
 
 namespace DebugTools
 {
-    internal static class NativeMethods
+    public delegate bool ConsoleCtrlHandlerRoutine(int controlType);
+
+    public static class NativeMethods
     {
         private const string Kernel32 = "kernel32.dll";
         private const string Ole32 = "ole32.dll";
@@ -29,6 +31,9 @@ namespace DebugTools
 
         [DllImport(Kernel32, SetLastError = true)]
         internal static extern int ResumeThread(IntPtr hThread);
+
+        [DllImport(Kernel32, SetLastError = true)]
+        public static extern bool SetConsoleCtrlHandler(ConsoleCtrlHandlerRoutine HandlerRoutine, bool Add);
 
         #region ole32.dll
 

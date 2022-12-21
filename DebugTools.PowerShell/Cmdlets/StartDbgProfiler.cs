@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Management.Automation;
 using DebugTools.Profiler;
 
@@ -36,25 +37,28 @@ namespace DebugTools.PowerShell.Cmdlets
 
             if (TraceStart)
             {
-                StartCtrlCHandler();
-
-                var record = new ProgressRecord(1, "Start-DbgProfiler", "Tracing... (Ctrl+C to end)");
-                WriteProgress(record);
-
-                ThreadStack[] threadStack;
-
-                try
+                using (CtrlCHandler())
                 {
-                    threadStack = session.Trace(TokenSource);
-                }
-                finally
-                {
-                    record.RecordType = ProgressRecordType.Completed;
+                    var record = new ProgressRecord(1, "Start-DbgProfiler", "Tracing... (Ctrl+C to end)");
                     WriteProgress(record);
+
+                    ThreadStack[] threadStack;
+
+                    try
+                    {
+                        threadStack = session.Trace(TokenSource);
+                    }
+                    finally
+                    {
+                        record.RecordType = ProgressRecordType.Completed;
+                        WriteProgress(record);
+                    }
+
+                    foreach (var item in threadStack)
+                        WriteObject(item.Root);
                 }
 
-                foreach (var item in threadStack)
-                    WriteObject(item.Root);
+                
             }
         }
     }
