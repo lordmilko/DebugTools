@@ -26,7 +26,7 @@ namespace DebugTools.Profiler
                     {
                         var reader = new SigReader((IntPtr) ptr, SigBlobLength, Token, GetMDI());
 
-                        sigMethod = (SigMethodDef) reader.ParseSigMethodDefOrRef(MethodName, true);
+                        sigMethod = (SigMethodDef) reader.ParseMethod(MethodName, true);
                     }
                 }
 

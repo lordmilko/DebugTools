@@ -14,7 +14,11 @@ namespace DebugTools
         public SigTypeGenericArgType(CorElementType type, bool isByRef, mdToken[] modifiers, ref SigReader reader) : base(type, isByRef, modifiers)
         {
             Index = reader.CorSigUncompressData();
-            Name = GetTypeGenericArgName(Index, reader.MethodDef, reader.Import);
+
+            if (reader.Token.Type == CorTokenType.mdtMethodDef)
+            {
+                Name = GetTypeGenericArgName(Index, (mdMethodDef) reader.Token, reader.Import);
+            }
         }
 
         public override string ToString()

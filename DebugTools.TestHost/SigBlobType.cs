@@ -67,5 +67,14 @@ namespace DebugTools.TestHost
         public void UIntPtrArg(UIntPtr a)
         {
         }
+
+        public void VarArg1(string a, __arglist)
+        {
+            VarArg2("first", __arglist(2, true, "three"));
+        }
+
+        public void VarArg2(string a, __arglist)
+        {
+        }
     }
 }

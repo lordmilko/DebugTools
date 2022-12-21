@@ -10,13 +10,13 @@ namespace DebugTools
         /// <summary>
         /// Gets the calling convention of the method.
         /// </summary>
-        public CorCallingConvention CallingConvention { get; }
+        public CallingConvention CallingConvention { get; }
 
         public SigType RetType { get; }
 
         public ISigParameter[] Parameters { get; }
 
-        protected SigMethod(string name, CorCallingConvention callingConvention, SigType retType, ISigParameter[] methodParams)
+        protected SigMethod(string name, CallingConvention callingConvention, SigType retType, ISigParameter[] methodParams)
         {
             Name = name;
             CallingConvention = callingConvention;
@@ -27,8 +27,6 @@ namespace DebugTools
         public override string ToString()
         {
             var builder = new StringBuilder();
-
-            builder.Append(RetType);
 
             builder.Append(RetType).Append(" ").Append(Name);
 

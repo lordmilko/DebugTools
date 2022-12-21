@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Diagnostics;
-using System.Threading;
 using Profiler.Tests;
 
 namespace DebugTools.TestHost

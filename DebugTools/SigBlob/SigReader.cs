@@ -5,10 +5,8 @@ using ClrDebug;
 
 namespace DebugTools
 {
-    struct SigReader
+    public struct SigReader
     {
-        private static ISigParameter[] NoParams = new ISigParameter[0];
-
         private IntPtr currentSigBlob;
         internal IntPtr originalSigBlob;
 
@@ -20,98 +18,130 @@ namespace DebugTools
 
         internal MetaDataImport Import { get; }
 
-        internal mdMethodDef MethodDef { get; }
+        internal mdToken Token { get; }
 
-        internal SigReader(IntPtr sigBlob, int sigBlobLength, mdMethodDef methodDef, MetaDataImport import)
+        public SigReader(IntPtr sigBlob, int sigBlobLength, mdToken token, MetaDataImport import)
         {
             currentSigBlob = sigBlob;
             originalSigBlob = sigBlob;
             Length = sigBlobLength;
-            MethodDef = methodDef;
+            Token = token;
             Import = import;
         }
 
-        public SigMethod ParseSigMethodDefOrRef(string name, bool topLevel)
+        public SigMethod ParseMethod(string name, bool topLevel)
         {
             string[] genericTypeArgs = null;
 
             //The first byte of the Signature holds bits for HASTHIS, EXPLICITTHIS and calling convention (DEFAULT,
             //VARARG, or GENERIC). These are ORed together.
-            var callingConvention = CorSigUncompressCallingConv();
+            var callingConvention = (CallingConvention) CorSigUncompressCallingConv();
 
-            if ((callingConvention & CorCallingConvention.GENERIC) != 0)
+            if (callingConvention.IsGeneric)
             {
                 var genParamCount = CorSigUncompressData();
-                var genericParams = Import.EnumGenericParams(MethodDef);
 
-                var list = new List<string>();
-
-                foreach (var genericParam in genericParams)
+                if (Token.Type == CorTokenType.mdtModule)
                 {
-                    list.Add(Import.GetGenericParamProps(genericParam).wzname);
-                }
+                    var genericParams = Import.EnumGenericParams((mdMethodDef) Token);
 
-                genericTypeArgs = list.ToArray();
+                    var list = new List<string>();
+
+                    foreach (var genericParam in genericParams)
+                    {
+                        list.Add(Import.GetGenericParamProps(genericParam).wzname);
+                    }
+
+                    genericTypeArgs = list.ToArray();
+                }
             }
 
             var paramCount = CorSigUncompressData();
 
             var retType = SigType.New(ref this);
 
-            var methodParams = ParseSigMethodParams(paramCount, topLevel);
+            var methodParams = ParseSigMethodParams(paramCount, topLevel, callingConvention);
 
-            return new SigMethodDef(name, callingConvention, retType, methodParams, genericTypeArgs);
+            if (callingConvention.IsVarArg && Token.Type == CorTokenType.mdtMethodDef)
+                methodParams.normal.Add(new SigArgListParameter());
+
+            if (methodParams.vararg == null || methodParams.vararg.Count == 0)
+                return new SigMethodDef(name, callingConvention, retType, methodParams.normal.ToArray(), genericTypeArgs);
+            else
+                return new SigMethodRef(name, callingConvention, retType, methodParams.normal.ToArray(), methodParams.vararg.ToArray());
         }
 
-        private ISigParameter[] ParseSigMethodParams(int sigParamCount, bool topLevel)
+        private (List<ISigParameter> normal, List<ISigParameter> vararg) ParseSigMethodParams(int sigParamCount, bool topLevel, CallingConvention callingConvention)
         {
             if (sigParamCount == 0)
-                return NoParams;
+                return (new List<ISigParameter>(), null);
 
             GetParamPropsResult[] metaDataParameters = null;
 
-            if (topLevel)
+            if (topLevel && Token.Type == CorTokenType.mdtMethodDef)
             {
                 var import = Import;
-                metaDataParameters = Import.EnumParams(MethodDef).Select(p => import.GetParamProps(p)).ToArray();
+                metaDataParameters = Import.EnumParams((mdMethodDef) Token).Select(p => import.GetParamProps(p)).ToArray();
             }
             
-            var list = new List<ISigParameter>();
+            var normal = new List<ISigParameter>();
+            var varargs = new List<ISigParameter>();
+
+            var list = normal;
+            bool haveSentinel = false;
 
             for (var i = 0; i < sigParamCount; i++)
             {
                 var sigType = SigType.New(ref this);
 
+                if (sigType == SigType.Sentinel)
+                {
+                    list = varargs;
+                    haveSentinel = true;
+                    sigType = SigType.New(ref this);
+                }
+
+                if (haveSentinel)
+                {
+                    list.Add(new SigVarArgParameter(sigType));
+                    continue;
+                }
+
                 if (topLevel)
                 {
-                    GetParamPropsResult metaDataParam = default;
-
-                    if (i < metaDataParameters.Length)
+                    if (Token.Type == CorTokenType.mdtMethodDef)
                     {
-                        metaDataParam = metaDataParameters[i];
+                        GetParamPropsResult metaDataParam = default;
 
-                        if (metaDataParam.pulSequence != i + 1)
-                            metaDataParam = metaDataParameters.FirstOrDefault(p => p.pulSequence == i + 1);
+                        if (i < metaDataParameters.Length)
+                        {
+                            metaDataParam = metaDataParameters[i];
+
+                            if (metaDataParam.pulSequence != i + 1)
+                                metaDataParam = metaDataParameters.FirstOrDefault(p => p.pulSequence == i + 1);
+                        }
+                        else
+                        {
+                            if (metaDataParameters.Length > 0)
+                                metaDataParam = metaDataParameters.FirstOrDefault(p => p.pulSequence == i + 1);
+                        }
+
+                        list.Add(new SigParameter(sigType, metaDataParam.Equals(default(GetParamPropsResult)) ? null : (GetParamPropsResult?) metaDataParam));
                     }
                     else
-                    {
-                        if (metaDataParameters.Length > 0)
-                            metaDataParam = metaDataParameters.FirstOrDefault(p => p.pulSequence == i + 1);
-                    }
-
-                    list.Add(new SigParameter(sigType, metaDataParam.Equals(default(GetParamPropsResult)) ? null : (GetParamPropsResult?) metaDataParam));
+                        list.Add(new SigParameter(sigType, null));
                 }
                 else
                     list.Add(new SigFnPtrParameter(sigType));
             }
 
-            return list.ToArray();
+            return (normal, varargs);
 
         }
 
         #region CorSigUncompress*
 
-        internal CorCallingConvention CorSigUncompressCallingConv() => SigBlobHelpers.CorSigUncompressCallingConv(ref currentSigBlob);
+        internal CorHybridCallingConvention CorSigUncompressCallingConv() => SigBlobHelpers.CorSigUncompressCallingConv(ref currentSigBlob);
         internal int CorSigUncompressData() => SigBlobHelpers.CorSigUncompressData(ref currentSigBlob);
 
         internal int CorSigUncompressSignedInt()

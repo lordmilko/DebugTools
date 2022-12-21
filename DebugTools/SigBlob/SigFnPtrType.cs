@@ -9,7 +9,7 @@ namespace DebugTools
 
         public SigFnPtrType(CorElementType type, bool isByRef, mdToken[] modifiers, ref SigReader reader) : base(type, isByRef, modifiers)
         {
-            Method = reader.ParseSigMethodDefOrRef("delegate*", false);
+            Method = reader.ParseMethod("delegate*", false);
         }
 
         public override string ToString()

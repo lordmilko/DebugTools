@@ -1,10 +1,10 @@
 ﻿namespace DebugTools
 {
-    public class SigFnPtrParameter : ISigParameter
+    public class SigVarArgParameter : ISigParameter
     {
         public SigType Type { get; }
 
-        internal SigFnPtrParameter(SigType type)
+        internal SigVarArgParameter(SigType type)
         {
             Type = type;
         }

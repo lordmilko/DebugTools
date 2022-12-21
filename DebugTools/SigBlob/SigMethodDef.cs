@@ -17,11 +17,15 @@ namespace DebugTools
      *                                 \                   ^
      *                                  \_________________/
      */
+
+    /// <summary>
+    /// Represents a MethodDefSig (§II.23.2.1) that describes the definition of a method.
+    /// </summary>
     public class SigMethodDef : SigMethod
     {
         public string[] GenericTypeArgs { get; }
 
-        internal SigMethodDef(string name, CorCallingConvention callingConvention, SigType retType, ISigParameter[] methodParams, string[] genericTypeArgs)
+        internal SigMethodDef(string name, CallingConvention callingConvention, SigType retType, ISigParameter[] methodParams, string[] genericTypeArgs)
             : base(name, callingConvention, retType, methodParams)
         {
             GenericTypeArgs = genericTypeArgs;
@@ -33,7 +37,7 @@ namespace DebugTools
 
             builder.Append(RetType).Append(" ").Append(Name);
 
-            if ((CallingConvention & CorCallingConvention.GENERIC) != 0)
+            if (CallingConvention.IsGeneric)
             {
                 builder.Append("<");
 

@@ -6,6 +6,8 @@ namespace DebugTools
 {
     public class SigType
     {
+        public static readonly SigType Sentinel = new SigType(CorElementType.Sentinel, false, null);
+
         public mdToken[] Modifiers { get; }
 
         public CorElementType Type { get; }
@@ -123,6 +125,9 @@ namespace DebugTools
                 case CorElementType.Void:
                 case CorElementType.TypedByRef:
                     return new SigType(elementType, isByRef, modifiers);
+
+                case CorElementType.Sentinel:
+                    return SigType.Sentinel;
 
                 default:
                     throw new NotImplementedException($"Don't know how to handle type '{elementType}'");

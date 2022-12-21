@@ -5,10 +5,10 @@ namespace DebugTools
 {
     static class SigBlobHelpers
     {
-        internal static unsafe CorCallingConvention CorSigUncompressCallingConv(ref IntPtr pData)
+        internal static unsafe CorHybridCallingConvention CorSigUncompressCallingConv(ref IntPtr pData)
         {
             var ptr = (byte*)pData;
-            var conv = (CorCallingConvention)(*ptr++);
+            var conv = (CorHybridCallingConvention)(*ptr++);
             pData = (IntPtr)ptr;
             return conv;
         }

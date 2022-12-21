@@ -39,7 +39,6 @@ namespace Profiler.Tests
         {
             Test(ProfilerTestType.NoArgs, v =>
             {
-
                 v.HasFrame("NoArgs");
             }, ProfilerEnvFlags.Detailed);
         }
