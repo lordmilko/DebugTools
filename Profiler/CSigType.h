@@ -9,6 +9,7 @@ class CSigType
 {
 public:
     static HRESULT New(_In_ CSigReader& reader, _Out_ CSigType** ppType);
+    static CSigType* Sentinel;
 
     virtual ~CSigType() = default;
 

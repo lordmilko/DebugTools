@@ -69,3 +69,30 @@ public:
     ULONG m_NumGenericTypeArgs;
     LPWSTR* m_GenericTypeArgNames;
 };
+
+class CSigMethodRef : public CSigMethod
+{
+public:
+    CSigMethodRef(
+        CorCallingConvention callingConvention,
+        CSigType* retType,
+        ULONG numParameters,
+        ISigParameter** parameters,
+        ULONG numVarArgParameters,
+        ISigParameter** varargParameters
+    ) : CSigMethod(callingConvention, retType, numParameters, parameters)
+    {
+        m_NumVarArgParameters = numVarArgParameters;
+    }
+
+    ~CSigMethodRef()
+    {
+        for (ULONG i = 0; i < m_NumVarArgParameters; i++)
+            delete m_VarArgParameters[i];
+
+        delete m_VarArgParameters;
+    }
+
+    ULONG m_NumVarArgParameters;
+    ISigParameter** m_VarArgParameters;
+};

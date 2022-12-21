@@ -21,10 +21,26 @@ public:
     }
 };
 
+class SigArgListParameter : public ISigParameter
+{
+public:
+    SigArgListParameter() : ISigParameter(nullptr)
+    {
+    }
+};
+
 class SigFnPtrParameter : public ISigParameter
 {
 public:
     SigFnPtrParameter(CSigType* pType) : ISigParameter(pType)
+    {
+    }
+};
+
+class SigVarArgParameter : public ISigParameter
+{
+public:
+    SigVarArgParameter(CSigType* pType) : ISigParameter(pType)
     {
     }
 };

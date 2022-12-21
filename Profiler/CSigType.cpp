@@ -2,6 +2,8 @@
 #include "CSigReader.h"
 #include "CSigType.h"
 
+CSigType* CSigType::Sentinel = new CSigType(ELEMENT_TYPE_SENTINEL, FALSE);
+
 HRESULT CSigType::New(
     _In_ CSigReader& reader,
     _Out_ CSigType** ppType)
@@ -125,6 +127,10 @@ HRESULT CSigType::New(
     case ELEMENT_TYPE_TYPEDBYREF:
         pType = new CSigType(elementType, isByRef);
         break;
+
+    case ELEMENT_TYPE_SENTINEL:
+        pType = Sentinel;
+        goto ErrExit;
 
     default:
         dprintf(L"Failed to parse element type %d\n", elementType);
@@ -332,7 +338,7 @@ CSigFnPtrType::~CSigFnPtrType()
 
 HRESULT CSigFnPtrType::Initialize(CSigReader& reader)
 {
-    return reader.ParseSigMethodDefOrRef(false, &m_pMethod);
+    return reader.ParseMethod(false, &m_pMethod);
 }
 
 HRESULT CSigGenericType::Initialize(CSigReader& reader)
@@ -379,16 +385,32 @@ ErrExit:
 
 HRESULT CSigMethodGenericArgType::Initialize(CSigReader& reader)
 {
+    HRESULT hr = S_OK;
+
     m_Index = CorSigUncompressData(reader.m_pSigBlob);
 
-    return GetMethodGenericArgName(m_Index, reader, &m_szName);
+    if (TypeFromToken(reader.m_Token) == mdtMethodDef)
+    {
+        IfFailGo(GetMethodGenericArgName(m_Index, reader, &m_szName));
+    }
+
+ErrExit:
+    return hr;
 }
 
 HRESULT CSigTypeGenericArgType::Initialize(CSigReader& reader)
 {
+    HRESULT hr = S_OK;
+
     m_Index = CorSigUncompressData(reader.m_pSigBlob);
 
-    return GetMethodGenericArgName(m_Index, reader, &m_szName);
+    if (TypeFromToken(reader.m_Token) == mdtMethodDef)
+    {
+        IfFailGo(GetMethodGenericArgName(m_Index, reader, &m_szName));
+    }
+
+ErrExit:
+    return hr;
 }
 
 HRESULT CSigPtrType::Initialize(CSigReader& reader)

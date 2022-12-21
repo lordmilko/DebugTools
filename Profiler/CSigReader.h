@@ -5,14 +5,14 @@
 class CSigReader
 {
 public:
-    CSigReader(mdMethodDef methodDef, IMetaDataImport2* pMDI, PCCOR_SIGNATURE pSigBlob)
+    CSigReader(mdToken token, IMetaDataImport2* pMDI, PCCOR_SIGNATURE pSigBlob)
     {
-        m_MethodDef = methodDef;
+        m_Token = token;
         m_pMDI = pMDI;
         m_pSigBlob = pSigBlob;
     }
 
-    HRESULT ParseSigMethodDefOrRef(
+    HRESULT ParseMethod(
         BOOL topLevel,
         _Out_ CSigMethod** ppMethod
     );
@@ -20,10 +20,10 @@ public:
     HRESULT ParseSigMethodParams(
         _In_ ULONG sigParamCount,
         _In_ BOOL topLevel,
-        _In_ CSigReader& reader,
-        _Out_ ISigParameter*** pppParameters);
+        _Out_ ISigParameter*** pppParameters,
+        _Out_ ULONG* numVarArgParameters,
+        _Out_ ISigParameter*** pppVarArgParameters);
 
-    HRESULT ParseParamNames(CSigMethod* pMethod, CSigReader& reader);
     HRESULT GetMethodGenericArgNames(ULONG genericArgsLength, LPWSTR** names);
 
     HRESULT WithGenericParams(
@@ -32,5 +32,5 @@ public:
 
     PCCOR_SIGNATURE m_pSigBlob;
     IMetaDataImport2* m_pMDI;
-    mdMethodDef m_MethodDef;
+    mdToken m_Token;
 };

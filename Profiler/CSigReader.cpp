@@ -1,7 +1,7 @@
 #include "pch.h"
 #include "CSigReader.h"
 
-HRESULT CSigReader::ParseSigMethodDefOrRef(
+HRESULT CSigReader::ParseMethod(
     BOOL topLevel,
     _Out_ CSigMethod** ppMethod
 )
@@ -10,7 +10,9 @@ HRESULT CSigReader::ParseSigMethodDefOrRef(
 
     CSigType* retType = nullptr;
     ULONG numParameters = 0;
+    ULONG numVarArgParameters = 0;
     ISigParameter** parameters = nullptr;
+    ISigParameter** varargParameters = nullptr;
 
     ULONG numGenericArgNames = 0;
     LPWSTR* genericTypeArgs = nullptr;
@@ -30,19 +32,46 @@ HRESULT CSigReader::ParseSigMethodDefOrRef(
 
     IfFailGo(CSigType::New(*this, &retType));
 
-    IfFailGo(ParseSigMethodParams(numParameters, topLevel, *this, &parameters));
+    IfFailGo(ParseSigMethodParams(numParameters, topLevel, &parameters, &numVarArgParameters, &varargParameters));
 
 ErrExit:
     if (SUCCEEDED(hr))
     {
-        *ppMethod = new CSigMethodDef(
-            callingConvention,
-            retType,
-            numParameters,
-            parameters,
-            numGenericArgNames,
-            genericTypeArgs
-        );
+        if (((callingConvention & IMAGE_CEE_CS_CALLCONV_VARARG) == IMAGE_CEE_CS_CALLCONV_VARARG) && varargParameters == nullptr)
+        {
+            ISigParameter** newParameters = new ISigParameter*[numParameters + 1];
+
+            for (ULONG i = 0; i < numParameters; i++)
+                newParameters[i] = parameters[i];
+
+            newParameters[numParameters] = new SigArgListParameter();
+            delete parameters;
+            parameters = newParameters;
+            numParameters++;
+        }
+
+        if (varargParameters == nullptr)
+        {
+            *ppMethod = new CSigMethodDef(
+                callingConvention,
+                retType,
+                numParameters,
+                parameters,
+                numGenericArgNames,
+                genericTypeArgs
+            );
+        }
+        else
+        {
+            *ppMethod = new CSigMethodRef(
+                callingConvention,
+                retType,
+                numParameters - numVarArgParameters,
+                parameters,
+                numVarArgParameters,
+                varargParameters
+            );
+        }
     }
     else
     {
@@ -63,9 +92,12 @@ ErrExit:
 HRESULT CSigReader::ParseSigMethodParams(
     _In_ ULONG sigParamCount,
     _In_ BOOL topLevel,
-    _In_ CSigReader& reader,
-    _Out_ ISigParameter*** pppParameters)
+    _Out_ ISigParameter*** pppParameters,
+    _Out_ ULONG* numVarArgParameters,
+    _Out_ ISigParameter*** pppVarArgParameters)
 {
+    *numVarArgParameters = 0;
+
     if (sigParamCount == 0)
     {
         pppParameters = nullptr;
@@ -75,14 +107,37 @@ HRESULT CSigReader::ParseSigMethodParams(
     HRESULT hr = S_OK;
 
     ISigParameter** ppParameters = nullptr;
+    ISigParameter** ppVarArgParameters = nullptr;
     ULONG i = 0;
+    BOOL haveSentinel = FALSE;
 
     ppParameters = new ISigParameter*[sigParamCount];
 
     for(; i < sigParamCount; i++)
     {
         CSigType* sigType;
-        IfFailGo(CSigType::New(reader, &sigType));
+        IfFailGo(CSigType::New(*this, &sigType));
+
+        if (sigType == CSigType::Sentinel)
+        {
+            ISigParameter** newParameters = new ISigParameter*[i];
+
+            for (ULONG j = 0; j < i; j++)
+                newParameters[j] = ppParameters[j];
+
+            delete ppParameters;
+            ppParameters = newParameters;
+
+            ppVarArgParameters = new ISigParameter * [sigParamCount - i];
+            haveSentinel = TRUE;
+        }
+
+        if (haveSentinel)
+        {
+            ppVarArgParameters[*numVarArgParameters] = new SigVarArgParameter(sigType);
+            (*numVarArgParameters)++;
+            continue;
+        }
 
         if (topLevel)
         {
@@ -96,6 +151,7 @@ ErrExit:
     if (SUCCEEDED(hr))
     {
         *pppParameters = ppParameters;
+        *pppVarArgParameters = ppVarArgParameters;
     }
     else
     {
@@ -105,6 +161,14 @@ ErrExit:
         }
 
         delete ppParameters;
+
+        if (ppVarArgParameters)
+        {
+            for (ULONG j = 0; j < *numVarArgParameters; j++)
+                delete ppVarArgParameters[j];
+
+            delete ppVarArgParameters;
+        }
     }
 
     return S_OK;
@@ -173,7 +237,7 @@ HRESULT CSigReader::WithGenericParams(
 
     IfFailGo(m_pMDI->EnumGenericParams(
         &hEnum,
-        m_MethodDef,
+        m_Token,
         nullptr,
         0,
         &cGenericParams
@@ -189,7 +253,7 @@ HRESULT CSigReader::WithGenericParams(
 
     IfFailGo(m_pMDI->EnumGenericParams(
         &hEnum,
-        m_MethodDef,
+        m_Token,
         genericParams,
         cGenericParams,
         &cGenericParams
