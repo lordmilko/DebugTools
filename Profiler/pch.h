@@ -21,9 +21,9 @@
 
 inline BOOL GetBoolEnv(LPCSTR name)
 {
-	CHAR buffer[2];
-	DWORD size = GetEnvironmentVariableA(name, buffer, 2);
-	return size == 1 && buffer[0] == '1';
+    CHAR buffer[2];
+    DWORD size = GetEnvironmentVariableA(name, buffer, 2);
+    return size == 1 && buffer[0] == '1';
 }
 
 void dprintf(LPCWSTR format, ...);

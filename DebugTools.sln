@@ -24,6 +24,11 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DebugTools.TestHost", "Debu
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ClrDebug", "..\ClrDebug\ClrDebug\ClrDebug.csproj", "{024D4382-CEF7-4E46-A58C-2C39E813C0F1}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{45095176-2916-4D96-BB77-A54531ECB76B}"
+	ProjectSection(SolutionItems) = preProject
+		.editorconfig = .editorconfig
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SharedMSBuildProjectFiles) = preSolution
 		Profiler\Profiler.vcxitems*{3bb8e037-b0cf-421a-bf42-77ebb4e82c64}*SharedItemsImports = 4

@@ -12,7 +12,7 @@ extern "C" void STDMETHODCALLTYPE TailcallStubWithInfo(FunctionIDOrClientID func
 #ifdef _X86_
 void __declspec(naked) TailcallNakedWithInfo(FunctionIDOrClientID functionIDOrClientID, COR_PRF_ELT_INFO eltInfo)
 {
-	__asm
+    __asm
     {
 
         //The method prologue will push the function ID onto the stack; reset ESP so it's correctly visible within this function.

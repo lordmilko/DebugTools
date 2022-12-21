@@ -47,10 +47,10 @@ extern "C" HRESULT WINAPI DllGetClassObject(REFCLSID rclsid, REFIID riid, void**
         return pClassFactory->QueryInterface(riid, ppv);
     }
 
-	return CLASS_E_CLASSNOTAVAILABLE;
+    return CLASS_E_CLASSNOTAVAILABLE;
 }
 
 extern "C" HRESULT WINAPI DllCanUnloadNow()
 {
-	return S_OK;
+    return S_OK;
 }

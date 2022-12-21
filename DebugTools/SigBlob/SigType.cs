@@ -16,15 +16,17 @@ namespace DebugTools
         {
             var modifiersList = new List<mdToken>();
 
-            var type = reader.CorSigUncompressElementType();
+            var elementType = reader.CorSigUncompressElementType();
 
             while (true)
             {
-                if (type == CorElementType.CModOpt || type == CorElementType.CModReqd)
+                if (elementType == CorElementType.CModOpt || elementType == CorElementType.CModReqd)
                 {
-                    //Read the element type we peeked above out of the way
+                    //Read the modifier
                     modifiersList.Add(reader.CorSigUncompressToken());
-                    type = reader.CorSigUncompressElementType();
+
+                    //Read the real type (or next modifier) which follows
+                    elementType = reader.CorSigUncompressElementType();
                 }
                 else
                     break;
@@ -34,13 +36,13 @@ namespace DebugTools
 
             var isByRef = false;
 
-            if (type == CorElementType.ByRef)
+            if (elementType == CorElementType.ByRef)
             {
                 isByRef = true;
-                type = reader.CorSigUncompressElementType();
+                elementType = reader.CorSigUncompressElementType();
             }
 
-            switch (type)
+            switch (elementType)
             {
                 #region BOOLEAN | CHAR | I1 | U1 | I2 | U2 | I4 | U4 | I8 | U8 | R4 | R8 | I | U
 
@@ -58,28 +60,28 @@ namespace DebugTools
                 case CorElementType.R8:
                 case CorElementType.I:
                 case CorElementType.U:
-                    return new SigType(type, isByRef, modifiers);
+                    return new SigType(elementType, isByRef, modifiers);
 
                 #endregion
                 #region ARRAY Type ArrayShape (general array, see §II.23.2.13)
 
                 case CorElementType.Array:
-                    return new SigArrayType(type, isByRef, modifiers, ref reader);
+                    return new SigArrayType(elementType, isByRef, modifiers, ref reader);
 
                 #endregion
                 #region CLASS TypeDefOrRefOrSpecEncoded | VALUETYPE TypeDefOrRefOrSpecEncoded
 
                 case CorElementType.Class:
-                    return new SigClassType(type, isByRef, modifiers, ref reader);
+                    return new SigClassType(elementType, isByRef, modifiers, ref reader);
 
                 case CorElementType.ValueType:
-                    return new SigValueType(type, isByRef, modifiers, ref reader);
+                    return new SigValueType(elementType, isByRef, modifiers, ref reader);
 
                 #endregion
                 #region FNPTR MethodDefSig | FNPTR MethodRefSig
 
                 case CorElementType.FnPtr:
-                    return new SigFnPtrType(type, isByRef, modifiers, ref reader);
+                    return new SigFnPtrType(elementType, isByRef, modifiers, ref reader);
 
                 #endregion
                 #region GENERICINST (CLASS | VALUETYPE) TypeDefOrRefOrSpecEncoded GenArgCount Type*
@@ -91,39 +93,39 @@ namespace DebugTools
                 #region MVAR number | VAR number
 
                 case CorElementType.MVar:
-                    return new SigMethodGenericArgType(type, isByRef, modifiers, ref reader);
+                    return new SigMethodGenericArgType(elementType, isByRef, modifiers, ref reader);
 
                 case CorElementType.Var:
-                    return new SigTypeGenericArgType(type, isByRef, modifiers, ref reader);
+                    return new SigTypeGenericArgType(elementType, isByRef, modifiers, ref reader);
 
                 #endregion
                 #region OBJECT | STRING
 
                 case CorElementType.Object:
                 case CorElementType.String:
-                    return new SigType(type, isByRef, modifiers);
+                    return new SigType(elementType, isByRef, modifiers);
 
                 #endregion
                 #region PTR CustomMod* Type | PTR CustomMod* VOID
 
                 case CorElementType.Ptr:
-                    return new SigPtrType(type, isByRef, modifiers, ref reader);
+                    return new SigPtrType(elementType, isByRef, modifiers, ref reader);
 
                 #endregion
                 #region SZARRAY CustomMod* Type (single dimensional, zero-based array i.e., vector)
 
                 case CorElementType.SZArray:
-                    return new SigSZArrayType(type, isByRef, modifiers, ref reader);
+                    return new SigSZArrayType(elementType, isByRef, modifiers, ref reader);
 
                 #endregion
 
                 //A RetType includes either a [ByRef] Type / TypedByRef / Void
                 case CorElementType.Void:
                 case CorElementType.TypedByRef:
-                    return new SigType(type, isByRef, modifiers);
+                    return new SigType(elementType, isByRef, modifiers);
 
                 default:
-                    throw new NotImplementedException($"Don't know how to handle type '{type}'");
+                    throw new NotImplementedException($"Don't know how to handle type '{elementType}'");
             }
         }
 

@@ -10,102 +10,102 @@ enum class MessageType
 };
 
 typedef struct _Message {
-	MessageType Type;
-	BYTE Data[MESSAGE_DATA_SIZE];
+    MessageType Type;
+    BYTE Data[MESSAGE_DATA_SIZE];
 } Message;
 
 DWORD WINAPI PipeThreadProc(LPVOID lpParameter)
 {
-	CCommunication* communication = static_cast<CCommunication*>(lpParameter);
+    CCommunication* communication = static_cast<CCommunication*>(lpParameter);
 
-	DWORD numberOfBytesRead;
+    DWORD numberOfBytesRead;
 
-	BYTE buffer[MESSAGE_DATA_SIZE + sizeof(MessageType)];
+    BYTE buffer[MESSAGE_DATA_SIZE + sizeof(MessageType)];
 
-	//Wait for the client to connect
-	ConnectNamedPipe(communication->m_hPipe, NULL);
+    //Wait for the client to connect
+    ConnectNamedPipe(communication->m_hPipe, NULL);
 
-	while (true)
-	{
-		BOOL result = ReadFile(
-			communication->m_hPipe,
-			buffer,
-			sizeof(Message),
-			&numberOfBytesRead,
-			nullptr
-		);
+    while (true)
+    {
+        BOOL result = ReadFile(
+            communication->m_hPipe,
+            buffer,
+            sizeof(Message),
+            &numberOfBytesRead,
+            nullptr
+        );
 
-		if (result)
-		{
-			Message* message = (Message*)buffer;
+        if (result)
+        {
+            Message* message = (Message*)buffer;
 
-			/*switch (message->Type)
-			{
-			default:
-				dprintf(L"Don't know how to handle MessageType %d\n", message->Type);
-				break;
-			}*/
-		}
-	}
+            /*switch (message->Type)
+            {
+            default:
+                dprintf(L"Don't know how to handle MessageType %d\n", message->Type);
+                break;
+            }*/
+        }
+    }
 
-	return 0;
+    return 0;
 }
 
 CCommunication::~CCommunication()
 {
-	if (m_hPipeThread != nullptr)
-	{
-		CancelSynchronousIo(m_hPipeThread);
-		CloseHandle(m_hPipeThread);
-		m_hPipeThread = nullptr;
-	}
+    if (m_hPipeThread != nullptr)
+    {
+        CancelSynchronousIo(m_hPipeThread);
+        CloseHandle(m_hPipeThread);
+        m_hPipeThread = nullptr;
+    }
 
-	if (m_hPipe != nullptr && m_hPipe != INVALID_HANDLE_VALUE)
-	{
-		CloseHandle(m_hPipe);
-		m_hPipe = nullptr;
-	}
+    if (m_hPipe != nullptr && m_hPipe != INVALID_HANDLE_VALUE)
+    {
+        CloseHandle(m_hPipe);
+        m_hPipe = nullptr;
+    }
 }
 
 HRESULT CCommunication::Initialize()
 {
-	HRESULT hr = S_OK;
+    HRESULT hr = S_OK;
 
-	DWORD pid = GetProcessId(GetCurrentProcess());
+    DWORD pid = GetProcessId(GetCurrentProcess());
 
-	WCHAR buffer[1000];
-	swprintf_s(buffer, L"\\\\.\\pipe\\DebugToolsProfilerPipe_%d", pid);
+    WCHAR buffer[1000];
+    swprintf_s(buffer, L"\\\\.\\pipe\\DebugToolsProfilerPipe_%d", pid);
 
-	//Setup pipe
+    //Setup pipe
 
-	m_hPipe = CreateNamedPipe(
-		buffer,
-		PIPE_ACCESS_INBOUND,
-		PIPE_TYPE_MESSAGE,
-		1,
-		0,
-		0,
-		0,
-		nullptr
-	);
+    m_hPipe = CreateNamedPipe(
+        buffer,
+        PIPE_ACCESS_INBOUND,
+        PIPE_TYPE_MESSAGE,
+        1,
+        0,
+        0,
+        0,
+        nullptr
+    );
 
-	if (m_hPipe == INVALID_HANDLE_VALUE)
-		return HRESULT_FROM_WIN32(GetLastError());
+    if (m_hPipe == INVALID_HANDLE_VALUE)
+        return HRESULT_FROM_WIN32(GetLastError());
 
-	//Setup thread
+    //Setup thread
 
-	m_hPipeThread = CreateThread(
-		nullptr,
-		0,
-		PipeThreadProc,
-		this,
-		0,
-		nullptr
-	);
+    m_hPipeThread = CreateThread(
+        nullptr,
+        0,
+        PipeThreadProc,
+        this,
+        0,
+        nullptr
+    );
 
-	//If this fails, hPipe will be closed in the destructor
-	if (m_hPipeThread == nullptr)
-		return HRESULT_FROM_WIN32(GetLastError());
+    //If this fails, hPipe will be closed in the destructor
+    if (m_hPipeThread == nullptr)
+        return HRESULT_FROM_WIN32(GetLastError());
 
-	return S_OK;
+    return S_OK;
 }

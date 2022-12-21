@@ -20,6 +20,9 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)CClassFactory.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)CCommunication.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)CCorProfilerCallback.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)CSigMethod.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)CSigReader.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)CSigType.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)DebugToolsProfiler.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)Hooks\EnterHook.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)Hooks\EnterHookWithInfo.h" />
@@ -34,6 +37,8 @@
     <ClCompile Include="$(MSBuildThisFileDirectory)CClassFactory.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)CCommunication.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)CCorProfilerCallback.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)CSigReader.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)CSigType.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)dllmain.cpp" />
   </ItemGroup>
   <ItemGroup>

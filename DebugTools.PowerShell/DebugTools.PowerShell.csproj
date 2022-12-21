@@ -2,8 +2,8 @@
 
   <PropertyGroup>
     <TargetFramework>net472</TargetFramework>
-	  <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
-	  <OutputPath>$(SolutionDir)artifacts\bin\$(Configuration)</OutputPath>
+    <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+    <OutputPath>$(SolutionDir)artifacts\bin\$(Configuration)</OutputPath>
   </PropertyGroup>
 
   <ItemGroup>

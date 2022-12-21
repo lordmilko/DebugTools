@@ -13,6 +13,9 @@
     <Filter Include="Header Files\Hooks">
       <UniqueIdentifier>{c9a5d142-ee8e-45c4-80b0-774d9a333af6}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\SigBlob">
+      <UniqueIdentifier>{5f5956bd-d36f-45fb-8bb2-c992ef7c806f}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="$(MSBuildThisFileDirectory)pch.h">
@@ -51,6 +54,15 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)CCommunication.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)CSigMethod.h">
+      <Filter>Header Files\SigBlob</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)CSigType.h">
+      <Filter>Header Files\SigBlob</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)CSigReader.h">
+      <Filter>Header Files\SigBlob</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="$(MSBuildThisFileDirectory)dllmain.cpp">
@@ -63,6 +75,12 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="$(MSBuildThisFileDirectory)CCommunication.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)CSigType.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)CSigReader.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

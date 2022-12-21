@@ -11,7 +11,7 @@
 /// <returns>The incremented reference count.</returns>
 ULONG CCorProfilerCallback::AddRef()
 {
-	return InterlockedIncrement(&m_RefCount);
+    return InterlockedIncrement(&m_RefCount);
 }
 
 /// <summary>
@@ -20,12 +20,12 @@ ULONG CCorProfilerCallback::AddRef()
 /// <returns>The new reference count of this object.</returns>
 ULONG CCorProfilerCallback::Release()
 {
-	ULONG refCount = InterlockedDecrement(&m_RefCount);
+    ULONG refCount = InterlockedDecrement(&m_RefCount);
 
-	if (refCount == 0)
-		delete this;
+    if (refCount == 0)
+        delete this;
 
-	return refCount;
+    return refCount;
 }
 
 /// <summary>
@@ -36,26 +36,26 @@ ULONG CCorProfilerCallback::Release()
 /// <returns>E_POINTER if ppvObject was null, S_OK if the interface is supported or E_NOINTERFACE if the interface is not supported.</returns>
 HRESULT CCorProfilerCallback::QueryInterface(REFIID riid, void** ppvObject)
 {
-	if (ppvObject == nullptr)
-		return E_POINTER;
+    if (ppvObject == nullptr)
+        return E_POINTER;
 
-	if (riid == IID_IUnknown)
-		*ppvObject = static_cast<IUnknown*>(this);
-	else if (riid == __uuidof(ICorProfilerCallback))
-		*ppvObject = static_cast<ICorProfilerCallback*>(this);
-	else if (riid == __uuidof(ICorProfilerCallback2))
-		*ppvObject = static_cast<ICorProfilerCallback2*>(this);
-	else if (riid == __uuidof(ICorProfilerCallback3))
-		*ppvObject = static_cast<ICorProfilerCallback3*>(this);
-	else
-	{
-		*ppvObject = nullptr;
-		return E_NOINTERFACE;
-	}
+    if (riid == IID_IUnknown)
+        *ppvObject = static_cast<IUnknown*>(this);
+    else if (riid == __uuidof(ICorProfilerCallback))
+        *ppvObject = static_cast<ICorProfilerCallback*>(this);
+    else if (riid == __uuidof(ICorProfilerCallback2))
+        *ppvObject = static_cast<ICorProfilerCallback2*>(this);
+    else if (riid == __uuidof(ICorProfilerCallback3))
+        *ppvObject = static_cast<ICorProfilerCallback3*>(this);
+    else
+    {
+        *ppvObject = nullptr;
+        return E_NOINTERFACE;
+    }
 
-	reinterpret_cast<IUnknown*>(*ppvObject)->AddRef();
+    reinterpret_cast<IUnknown*>(*ppvObject)->AddRef();
 
-	return S_OK;
+    return S_OK;
 }
 
 #pragma endregion
@@ -69,32 +69,32 @@ HRESULT CCorProfilerCallback::QueryInterface(REFIID riid, void** ppvObject)
 HRESULT CCorProfilerCallback::Initialize(IUnknown* pICorProfilerInfoUnk)
 {
 #ifdef _DEBUG
-	OutputDebugStringW(L"Waiting for debugger to attach...\n");
+    OutputDebugStringW(L"Waiting for debugger to attach...\n");
 
-	if (GetBoolEnv("DEBUGTOOLS_WAITFORDEBUG"))
-	{
-		while (!::IsDebuggerPresent())
-			::Sleep(100);
-	}	
+    if (GetBoolEnv("DEBUGTOOLS_WAITFORDEBUG"))
+    {
+        while (!::IsDebuggerPresent())
+            ::Sleep(100);
+    }    
 #endif
 
-	HRESULT hr = S_OK;
+    HRESULT hr = S_OK;
 
-	BindLifetimeToParentProcess();
-	IfFailGo(m_Communication.Initialize());
+    BindLifetimeToParentProcess();
+    IfFailGo(m_Communication.Initialize());
 
-	IfFailGo(pICorProfilerInfoUnk->QueryInterface(&m_pInfo));
+    IfFailGo(pICorProfilerInfoUnk->QueryInterface(&m_pInfo));
 
-	IfFailGo(m_pInfo->SetFunctionIDMapper2(RecordFunction, nullptr));
+    IfFailGo(m_pInfo->SetFunctionIDMapper2(RecordFunction, nullptr));
 
-	IfFailGo(SetEventMask());
-	IfFailGo(InstallHooks());
-	IfFailWin32Go(EventRegisterDebugToolsProfiler());
+    IfFailGo(SetEventMask());
+    IfFailGo(InstallHooks());
+    IfFailWin32Go(EventRegisterDebugToolsProfiler());
 
-	g_pProfiler = this;
+    g_pProfiler = this;
 
 ErrExit:
-	return hr;
+    return hr;
 }
 
 /// <summary>
@@ -106,8 +106,8 @@ ErrExit:
 /// PowerShell does not call Shutdown when closing out of the program normally, however when the "exit" command is executed, _wmainCRTStartup will call msvcrt!doexit, leading to clr!HandleExitProcessHelper calling EEShutDown, etc.</remarks>
 HRESULT CCorProfilerCallback::Shutdown()
 {
-	EventWriteShutdownEvent();
-	return S_OK;
+    EventWriteShutdownEvent();
+    return S_OK;
 }
 
 /// <summary>
@@ -117,15 +117,15 @@ HRESULT CCorProfilerCallback::Shutdown()
 /// <returns>A HRESULT that indicates whether the profiler encountered an error processing the event.</returns>
 HRESULT CCorProfilerCallback::ThreadCreated(ThreadID threadId)
 {
-	HRESULT hr = S_OK;
+    HRESULT hr = S_OK;
 
-	DWORD win32ThreadId;
-	IfFailGo(m_pInfo->GetThreadInfo(threadId, &win32ThreadId));
+    DWORD win32ThreadId;
+    IfFailGo(m_pInfo->GetThreadInfo(threadId, &win32ThreadId));
 
-	EventWriteThreadCreateEvent(win32ThreadId);
+    EventWriteThreadCreateEvent(win32ThreadId);
 
 ErrExit:
-	return hr;
+    return hr;
 }
 
 /// <summary>
@@ -135,15 +135,15 @@ ErrExit:
 /// <returns>A HRESULT that indicates whether the profiler encountered an error processing the event.</returns>
 HRESULT CCorProfilerCallback::ThreadDestroyed(ThreadID threadId)
 {
-	HRESULT hr = S_OK;
+    HRESULT hr = S_OK;
 
-	DWORD win32ThreadId;
-	IfFailGo(m_pInfo->GetThreadInfo(threadId, &win32ThreadId));
+    DWORD win32ThreadId;
+    IfFailGo(m_pInfo->GetThreadInfo(threadId, &win32ThreadId));
 
-	EventWriteThreadDestroyEvent(win32ThreadId);
+    EventWriteThreadDestroyEvent(win32ThreadId);
 
 ErrExit:
-	return hr;
+    return hr;
 }
 
 #pragma endregion
@@ -151,15 +151,15 @@ ErrExit:
 
 HRESULT CCorProfilerCallback::ThreadNameChanged(ThreadID threadId, ULONG cchName, WCHAR* name)
 {
-	WCHAR copy[100];
+    WCHAR copy[100];
 
-	//MSDN states the name is not guaranteed to be null terminated, so we make a copy just in case
-	StringCchCopyN(copy, 100, name, cchName);
-	copy[cchName + 1] = '\0';
+    //MSDN states the name is not guaranteed to be null terminated, so we make a copy just in case
+    StringCchCopyN(copy, 100, name, cchName);
+    copy[cchName + 1] = '\0';
 
-	EventWriteThreadNameEvent(copy);
+    EventWriteThreadNameEvent(copy);
 
-	return S_OK;
+    return S_OK;
 }
 
 #pragma endregion
@@ -179,10 +179,10 @@ thread_local WCHAR debugBuffer[2000];
 
 void dprintf(LPCWSTR format, ...)
 {
-	va_list args;
-	va_start(args, format);
-	vswprintf_s(debugBuffer, format, args);
-	va_end(args);
+    va_list args;
+    va_start(args, format);
+    vswprintf_s(debugBuffer, format, args);
+    va_end(args);
 }
 
 /// <summary>
@@ -195,195 +195,195 @@ void dprintf(LPCWSTR format, ...)
 /// <returns>The original funcId that was passed into this function.</returns>
 UINT_PTR __stdcall CCorProfilerCallback::RecordFunction(FunctionID funcId, void* clientData, BOOL* pbHookFunction)
 {
-	HRESULT hr = S_OK;
+    HRESULT hr = S_OK;
 
-	ICorProfilerInfo3* pInfo = g_pProfiler->m_pInfo;
-	IMetaDataImport* pMDI = nullptr;
+    ICorProfilerInfo3* pInfo = g_pProfiler->m_pInfo;
+    IMetaDataImport* pMDI = nullptr;
 
-	mdMethodDef methodDef;
-	mdTypeDef typeDef;
-	ModuleID moduleId;
-	PCCOR_SIGNATURE pSigBlob = nullptr;
-	ULONG cbSigBlob = 0;
+    mdMethodDef methodDef;
+    mdTypeDef typeDef;
+    ModuleID moduleId;
+    PCCOR_SIGNATURE pSigBlob = nullptr;
+    ULONG cbSigBlob = 0;
 
-	BOOL detailed;
+    BOOL detailed;
 
-	//Get the IMetaDataImport and mdMethodDef
-	IfFailGo(pInfo->GetTokenAndMetaDataFromFunction(funcId, IID_IMetaDataImport, reinterpret_cast<IUnknown**>(&pMDI), &methodDef));
+    //Get the IMetaDataImport and mdMethodDef
+    IfFailGo(pInfo->GetTokenAndMetaDataFromFunction(funcId, IID_IMetaDataImport, reinterpret_cast<IUnknown**>(&pMDI), &methodDef));
 
-	//Get the ModuleID
-	IfFailGo(pInfo->GetFunctionInfo2(funcId, NULL, NULL, &moduleId, NULL, 0, NULL, NULL));
+    //Get the ModuleID
+    IfFailGo(pInfo->GetFunctionInfo2(funcId, NULL, NULL, &moduleId, NULL, 0, NULL, NULL));
 
-	//Get the module name
-	IfFailGo(pInfo->GetModuleInfo(moduleId, NULL, NAME_BUFFER_SIZE, NULL, moduleName, NULL));
+    //Get the module name
+    IfFailGo(pInfo->GetModuleInfo(moduleId, NULL, NAME_BUFFER_SIZE, NULL, moduleName, NULL));
 
-	if (!ShouldHook())
-	{
-		*pbHookFunction = FALSE;
-		goto Exit;
-	}
+    if (!ShouldHook())
+    {
+        *pbHookFunction = FALSE;
+        goto Exit;
+    }
 
-	detailed = GetBoolEnv("DEBUGTOOLS_DETAILED");
+    detailed = GetBoolEnv("DEBUGTOOLS_DETAILED");
 
-	if (detailed)
-	{
-		//Get the method name, mdTypeDef and sigblob
-		IfFailGo(pMDI->GetMethodProps(
-			methodDef,
-			&typeDef,
-			methodName,
-			NAME_BUFFER_SIZE,
-			NULL,
-			NULL,
-			&pSigBlob,
-			&cbSigBlob,
-			NULL,
-			NULL
-		));
-	}
-	else
-	{
-		//Get the method name and mdTypeDef
-		IfFailGo(pMDI->GetMethodProps(
-			methodDef,
-			&typeDef,
-			methodName,
-			NAME_BUFFER_SIZE,
-			NULL,
-			NULL,
-			NULL,
-			NULL,
-			NULL,
-			NULL
-		));
-	}
+    if (detailed)
+    {
+        //Get the method name, mdTypeDef and sigblob
+        IfFailGo(pMDI->GetMethodProps(
+            methodDef,
+            &typeDef,
+            methodName,
+            NAME_BUFFER_SIZE,
+            NULL,
+            NULL,
+            &pSigBlob,
+            &cbSigBlob,
+            NULL,
+            NULL
+        ));
+    }
+    else
+    {
+        //Get the method name and mdTypeDef
+        IfFailGo(pMDI->GetMethodProps(
+            methodDef,
+            &typeDef,
+            methodName,
+            NAME_BUFFER_SIZE,
+            NULL,
+            NULL,
+            NULL,
+            NULL,
+            NULL,
+            NULL
+        ));
+    }
 
-	//Get the type name
-	IfFailGo(pMDI->GetTypeDefProps(typeDef, typeName, NAME_BUFFER_SIZE, NULL, NULL, NULL));
+    //Get the type name
+    IfFailGo(pMDI->GetTypeDefProps(typeDef, typeName, NAME_BUFFER_SIZE, NULL, NULL, NULL));
 
-	//Write the event
+    //Write the event
 
-	if (detailed)
-		EventWriteMethodInfoDetailedEvent(funcId, methodName, typeName, moduleName, methodDef, cbSigBlob, pSigBlob);
-	else
-		EventWriteMethodInfoEvent(funcId, methodName, typeName, moduleName);
+    if (detailed)
+        EventWriteMethodInfoDetailedEvent(funcId, methodName, typeName, moduleName, methodDef, cbSigBlob, pSigBlob);
+    else
+        EventWriteMethodInfoEvent(funcId, methodName, typeName, moduleName);
 
 ErrExit:
-	if (pMDI)
-		pMDI->Release();
+    if (pMDI)
+        pMDI->Release();
 
-	*pbHookFunction = true;
+    *pbHookFunction = true;
 
 Exit:
-	return funcId;
+    return funcId;
 }
 
 LPCWSTR blacklist[] = {
-	L"mscorlib.dll",
-	L"System.dll",
-	L"System.Core.dll",
-	L"System.Configuration.dll",
-	L"System.Xml.dll",
-	L"Microsoft.VisualStudio.Telemetry.dll",
-	L"Newtonsoft.Json.dll",
-	L"PresentationFramework.dll",
-	L"PresentationCore.dll",
-	L"WindowsBase.dll"
+    L"mscorlib.dll",
+    L"System.dll",
+    L"System.Core.dll",
+    L"System.Configuration.dll",
+    L"System.Xml.dll",
+    L"Microsoft.VisualStudio.Telemetry.dll",
+    L"Newtonsoft.Json.dll",
+    L"PresentationFramework.dll",
+    L"PresentationCore.dll",
+    L"WindowsBase.dll"
 };
 
 BOOL CCorProfilerCallback::ShouldHook()
 {
-	WCHAR* ptr = wcsrchr(moduleName, '\\');
+    WCHAR* ptr = wcsrchr(moduleName, '\\');
 
-	//Path doesn't contain a slash; assume we should hook it
-	if (!ptr)
-		return TRUE;
+    //Path doesn't contain a slash; assume we should hook it
+    if (!ptr)
+        return TRUE;
 
-	ptr++;
+    ptr++;
 
-	for (LPCWSTR &item : blacklist)
-	{
-		if (!lstrcmpiW(item, ptr))
-			return FALSE;
-	}
+    for (LPCWSTR &item : blacklist)
+    {
+        if (!lstrcmpiW(item, ptr))
+            return FALSE;
+    }
 
-	return TRUE;
+    return TRUE;
 }
 
 HRESULT CCorProfilerCallback::SetEventMask()
 {
-	DWORD flags = COR_PRF_MONITOR_ENTERLEAVE | COR_PRF_MONITOR_THREADS;
+    DWORD flags = COR_PRF_MONITOR_ENTERLEAVE | COR_PRF_MONITOR_THREADS;
 
-	//WithInfo hooks won't be called unless advanced event flags are set
-	if (false)
-		flags |= COR_PRF_ENABLE_FUNCTION_ARGS | COR_PRF_ENABLE_FUNCTION_RETVAL | COR_PRF_ENABLE_FRAME_INFO;
+    //WithInfo hooks won't be called unless advanced event flags are set
+    if (false)
+        flags |= COR_PRF_ENABLE_FUNCTION_ARGS | COR_PRF_ENABLE_FUNCTION_RETVAL | COR_PRF_ENABLE_FRAME_INFO;
 
-	return m_pInfo->SetEventMask(flags);
+    return m_pInfo->SetEventMask(flags);
 }
 
 HRESULT CCorProfilerCallback::InstallHooks()
 {
-	return m_pInfo->SetEnterLeaveFunctionHooks3(
-		(FunctionEnter3*)EnterNaked,
-		(FunctionLeave3*)LeaveNaked,
-		(FunctionTailcall3*)TailcallNaked
-	);
+    return m_pInfo->SetEnterLeaveFunctionHooks3(
+        (FunctionEnter3*)EnterNaked,
+        (FunctionLeave3*)LeaveNaked,
+        (FunctionTailcall3*)TailcallNaked
+    );
 }
 
 HRESULT CCorProfilerCallback::InstallHooksWithInfo()
 {
-	return m_pInfo->SetEnterLeaveFunctionHooks3WithInfo(
-		(FunctionEnter3WithInfo*)EnterNakedWithInfo,
-		(FunctionLeave3WithInfo*)LeaveNakedWithInfo,
-		(FunctionTailcall3WithInfo*)TailcallNakedWithInfo
-	);
+    return m_pInfo->SetEnterLeaveFunctionHooks3WithInfo(
+        (FunctionEnter3WithInfo*)EnterNakedWithInfo,
+        (FunctionLeave3WithInfo*)LeaveNakedWithInfo,
+        (FunctionTailcall3WithInfo*)TailcallNakedWithInfo
+    );
 }
 
 HRESULT CCorProfilerCallback::BindLifetimeToParentProcess()
 {
 #define BUFFER_SIZE 100
 
-	HANDLE hParentProcess;
+    HANDLE hParentProcess;
 
-	CHAR envBuffer[BUFFER_SIZE];
-	DWORD parentProcessId;
+    CHAR envBuffer[BUFFER_SIZE];
+    DWORD parentProcessId;
 
-	DWORD actualSize = GetEnvironmentVariableA("DEBUGTOOLS_PARENT_PID", envBuffer, BUFFER_SIZE);
+    DWORD actualSize = GetEnvironmentVariableA("DEBUGTOOLS_PARENT_PID", envBuffer, BUFFER_SIZE);
 
-	if (actualSize == 0 || actualSize >= BUFFER_SIZE)
-		goto Exit;
+    if (actualSize == 0 || actualSize >= BUFFER_SIZE)
+        goto Exit;
 
-	parentProcessId = strtol(envBuffer, NULL, 10);
+    parentProcessId = strtol(envBuffer, NULL, 10);
 
-	//The only access right that is mandatory is SYNCHRONIZE; without this
-	//RegisterWaitForSingleObject will throw an exception
-	hParentProcess = OpenProcess(SYNCHRONIZE, FALSE, parentProcessId);
+    //The only access right that is mandatory is SYNCHRONIZE; without this
+    //RegisterWaitForSingleObject will throw an exception
+    hParentProcess = OpenProcess(SYNCHRONIZE, FALSE, parentProcessId);
 
-	if(!RegisterWaitForSingleObject(
-		&g_hExitProcess,
-		hParentProcess,
-		ExitProcessCallback,
-		NULL,
-		INFINITE,
-		WT_EXECUTEONLYONCE
-	))
-	{
-		return HRESULT_FROM_WIN32(GetLastError());
-	}
+    if(!RegisterWaitForSingleObject(
+        &g_hExitProcess,
+        hParentProcess,
+        ExitProcessCallback,
+        NULL,
+        INFINITE,
+        WT_EXECUTEONLYONCE
+    ))
+    {
+        return HRESULT_FROM_WIN32(GetLastError());
+    }
 
 Exit:
-	return S_OK;
+    return S_OK;
 }
 
 void NTAPI CCorProfilerCallback::ExitProcessCallback(
-	_In_ PVOID   lpParameter,
-	_In_ BOOLEAN TimerOrWaitFired
+    _In_ PVOID   lpParameter,
+    _In_ BOOLEAN TimerOrWaitFired
 )
 {
 #pragma warning(push)
 #pragma warning(disable: 6031) //return value ignored
-	UnregisterWait(g_hExitProcess);
-	ExitProcess(0);
+    UnregisterWait(g_hExitProcess);
+    ExitProcess(0);
 #pragma warning(pop)
 }
 

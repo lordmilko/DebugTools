@@ -3,16 +3,16 @@
 class CCommunication
 {
 public:
-	CCommunication() : m_hPipe(nullptr), m_hPipeThread(nullptr)
-	{
-	}
+    CCommunication() : m_hPipe(nullptr), m_hPipeThread(nullptr)
+    {
+    }
 
-	~CCommunication();
+    ~CCommunication();
 
-	HRESULT Initialize();
+    HRESULT Initialize();
 
-	HANDLE m_hPipe;
+    HANDLE m_hPipe;
 
 private:
-	HANDLE m_hPipeThread;
+    HANDLE m_hPipeThread;
 };
