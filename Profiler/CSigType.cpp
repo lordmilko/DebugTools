@@ -291,7 +291,7 @@ HRESULT CSigArrayType::Initialize(CSigReader& reader)
 
     if (m_NumLowerBounds)
     {
-        m_LowerBounds = new int(m_NumLowerBounds);
+        m_LowerBounds = new int[m_NumLowerBounds];
 
         for (ULONG i = 0; i < m_NumLowerBounds; i++)
         {

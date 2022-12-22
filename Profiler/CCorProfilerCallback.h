@@ -1,6 +1,7 @@
 #pragma once
 
 #include "CCommunication.h"
+#include "CClassInfo.h"
 #include "CSigMethod.h"
 #include <map>
 #include <mutex>
@@ -14,6 +15,7 @@ public:
 
     CCorProfilerCallback() :
         m_pInfo(nullptr),
+        m_Detailed(FALSE),
         m_RefCount(0)
     {
     }
@@ -21,6 +23,9 @@ public:
     ~CCorProfilerCallback()
     {
         for (auto const& kv : m_MethodInfoMap)
+            delete kv.second;
+
+        for (auto const& kv : m_ClassInfoMap)
             delete kv.second;
 
         if (m_pInfo)
@@ -62,9 +67,9 @@ public:
     STDMETHODIMP ModuleUnloadFinished(ModuleID moduleId, HRESULT hrStatus) override { return S_OK; }
     STDMETHODIMP ModuleAttachedToAssembly(ModuleID moduleId, AssemblyID assemblyId) override { return S_OK; }
     STDMETHODIMP ClassLoadStarted(ClassID classId) override { return S_OK; }
-    STDMETHODIMP ClassLoadFinished(ClassID classId, HRESULT hrStatus) override { return S_OK; }
+    STDMETHODIMP ClassLoadFinished(ClassID classId, HRESULT hrStatus) override;
     STDMETHODIMP ClassUnloadStarted(ClassID classId) override { return S_OK; }
-    STDMETHODIMP ClassUnloadFinished(ClassID classId, HRESULT hrStatus) override { return S_OK; }
+    STDMETHODIMP ClassUnloadFinished(ClassID classId, HRESULT hrStatus) override;
     STDMETHODIMP FunctionUnloadStarted(FunctionID functionId) override { return S_OK; }
     STDMETHODIMP Initialize(IUnknown* pICorProfilerInfoUnk) override;
     STDMETHODIMP JITCompilationStarted(FunctionID functionId, BOOL fIsSafeToBlock) override { return S_OK; }
@@ -141,7 +146,10 @@ public:
 private:
     CCommunication m_Communication;
     std::map<FunctionID, CSigMethodDef*> m_MethodInfoMap;
-    std::mutex m_Mutex;
+    std::mutex m_MethodMutex;
+
+    std::map<ClassID, CClassInfo*> m_ClassInfoMap;
+    std::mutex m_ClassMutex;
 
     long m_RefCount;
 };

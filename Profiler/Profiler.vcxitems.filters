@@ -66,6 +66,12 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)ISigParameter.h">
       <Filter>Header Files\SigBlob</Filter>
     </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)CSigField.h">
+      <Filter>Header Files\SigBlob</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)CClassInfo.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="$(MSBuildThisFileDirectory)dllmain.cpp">

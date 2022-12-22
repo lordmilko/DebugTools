@@ -18,8 +18,10 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="$(MSBuildThisFileDirectory)CClassFactory.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)CClassInfo.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)CCommunication.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)CCorProfilerCallback.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)CSigField.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)CSigMethod.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)CSigReader.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)CSigType.h" />

@@ -1,6 +1,8 @@
 #pragma once
 
 #include "CSigMethod.h"
+#include "CSigField.h"
+#include "CSigReader.h"
 
 class CSigReader
 {
@@ -13,10 +15,14 @@ public:
     }
 
     HRESULT ParseMethod(
-        LPWSTR name,
-        BOOL topLevel,
+        _In_ LPWSTR szName,
+        _In_ BOOL topLevel,
         _Out_ CSigMethod** ppMethod
     );
+
+    HRESULT ParseField(
+        _In_ LPWSTR szName,
+        _Out_ CSigField** ppField);
 
     HRESULT ParseSigMethodParams(
         _In_ ULONG sigParamCount,
@@ -25,7 +31,7 @@ public:
         _Out_ ULONG* numVarArgParameters,
         _Out_ ISigParameter*** pppVarArgParameters);
 
-    HRESULT GetMethodGenericArgNames(ULONG genericArgsLength, LPWSTR** names);
+    HRESULT GetMethodGenericArgNames(ULONG genericArgsLength, LPWSTR** szNames);
 
     HRESULT WithGenericParams(
         mdToken token,

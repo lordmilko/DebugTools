@@ -12,10 +12,10 @@ $split = $_ -split ' '
 -->
 <AutoVisualizer xmlns="http://schemas.microsoft.com/vstudio/debugger/natvis/2010">
     <Type Name="CSigMethod">
-        <DisplayString Condition="m_NumParameters == 0">{*m_pRetType} {m_Name,sub}()</DisplayString>
-        <DisplayString Condition="m_NumParameters > 0">{*m_pRetType} {m_Name,sub}(...)</DisplayString>
+        <DisplayString Condition="m_NumParameters == 0">{*m_pRetType} {m_szName,sub}()</DisplayString>
+        <DisplayString Condition="m_NumParameters > 0">{*m_pRetType} {m_szName,sub}(...)</DisplayString>
         <Expand>
-            <Item Name="m_Name">m_Name</Item>
+            <Item Name="m_szName">m_szName</Item>
             <Item Name="m_CallingConv">m_CallingConv</Item>
             <Item Name="m_pRetType">*m_pRetType</Item>
             <Synthetic Name="m_Parameters">
@@ -30,12 +30,12 @@ $split = $_ -split ' '
         </Expand>
     </Type>
     <Type Name="CSigMethodDef">
-        <DisplayString Condition="m_NumParameters == 0 &amp; m_GenericTypeArgNames == 0">{*m_pRetType} {m_Name,sub}()</DisplayString>
-        <DisplayString Condition="m_NumParameters == 0 &amp; m_GenericTypeArgNames > 0">{*m_pRetType} {m_Name,sub}&lt;{m_NumGenericTypeArgs,d}&gt;()</DisplayString>
-        <DisplayString Condition="m_NumParameters > 0 &amp; m_GenericTypeArgNames == 0">{*m_pRetType} {m_Name,sub}(...)</DisplayString>
-        <DisplayString Condition="m_NumParameters > 0 &amp; m_GenericTypeArgNames > 0">{*m_pRetType} {m_Name,sub}&lt;{m_NumGenericTypeArgs,d}&gt;(...)</DisplayString>
+        <DisplayString Condition="m_NumParameters == 0 &amp; m_GenericTypeArgNames == 0">{*m_pRetType} {m_szName,sub}()</DisplayString>
+        <DisplayString Condition="m_NumParameters == 0 &amp; m_GenericTypeArgNames > 0">{*m_pRetType} {m_szName,sub}&lt;{m_NumGenericTypeArgs,d}&gt;()</DisplayString>
+        <DisplayString Condition="m_NumParameters > 0 &amp; m_GenericTypeArgNames == 0">{*m_pRetType} {m_szName,sub}(...)</DisplayString>
+        <DisplayString Condition="m_NumParameters > 0 &amp; m_GenericTypeArgNames > 0">{*m_pRetType} {m_szName,sub}&lt;{m_NumGenericTypeArgs,d}&gt;(...)</DisplayString>
         <Expand>
-            <Item Name="m_Name">m_Name</Item>
+            <Item Name="m_szName">m_szName</Item>
             <Item Name="m_CallingConv">m_CallingConv</Item>
             <Item Name="m_pRetType">*m_pRetType</Item>
             <Synthetic Name="m_Parameters">
@@ -56,6 +56,14 @@ $split = $_ -split ' '
                     </IndexListItems>
                 </Expand>
             </Synthetic>
+        </Expand>
+    </Type>
+    <Type Name="CSigField">
+        <DisplayString>{*m_pType} {m_szName,sub}</DisplayString>
+
+        <Expand>
+            <Item Name="m_szName">m_szName</Item>
+            <Item Name="m_pType">m_pType</Item>
         </Expand>
     </Type>
     <Type Name="ISigParameter">
@@ -122,12 +130,33 @@ $split = $_ -split ' '
         </Expand>
     </Type>
     <Type Name="CSigArrayType">
-        <DisplayString>{*m_pElementType,sub}[]</DisplayString>
+        <DisplayString>{*m_pElementType,sub}[&lt;{m_Rank,d}&gt;]</DisplayString>
 
         <Expand>
             <Item Name="m_pElementType">m_pElementType</Item>
+            <Item Name="m_Rank">m_Rank</Item>
             <Item Name="m_Type">m_Type,en</Item>
             <Item Name="m_IsByRef">m_IsByRef</Item>
+
+            <Synthetic Name="m_Sizes">
+                <DisplayString>m_NumSizes = {m_NumSizes}</DisplayString>
+                <Expand>
+                    <IndexListItems>
+                        <Size>m_NumSizes</Size>
+                        <ValueNode>m_Sizes[$i]</ValueNode>
+                    </IndexListItems>
+                </Expand>
+            </Synthetic>
+
+            <Synthetic Name="m_LowerBounds">
+                <DisplayString>m_NumLowerBounds = {m_NumLowerBounds}</DisplayString>
+                <Expand>
+                    <IndexListItems>
+                        <Size>m_NumLowerBounds</Size>
+                        <ValueNode>m_LowerBounds[$i]</ValueNode>
+                    </IndexListItems>
+                </Expand>
+            </Synthetic>
         </Expand>
     </Type>
     <Type Name="CSigClassType">
@@ -212,6 +241,28 @@ $split = $_ -split ' '
             <Item Name="m_pElementType">m_pElementType</Item>
             <Item Name="m_Type">m_Type,en</Item>
             <Item Name="m_IsByRef">m_IsByRef</Item>
+        </Expand>
+    </Type>
+    <Type Name="CClassInfo">
+        <Expand>
+            <Synthetic Name="m_Fields">
+                <DisplayString>m_NumFields = {m_NumFields}</DisplayString>
+                <Expand>
+                    <IndexListItems>
+                        <Size>m_NumFields</Size>
+                        <ValueNode>*m_Fields[$i]</ValueNode>
+                    </IndexListItems>
+                </Expand>
+            </Synthetic>
+            <Synthetic Name="m_FieldOffsets">
+                <DisplayString>m_NumFields = {m_NumFields}</DisplayString>
+                <Expand>
+                    <IndexListItems>
+                        <Size>m_NumFields</Size>
+                        <ValueNode>m_FieldOffsets[$i]</ValueNode>
+                    </IndexListItems>
+                </Expand>
+            </Synthetic>
         </Expand>
     </Type>
 

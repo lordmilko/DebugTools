@@ -2,8 +2,8 @@
 #include "CSigReader.h"
 
 HRESULT CSigReader::ParseMethod(
-    LPWSTR name,
-    BOOL topLevel,
+    _In_ LPWSTR szName,
+    _In_ BOOL topLevel,
     _Out_ CSigMethod** ppMethod
 )
 {
@@ -54,7 +54,7 @@ ErrExit:
         if (varargParameters == nullptr)
         {
             *ppMethod = new CSigMethodDef(
-                name,
+                szName,
                 callingConvention,
                 retType,
                 numParameters,
@@ -66,7 +66,7 @@ ErrExit:
         else
         {
             *ppMethod = new CSigMethodRef(
-                name,
+                szName,
                 callingConvention,
                 retType,
                 numParameters - numVarArgParameters,
@@ -87,6 +87,34 @@ ErrExit:
 
             delete parameters;
         }
+    }
+
+    return hr;
+}
+
+HRESULT CSigReader::ParseField(
+    _In_ LPWSTR szName,
+    _Out_ CSigField** ppField)
+{
+    CorCallingConvention callingConvention = static_cast<CorCallingConvention>(CorSigUncompressCallingConv(m_pSigBlob));
+
+    if (callingConvention != IMAGE_CEE_CS_CALLCONV_FIELD)
+        return E_FAIL;
+
+    HRESULT hr = S_OK;
+
+    CSigType* pType = nullptr;
+    IfFailGo(CSigType::New(*this, &pType));
+
+ErrExit:
+    if (SUCCEEDED(hr))
+    {
+        *ppField = new CSigField(szName, pType);
+    }
+    else
+    {
+        if (pType)
+            delete pType;
     }
 
     return hr;
@@ -177,13 +205,13 @@ ErrExit:
     return S_OK;
 }
 
-HRESULT CSigReader::GetMethodGenericArgNames(ULONG genericArgsLength, LPWSTR** names)
+HRESULT CSigReader::GetMethodGenericArgNames(ULONG genericArgsLength, LPWSTR** szNames)
 {
     ULONG allocated = 0;
 
-    *names = (LPWSTR*)malloc(genericArgsLength * sizeof(LPWSTR));
+    *szNames = (LPWSTR*)malloc(genericArgsLength * sizeof(LPWSTR));
 
-    LPWSTR* namesPtr = *names;
+    LPWSTR* namesPtr = *szNames;
 
     HRESULT hr = WithGenericParams(m_Token, [&allocated, &namesPtr, this](mdGenericParam token, ULONG ulParamSeq, ULONG cchName, ULONG pchName, BOOL& found) -> BOOL
         {
@@ -213,10 +241,10 @@ HRESULT CSigReader::GetMethodGenericArgNames(ULONG genericArgsLength, LPWSTR** n
     if (hr != S_OK)
     {
         for (ULONG i = 0; i < allocated; i++)
-            free((*names)[i]);
+            free((*szNames)[i]);
 
-        free(*names);
-        *names = nullptr;
+        free(*szNames);
+        *szNames = nullptr;
     }
 
     return hr;

@@ -4,6 +4,14 @@
 #include "Hooks\Hooks.h"
 #include <strsafe.h>
 
+//Thread local buffers (to avoid reallocating with each RecordFunction invocation that is made)
+#define NAME_BUFFER_SIZE 512
+
+thread_local WCHAR methodName[NAME_BUFFER_SIZE];
+thread_local WCHAR typeName[NAME_BUFFER_SIZE];
+thread_local WCHAR moduleName[NAME_BUFFER_SIZE];
+thread_local WCHAR fieldName[NAME_BUFFER_SIZE];
+
 #pragma region IUnknown
 
 /// <summary>
@@ -62,6 +70,131 @@ HRESULT CCorProfilerCallback::QueryInterface(REFIID riid, void** ppvObject)
 #pragma endregion
 #pragma region ICorProfilerCallback
 
+HRESULT CCorProfilerCallback::ClassLoadFinished(ClassID classId, HRESULT hrStatus)
+{
+    if (!m_Detailed || hrStatus != S_OK)
+        return S_OK;
+
+    HRESULT hr = S_OK;
+
+    IMetaDataImport2* pMDI = nullptr;
+
+    ModuleID moduleId;
+    mdTypeDef typeDef;
+
+    CorElementType baseElemType;
+    ClassID baseClassId;
+    ULONG cRank;
+
+    ULONG cFieldOffset;
+    COR_FIELD_OFFSET* rFieldOffset = nullptr;
+
+    PCCOR_SIGNATURE pSigBlob;
+    ULONG cbSigBlob;
+
+    CSigField** fields = nullptr;
+
+    ULONG i = 0;
+
+    IfFailGo(m_pInfo->GetClassIDInfo(classId, &moduleId, &typeDef));
+
+    IfFailGo(m_pInfo->GetModuleMetaData(moduleId, ofRead, IID_IMetaDataImport2, (IUnknown**)&pMDI));
+
+    hr = m_pInfo->IsArrayClass(classId, &baseElemType, &baseClassId, &cRank);
+
+    if (hr == S_OK)
+    {
+        //It's an array
+
+        hr = E_NOTIMPL;
+        goto ErrExit;
+    }
+    else if (hr == S_FALSE)
+    {
+        //It's not an array
+
+        IfFailGo(m_pInfo->GetClassLayout(classId, NULL, 0, &cFieldOffset, NULL));
+
+        if (cFieldOffset)
+        {
+            rFieldOffset = new COR_FIELD_OFFSET[cFieldOffset];
+
+            IfFailGo(m_pInfo->GetClassLayout(classId, rFieldOffset, cFieldOffset, &cFieldOffset, NULL));
+
+            fields = new CSigField*[cFieldOffset];
+
+            for (; i < cFieldOffset; i++)
+            {
+                mdFieldDef fieldDef = rFieldOffset[i].ridOfField;
+
+                IfFailGo(pMDI->GetFieldProps(
+                    fieldDef,
+                    NULL,
+                    fieldName,
+                    NAME_BUFFER_SIZE,
+                    NULL,
+                    NULL,
+                    &pSigBlob,
+                    &cbSigBlob,
+                    NULL,
+                    NULL,
+                    NULL
+                ));
+
+                CSigReader reader(fieldDef, pMDI, pSigBlob);
+
+                CSigField* sigField;
+
+                IfFailGo(reader.ParseField(fieldName, &sigField));
+
+                fields[i] = sigField;
+            }
+        }
+    }
+
+ErrExit:
+    if (SUCCEEDED(hr))
+    {
+        m_ClassMutex.lock();
+        m_ClassInfoMap[classId] = new CClassInfo(cFieldOffset, fields, rFieldOffset);
+        m_ClassMutex.unlock();
+    }
+    else
+    {
+        if (fields)
+        {
+            for (ULONG j = 0; j < i; j++)
+            {
+                delete fields[i];
+            }
+
+            delete fields;
+        }
+
+        if (rFieldOffset)
+            delete rFieldOffset;
+    }
+
+    if (pMDI)
+        pMDI->Release();
+
+    return hr;
+}
+
+HRESULT CCorProfilerCallback::ClassUnloadFinished(ClassID classId, HRESULT hrStatus)
+{
+    if (!m_Detailed || hrStatus != S_OK)
+        return S_OK;
+
+    CClassInfo* info = m_ClassInfoMap[classId];
+
+    m_ClassInfoMap.erase(classId);
+
+    delete info;
+
+    return S_OK;
+}
+
 /// <summary>
 /// Initializes the profiler, performing initial setup such as registering our event masks function mappers and function hooks.
 /// </summary>
@@ -91,7 +224,14 @@ HRESULT CCorProfilerCallback::Initialize(IUnknown* pICorProfilerInfoUnk)
     IfFailGo(m_pInfo->SetFunctionIDMapper2(RecordFunction, nullptr));
 
     IfFailGo(SetEventMask());
-    IfFailGo(InstallHooks());
+    
+    if (m_Detailed)
+    {
+        IfFailGo(InstallHooksWithInfo());
+    }
+    else
+        IfFailGo(InstallHooks());
+
     IfFailWin32Go(EventRegisterDebugToolsProfiler());
 
     g_pProfiler = this;
@@ -171,13 +311,6 @@ HRESULT CCorProfilerCallback::ThreadNameChanged(ThreadID threadId, ULONG cchName
 CCorProfilerCallback* CCorProfilerCallback::g_pProfiler;
 HANDLE CCorProfilerCallback::g_hExitProcess;
 
-//Thread local buffers (to avoid reallocating with each RecordFunction invocation that is made)
-#define NAME_BUFFER_SIZE 512
-
-thread_local WCHAR methodName[NAME_BUFFER_SIZE];
-thread_local WCHAR typeName[NAME_BUFFER_SIZE];
-thread_local WCHAR moduleName[NAME_BUFFER_SIZE];
-
 thread_local WCHAR debugBuffer[2000];
 
 void dprintf(LPCWSTR format, ...)
@@ -246,9 +379,9 @@ UINT_PTR __stdcall CCorProfilerCallback::RecordFunction(FunctionID funcId, void*
 
         if (reader.ParseMethod(methodName, TRUE, (CSigMethod**)&method) == S_OK)
         {
-            g_pProfiler->m_Mutex.lock();
+            g_pProfiler->m_MethodMutex.lock();
             g_pProfiler->m_MethodInfoMap[funcId] = method;
-            g_pProfiler->m_Mutex.unlock();
+            g_pProfiler->m_MethodMutex.unlock();
         }
     }
     else
@@ -322,11 +455,15 @@ BOOL CCorProfilerCallback::ShouldHook()
 
 HRESULT CCorProfilerCallback::SetEventMask()
 {
-    DWORD flags = COR_PRF_MONITOR_ENTERLEAVE | COR_PRF_MONITOR_THREADS;
+    DWORD flags = COR_PRF_MONITOR_ENTERLEAVE | COR_PRF_MONITOR_THREADS | COR_PRF_DISABLE_ALL_NGEN_IMAGES;
 
     //WithInfo hooks won't be called unless advanced event flags are set
-    if (g_pProfiler->m_Detailed)
-        flags |= COR_PRF_ENABLE_FUNCTION_ARGS | COR_PRF_ENABLE_FUNCTION_RETVAL | COR_PRF_ENABLE_FRAME_INFO | COR_PRF_DISABLE_ALL_NGEN_IMAGES;
+    if (m_Detailed)
+    {
+        flags |= COR_PRF_ENABLE_FUNCTION_ARGS | COR_PRF_ENABLE_FUNCTION_RETVAL | COR_PRF_ENABLE_FRAME_INFO; //Detailed frame info
+
+        flags |= COR_PRF_MONITOR_CLASS_LOADS; //Record known classes for looking up their structure when getting their field's values
+    }
 
     return m_pInfo->SetEventMask(flags);
 }

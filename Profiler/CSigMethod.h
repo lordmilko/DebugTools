@@ -7,13 +7,13 @@ class CSigMethod
 {
 public:
     CSigMethod(
-        LPWSTR name,
+        LPWSTR szName,
         CorCallingConvention callingConvention,
         CSigType* retType,
         ULONG numParameters,
         ISigParameter** parameters)
     {
-        m_Name = _wcsdup(name);
+        m_szName = _wcsdup(szName);
 
         m_CallingConv = callingConvention;
         m_pRetType = retType;
@@ -23,8 +23,8 @@ public:
 
     ~CSigMethod()
     {
-        if (m_Name)
-            free(m_Name);
+        if (m_szName)
+            free(m_szName);
 
         if (m_pRetType)
             delete m_pRetType;
@@ -38,7 +38,7 @@ public:
         }
     }
 
-    LPWSTR m_Name;
+    LPWSTR m_szName;
     CorCallingConvention m_CallingConv;
     CSigType* m_pRetType;
 
@@ -51,13 +51,13 @@ class CSigMethodDef : public CSigMethod
 public:
     //todo: will this call the base ctor?
     CSigMethodDef(
-        LPWSTR name,
+        LPWSTR szName,
         CorCallingConvention callingConvention,
         CSigType* retType,
         ULONG numParameters,
         ISigParameter** parameters,
         ULONG numGenericArgNames,
-        LPWSTR* genericTypeArgNames) : CSigMethod(name, callingConvention, retType, numParameters, parameters)
+        LPWSTR* genericTypeArgNames) : CSigMethod(szName, callingConvention, retType, numParameters, parameters)
     {
         m_NumGenericTypeArgs = numGenericArgNames;
         m_GenericTypeArgNames = genericTypeArgNames;
@@ -82,14 +82,14 @@ class CSigMethodRef : public CSigMethod
 {
 public:
     CSigMethodRef(
-        LPWSTR name,
+        LPWSTR szName,
         CorCallingConvention callingConvention,
         CSigType* retType,
         ULONG numParameters,
         ISigParameter** parameters,
         ULONG numVarArgParameters,
         ISigParameter** varargParameters
-    ) : CSigMethod(name, callingConvention, retType, numParameters, parameters)
+    ) : CSigMethod(szName, callingConvention, retType, numParameters, parameters)
     {
         m_NumVarArgParameters = numVarArgParameters;
     }
