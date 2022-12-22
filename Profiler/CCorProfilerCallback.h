@@ -1,6 +1,9 @@
 #pragma once
 
 #include "CCommunication.h"
+#include "CSigMethod.h"
+#include <map>
+#include <mutex>
 
 class CCorProfilerCallback final : public ICorProfilerCallback3
 {
@@ -17,6 +20,9 @@ public:
 
     ~CCorProfilerCallback()
     {
+        for (auto const& kv : m_MethodInfoMap)
+            delete kv.second;
+
         if (m_pInfo)
             m_pInfo->Release();
     }
@@ -130,9 +136,12 @@ public:
 #pragma endregion
 
     ICorProfilerInfo3* m_pInfo;
+    BOOL m_Detailed;
 
 private:
     CCommunication m_Communication;
+    std::map<FunctionID, CSigMethodDef*> m_MethodInfoMap;
+    std::mutex m_Mutex;
 
     long m_RefCount;
 };

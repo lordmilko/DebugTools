@@ -26,8 +26,9 @@ public:
         _In_ IMetaDataImport2* pMDI,
         _Out_ LPWSTR* szName);
 
-    HRESULT GetMethodGenericArgName(
+    HRESULT GetGenericArgName(
         _In_ ULONG index,
+        _In_ mdToken token,
         _In_ CSigReader& reader,
         _Out_ LPWSTR* szName);
 

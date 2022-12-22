@@ -13,6 +13,7 @@ public:
     }
 
     HRESULT ParseMethod(
+        LPWSTR name,
         BOOL topLevel,
         _Out_ CSigMethod** ppMethod
     );
@@ -27,6 +28,7 @@ public:
     HRESULT GetMethodGenericArgNames(ULONG genericArgsLength, LPWSTR** names);
 
     HRESULT WithGenericParams(
+        mdToken token,
         const std::function<HRESULT(mdGenericParam, ULONG, ULONG, ULONG, BOOL&)>& callback,
         _In_ BOOL requireValue) const;
 

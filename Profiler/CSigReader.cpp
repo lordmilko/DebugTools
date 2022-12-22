@@ -2,6 +2,7 @@
 #include "CSigReader.h"
 
 HRESULT CSigReader::ParseMethod(
+    LPWSTR name,
     BOOL topLevel,
     _Out_ CSigMethod** ppMethod
 )
@@ -53,6 +54,7 @@ ErrExit:
         if (varargParameters == nullptr)
         {
             *ppMethod = new CSigMethodDef(
+                name,
                 callingConvention,
                 retType,
                 numParameters,
@@ -64,6 +66,7 @@ ErrExit:
         else
         {
             *ppMethod = new CSigMethodRef(
+                name,
                 callingConvention,
                 retType,
                 numParameters - numVarArgParameters,
@@ -182,7 +185,7 @@ HRESULT CSigReader::GetMethodGenericArgNames(ULONG genericArgsLength, LPWSTR** n
 
     LPWSTR* namesPtr = *names;
 
-    HRESULT hr = WithGenericParams([&allocated, &namesPtr, this](mdGenericParam token, ULONG ulParamSeq, ULONG cchName, ULONG pchName, BOOL& found) -> BOOL
+    HRESULT hr = WithGenericParams(m_Token, [&allocated, &namesPtr, this](mdGenericParam token, ULONG ulParamSeq, ULONG cchName, ULONG pchName, BOOL& found) -> BOOL
         {
             HRESULT hr = S_OK;
 
@@ -220,6 +223,7 @@ HRESULT CSigReader::GetMethodGenericArgNames(ULONG genericArgsLength, LPWSTR** n
 }
 
 HRESULT CSigReader::WithGenericParams(
+    mdToken token,
     const std::function<HRESULT(mdGenericParam, ULONG, ULONG, ULONG, BOOL&)>& callback,
     _In_ BOOL requireValue) const
 {
@@ -237,7 +241,7 @@ HRESULT CSigReader::WithGenericParams(
 
     IfFailGo(m_pMDI->EnumGenericParams(
         &hEnum,
-        m_Token,
+        token,
         nullptr,
         0,
         &cGenericParams
@@ -253,7 +257,7 @@ HRESULT CSigReader::WithGenericParams(
 
     IfFailGo(m_pMDI->EnumGenericParams(
         &hEnum,
-        m_Token,
+        token,
         genericParams,
         cGenericParams,
         &cGenericParams

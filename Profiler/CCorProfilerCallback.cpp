@@ -1,5 +1,6 @@
 #include "pch.h"
 #include "CCorProfilerCallback.h"
+#include "CSigReader.h"
 #include "Hooks\Hooks.h"
 #include <strsafe.h>
 
@@ -77,6 +78,8 @@ HRESULT CCorProfilerCallback::Initialize(IUnknown* pICorProfilerInfoUnk)
             ::Sleep(100);
     }    
 #endif
+
+    m_Detailed = GetBoolEnv("DEBUGTOOLS_DETAILED");
 
     HRESULT hr = S_OK;
 
@@ -206,7 +209,7 @@ UINT_PTR __stdcall CCorProfilerCallback::RecordFunction(FunctionID funcId, void*
     PCCOR_SIGNATURE pSigBlob = nullptr;
     ULONG cbSigBlob = 0;
 
-    BOOL detailed;
+    CSigMethodDef* method = nullptr;
 
     //Get the IMetaDataImport and mdMethodDef
     IfFailGo(pInfo->GetTokenAndMetaDataFromFunction(funcId, IID_IMetaDataImport, reinterpret_cast<IUnknown**>(&pMDI), &methodDef));
@@ -223,9 +226,7 @@ UINT_PTR __stdcall CCorProfilerCallback::RecordFunction(FunctionID funcId, void*
         goto Exit;
     }
 
-    detailed = GetBoolEnv("DEBUGTOOLS_DETAILED");
-
-    if (detailed)
+    if (g_pProfiler->m_Detailed)
     {
         //Get the method name, mdTypeDef and sigblob
         IfFailGo(pMDI->GetMethodProps(
@@ -240,6 +241,15 @@ UINT_PTR __stdcall CCorProfilerCallback::RecordFunction(FunctionID funcId, void*
             NULL,
             NULL
         ));
+
+        CSigReader reader(methodDef, pMDI, pSigBlob);
+
+        if (reader.ParseMethod(methodName, TRUE, (CSigMethod**)&method) == S_OK)
+        {
+            g_pProfiler->m_Mutex.lock();
+            g_pProfiler->m_MethodInfoMap[funcId] = method;
+            g_pProfiler->m_Mutex.unlock();
+        }
     }
     else
     {
@@ -263,7 +273,7 @@ UINT_PTR __stdcall CCorProfilerCallback::RecordFunction(FunctionID funcId, void*
 
     //Write the event
 
-    if (detailed)
+    if (g_pProfiler->m_Detailed)
         EventWriteMethodInfoDetailedEvent(funcId, methodName, typeName, moduleName, methodDef, cbSigBlob, pSigBlob);
     else
         EventWriteMethodInfoEvent(funcId, methodName, typeName, moduleName);
@@ -315,8 +325,8 @@ HRESULT CCorProfilerCallback::SetEventMask()
     DWORD flags = COR_PRF_MONITOR_ENTERLEAVE | COR_PRF_MONITOR_THREADS;
 
     //WithInfo hooks won't be called unless advanced event flags are set
-    if (false)
-        flags |= COR_PRF_ENABLE_FUNCTION_ARGS | COR_PRF_ENABLE_FUNCTION_RETVAL | COR_PRF_ENABLE_FRAME_INFO;
+    if (g_pProfiler->m_Detailed)
+        flags |= COR_PRF_ENABLE_FUNCTION_ARGS | COR_PRF_ENABLE_FUNCTION_RETVAL | COR_PRF_ENABLE_FRAME_INFO | COR_PRF_DISABLE_ALL_NGEN_IMAGES;
 
     return m_pInfo->SetEventMask(flags);
 }

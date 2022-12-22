@@ -69,6 +69,7 @@ HRESULT CSigType::New(
 
     case ELEMENT_TYPE_CLASS:
         pType = new CSigClassType(elementType, isByRef);
+        break;
 
     case ELEMENT_TYPE_VALUETYPE:
         pType = new CSigValueType(elementType, isByRef);
@@ -230,12 +231,13 @@ ErrExit:
     return hr;
 }
 
-HRESULT CSigType::GetMethodGenericArgName(
+HRESULT CSigType::GetGenericArgName(
     _In_ ULONG index,
+    _In_ mdToken token,
     _In_ CSigReader& reader,
     _Out_ LPWSTR* szName)
 {
-    return reader.WithGenericParams([index, szName, reader](mdGenericParam token, ULONG ulParamSeq, ULONG cchName, ULONG pchName, BOOL& found) -> BOOL
+    return reader.WithGenericParams(token, [index, szName, reader](mdGenericParam token, ULONG ulParamSeq, ULONG cchName, ULONG pchName, BOOL& found) -> BOOL
         {
             HRESULT hr = S_OK;
 
@@ -338,7 +340,7 @@ CSigFnPtrType::~CSigFnPtrType()
 
 HRESULT CSigFnPtrType::Initialize(CSigReader& reader)
 {
-    return reader.ParseMethod(false, &m_pMethod);
+    return reader.ParseMethod((LPWSTR)L"delegate*", false, &m_pMethod);
 }
 
 HRESULT CSigGenericType::Initialize(CSigReader& reader)
@@ -391,7 +393,7 @@ HRESULT CSigMethodGenericArgType::Initialize(CSigReader& reader)
 
     if (TypeFromToken(reader.m_Token) == mdtMethodDef)
     {
-        IfFailGo(GetMethodGenericArgName(m_Index, reader, &m_szName));
+        IfFailGo(GetGenericArgName(m_Index, reader.m_Token, reader, &m_szName));
     }
 
 ErrExit:
@@ -406,7 +408,22 @@ HRESULT CSigTypeGenericArgType::Initialize(CSigReader& reader)
 
     if (TypeFromToken(reader.m_Token) == mdtMethodDef)
     {
-        IfFailGo(GetMethodGenericArgName(m_Index, reader, &m_szName));
+        mdTypeDef pClass;
+
+        IfFailGo(reader.m_pMDI->GetMethodProps(
+            reader.m_Token,
+            &pClass,
+            NULL,
+            0,
+            NULL,
+            NULL,
+            NULL,
+            NULL,
+            NULL,
+            NULL
+        ));
+
+        IfFailGo(GetGenericArgName(m_Index, pClass, reader, &m_szName));
     }
 
 ErrExit:

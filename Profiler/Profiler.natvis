@@ -11,6 +11,210 @@ $split = $_ -split ' '
 }|clip
 -->
 <AutoVisualizer xmlns="http://schemas.microsoft.com/vstudio/debugger/natvis/2010">
+    <Type Name="CSigMethod">
+        <DisplayString Condition="m_NumParameters == 0">{*m_pRetType} {m_Name,sub}()</DisplayString>
+        <DisplayString Condition="m_NumParameters > 0">{*m_pRetType} {m_Name,sub}(...)</DisplayString>
+        <Expand>
+            <Item Name="m_Name">m_Name</Item>
+            <Item Name="m_CallingConv">m_CallingConv</Item>
+            <Item Name="m_pRetType">*m_pRetType</Item>
+            <Synthetic Name="m_Parameters">
+                <DisplayString>m_NumParameters = {m_NumParameters}</DisplayString>
+                <Expand>
+                    <IndexListItems>
+                        <Size>m_NumParameters</Size>
+                        <ValueNode>*m_Parameters[$i]</ValueNode>
+                    </IndexListItems>
+                </Expand>
+            </Synthetic>
+        </Expand>
+    </Type>
+    <Type Name="CSigMethodDef">
+        <DisplayString Condition="m_NumParameters == 0 &amp; m_GenericTypeArgNames == 0">{*m_pRetType} {m_Name,sub}()</DisplayString>
+        <DisplayString Condition="m_NumParameters == 0 &amp; m_GenericTypeArgNames > 0">{*m_pRetType} {m_Name,sub}&lt;{m_NumGenericTypeArgs,d}&gt;()</DisplayString>
+        <DisplayString Condition="m_NumParameters > 0 &amp; m_GenericTypeArgNames == 0">{*m_pRetType} {m_Name,sub}(...)</DisplayString>
+        <DisplayString Condition="m_NumParameters > 0 &amp; m_GenericTypeArgNames > 0">{*m_pRetType} {m_Name,sub}&lt;{m_NumGenericTypeArgs,d}&gt;(...)</DisplayString>
+        <Expand>
+            <Item Name="m_Name">m_Name</Item>
+            <Item Name="m_CallingConv">m_CallingConv</Item>
+            <Item Name="m_pRetType">*m_pRetType</Item>
+            <Synthetic Name="m_Parameters">
+                <DisplayString>m_NumParameters = {m_NumParameters}</DisplayString>
+                <Expand>
+                    <IndexListItems>
+                        <Size>m_NumParameters</Size>
+                        <ValueNode>*m_Parameters[$i]</ValueNode>
+                    </IndexListItems>
+                </Expand>
+            </Synthetic>
+            <Synthetic Name="m_GenericTypeArgNames">
+                <DisplayString>m_NumGenericTypeArgs = {m_NumGenericTypeArgs}</DisplayString>
+                <Expand>
+                    <IndexListItems>
+                        <Size>m_NumGenericTypeArgs</Size>
+                        <ValueNode>*m_GenericTypeArgNames[$i]</ValueNode>
+                    </IndexListItems>
+                </Expand>
+            </Synthetic>
+        </Expand>
+    </Type>
+    <Type Name="ISigParameter">
+        <DisplayString>{*m_pType,sub}</DisplayString>
+    </Type>
+    <Type Name="SigArgListParameter">
+        <DisplayString>__arglist</DisplayString>
+    </Type>
+    <Type Name="CSigType">
+        <DisplayString Condition="m_Type == 0x01">
+            void
+        </DisplayString>
+        <DisplayString Condition="m_Type == 0x02">
+            bool
+        </DisplayString>
+        <DisplayString Condition="m_Type == 0x03">
+            char
+        </DisplayString>
+        <DisplayString Condition="m_Type == 0x04">
+            sbyte
+        </DisplayString>
+        <DisplayString Condition="m_Type == 0x05">
+            byte
+        </DisplayString>
+        <DisplayString Condition="m_Type == 0x06">
+            short
+        </DisplayString>
+        <DisplayString Condition="m_Type == 0x07">
+            ushort
+        </DisplayString>
+        <DisplayString Condition="m_Type == 0x08">
+            int
+        </DisplayString>
+        <DisplayString Condition="m_Type == 0x09">
+            uint
+        </DisplayString>
+        <DisplayString Condition="m_Type == 0x0A">
+            long
+        </DisplayString>
+        <DisplayString Condition="m_Type == 0x0B">
+            ulong
+        </DisplayString>
+        <DisplayString Condition="m_Type == 0x0C">
+            float
+        </DisplayString>
+        <DisplayString Condition="m_Type == 0x0D">
+            double
+        </DisplayString>
+        <DisplayString Condition="m_Type == 0x0E">
+            string
+        </DisplayString>
+        <DisplayString Condition="m_Type == 0x18">
+            IntPtr
+        </DisplayString>
+        <DisplayString Condition="m_Type == 0x19">
+            UIntPtr
+        </DisplayString>
+        <DisplayString Condition="m_Type == 0x1C">
+            UIntPtr
+        </DisplayString>
+        <Expand>
+            <Item Name="m_Type">m_Type,en</Item>
+            <Item Name="m_IsByRef">m_IsByRef</Item>
+        </Expand>
+    </Type>
+    <Type Name="CSigArrayType">
+        <DisplayString>{*m_pElementType,sub}[]</DisplayString>
+
+        <Expand>
+            <Item Name="m_pElementType">m_pElementType</Item>
+            <Item Name="m_Type">m_Type,en</Item>
+            <Item Name="m_IsByRef">m_IsByRef</Item>
+        </Expand>
+    </Type>
+    <Type Name="CSigClassType">
+        <DisplayString>{m_szName,sub}</DisplayString>
+
+        <Expand>
+            <Item Name="m_szName">m_szName</Item>
+            <Item Name="m_Type">m_Type,en</Item>
+            <Item Name="m_IsByRef">m_IsByRef</Item>
+        </Expand>
+    </Type>
+    <Type Name="CSigValueType">
+        <DisplayString>{m_szName,sub}</DisplayString>
+
+        <Expand>
+            <Item Name="m_szName">m_szName</Item>
+            <Item Name="m_Type">m_Type,en</Item>
+            <Item Name="m_IsByRef">m_IsByRef</Item>
+        </Expand>
+    </Type>
+    <Type Name="CSigFnPtrType">
+        <DisplayString>{*m_pMethod}</DisplayString>
+
+        <Expand>
+            <Item Name="m_pMethod">m_pMethod</Item>
+            <Item Name="m_Type">m_Type,en</Item>
+            <Item Name="m_IsByRef">m_IsByRef</Item>
+        </Expand>
+    </Type>
+    <Type Name="CSigGenericType">
+        <DisplayString>{m_szGenericTypeDefinitionName,sub}</DisplayString>
+
+        <Expand>
+            <Item Name="m_szGenericTypeDefinitionName">m_szGenericTypeDefinitionName</Item>
+            <Item Name="m_Type">m_Type,en</Item>
+            <Item Name="m_IsByRef">m_IsByRef</Item>
+
+            <Synthetic Name="m_GenericArgs">
+                <DisplayString>m_NumGenericArgs = {m_NumGenericArgs}</DisplayString>
+                <Expand>
+                    <IndexListItems>
+                        <Size>m_NumGenericArgs</Size>
+                        <ValueNode>*m_GenericArgs[$i]</ValueNode>
+                    </IndexListItems>
+                </Expand>
+            </Synthetic>
+        </Expand>
+    </Type>
+    <Type Name="CSigMethodGenericArgType">
+        <DisplayString>{m_szName,sub}</DisplayString>
+
+        <Expand>
+            <Item Name="m_szName">m_szName</Item>
+            <Item Name="m_Index">m_Index</Item>
+            <Item Name="m_Type">m_Type,en</Item>
+            <Item Name="m_IsByRef">m_IsByRef</Item>
+        </Expand>
+    </Type>
+    <Type Name="CSigTypeGenericArgType">
+        <DisplayString>{m_szName,sub}</DisplayString>
+
+        <Expand>
+            <Item Name="m_szName">m_szName</Item>
+            <Item Name="m_Index">m_Index</Item>
+            <Item Name="m_Type">m_Type,en</Item>
+            <Item Name="m_IsByRef">m_IsByRef</Item>
+        </Expand>
+    </Type>
+    <Type Name="CSigPtrType">
+        <DisplayString>{*m_pPtrType}*</DisplayString>
+
+        <Expand>
+            <Item Name="m_pPtrType">m_pPtrType</Item>
+            <Item Name="m_Type">m_Type,en</Item>
+            <Item Name="m_IsByRef">m_IsByRef</Item>
+        </Expand>
+    </Type>
+    <Type Name="CSigSZArrayType">
+        <DisplayString>{*m_pElementType}[]</DisplayString>
+
+        <Expand>
+            <Item Name="m_pElementType">m_pElementType</Item>
+            <Item Name="m_Type">m_Type,en</Item>
+            <Item Name="m_IsByRef">m_IsByRef</Item>
+        </Expand>
+    </Type>
+
     <HResult Name="CEE_E_ENTRYPOINT">
         <HRValue>0x80131000</HRValue>
     </HResult>

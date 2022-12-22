@@ -7,11 +7,14 @@ class CSigMethod
 {
 public:
     CSigMethod(
+        LPWSTR name,
         CorCallingConvention callingConvention,
         CSigType* retType,
         ULONG numParameters,
         ISigParameter** parameters)
     {
+        m_Name = _wcsdup(name);
+
         m_CallingConv = callingConvention;
         m_pRetType = retType;
         m_NumParameters = numParameters;
@@ -20,6 +23,9 @@ public:
 
     ~CSigMethod()
     {
+        if (m_Name)
+            free(m_Name);
+
         if (m_pRetType)
             delete m_pRetType;
 
@@ -32,6 +38,7 @@ public:
         }
     }
 
+    LPWSTR m_Name;
     CorCallingConvention m_CallingConv;
     CSigType* m_pRetType;
 
@@ -44,12 +51,13 @@ class CSigMethodDef : public CSigMethod
 public:
     //todo: will this call the base ctor?
     CSigMethodDef(
+        LPWSTR name,
         CorCallingConvention callingConvention,
         CSigType* retType,
         ULONG numParameters,
         ISigParameter** parameters,
         ULONG numGenericArgNames,
-        LPWSTR* genericTypeArgNames) : CSigMethod(callingConvention, retType, numParameters, parameters)
+        LPWSTR* genericTypeArgNames) : CSigMethod(name, callingConvention, retType, numParameters, parameters)
     {
         m_NumGenericTypeArgs = numGenericArgNames;
         m_GenericTypeArgNames = genericTypeArgNames;
@@ -74,13 +82,14 @@ class CSigMethodRef : public CSigMethod
 {
 public:
     CSigMethodRef(
+        LPWSTR name,
         CorCallingConvention callingConvention,
         CSigType* retType,
         ULONG numParameters,
         ISigParameter** parameters,
         ULONG numVarArgParameters,
         ISigParameter** varargParameters
-    ) : CSigMethod(callingConvention, retType, numParameters, parameters)
+    ) : CSigMethod(name, callingConvention, retType, numParameters, parameters)
     {
         m_NumVarArgParameters = numVarArgParameters;
     }
