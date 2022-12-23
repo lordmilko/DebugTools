@@ -164,6 +164,7 @@ $split = $_ -split ' '
 
         <Expand>
             <Item Name="m_szName">m_szName</Item>
+            <Item Name="m_Token">m_Token</Item>
             <Item Name="m_Type">m_Type,en</Item>
             <Item Name="m_IsByRef">m_IsByRef</Item>
         </Expand>
@@ -173,6 +174,7 @@ $split = $_ -split ' '
 
         <Expand>
             <Item Name="m_szName">m_szName</Item>
+            <Item Name="m_Token">m_Token</Item>
             <Item Name="m_Type">m_Type,en</Item>
             <Item Name="m_IsByRef">m_IsByRef</Item>
         </Expand>
@@ -251,6 +253,7 @@ $split = $_ -split ' '
                 <DisplayString>m_NumFields = {m_NumFields}</DisplayString>
                 <Expand>
                     <Item Name="m_szName">m_szName</Item>
+                    <Item Name="m_TypeDef">m_TypeDef</Item>
 
                     <IndexListItems>
                         <Size>m_NumFields</Size>

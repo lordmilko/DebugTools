@@ -1,14 +1,39 @@
-﻿using System.IO;
+﻿using System.Collections.Generic;
+using System.IO;
+using System.Text;
 
 namespace DebugTools.Profiler
 {
-    class ValueType : IValue<object>
+    public class ValueType : IValue<object>
     {
+        public string Name { get; }
+
         public object Value { get; }
 
-        public ValueType(BinaryReader reader)
+        public List<object> FieldValues { get; }
+
+        public ValueType(BinaryReader reader, ValueSerializer serializer)
         {
-            throw new System.NotImplementedException();
+            Value = this;
+
+            var length = reader.ReadInt32();
+            var nameBytes = reader.ReadBytes(length * 2);
+            Name = Encoding.Unicode.GetString(nameBytes, 0, (length - 1) * 2);
+
+            var numFields = reader.ReadInt32();
+
+            if (numFields > 0)
+            {
+                FieldValues = new List<object>();
+
+                for (var i = 0; i < numFields; i++)
+                    FieldValues.Add(serializer.ReadValue());
+            }
+        }
+
+        public override string ToString()
+        {
+            return Name;
         }
     }
 }

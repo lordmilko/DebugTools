@@ -18,9 +18,10 @@ public:
 class CClassInfo : public IClassInfo
 {
 public:
-    CClassInfo(LPWSTR szName, ULONG numFields, CSigField** fields, COR_FIELD_OFFSET* fieldOffsets) : IClassInfo(FALSE)
+    CClassInfo(LPWSTR szName, mdTypeDef typeDef, ULONG numFields, CSigField** fields, COR_FIELD_OFFSET* fieldOffsets) : IClassInfo(FALSE)
     {
         m_szName = _wcsdup(szName);
+        m_TypeDef = typeDef;
         m_NumFields = numFields;
         m_Fields = fields;
         m_FieldOffsets = fieldOffsets;
@@ -44,6 +45,7 @@ public:
     }
 
     LPWSTR m_szName;
+    mdTypeDef m_TypeDef;
     ULONG m_NumFields;
     CSigField** m_Fields;
     COR_FIELD_OFFSET* m_FieldOffsets;

@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Linq;
 using ClrDebug;
 using DebugTools.Profiler;
@@ -87,6 +88,45 @@ namespace Profiler.Tests
 
                 Assert.AreEqual(classNames[i], valueObj.Name);
             }
+        }
+
+        public void HasClassType(string name)
+        {
+            var detailed = (MethodFrameDetailed)frame;
+
+            var serializer = new ValueSerializer(detailed.Value);
+
+            var parameters = serializer.Parameters;
+
+            Assert.AreEqual(1, parameters.Count, "Expected number of parameters was incorrect");
+
+            var classObj = (ClassValue)parameters[0];
+
+            Assert.AreEqual(name, classObj.Name);
+        }
+
+        public void HasFieldValue<T>(T value)
+        {
+            var detailed = (MethodFrameDetailed)frame;
+
+            var serializer = new ValueSerializer(detailed.Value);
+
+            var parameters = serializer.Parameters;
+
+            Assert.AreEqual(1, parameters.Count, "Expected number of parameters was incorrect");
+
+            List<object> fields;
+
+            if (parameters[0] is ClassValue)
+                fields = ((ClassValue) parameters[0]).FieldValues;
+            else
+                fields = ((ValueType)parameters[0]).FieldValues;
+
+            Assert.AreEqual(1, fields.Count, "Expected number of fields was incorrect");
+
+            var valueObj = (IValue<T>) fields[0];
+
+            Assert.AreEqual(value, valueObj.Value);
         }
     }
 }

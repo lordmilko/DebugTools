@@ -1,8 +1,10 @@
 #pragma once
 
 class CSigMethodDef;
+class CSigType;
 class ISigParameter;
 class IClassInfo;
+class CClassInfo;
 
 #undef GetClassInfo
 
@@ -53,37 +55,45 @@ public:
 private:
     HRESULT TraceParameters(COR_PRF_FUNCTION_ARGUMENT_INFO* argumentInfo, CSigMethodDef* pMethod);
     HRESULT TraceParameter(COR_PRF_FUNCTION_ARGUMENT_RANGE* range, ISigParameter* pParameter);
-    HRESULT TraceValue(_In_ UINT_PTR startAddress, _Out_ ULONG& bytesRead, CorElementType elementType);
 
-    HRESULT TraceBool(_In_ UINT_PTR startAddress, _Out_ ULONG& bytesRead);
-    HRESULT TraceChar(_In_ UINT_PTR startAddress, _Out_ ULONG& bytesRead);
-    HRESULT TraceSByte(_In_ UINT_PTR startAddress, _Out_ ULONG& bytesRead);
-    HRESULT TraceByte(_In_ UINT_PTR startAddress, _Out_ ULONG& bytesRead);
-    HRESULT TraceShort(_In_ UINT_PTR startAddress, _Out_ ULONG& bytesRead);
-    HRESULT TraceUShort(_In_ UINT_PTR startAddress, _Out_ ULONG& bytesRead);
-    HRESULT TraceInt(_In_ UINT_PTR startAddress, _Out_ ULONG& bytesRead);
-    HRESULT TraceUInt(_In_ UINT_PTR startAddress, _Out_ ULONG& bytesRead);
-    HRESULT TraceLong(_In_ UINT_PTR startAddress, _Out_ ULONG& bytesRead);
-    HRESULT TraceULong(_In_ UINT_PTR startAddress, _Out_ ULONG& bytesRead);
-    HRESULT TraceFloat(_In_ UINT_PTR startAddress, _Out_ ULONG& bytesRead);
-    HRESULT TraceDouble(_In_ UINT_PTR startAddress, _Out_ ULONG& bytesRead);
-    HRESULT TraceIntPtr(_In_ UINT_PTR startAddress, _Out_ ULONG& bytesRead);
-    HRESULT TraceUIntPtr(_In_ UINT_PTR startAddress, _Out_ ULONG& bytesRead);
+    HRESULT TraceValue(
+        _In_ UINT_PTR startAddress,
+        _In_ CorElementType elementType,
+        _In_ mdToken typeToken,
+        _Out_opt_ ULONG& bytesRead);
 
-    HRESULT TraceString(_In_ UINT_PTR startAddress, _Out_ ULONG& bytesRead);
-    HRESULT TraceClass(_In_ UINT_PTR startAddress, _Out_ ULONG& bytesRead);
-    HRESULT TraceArray(_In_ UINT_PTR startAddress, _Out_ ULONG& bytesRead);
-    HRESULT TraceGenericType(_In_ UINT_PTR startAddress, _Out_ ULONG& bytesRead);
-    HRESULT TraceObject(_In_ UINT_PTR startAddress, _Out_ ULONG& bytesRead);
-    HRESULT TraceSZArray(_In_ UINT_PTR startAddress, _Out_ ULONG& bytesRead);
+    HRESULT TraceBool(_In_ UINT_PTR startAddress, _Out_opt_ ULONG& bytesRead);
+    HRESULT TraceChar(_In_ UINT_PTR startAddress, _Out_opt_ ULONG& bytesRead);
+    HRESULT TraceSByte(_In_ UINT_PTR startAddress, _Out_opt_ ULONG& bytesRead);
+    HRESULT TraceByte(_In_ UINT_PTR startAddress, _Out_opt_ ULONG& bytesRead);
+    HRESULT TraceShort(_In_ UINT_PTR startAddress, _Out_opt_ ULONG& bytesRead);
+    HRESULT TraceUShort(_In_ UINT_PTR startAddress, _Out_opt_ ULONG& bytesRead);
+    HRESULT TraceInt(_In_ UINT_PTR startAddress, _Out_opt_ ULONG& bytesRead);
+    HRESULT TraceUInt(_In_ UINT_PTR startAddress, _Out_opt_ ULONG& bytesRead);
+    HRESULT TraceLong(_In_ UINT_PTR startAddress, _Out_opt_ ULONG& bytesRead);
+    HRESULT TraceULong(_In_ UINT_PTR startAddress, _Out_opt_ ULONG& bytesRead);
+    HRESULT TraceFloat(_In_ UINT_PTR startAddress, _Out_opt_ ULONG& bytesRead);
+    HRESULT TraceDouble(_In_ UINT_PTR startAddress, _Out_opt_ ULONG& bytesRead);
+    HRESULT TraceIntPtr(_In_ UINT_PTR startAddress, _Out_opt_ ULONG& bytesRead);
+    HRESULT TraceUIntPtr(_In_ UINT_PTR startAddress, _Out_opt_ ULONG& bytesRead);
 
-    HRESULT TraceValueType(_In_ UINT_PTR startAddress, _Out_ ULONG& bytesRead);
-    HRESULT TraceTypeGenericType(_In_ UINT_PTR startAddress, _Out_ ULONG& bytesRead);
-    HRESULT TraceMethodGenericType(_In_ UINT_PTR startAddress, _Out_ ULONG& bytesRead);
-    HRESULT TracePtrType(_In_ UINT_PTR startAddress, _Out_ ULONG& bytesRead);
-    HRESULT TraceFnPtr(_In_ UINT_PTR startAddress, _Out_ ULONG& bytesRead);
+    HRESULT TraceString(_In_ UINT_PTR startAddress, _Out_opt_ ULONG& bytesRead);
+    HRESULT TraceClass(_In_ UINT_PTR startAddress, _Out_opt_ ULONG& bytesRead);
+    HRESULT TraceArray(_In_ UINT_PTR startAddress, _Out_opt_ ULONG& bytesRead);
+    HRESULT TraceGenericType(_In_ UINT_PTR startAddress, _Out_opt_ ULONG& bytesRead);
+    HRESULT TraceObject(_In_ UINT_PTR startAddress, _Out_opt_ ULONG& bytesRead);
+    HRESULT TraceSZArray(_In_ UINT_PTR startAddress, _Out_opt_ ULONG& bytesRead);
+
+    HRESULT TraceValueType(_In_ UINT_PTR startAddress, _In_ mdToken typeToken, _Out_opt_ ULONG& bytesRead);
+    HRESULT TraceTypeGenericType(_In_ UINT_PTR startAddress, _Out_opt_ ULONG& bytesRead);
+    HRESULT TraceMethodGenericType(_In_ UINT_PTR startAddress, _Out_opt_ ULONG& bytesRead);
+    HRESULT TracePtrType(_In_ UINT_PTR startAddress, _Out_opt_ ULONG& bytesRead);
+    HRESULT TraceFnPtr(_In_ UINT_PTR startAddress, _Out_opt_ ULONG& bytesRead);
+
+    HRESULT TraceClassOrStruct(CClassInfo* pClassInfo, ObjectID objectId, CorElementType elementType);
 
     HRESULT GetClassInfo(ClassID classId, IClassInfo** ppClassInfo);
+    mdToken GetTypeToken(CSigType* pType);
 
     ICorProfilerInfo3* m_pInfo;
 

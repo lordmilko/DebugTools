@@ -89,7 +89,7 @@ namespace DebugTools.Profiler
                     return new SZArrayValue(reader, this);
 
                 case CorElementType.ValueType:
-                    return new ValueType(reader);
+                    return new ValueType(reader, this);
 
                 default:
                     throw new NotImplementedException($"Don't know how to handle element of type '{type}'.");

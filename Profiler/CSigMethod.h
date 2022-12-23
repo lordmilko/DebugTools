@@ -57,7 +57,8 @@ public:
         ULONG numParameters,
         ISigParameter** parameters,
         ULONG numGenericArgNames,
-        LPWSTR* genericTypeArgNames) : CSigMethod(szName, callingConvention, retType, numParameters, parameters)
+        LPWSTR* genericTypeArgNames) : CSigMethod(szName, callingConvention, retType, numParameters, parameters),
+        m_ModuleID(0)
     {
         m_NumGenericTypeArgs = numGenericArgNames;
         m_GenericTypeArgNames = genericTypeArgNames;
@@ -76,6 +77,8 @@ public:
 
     ULONG m_NumGenericTypeArgs;
     LPWSTR* m_GenericTypeArgNames;
+
+    ModuleID m_ModuleID;
 };
 
 class CSigMethodRef : public CSigMethod
@@ -92,6 +95,7 @@ public:
     ) : CSigMethod(szName, callingConvention, retType, numParameters, parameters)
     {
         m_NumVarArgParameters = numVarArgParameters;
+        m_VarArgParameters = varargParameters;
     }
 
     ~CSigMethodRef()

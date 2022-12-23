@@ -96,11 +96,51 @@ namespace DebugTools.TestHost
         {
         }
 
+        public void ClassArg(Class1 a)
+        {
+        }
+
+        public void ClassWithFieldArg(Class1WithField a)
+        {
+        }
+
+        public void ClassWithPropertyArg(Class1WithProperty a)
+        {
+        }
+
+        public void ClassArrayArg(Class1[] a)
+        {
+        }
+
+        public void EmptyClassArrayArg(Class1[] a)
+        {
+        }
+
         public void ObjectArrayArg(object[] a)
         {
         }
 
         public void EmptyObjectArrayArg(object[] a)
+        {
+        }
+
+        public void ValueTypeArrayArg(int[] a)
+        {
+        }
+
+        public void EmptyValueTypeArrayArg(int[] a)
+        {
+        }
+
+        public void StructArg(Struct1 a)
+        {
+        }
+
+        public void StructWithFieldArg(Struct1WithField a)
+        {
+        }
+
+        public void StructWithPropertyArg(Struct1WithProperty a)
         {
         }
 

@@ -7,7 +7,8 @@
 
 thread_local std::unordered_map<UINT_PTR, int> g_SeenMap;
 thread_local BYTE g_ValueBuffer[VALUE_BUFFER_SIZE];
-thread_local long g_ValueBufferPosition = 0;
+thread_local ULONG g_ValueBufferPosition = 0;
+thread_local ModuleID g_ModuleID;
 
 HRESULT CValueTracer::Initialize()
 {
@@ -43,6 +44,8 @@ HRESULT CValueTracer::EnterWithInfo(FunctionIDOrClientID functionId, COR_PRF_ELT
 
     if (!pMethod)
         return E_FAIL;
+
+    g_ModuleID = pMethod->m_ModuleID;
 
     if (pMethod->m_NumParameters == 0)
     {
@@ -142,8 +145,12 @@ HRESULT CValueTracer::TraceParameter(COR_PRF_FUNCTION_ARGUMENT_RANGE* range, ISi
     UINT_PTR pAddress = pParameter->m_pType->m_IsByRef ? *(UINT_PTR*)range->startAddress : range->startAddress;
 
     ULONG bytesRead = 0;
+    
+    CSigType* pType = pParameter->m_pType;
 
-    IfFailGo(TraceValue(pAddress, bytesRead, pParameter->m_pType->m_Type));
+    mdToken typeToken = GetTypeToken(pType);
+
+    IfFailGo(TraceValue(pAddress, pType->m_Type, typeToken, bytesRead));
 
 ErrExit:
     return hr;
@@ -151,10 +158,11 @@ ErrExit:
 
 HRESULT CValueTracer::TraceValue(
     _In_ UINT_PTR startAddress,
-    _Out_ ULONG& bytesRead,
-    CorElementType elementType)
+    _In_ CorElementType elementType,
+    _In_ mdToken typeToken,
+    _Out_opt_ ULONG& bytesRead)
 {
-    if (g_SeenMap[startAddress])
+    if (g_SeenMap[startAddress] && elementType == ELEMENT_TYPE_CLASS)
         return S_OK;
 
     g_SeenMap[startAddress] = 1;
@@ -231,7 +239,7 @@ HRESULT CValueTracer::TraceValue(
     #pragma endregion
 
     case ELEMENT_TYPE_VALUETYPE:
-        return TraceValueType(startAddress, bytesRead);
+        return TraceValueType(startAddress, typeToken, bytesRead);
 
     case ELEMENT_TYPE_VAR:
         return TraceTypeGenericType(startAddress, bytesRead);
@@ -267,7 +275,7 @@ HRESULT CValueTracer::TraceValue(
 
 #pragma region Primitives
 
-HRESULT CValueTracer::TraceBool(_In_ UINT_PTR startAddress, _Out_ ULONG& bytesRead)
+HRESULT CValueTracer::TraceBool(_In_ UINT_PTR startAddress, _Out_opt_ ULONG& bytesRead)
 {
     HRESULT hr = S_OK;
 
@@ -280,7 +288,7 @@ ErrExit:
     return hr;
 }
 
-HRESULT CValueTracer::TraceChar(_In_ UINT_PTR startAddress, _Out_ ULONG& bytesRead)
+HRESULT CValueTracer::TraceChar(_In_ UINT_PTR startAddress, _Out_opt_ ULONG& bytesRead)
 {
     HRESULT hr = S_OK;
 
@@ -293,7 +301,7 @@ ErrExit:
     return hr;
 }
 
-HRESULT CValueTracer::TraceSByte(_In_ UINT_PTR startAddress, _Out_ ULONG& bytesRead)
+HRESULT CValueTracer::TraceSByte(_In_ UINT_PTR startAddress, _Out_opt_ ULONG& bytesRead)
 {
     HRESULT hr = S_OK;
 
@@ -306,7 +314,7 @@ ErrExit:
     return hr;
 }
 
-HRESULT CValueTracer::TraceByte(_In_ UINT_PTR startAddress, _Out_ ULONG& bytesRead)
+HRESULT CValueTracer::TraceByte(_In_ UINT_PTR startAddress, _Out_opt_ ULONG& bytesRead)
 {
     HRESULT hr = S_OK;
 
@@ -319,7 +327,7 @@ ErrExit:
     return hr;
 }
 
-HRESULT CValueTracer::TraceShort(_In_ UINT_PTR startAddress, _Out_ ULONG& bytesRead)
+HRESULT CValueTracer::TraceShort(_In_ UINT_PTR startAddress, _Out_opt_ ULONG& bytesRead)
 {
     HRESULT hr = S_OK;
 
@@ -332,7 +340,7 @@ ErrExit:
     return hr;
 }
 
-HRESULT CValueTracer::TraceUShort(_In_ UINT_PTR startAddress, _Out_ ULONG& bytesRead)
+HRESULT CValueTracer::TraceUShort(_In_ UINT_PTR startAddress, _Out_opt_ ULONG& bytesRead)
 {
     HRESULT hr = S_OK;
 
@@ -345,7 +353,7 @@ ErrExit:
     return hr;
 }
 
-HRESULT CValueTracer::TraceInt(_In_ UINT_PTR startAddress, _Out_ ULONG& bytesRead)
+HRESULT CValueTracer::TraceInt(_In_ UINT_PTR startAddress, _Out_opt_ ULONG& bytesRead)
 {
     HRESULT hr = S_OK;
 
@@ -358,7 +366,7 @@ ErrExit:
     return hr;
 }
 
-HRESULT CValueTracer::TraceUInt(_In_ UINT_PTR startAddress, _Out_ ULONG& bytesRead)
+HRESULT CValueTracer::TraceUInt(_In_ UINT_PTR startAddress, _Out_opt_ ULONG& bytesRead)
 {
     HRESULT hr = S_OK;
 
@@ -371,7 +379,7 @@ ErrExit:
     return hr;
 }
 
-HRESULT CValueTracer::TraceLong(_In_ UINT_PTR startAddress, _Out_ ULONG& bytesRead)
+HRESULT CValueTracer::TraceLong(_In_ UINT_PTR startAddress, _Out_opt_ ULONG& bytesRead)
 {
     HRESULT hr = S_OK;
 
@@ -384,7 +392,7 @@ ErrExit:
     return hr;
 }
 
-HRESULT CValueTracer::TraceULong(_In_ UINT_PTR startAddress, _Out_ ULONG& bytesRead)
+HRESULT CValueTracer::TraceULong(_In_ UINT_PTR startAddress, _Out_opt_ ULONG& bytesRead)
 {
     HRESULT hr = S_OK;
 
@@ -397,7 +405,7 @@ ErrExit:
     return hr;
 }
 
-HRESULT CValueTracer::TraceFloat(_In_ UINT_PTR startAddress, _Out_ ULONG& bytesRead)
+HRESULT CValueTracer::TraceFloat(_In_ UINT_PTR startAddress, _Out_opt_ ULONG& bytesRead)
 {
     HRESULT hr = S_OK;
 
@@ -410,7 +418,7 @@ ErrExit:
     return hr;
 }
 
-HRESULT CValueTracer::TraceDouble(_In_ UINT_PTR startAddress, _Out_ ULONG& bytesRead)
+HRESULT CValueTracer::TraceDouble(_In_ UINT_PTR startAddress, _Out_opt_ ULONG& bytesRead)
 {
     HRESULT hr = S_OK;
 
@@ -423,7 +431,7 @@ ErrExit:
     return hr;
 }
 
-HRESULT CValueTracer::TraceIntPtr(_In_ UINT_PTR startAddress, _Out_ ULONG& bytesRead)
+HRESULT CValueTracer::TraceIntPtr(_In_ UINT_PTR startAddress, _Out_opt_ ULONG& bytesRead)
 {
     HRESULT hr = S_OK;
 
@@ -436,7 +444,7 @@ ErrExit:
     return hr;
 }
 
-HRESULT CValueTracer::TraceUIntPtr(_In_ UINT_PTR startAddress, _Out_ ULONG& bytesRead)
+HRESULT CValueTracer::TraceUIntPtr(_In_ UINT_PTR startAddress, _Out_opt_ ULONG& bytesRead)
 {
     HRESULT hr = S_OK;
 
@@ -452,7 +460,7 @@ ErrExit:
 #pragma endregion
 #pragma region ObjectID
 
-HRESULT CValueTracer::TraceString(_In_ UINT_PTR startAddress, _Out_ ULONG& bytesRead)
+HRESULT CValueTracer::TraceString(_In_ UINT_PTR startAddress, _Out_opt_ ULONG& bytesRead)
 {
     HRESULT hr = S_OK;
 
@@ -486,7 +494,7 @@ ErrExit:
     return S_OK;
 }
 
-HRESULT CValueTracer::TraceClass(_In_ UINT_PTR startAddress, _Out_ ULONG& bytesRead)
+HRESULT CValueTracer::TraceClass(_In_ UINT_PTR startAddress, _Out_opt_ ULONG& bytesRead)
 {
     //https://chnasarre.medium.com/accessing-arrays-and-class-fields-with-net-profiling-apis-d5ff21114a5d
     //https://github.com/wickyhu/simple-assembly-explorer/blob/8686fe5b82194b091dcfef4d29e78775591258a8/SimpleProfiler/ProfilerCallback.cpp
@@ -513,7 +521,12 @@ HRESULT CValueTracer::TraceClass(_In_ UINT_PTR startAddress, _Out_ ULONG& bytesR
     {
         CArrayInfo* pArrayInfo = (CArrayInfo*)info;
 
-        return E_NOTIMPL;
+        if (pArrayInfo->m_Rank == 1)
+            IfFailGo(TraceSZArray(startAddress, bytesRead));
+        else
+            IfFailGo(TraceArray(startAddress, bytesRead));
+
+        goto ErrExit;
     }
     else
     {
@@ -525,27 +538,7 @@ HRESULT CValueTracer::TraceClass(_In_ UINT_PTR startAddress, _Out_ ULONG& bytesR
 
         CClassInfo* pClassInfo = (CClassInfo*)info;
 
-        WriteType(ELEMENT_TYPE_CLASS);
-
-        ULONG nameLength = wcslen(pClassInfo->m_szName) + 1;
-
-        WriteValue(&nameLength, 4);
-        WriteValue(pClassInfo->m_szName, nameLength * sizeof(WCHAR));
-        WriteValue(L"\0", sizeof(WCHAR));
-
-        WriteValue(&pClassInfo->m_NumFields, 4);
-
-        ULONG classBytesRead = 0;
-
-        for (ULONG i = 0; i < pClassInfo->m_NumFields; i++)
-        {
-            COR_FIELD_OFFSET offset = pClassInfo->m_FieldOffsets[i];
-            CSigField* field = pClassInfo->m_Fields[i];
-
-            UINT_PTR fieldAddress = objectId + offset.ulOffset;
-
-            IfFailGo(TraceValue(fieldAddress, classBytesRead, field->m_pType->m_Type));
-        }
+        IfFailGo(TraceClassOrStruct(pClassInfo, objectId, ELEMENT_TYPE_CLASS));
     }
 
     bytesRead += sizeof(void*);
@@ -554,7 +547,7 @@ ErrExit:
     return hr;
 }
 
-HRESULT CValueTracer::TraceArray(_In_ UINT_PTR startAddress, _Out_ ULONG& bytesRead)
+HRESULT CValueTracer::TraceArray(_In_ UINT_PTR startAddress, _Out_opt_ ULONG& bytesRead)
 {
     HRESULT hr = S_OK;
 
@@ -562,7 +555,7 @@ ErrExit:
     return hr;
 }
 
-HRESULT CValueTracer::TraceGenericType(_In_ UINT_PTR startAddress, _Out_ ULONG& bytesRead)
+HRESULT CValueTracer::TraceGenericType(_In_ UINT_PTR startAddress, _Out_opt_ ULONG& bytesRead)
 {
     HRESULT hr = S_OK;
 
@@ -570,7 +563,7 @@ ErrExit:
     return hr;
 }
 
-HRESULT CValueTracer::TraceObject(_In_ UINT_PTR startAddress, _Out_ ULONG& bytesRead)
+HRESULT CValueTracer::TraceObject(_In_ UINT_PTR startAddress, _Out_opt_ ULONG& bytesRead)
 {
     HRESULT hr = S_OK;
 
@@ -578,7 +571,7 @@ ErrExit:
     return hr;
 }
 
-HRESULT CValueTracer::TraceSZArray(_In_ UINT_PTR startAddress, _Out_ ULONG& bytesRead)
+HRESULT CValueTracer::TraceSZArray(_In_ UINT_PTR startAddress, _Out_opt_ ULONG& bytesRead)
 {
     HRESULT hr = S_OK;
 
@@ -606,7 +599,12 @@ HRESULT CValueTracer::TraceSZArray(_In_ UINT_PTR startAddress, _Out_ ULONG& byte
 
     for(ULONG i = 0; i < arrayLength; i++)
     {
-        IfFailGo(TraceValue((UINT_PTR)(pData + arrBytesRead), arrBytesRead, info->m_CorElementType));
+        //todo: we dont have a csigtype here...do we need one in order to be able to pass a token to tracevaluetype?
+        IfFailGo(TraceValue(
+            (UINT_PTR)(pData + arrBytesRead),
+            info->m_CorElementType,
+            ((CClassInfo*) info->m_pElementType)->m_TypeDef, //todo: can we have a carrayinfo inside another carrayinfo?
+        arrBytesRead));
     }
 
     bytesRead += sizeof(void*);
@@ -617,17 +615,43 @@ ErrExit:
 
 #pragma endregion
 
-HRESULT CValueTracer::TraceValueType(_In_ UINT_PTR startAddress, _Out_ ULONG& bytesRead)
+HRESULT CValueTracer::TraceValueType(
+    _In_ UINT_PTR startAddress,
+    _In_ mdToken typeToken,
+    _Out_opt_ ULONG& bytesRead)
 {
+    //todo: apparently resolving value types from another assembly is very complicated https://github.com/wickyhu/simple-assembly-explorer/blob/master/SimpleProfiler/ProfilerCallback.cpp
+    //lets test with datetime
+
     HRESULT hr = S_OK;
 
-    WriteType(ELEMENT_TYPE_VALUETYPE);
+    CorTokenType tokenType = (CorTokenType) TypeFromToken(typeToken);
+
+    if (tokenType == mdtTypeDef)
+    {
+        ClassID classId;
+        CClassInfo* pClassInfo;
+
+        IfFailGo(m_pInfo->GetClassFromToken(g_ModuleID, typeToken, &classId));
+
+        IfFailGo(GetClassInfo(classId, (IClassInfo**)&pClassInfo));
+
+        ObjectID objectId = startAddress;
+
+        IfFailGo(TraceClassOrStruct(pClassInfo, objectId, ELEMENT_TYPE_VALUETYPE));
+    }
+    else if (tokenType == mdtTypeRef)
+    {
+        hr = E_NOTIMPL;
+    }
+    else
+        hr = E_NOTIMPL;
 
 ErrExit:
     return hr;
 }
 
-HRESULT CValueTracer::TraceTypeGenericType(_In_ UINT_PTR startAddress, _Out_ ULONG& bytesRead)
+HRESULT CValueTracer::TraceTypeGenericType(_In_ UINT_PTR startAddress, _Out_opt_ ULONG& bytesRead)
 {
     HRESULT hr = S_OK;
 
@@ -635,7 +659,7 @@ ErrExit:
     return hr;
 }
 
-HRESULT CValueTracer::TraceMethodGenericType(_In_ UINT_PTR startAddress, _Out_ ULONG& bytesRead)
+HRESULT CValueTracer::TraceMethodGenericType(_In_ UINT_PTR startAddress, _Out_opt_ ULONG& bytesRead)
 {
     HRESULT hr = S_OK;
 
@@ -643,7 +667,7 @@ ErrExit:
     return hr;
 }
 
-HRESULT CValueTracer::TracePtrType(_In_ UINT_PTR startAddress, _Out_ ULONG& bytesRead)
+HRESULT CValueTracer::TracePtrType(_In_ UINT_PTR startAddress, _Out_opt_ ULONG& bytesRead)
 {
     HRESULT hr = S_OK;
 
@@ -651,9 +675,39 @@ ErrExit:
     return hr;
 }
 
-HRESULT CValueTracer::TraceFnPtr(_In_ UINT_PTR startAddress, _Out_ ULONG& bytesRead)
+HRESULT CValueTracer::TraceFnPtr(_In_ UINT_PTR startAddress, _Out_opt_ ULONG& bytesRead)
 {
     HRESULT hr = S_OK;
+
+ErrExit:
+    return hr;
+}
+
+HRESULT CValueTracer::TraceClassOrStruct(CClassInfo* pClassInfo, ObjectID objectId, CorElementType elementType)
+{
+    HRESULT hr = S_OK;
+    ULONG nameLength;
+    ULONG classBytesRead = 0;
+
+    WriteType(elementType);
+
+    nameLength = (ULONG)wcslen(pClassInfo->m_szName) + 1;
+
+    WriteValue(&nameLength, 4);
+    WriteValue(pClassInfo->m_szName, (nameLength - 1) * sizeof(WCHAR));
+    WriteValue(L"\0", sizeof(WCHAR));
+
+    WriteValue(&pClassInfo->m_NumFields, 4);
+
+    for (ULONG i = 0; i < pClassInfo->m_NumFields; i++)
+    {
+        COR_FIELD_OFFSET offset = pClassInfo->m_FieldOffsets[i];
+        CSigField* field = pClassInfo->m_Fields[i];
+
+        UINT_PTR fieldAddress = objectId + offset.ulOffset;
+
+        IfFailGo(TraceValue(fieldAddress, field->m_pType->m_Type, GetTypeToken(field->m_pType), classBytesRead));
+    }
 
 ErrExit:
     return hr;
@@ -688,4 +742,23 @@ ErrExit:
         *ppClassInfo = info;
 
     return hr;
+}
+
+mdToken CValueTracer::GetTypeToken(CSigType* pType)
+{
+    mdToken typeToken = mdTokenNil;
+
+    switch (pType->m_Type)
+    {
+    case ELEMENT_TYPE_CLASS:
+        typeToken = ((CSigClassType*)pType)->m_Token;
+        break;
+    case ELEMENT_TYPE_VALUETYPE:
+        typeToken = ((CSigValueType*)pType)->m_Token;
+        break;
+    default:
+        break;
+    }
+
+    return typeToken;
 }

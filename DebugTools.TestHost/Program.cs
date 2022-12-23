@@ -149,12 +149,52 @@ namespace DebugTools.TestHost
                     instance.ObjectArrayContainingStringArg(new object[] { "a" });
                     break;
 
+                case ValueTestType.ClassArg:
+                    instance.ClassArg(new Class1());
+                    break;
+
+                case ValueTestType.ClassWithFieldArg:
+                    instance.ClassWithFieldArg(new Class1WithField{field1 = 1});
+                    break;
+
+                case ValueTestType.ClassWithPropertyArg:
+                    instance.ClassWithPropertyArg(new Class1WithProperty{Property1 = 1});
+                    break;
+
+                case ValueTestType.ClassArrayArg:
+                    instance.ClassArrayArg(new Class1[]{new Class1(), new Class1()});
+                    break;
+
+                case ValueTestType.EmptyClassArrayArg:
+                    instance.EmptyClassArrayArg(new Class1[0]);
+                    break;
+
                 case ValueTestType.ObjectArrayArg:
                     instance.ObjectArrayArg(new[] { new object() });
                     break;
 
                 case ValueTestType.EmptyObjectArrayArg:
                     instance.EmptyObjectArrayArg(new object[0]);
+                    break;
+
+                case ValueTestType.ValueTypeArrayArg:
+                    instance.ValueTypeArrayArg(new int[] {1, 2});
+                    break;
+
+                case ValueTestType.EmptyValueTypeArrayArg:
+                    instance.EmptyValueTypeArrayArg(new int[0]);
+                    break;
+
+                case ValueTestType.StructArg:
+                    instance.StructArg(new Struct1());
+                    break;
+
+                case ValueTestType.StructWithFieldArg:
+                    instance.StructWithFieldArg(new Struct1WithField {field1 = 1});
+                    break;
+
+                case ValueTestType.StructWithPropertyArg:
+                    instance.StructWithPropertyArg(new Struct1WithProperty {Property1 = 1});
                     break;
 
                 default:

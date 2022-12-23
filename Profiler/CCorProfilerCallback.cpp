@@ -530,7 +530,7 @@ HRESULT CCorProfilerCallback::GetClassInfo(
             }
         }
 
-        pClassInfo = new CClassInfo(typeName, cFieldOffset, fields, rFieldOffset);
+        pClassInfo = new CClassInfo(typeName, typeDef, cFieldOffset, fields, rFieldOffset);
     }
 
 ErrExit:
