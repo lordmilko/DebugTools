@@ -21,6 +21,8 @@ namespace Profiler.Tests
 
                 wait.WaitOne();
 
+                session.ThrowOnError();
+
                 var threadStacks = session.ThreadCache.Values.ToArray();
                 var methods = session.Methods.Values.ToArray();
 

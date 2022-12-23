@@ -42,6 +42,8 @@ namespace DebugTools.Profiler
         private DateTime lastEvent;
         private Thread cancelThread;
 
+        private Exception threadProcException;
+
         public ThreadStack[] LastTrace { get; private set; }
 
         public ProfilerSession()
@@ -153,6 +155,8 @@ namespace DebugTools.Profiler
 
         private void Parser_CallEnterDetailed(CallDetailedArgs args) => CallEnter(args, (t, v, m) =>
         {
+            args.HRESULT.ThrowOnNotOK();
+
             t.AddMethodDetailed(v, m);
         });
 
@@ -277,7 +281,15 @@ namespace DebugTools.Profiler
 
         private void ThreadProc()
         {
-            TraceEventSession.Source.Process();
+            try
+            {
+                TraceEventSession.Source.Process();
+            }
+            catch(Exception ex)
+            {
+                threadProcException = ex;
+                TraceEventSession.Dispose();
+            }
         }
 
         private void TryCloseSession(string sessionName)
@@ -322,11 +334,19 @@ namespace DebugTools.Profiler
 
             traceCTS.Token.WaitHandle.WaitOne();
 
+            ThrowOnError();
+
             LastTrace = ThreadCache.Values.ToArray();
 
             ThreadCache.Clear();
 
             return LastTrace;
+        }
+
+        public void ThrowOnError()
+        {
+            if (threadProcException != null)
+                throw threadProcException;
         }
 
         public void ExecuteCommand(MessageType messageType, object value)

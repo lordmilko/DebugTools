@@ -93,7 +93,7 @@ namespace Profiler.Tests
             Test(ValueTestType.EmptyStringArrayArg, v => v.HasArrayValues(CorElementType.Class, new string[0]));
 
         [TestMethod]
-        public void ObjectArrayContainingStringArg() =>
+        public void Value_ObjectArrayContainingStringArg() =>
             Test(ValueTestType.ObjectArrayContainingStringArg, v => v.HasArrayValues(CorElementType.Class, "a"));
 
         [TestMethod]
