@@ -244,10 +244,14 @@ $split = $_ -split ' '
         </Expand>
     </Type>
     <Type Name="CClassInfo">
+        <DisplayString>{m_szName,sub}</DisplayString>
+
         <Expand>
             <Synthetic Name="m_Fields">
                 <DisplayString>m_NumFields = {m_NumFields}</DisplayString>
                 <Expand>
+                    <Item Name="m_szName">m_szName</Item>
+
                     <IndexListItems>
                         <Size>m_NumFields</Size>
                         <ValueNode>*m_Fields[$i]</ValueNode>

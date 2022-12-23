@@ -77,107 +77,14 @@ HRESULT CCorProfilerCallback::ClassLoadFinished(ClassID classId, HRESULT hrStatu
 
     HRESULT hr = S_OK;
 
-    IMetaDataImport2* pMDI = nullptr;
+    IClassInfo* pClassInfo;
+    IfFailGo(GetClassInfo(classId, &pClassInfo));
 
-    ModuleID moduleId;
-    mdTypeDef typeDef;
-
-    CorElementType baseElemType;
-    ClassID baseClassId;
-    ULONG cRank;
-
-    ULONG cFieldOffset;
-    COR_FIELD_OFFSET* rFieldOffset = nullptr;
-
-    PCCOR_SIGNATURE pSigBlob;
-    ULONG cbSigBlob;
-
-    CSigField** fields = nullptr;
-
-    ULONG i = 0;
-
-    IfFailGo(m_pInfo->GetClassIDInfo(classId, &moduleId, &typeDef));
-
-    IfFailGo(m_pInfo->GetModuleMetaData(moduleId, ofRead, IID_IMetaDataImport2, (IUnknown**)&pMDI));
-
-    hr = m_pInfo->IsArrayClass(classId, &baseElemType, &baseClassId, &cRank);
-
-    if (hr == S_OK)
-    {
-        //It's an array
-
-        hr = E_NOTIMPL;
-        goto ErrExit;
-    }
-    else if (hr == S_FALSE)
-    {
-        //It's not an array
-
-        IfFailGo(m_pInfo->GetClassLayout(classId, NULL, 0, &cFieldOffset, NULL));
-
-        if (cFieldOffset)
-        {
-            rFieldOffset = new COR_FIELD_OFFSET[cFieldOffset];
-
-            IfFailGo(m_pInfo->GetClassLayout(classId, rFieldOffset, cFieldOffset, &cFieldOffset, NULL));
-
-            fields = new CSigField*[cFieldOffset];
-
-            for (; i < cFieldOffset; i++)
-            {
-                mdFieldDef fieldDef = rFieldOffset[i].ridOfField;
-
-                IfFailGo(pMDI->GetFieldProps(
-                    fieldDef,
-                    NULL,
-                    fieldName,
-                    NAME_BUFFER_SIZE,
-                    NULL,
-                    NULL,
-                    &pSigBlob,
-                    &cbSigBlob,
-                    NULL,
-                    NULL,
-                    NULL
-                ));
-
-                CSigReader reader(fieldDef, pMDI, pSigBlob);
-
-                CSigField* sigField;
-
-                IfFailGo(reader.ParseField(fieldName, &sigField));
-
-                fields[i] = sigField;
-            }
-        }
-    }
+    m_ClassMutex.lock();
+    m_ClassInfoMap[classId] = pClassInfo;
+    m_ClassMutex.unlock();
 
 ErrExit:
-    if (SUCCEEDED(hr))
-    {
-        m_ClassMutex.lock();
-        m_ClassInfoMap[classId] = new CClassInfo(cFieldOffset, fields, rFieldOffset);
-        m_ClassMutex.unlock();
-    }
-    else
-    {
-        if (fields)
-        {
-            for (ULONG j = 0; j < i; j++)
-            {
-                delete fields[i];
-            }
-
-            delete fields;
-        }
-
-        if (rFieldOffset)
-            delete rFieldOffset;
-    }
-
-    if (pMDI)
-        pMDI->Release();
-
     return hr;
 }
 
@@ -186,7 +93,7 @@ HRESULT CCorProfilerCallback::ClassUnloadFinished(ClassID classId, HRESULT hrSta
     if (!m_Detailed || hrStatus != S_OK)
         return S_OK;
 
-    CClassInfo* info = m_ClassInfoMap[classId];
+    IClassInfo* info = m_ClassInfoMap[classId];
 
     m_ClassInfoMap.erase(classId);
 
@@ -227,6 +134,9 @@ HRESULT CCorProfilerCallback::Initialize(IUnknown* pICorProfilerInfoUnk)
     
     if (m_Detailed)
     {
+        m_Tracer = new CValueTracer(m_pInfo);
+
+        IfFailGo(m_Tracer->Initialize());
         IfFailGo(InstallHooksWithInfo());
     }
     else
@@ -319,6 +229,7 @@ void dprintf(LPCWSTR format, ...)
     va_start(args, format);
     vswprintf_s(debugBuffer, format, args);
     va_end(args);
+    OutputDebugString(debugBuffer);
 }
 
 /// <summary>
@@ -520,6 +431,139 @@ HRESULT CCorProfilerCallback::BindLifetimeToParentProcess()
 
 Exit:
     return S_OK;
+}
+
+HRESULT CCorProfilerCallback::GetClassInfo(
+    _In_ ClassID classId,
+    _Out_ IClassInfo** ppClassInfo)
+{
+    HRESULT hr = S_OK;
+
+    IMetaDataImport2* pMDI = nullptr;
+
+    ModuleID moduleId;
+    mdTypeDef typeDef;
+
+    CorElementType baseElemType;
+    ClassID baseClassId;
+    ULONG cRank;
+
+    ULONG cFieldOffset = 0;
+    COR_FIELD_OFFSET* rFieldOffset = nullptr;
+
+    PCCOR_SIGNATURE pSigBlob;
+    ULONG cbSigBlob;
+
+    CSigField** fields = nullptr;
+
+    ULONG i = 0;
+
+    IClassInfo* pClassInfo = nullptr;
+    IClassInfo* pElementType = nullptr;
+
+    hr = m_pInfo->IsArrayClass(classId, &baseElemType, &baseClassId, &cRank);
+
+    if (FAILED(hr))
+        goto ErrExit;
+
+    if (hr == S_OK)
+    {
+        //It's an array
+
+        IfFailGo(GetClassInfo(baseClassId, &pElementType));
+
+        pClassInfo = new CArrayInfo(pElementType, baseElemType, cRank);
+    }
+    else if (hr == S_FALSE)
+    {
+        //It's not an array
+
+        IfFailGo(m_pInfo->GetClassIDInfo(classId, &moduleId, &typeDef));
+
+        IfFailGo(m_pInfo->GetModuleMetaData(moduleId, ofRead, IID_IMetaDataImport2, (IUnknown**)&pMDI));
+
+        IfFailGo(pMDI->GetTypeDefProps(typeDef, typeName, NAME_BUFFER_SIZE, NULL, NULL, NULL));
+
+        if (wcscmp(typeName, L"System.String") == 0)
+        {
+            //When we have an array of strings, baseElemType reports the type as ELEMENT_TYPE_CLASS. GetClassLayout will return E_INVALIDARG
+            //if you attempt to query a classId of a string
+            pClassInfo = new StringClassInfo();
+            goto ErrExit;
+        }
+
+        IfFailGo(m_pInfo->GetClassLayout(classId, NULL, 0, &cFieldOffset, NULL));
+
+        if (cFieldOffset)
+        {
+            rFieldOffset = new COR_FIELD_OFFSET[cFieldOffset];
+
+            IfFailGo(m_pInfo->GetClassLayout(classId, rFieldOffset, cFieldOffset, &cFieldOffset, NULL));
+
+            fields = new CSigField*[cFieldOffset];
+
+            for (; i < cFieldOffset; i++)
+            {
+                mdFieldDef fieldDef = rFieldOffset[i].ridOfField;
+
+                IfFailGo(pMDI->GetFieldProps(
+                    fieldDef,
+                    NULL,
+                    fieldName,
+                    NAME_BUFFER_SIZE,
+                    NULL,
+                    NULL,
+                    &pSigBlob,
+                    &cbSigBlob,
+                    NULL,
+                    NULL,
+                    NULL
+                ));
+
+                CSigReader reader(fieldDef, pMDI, pSigBlob);
+
+                CSigField* sigField;
+
+                IfFailGo(reader.ParseField(fieldName, &sigField));
+
+                fields[i] = sigField;
+            }
+        }
+
+        pClassInfo = new CClassInfo(typeName, cFieldOffset, fields, rFieldOffset);
+    }
+
+ErrExit:
+    if (SUCCEEDED(hr))
+    {
+        *ppClassInfo = pClassInfo;
+    }
+    else
+    {
+        if (fields)
+        {
+            for (ULONG j = 0; j < i; j++)
+            {
+                delete fields[i];
+            }
+
+            delete fields;
+        }
+
+        if (rFieldOffset)
+            delete rFieldOffset;
+
+        if (pElementType)
+            delete pElementType;
+
+        if (pClassInfo)
+            delete pClassInfo;
+    }
+
+    if (pMDI)
+        pMDI->Release();
+
+    return hr;
 }
 
 void NTAPI CCorProfilerCallback::ExitProcessCallback(

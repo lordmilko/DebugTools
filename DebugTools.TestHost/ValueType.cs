@@ -2,7 +2,7 @@
 
 namespace DebugTools.TestHost
 {
-    class SigBlobType
+    class ValueType
     {
         public void NoArgs_ReturnVoid()
         {
@@ -65,6 +65,42 @@ namespace DebugTools.TestHost
         }
 
         public void UIntPtrArg(UIntPtr a)
+        {
+        }
+
+        public void DecimalArg(decimal a)
+        {
+        }
+
+        public void StringArg(string a)
+        {
+        }
+
+        public void EmptyStringArg(string a)
+        {
+        }
+
+        public void NullStringArg(string a)
+        {
+        }
+
+        public void StringArrayArg(string[] a)
+        {
+        }
+
+        public void EmptyStringArrayArg(string[] a)
+        {
+        }
+
+        public void ObjectArrayContainingStringArg(object[] a)
+        {
+        }
+
+        public void ObjectArrayArg(object[] a)
+        {
+        }
+
+        public void EmptyObjectArrayArg(object[] a)
         {
         }
 

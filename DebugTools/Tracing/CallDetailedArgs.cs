@@ -1,20 +1,27 @@
 ﻿using System;
 using System.Diagnostics;
 using System.Text;
+using ClrDebug;
 using Microsoft.Diagnostics.Tracing;
 
 namespace DebugTools.Tracing
 {
     /// <summary>
-    /// Describes the CallArgs template defined in DebugToolsProfiler.man
+    /// Describes the CallDetailedArgs template defined in DebugToolsProfiler.man
     /// </summary>
-    public sealed class CallArgs : TraceEvent, ICallArgs
+    public sealed class CallDetailedArgs : TraceEvent, ICallArgs
     {
         public long FunctionID => GetInt64At(0);
 
-        private Action<CallArgs> action;
+        public HRESULT HRESULT => (HRESULT)GetInt32At(8);
 
-        internal CallArgs(Action<CallArgs> action, int eventID, int task, string taskName, Guid taskGuid, int opcode, string opcodeName, Guid providerGuid, string providerName) :
+        public int ValueLength => GetInt32At(12);
+
+        public byte[] Value => GetByteArrayAt(16, ValueLength);
+
+        private Action<CallDetailedArgs> action;
+
+        internal CallDetailedArgs(Action<CallDetailedArgs> action, int eventID, int task, string taskName, Guid taskGuid, int opcode, string opcodeName, Guid providerGuid, string providerName) :
             base(eventID, task, taskName, taskGuid, opcode, opcodeName, providerGuid, providerName)
         {
             this.action = action;
@@ -23,7 +30,7 @@ namespace DebugTools.Tracing
         protected override Delegate Target
         {
             get => action;
-            set => action = (Action<CallArgs>) value;
+            set => action = (Action<CallDetailedArgs>)value;
         }
 
         public override string[] PayloadNames
@@ -31,7 +38,7 @@ namespace DebugTools.Tracing
             get
             {
                 if (payloadNames == null)
-                    payloadNames = new[] { nameof(FunctionID) };
+                    payloadNames = new[] { nameof(FunctionID), nameof(HRESULT), nameof(ValueLength), nameof(Value) };
 
                 return payloadNames;
             }
@@ -44,6 +51,15 @@ namespace DebugTools.Tracing
                 case 0:
                     return FunctionID;
 
+                case 1:
+                    return HRESULT;
+
+                case 2:
+                    return ValueLength;
+
+                case 3:
+                    return Value;
+
                 default:
                     Debug.Assert(false, $"Unknown payload field '{index}'");
                     return null;
@@ -54,6 +70,9 @@ namespace DebugTools.Tracing
         {
             Prefix(sb);
             XmlAttrib(sb, nameof(FunctionID), FunctionID);
+            XmlAttrib(sb, nameof(HRESULT), HRESULT);
+            XmlAttrib(sb, nameof(ValueLength), ValueLength);
+            XmlAttrib(sb, nameof(Value), Value);
             sb.Append("/>");
             return sb;
         }

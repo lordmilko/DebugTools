@@ -7,6 +7,7 @@
 // ReSharper disable once CppNonInlineFunctionDefinitionInHeaderFile
 extern "C" void STDMETHODCALLTYPE EnterStubWithInfo(FunctionIDOrClientID functionId, COR_PRF_ELT_INFO eltInfo)
 {
+    CCorProfilerCallback::g_pProfiler->m_Tracer->EnterWithInfo(functionId, eltInfo);
 }
 
 #ifdef _X86_

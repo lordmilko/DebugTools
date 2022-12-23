@@ -8,7 +8,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Include="..\Profiler.Tests\TestType.cs" Link="TestType.cs" />
+    <Compile Include="..\Profiler.Tests\Support\TestType.cs" Link="TestType.cs" />
   </ItemGroup>
 
 </Project>

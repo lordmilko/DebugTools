@@ -6,6 +6,7 @@ using System.IO.Pipes;
 using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading;
+using ClrDebug;
 using DebugTools.Tracing;
 using Microsoft.Diagnostics.Tracing.Session;
 
@@ -53,60 +54,16 @@ namespace DebugTools.Profiler
 
             var parser = new ProfilerTraceEventParser(TraceEventSession.Source);
 
-            parser.MethodInfo += v =>
-            {
-                Methods[v.FunctionID] = new MethodInfo(v.FunctionID, v.ModuleName, v.TypeName, v.MethodName);
-            };
+            parser.MethodInfo += Parser_MethodInfo;
+            parser.MethodInfoDetailed += Parser_MethodInfoDetailed;
 
-            parser.MethodInfoDetailed += v =>
-            {
-                Methods[v.FunctionID] = new MethodInfoDetailed(v.FunctionID, v.ModuleName, v.TypeName, v.MethodName, v.Token, v.SigBlob, v.SigBlobLength);
-            };
+            parser.CallEnter += Parser_CallEnter;
+            parser.CallExit += Parser_CallExit;
+            parser.Tailcall += Parser_Tailcall;
 
-            parser.CallEnter += v =>
-            {
-                ProcessStopping(v.TimeStamp);
-
-                if (collectStackTrace)
-                {
-                    bool setName = false;
-
-                    if (!ThreadCache.TryGetValue(v.ThreadID, out var threadStack))
-                    {
-                        threadStack = new ThreadStack();
-                        ThreadCache[v.ThreadID] = threadStack;
-
-                        setName = true;
-                    }
-
-                    threadStack.AddMethod(v, GetMethodSafe(v.FunctionID));
-
-                    if (setName && threadNames.TryGetValue(v.ThreadID, out var name))
-                        threadStack.Root.ThreadName = name;
-                }
-            };
-
-            parser.CallExit += v =>
-            {
-                ProcessStopping(v.TimeStamp);
-
-                if (collectStackTrace)
-                {
-                    if (ThreadCache.TryGetValue(v.ThreadID, out var threadStack))
-                        threadStack.EndCall();
-                }
-            };
-
-            parser.Tailcall += v =>
-            {
-                ProcessStopping(v.TimeStamp);
-
-                if (collectStackTrace)
-                {
-                    if (ThreadCache.TryGetValue(v.ThreadID, out var threadStack))
-                        threadStack.Tailcall(v, GetMethodSafe(v.FunctionID));
-                }
-            };
+            parser.CallEnterDetailed += Parser_CallEnterDetailed;
+            parser.CallExitDetailed += Parser_CallExitDetailed;
+            parser.TailcallDetailed += Parser_TailcallDetailed;
 
             parser.ThreadName += v =>
             {
@@ -127,6 +84,101 @@ namespace DebugTools.Profiler
 
             Thread = new Thread(ThreadProc);
         }
+
+        #region MethodInfo
+
+        private void Parser_MethodInfo(MethodInfoArgs v)
+        {
+            Methods[v.FunctionID] = new MethodInfo(v.FunctionID, v.ModuleName, v.TypeName, v.MethodName);
+        }
+
+        private void Parser_MethodInfoDetailed(MethodInfoDetailedArgs v)
+        {
+            Methods[v.FunctionID] = new MethodInfoDetailed(v.FunctionID, v.ModuleName, v.TypeName, v.MethodName, v.Token, v.SigBlob, v.SigBlobLength);
+        }
+
+        #endregion
+        #region CallArgs
+
+        private void Parser_CallEnter(CallArgs args) => CallEnter(args, (t, v, m) => t.AddMethod(v, m));
+
+        private void Parser_CallExit(CallArgs v)
+        {
+            ProcessStopping(v.TimeStamp);
+
+            if (collectStackTrace)
+            {
+                if (ThreadCache.TryGetValue(v.ThreadID, out var threadStack))
+                    threadStack.EndCall();
+            }
+        }
+
+        private void Parser_Tailcall(CallArgs v)
+        {
+            ProcessStopping(v.TimeStamp);
+
+            if (collectStackTrace)
+            {
+                if (ThreadCache.TryGetValue(v.ThreadID, out var threadStack))
+                    threadStack.Tailcall(v, GetMethodSafe(v.FunctionID));
+            }
+        }
+
+        private void CallEnter<T>(T args, Action<ThreadStack, T, MethodInfo> addMethod) where T : ICallArgs
+        {
+            ProcessStopping(args.TimeStamp);
+
+            if (collectStackTrace)
+            {
+                bool setName = false;
+
+                if (!ThreadCache.TryGetValue(args.ThreadID, out var threadStack))
+                {
+                    threadStack = new ThreadStack();
+                    ThreadCache[args.ThreadID] = threadStack;
+
+                    setName = true;
+                }
+
+                var method = GetMethodSafe(args.FunctionID);
+                addMethod(threadStack, args, method);
+
+                if (setName && threadNames.TryGetValue(args.ThreadID, out var name))
+                    threadStack.Root.ThreadName = name;
+            }
+        }
+
+        #endregion
+        #region CallDetailedArgs
+
+        private void Parser_CallEnterDetailed(CallDetailedArgs args) => CallEnter(args, (t, v, m) =>
+        {
+            t.AddMethodDetailed(v, m);
+        });
+
+        private void Parser_CallExitDetailed(CallDetailedArgs args)
+        {
+            ProcessStopping(args.TimeStamp);
+
+            if (collectStackTrace)
+            {
+                if (ThreadCache.TryGetValue(args.ThreadID, out var threadStack))
+                    threadStack.EndCallDetailed(args);
+            }
+        }
+
+        private void Parser_TailcallDetailed(CallDetailedArgs args)
+        {
+            ProcessStopping(args.TimeStamp);
+
+            if (collectStackTrace)
+            {
+                if (ThreadCache.TryGetValue(args.ThreadID, out var threadStack))
+                    threadStack.TailcallDetailed(args, GetMethodSafe(args.FunctionID));
+            }
+        }
+
+        #endregion
 
         private void ProcessStopping(DateTime timeStamp)
         {
@@ -172,7 +224,7 @@ namespace DebugTools.Profiler
                 {
                     pipeCTS.Cancel();
                     userCTS?.Cancel();
-                    traceCTS.Token.Register(() =>
+                    traceCTS?.Token.Register(() =>
                     {
                         //Calling Dispose() guarantees an immediate stop
                         TraceEventSession.Dispose();
@@ -180,9 +232,12 @@ namespace DebugTools.Profiler
 
                     //There's no guarantee that any more events are going to be received. If we go 2 seconds without receiving any more events, we'll shut everything down
 
-                    cancelThread = new Thread(CancelTraceThreadProc);
+                    if (traceCTS != null)
+                    {
+                        cancelThread = new Thread(CancelTraceThreadProc);
 
-                    cancelThread.Start();
+                        cancelThread.Start();
+                    }
                 };
             }, flags);
 

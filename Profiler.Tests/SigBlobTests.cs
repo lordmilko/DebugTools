@@ -25,69 +25,69 @@ namespace Profiler.Tests
 
         [TestMethod]
         public void SigMethodDef_NoArgs_ReturnVoid() =>
-            TestMethodDef(SigBlobTestType.NoArgs_ReturnVoid, v => v.HasNoParams().ReturnsVoid());
+            TestMethodDef(ValueTestType.NoArgs_ReturnVoid, v => v.HasNoParams().ReturnsVoid());
 
         [TestMethod]
         public void SigMethodDef_OneArg_ReturnVoid() =>
-            TestMethodDef(SigBlobTestType.OneArg_ReturnVoid, v => v.HasParam<int>(0).ReturnsVoid());
+            TestMethodDef(ValueTestType.OneArg_ReturnVoid, v => v.HasParam<int>(0).ReturnsVoid());
 
         #region BOOLEAN | CHAR | I1 | U1 | I2 | U2 | I4 | U4 | I8 | U8 | R4 | R8 | I | U
 
         [TestMethod]
         public void SigMethodDef_BoolArg() =>
-            TestMethodDef(SigBlobTestType.BoolArg, v => v.HasParam<bool>(0));
+            TestMethodDef(ValueTestType.BoolArg, v => v.HasParam<bool>(0));
 
         [TestMethod]
         public void SigMethodDef_CharArg() =>
-            TestMethodDef(SigBlobTestType.CharArg, v => v.HasParam<char>(0));
+            TestMethodDef(ValueTestType.CharArg, v => v.HasParam<char>(0));
 
         [TestMethod]
         public void SigMethodDef_ByteArg() =>
-            TestMethodDef(SigBlobTestType.ByteArg, v => v.HasParam<byte>(0));
+            TestMethodDef(ValueTestType.ByteArg, v => v.HasParam<byte>(0));
 
         [TestMethod]
         public void SigMethodDef_SByteArg() =>
-            TestMethodDef(SigBlobTestType.SByteArg, v => v.HasParam<sbyte>(0));
+            TestMethodDef(ValueTestType.SByteArg, v => v.HasParam<sbyte>(0));
 
         [TestMethod]
         public void SigMethodDef_Int16Arg() =>
-            TestMethodDef(SigBlobTestType.Int16Arg, v => v.HasParam<short>(0));
+            TestMethodDef(ValueTestType.Int16Arg, v => v.HasParam<short>(0));
 
         [TestMethod]
         public void SigMethodDef_UInt16Arg() =>
-            TestMethodDef(SigBlobTestType.UInt16Arg, v => v.HasParam<ushort>(0));
+            TestMethodDef(ValueTestType.UInt16Arg, v => v.HasParam<ushort>(0));
 
         [TestMethod]
         public void SigMethodDef_Int32Arg() =>
-            TestMethodDef(SigBlobTestType.Int32Arg, v => v.HasParam<int>(0));
+            TestMethodDef(ValueTestType.Int32Arg, v => v.HasParam<int>(0));
 
         [TestMethod]
         public void SigMethodDef_UInt32Arg() =>
-            TestMethodDef(SigBlobTestType.UInt32Arg, v => v.HasParam<uint>(0));
+            TestMethodDef(ValueTestType.UInt32Arg, v => v.HasParam<uint>(0));
 
         [TestMethod]
         public void SigMethodDef_Int64Arg() =>
-            TestMethodDef(SigBlobTestType.Int64Arg, v => v.HasParam<long>(0));
+            TestMethodDef(ValueTestType.Int64Arg, v => v.HasParam<long>(0));
 
         [TestMethod]
         public void SigMethodDef_UInt64Arg() =>
-            TestMethodDef(SigBlobTestType.UInt64Arg, v => v.HasParam<ulong>(0));
+            TestMethodDef(ValueTestType.UInt64Arg, v => v.HasParam<ulong>(0));
 
         [TestMethod]
         public void SigMethodDef_FloatArg() =>
-            TestMethodDef(SigBlobTestType.FloatArg, v => v.HasParam<float>(0));
+            TestMethodDef(ValueTestType.FloatArg, v => v.HasParam<float>(0));
 
         [TestMethod]
         public void SigMethodDef_DoubleArg() =>
-            TestMethodDef(SigBlobTestType.DoubleArg, v => v.HasParam<double>(0));
+            TestMethodDef(ValueTestType.DoubleArg, v => v.HasParam<double>(0));
 
         [TestMethod]
         public void SigMethodDef_IntPtrArg() =>
-            TestMethodDef(SigBlobTestType.IntPtrArg, v => v.HasParam<IntPtr>(0));
+            TestMethodDef(ValueTestType.IntPtrArg, v => v.HasParam<IntPtr>(0));
 
         [TestMethod]
         public void SigMethodDef_UIntPtrArg() =>
-            TestMethodDef(SigBlobTestType.UIntPtrArg, v => v.HasParam<UIntPtr>(0));
+            TestMethodDef(ValueTestType.UIntPtrArg, v => v.HasParam<UIntPtr>(0));
 
         #endregion
         #endregion
@@ -114,7 +114,7 @@ namespace Profiler.Tests
 
         #endregion
 
-        internal void TestMethodDef(SigBlobTestType type, Action<SigMethodVerifier> validate)
+        internal void TestMethodDef(ValueTestType type, Action<SigMethodVerifier> validate)
         {
             var methodDef = import.FindMethod(typeDef, type.ToString(), IntPtr.Zero, 0);
 

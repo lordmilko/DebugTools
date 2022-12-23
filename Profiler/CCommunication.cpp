@@ -27,6 +27,9 @@ DWORD WINAPI PipeThreadProc(LPVOID lpParameter)
 
     while (true)
     {
+        if (communication->m_Stopping)
+            break;
+
         BOOL result = ReadFile(
             communication->m_hPipe,
             buffer,
@@ -53,6 +56,8 @@ DWORD WINAPI PipeThreadProc(LPVOID lpParameter)
 
 CCommunication::~CCommunication()
 {
+    m_Stopping = TRUE;
+
     if (m_hPipeThread != nullptr)
     {
         CancelSynchronousIo(m_hPipeThread);

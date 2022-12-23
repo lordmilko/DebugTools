@@ -3,8 +3,11 @@
 #include "CCommunication.h"
 #include "CClassInfo.h"
 #include "CSigMethod.h"
-#include <map>
+#include "CValueTracer.h"
+#include <unordered_map>
 #include <mutex>
+
+#undef GetClassInfo
 
 class CCorProfilerCallback final : public ICorProfilerCallback3
 {
@@ -15,6 +18,7 @@ public:
 
     CCorProfilerCallback() :
         m_pInfo(nullptr),
+        m_Tracer(nullptr),
         m_Detailed(FALSE),
         m_RefCount(0)
     {
@@ -27,6 +31,9 @@ public:
 
         for (auto const& kv : m_ClassInfoMap)
             delete kv.second;
+
+        if (m_Tracer)
+            delete m_Tracer;
 
         if (m_pInfo)
             m_pInfo->Release();
@@ -41,6 +48,9 @@ public:
     HRESULT InstallHooks();
     HRESULT InstallHooksWithInfo();
     HRESULT BindLifetimeToParentProcess();
+    HRESULT GetClassInfo(
+        _In_ ClassID classId,
+        _Out_ IClassInfo** ppClassInfo);
 
 #pragma region IUnknown
     STDMETHODIMP_(ULONG) AddRef() override;
@@ -141,15 +151,17 @@ public:
 #pragma endregion
 
     ICorProfilerInfo3* m_pInfo;
+    CValueTracer* m_Tracer;
     BOOL m_Detailed;
+
+    std::unordered_map<ClassID, IClassInfo*> m_ClassInfoMap;
+    std::mutex m_ClassMutex;
+
+    std::unordered_map<FunctionID, CSigMethodDef*> m_MethodInfoMap;
+    std::mutex m_MethodMutex;
 
 private:
     CCommunication m_Communication;
-    std::map<FunctionID, CSigMethodDef*> m_MethodInfoMap;
-    std::mutex m_MethodMutex;
-
-    std::map<ClassID, CClassInfo*> m_ClassInfoMap;
-    std::mutex m_ClassMutex;
 
     long m_RefCount;
 };

@@ -12,6 +12,10 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DebugTools", "DebugTools\DebugTools.csproj", "{6DAFFE6D-D925-4355-A83B-81A4F8F7EC1C}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DebugTools.PowerShell", "DebugTools.PowerShell\DebugTools.PowerShell.csproj", "{9F008B7C-FF81-41B0-8EF9-EF7EFA27700C}"
+	ProjectSection(ProjectDependencies) = postProject
+		{3BB8E037-B0CF-421A-BF42-77EBB4E82C64} = {3BB8E037-B0CF-421A-BF42-77EBB4E82C64}
+		{7A67E69F-D319-45CF-B94E-D9A7E24616BF} = {7A67E69F-D319-45CF-B94E-D9A7E24616BF}
+	EndProjectSection
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Profiler.Tests", "Profiler.Tests\Profiler.Tests.csproj", "{65452C23-C0A6-418F-A308-2022E4A12B33}"
 	ProjectSection(ProjectDependencies) = postProject

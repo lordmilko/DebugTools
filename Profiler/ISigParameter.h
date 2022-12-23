@@ -4,13 +4,14 @@
 
 class ISigParameter
 {
+public:
+    CSigType* m_pType;
+
 protected:
     ISigParameter(CSigType* pType)
     {
         m_pType = pType;
     }
-
-    CSigType* m_pType;
 };
 
 class SigParameter : public ISigParameter

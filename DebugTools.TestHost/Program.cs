@@ -26,8 +26,8 @@ namespace DebugTools.TestHost
 
             switch (testType)
             {
-                case TestType.SigBlob:
-                    ProcessSigBlobTest(args[1]);
+                case TestType.Value:
+                    ProcessValueTest(args[1]);
                     break;
 
                 case TestType.Profiler:
@@ -39,89 +39,127 @@ namespace DebugTools.TestHost
                     Environment.Exit(1);
                     break;
             }
+
+            Console.WriteLine("Done");
         }
 
-        private static void ProcessSigBlobTest(string subType)
+        private static void ProcessValueTest(string subType)
         {
-            var test = (SigBlobTestType)Enum.Parse(typeof(SigBlobTestType), subType);
+            var test = (ValueTestType)Enum.Parse(typeof(ValueTestType), subType);
 
             Debug.WriteLine($"Running test '{test}'");
 
-            var instance = new SigBlobType();
+            var instance = new ValueType();
 
             switch (test)
             {
-                case SigBlobTestType.NoArgs_ReturnVoid:
+                case ValueTestType.NoArgs_ReturnVoid:
                     instance.NoArgs_ReturnVoid();
                     break;
 
-                case SigBlobTestType.OneArg_ReturnVoid:
+                case ValueTestType.OneArg_ReturnVoid:
                     instance.OneArg_ReturnVoid(1);
                     break;
 
                 #region BOOLEAN | CHAR | I1 | U1 | I2 | U2 | I4 | U4 | I8 | U8 | R4 | R8 | I | U
 
-                case SigBlobTestType.BoolArg:
+                case ValueTestType.BoolArg:
                     instance.BoolArg(true);
                     break;
 
-                case SigBlobTestType.CharArg:
+                case ValueTestType.CharArg:
                     instance.CharArg('b');
                     break;
 
-                case SigBlobTestType.ByteArg:
+                case ValueTestType.ByteArg:
                     instance.ByteArg(1);
                     break;
 
-                case SigBlobTestType.SByteArg:
+                case ValueTestType.SByteArg:
                     instance.SByteArg(1);
                     break;
 
-                case SigBlobTestType.Int16Arg:
+                case ValueTestType.Int16Arg:
                     instance.Int16Arg(1);
                     break;
 
-                case SigBlobTestType.UInt16Arg:
+                case ValueTestType.UInt16Arg:
                     instance.UInt16Arg(1);
                     break;
 
-                case SigBlobTestType.Int32Arg:
+                case ValueTestType.Int32Arg:
                     instance.Int32Arg(1);
                     break;
 
-                case SigBlobTestType.UInt32Arg:
+                case ValueTestType.UInt32Arg:
                     instance.UInt32Arg(1);
                     break;
 
-                case SigBlobTestType.Int64Arg:
+                case ValueTestType.Int64Arg:
                     instance.Int64Arg(1);
                     break;
 
-                case SigBlobTestType.UInt64Arg:
+                case ValueTestType.UInt64Arg:
                     instance.UInt64Arg(1);
                     break;
 
-                case SigBlobTestType.FloatArg:
+                case ValueTestType.FloatArg:
                     instance.FloatArg(1.1f);
                     break;
 
-                case SigBlobTestType.DoubleArg:
+                case ValueTestType.DoubleArg:
                     instance.DoubleArg(1.1);
                     break;
 
-                case SigBlobTestType.IntPtrArg:
+                case ValueTestType.IntPtrArg:
                     instance.IntPtrArg(new IntPtr(1));
                     break;
 
-                case SigBlobTestType.UIntPtrArg:
+                case ValueTestType.UIntPtrArg:
                     instance.UIntPtrArg(new UIntPtr(1));
                     break;
 
                 #endregion
 
+                case ValueTestType.DecimalArg:
+                    instance.DecimalArg(1m);
+                    break;
+
+                case ValueTestType.StringArg:
+                    instance.StringArg("foo");
+                    break;
+
+                case ValueTestType.EmptyStringArg:
+                    instance.EmptyStringArg(string.Empty);
+                    break;
+
+                case ValueTestType.NullStringArg:
+                    instance.NullStringArg(null);
+                    break;
+
+                case ValueTestType.StringArrayArg:
+                    instance.StringArrayArg(new string[] { "a", "b" });
+                    break;
+
+                case ValueTestType.EmptyStringArrayArg:
+                    instance.EmptyStringArrayArg(new string[0]);
+                    break;
+
+                case ValueTestType.ObjectArrayContainingStringArg:
+                    instance.ObjectArrayContainingStringArg(new object[] { "a" });
+                    break;
+
+                case ValueTestType.ObjectArrayArg:
+                    instance.ObjectArrayArg(new[] { new object() });
+                    break;
+
+                case ValueTestType.EmptyObjectArrayArg:
+                    instance.EmptyObjectArrayArg(new object[0]);
+                    break;
+
                 default:
                     Debug.WriteLine($"Don't know how to run profiler test '{test}'");
-                    Environment.Exit(1);
+                    Environment.Exit(2);
                     break;
             }
         }
@@ -150,7 +188,7 @@ namespace DebugTools.TestHost
 
                 default:
                     Debug.WriteLine($"Don't know how to run profiler test '{test}'");
-                    Environment.Exit(1);
+                    Environment.Exit(2);
                     break;
             }
         }

@@ -3,7 +3,10 @@
 class CCommunication
 {
 public:
-    CCommunication() : m_hPipe(nullptr), m_hPipeThread(nullptr)
+    CCommunication() :
+        m_hPipe(nullptr),
+        m_Stopping(FALSE),
+        m_hPipeThread(nullptr)
     {
     }
 
@@ -12,6 +15,7 @@ public:
     HRESULT Initialize();
 
     HANDLE m_hPipe;
+    BOOL m_Stopping;
 
 private:
     HANDLE m_hPipeThread;

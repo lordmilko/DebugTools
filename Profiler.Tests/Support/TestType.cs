@@ -2,11 +2,11 @@ namespace Profiler.Tests
 {
     enum TestType
     {
-        SigBlob,
+        Value,
         Profiler
     }
 
-    enum SigBlobTestType
+    enum ValueTestType
     {
         NoArgs_ReturnVoid,
         OneArg_ReturnVoid,
@@ -23,7 +23,22 @@ namespace Profiler.Tests
         FloatArg,
         DoubleArg,
         IntPtrArg,
-        UIntPtrArg
+        UIntPtrArg,
+
+        DecimalArg,
+
+        StringArg,
+        EmptyStringArg,
+        NullStringArg,
+        StringArrayArg,
+        EmptyStringArrayArg,
+
+        ClassArg,
+        ClassArrayArg,
+        EmptyClassArrayArg,
+        ObjectArrayContainingStringArg,
+        ObjectArrayArg,
+        EmptyObjectArrayArg
     }
 
     enum ProfilerTestType

@@ -7,6 +7,7 @@
 // ReSharper disable once CppNonInlineFunctionDefinitionInHeaderFile
 extern "C" void STDMETHODCALLTYPE TailcallStubWithInfo(FunctionIDOrClientID functionId, COR_PRF_ELT_INFO eltInfo)
 {
+    CCorProfilerCallback::g_pProfiler->m_Tracer->TailcallWithInfo(functionId, eltInfo);
 }
 
 #ifdef _X86_
