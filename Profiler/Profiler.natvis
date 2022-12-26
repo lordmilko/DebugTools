@@ -245,6 +245,41 @@ $split = $_ -split ' '
             <Item Name="m_IsByRef">m_IsByRef</Item>
         </Expand>
     </Type>
+    <Type Name="CAssemblyInfo">
+        <DisplayString>{m_szName,sub}</DisplayString>
+
+        <Expand>
+            <Item Name="m_szShortName">m_szShortName</Item>
+            <Item Name="m_szName">m_szName</Item>
+            <Synthetic Name="m_pbPublicKey">
+                <DisplayString>m_cbPublicKey = {m_cbPublicKey}</DisplayString>
+                <Expand>
+                    <IndexListItems>
+                        <Size>m_cbPublicKey</Size>
+                        <ValueNode>m_pbPublicKey[$i],X</ValueNode>
+                    </IndexListItems>
+                </Expand>
+            </Synthetic>
+            <Synthetic Name="m_pbPublicKeyToken">
+                <DisplayString>SHA-1</DisplayString>
+                <Expand>
+                    <IndexListItems>
+                        <Size>8</Size>
+                        <ValueNode>m_pbPublicKeyToken[$i],X</ValueNode>
+                    </IndexListItems>
+                </Expand>
+            </Synthetic>
+            <Synthetic Name="m_Modules">
+                <DisplayString>m_NumModules = {m_NumModules}</DisplayString>
+                <Expand>
+                    <IndexListItems>
+                        <Size>m_NumModules</Size>
+                        <ValueNode>*m_Modules[$i]</ValueNode>
+                    </IndexListItems>
+                </Expand>
+            </Synthetic>
+        </Expand>
+    </Type>
     <Type Name="CClassInfo">
         <DisplayString>{m_szName,sub}</DisplayString>
 

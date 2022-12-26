@@ -2,15 +2,16 @@
 #include "CCorProfilerCallback.h"
 #include "CSigReader.h"
 #include "Hooks\Hooks.h"
+#include <bcrypt.h>
 #include <strsafe.h>
 
 //Thread local buffers (to avoid reallocating with each RecordFunction invocation that is made)
-#define NAME_BUFFER_SIZE 512
 
-thread_local WCHAR methodName[NAME_BUFFER_SIZE];
-thread_local WCHAR typeName[NAME_BUFFER_SIZE];
-thread_local WCHAR moduleName[NAME_BUFFER_SIZE];
-thread_local WCHAR fieldName[NAME_BUFFER_SIZE];
+thread_local WCHAR g_szMethodName[NAME_BUFFER_SIZE];
+thread_local WCHAR g_szTypeName[NAME_BUFFER_SIZE];
+thread_local WCHAR g_szModuleName[NAME_BUFFER_SIZE];
+thread_local WCHAR g_szAssemblyName[NAME_BUFFER_SIZE];
+thread_local WCHAR g_szFieldName[NAME_BUFFER_SIZE];
 
 #pragma region IUnknown
 
@@ -70,9 +71,173 @@ HRESULT CCorProfilerCallback::QueryInterface(REFIID riid, void** ppvObject)
 #pragma endregion
 #pragma region ICorProfilerCallback
 
+//We don't utilize AssemblyLoadFinished() or ModuleLoadFinished(); if the module was successfully loaded, we'll process it and its assembly in ModuleAttachedToAssembly()
+
+HRESULT CCorProfilerCallback::AssemblyUnloadFinished(AssemblyID assemblyId, HRESULT hrStatus)
+{
+    //This method only executes in detailed profiling mode
+
+    if (hrStatus != S_OK)
+        return S_OK;
+
+    CLock assemblyLock(&m_AssemblyMutex, true);
+
+    CAssemblyInfo* info = m_AssemblyInfoMap[assemblyId];
+
+    if (info)
+    {
+        m_AssemblyInfoMap.erase(assemblyId);
+        m_AssemblyShortNameMap.erase(info->m_szShortName);
+        m_AssemblyNameMap.erase(info->m_szName);
+
+        delete info;
+    }
+
+    return S_OK;
+}
+
+HRESULT CCorProfilerCallback::ModuleUnloadFinished(ModuleID moduleId, HRESULT hrStatus)
+{
+    //This method only executes in detailed profiling mode
+
+    if (hrStatus != S_OK)
+        return S_OK;
+
+    CLock moduleLock(&m_ModuleMutex, true);
+    CLock assemblyLock(&m_AssemblyMutex, true);
+
+    CModuleInfo* info = m_ModuleInfoMap[moduleId];
+
+    if (info)
+    {
+        CAssemblyInfo* asmInfo = m_AssemblyInfoMap[info->m_AssemblyID];
+
+        if (asmInfo)
+            asmInfo->RemoveModule(info);
+
+        m_ModuleInfoMap.erase(moduleId);
+
+        delete info;
+    }
+
+    return S_OK;
+}
+
+HRESULT CCorProfilerCallback::ModuleAttachedToAssembly(ModuleID moduleId, AssemblyID assemblyId)
+{
+    //This method only executes in detailed profiling mode and the hrStatus passed to ModuleLoadFinished SUCCEEDED()
+
+    HRESULT hr = S_OK;
+    LPWSTR shortAsmName = nullptr;
+    CAssemblyInfo* pAssemblyInfo = nullptr;
+    IMetaDataImport2* pMDI = nullptr;
+    IMetaDataAssemblyImport* pMDAI = nullptr;
+
+    mdAssembly mdAssembly;
+    const void* pbPublicKey = nullptr;
+    ULONG cbPublicKey;
+    ULONG chName;
+    ASSEMBLYMETADATA asmMetaData;
+    ZeroMemory(&asmMetaData, sizeof(ASSEMBLYMETADATA));
+    const void* pbPublicKeyToken = nullptr;
+    LPWSTR assemblyName = nullptr;
+
+    CLock assemblyLock(&m_AssemblyMutex, true);
+
+    IfFailGo(m_pInfo->GetModuleMetaData(moduleId, ofRead, IID_IMetaDataImport2, (IUnknown**)&pMDI));
+
+    pAssemblyInfo = m_AssemblyInfoMap[assemblyId];
+
+    if (!pAssemblyInfo)
+    {
+        pAssemblyInfo = nullptr;
+
+        IfFailGo(pMDI->QueryInterface(IID_IMetaDataAssemblyImport, (void**)&pMDAI));
+
+        IfFailGo(pMDAI->GetAssemblyFromScope(&mdAssembly));
+
+        IfFailGo(pMDAI->GetAssemblyProps(
+            mdAssembly,
+            &pbPublicKey,
+            &cbPublicKey,
+            NULL,
+            g_szAssemblyName,
+            NAME_BUFFER_SIZE,
+            &chName,
+            &asmMetaData,
+            NULL
+        ));
+
+        shortAsmName = _wcsdup(g_szAssemblyName);
+
+        IfFailGo(GetPublicKeyToken(pbPublicKey, cbPublicKey, &pbPublicKeyToken));
+
+        IfFailGo(GetAssemblyName(
+            chName,
+            asmMetaData,
+            (const BYTE*)pbPublicKeyToken,
+            8,
+            FALSE,
+            &assemblyName
+        ));
+    }
+
+ErrExit:
+    if (SUCCEEDED(hr))
+    {
+        CLock moduleLock(&m_ModuleMutex, true);
+
+        CModuleInfo* pModuleInfo = new CModuleInfo(assemblyId, moduleId, pMDI);
+
+        m_ModuleInfoMap[moduleId] = pModuleInfo;
+
+        if (!pAssemblyInfo)
+        {
+            pAssemblyInfo = new CAssemblyInfo(
+                shortAsmName,
+                g_szAssemblyName,
+                (const BYTE*)pbPublicKey,
+                cbPublicKey,
+                (const BYTE*)pbPublicKeyToken,
+                pMDAI
+            );
+
+            m_AssemblyInfoMap[assemblyId] = pAssemblyInfo;
+            m_AssemblyNameMap[pAssemblyInfo->m_szShortName] = pAssemblyInfo;
+            m_AssemblyNameMap[pAssemblyInfo->m_szName] = pAssemblyInfo;
+        }
+
+        pAssemblyInfo->AddModule(pModuleInfo);
+    }
+    else
+    {
+        if (assemblyName)
+            free(assemblyName);
+
+        if (pbPublicKeyToken)
+            free((void*)pbPublicKeyToken);
+
+        //If we couldn't retrieve our required metadata, remove the module from the cache as it won't do us any good
+        dprintf(L"ModuleAttachedToAssembly failed with %d\n", hr);
+    }
+
+    if (shortAsmName)
+        free(shortAsmName);
+
+    if (pMDI)
+        pMDI->Release();
+
+    if (pMDAI)
+        pMDAI->Release();
+
+    return hr;
+}
+
 HRESULT CCorProfilerCallback::ClassLoadFinished(ClassID classId, HRESULT hrStatus)
 {
-    if (!m_Detailed || hrStatus != S_OK)
+    //This method only executes in detailed profiling mode
+
+    if (hrStatus != S_OK)
         return S_OK;
 
     HRESULT hr = S_OK;
@@ -80,9 +245,12 @@ HRESULT CCorProfilerCallback::ClassLoadFinished(ClassID classId, HRESULT hrStatu
     IClassInfo* pClassInfo;
     IfFailGo(GetClassInfo(classId, &pClassInfo));
 
-    m_ClassMutex.lock();
-    m_ClassInfoMap[classId] = pClassInfo;
-    m_ClassMutex.unlock();
+    //Lock scope
+    {
+        CLock classLock(&m_ClassMutex, true);
+
+        m_ClassInfoMap[classId] = pClassInfo;
+    }
 
 ErrExit:
     return hr;
@@ -90,14 +258,21 @@ ErrExit:
 
 HRESULT CCorProfilerCallback::ClassUnloadFinished(ClassID classId, HRESULT hrStatus)
 {
-    if (!m_Detailed || hrStatus != S_OK)
+    //This method only executes in detailed profiling mode
+
+    if (hrStatus != S_OK)
         return S_OK;
+
+    CLock classLock(&m_ClassMutex, true);
 
     IClassInfo* info = m_ClassInfoMap[classId];
 
-    m_ClassInfoMap.erase(classId);
+    if (info)
+    {
+        m_ClassInfoMap.erase(classId);
 
-    delete info;
+        delete info;
+    }
 
     return S_OK;
 }
@@ -134,9 +309,9 @@ HRESULT CCorProfilerCallback::Initialize(IUnknown* pICorProfilerInfoUnk)
     
     if (m_Detailed)
     {
-        m_Tracer = new CValueTracer(m_pInfo);
+        IfFailGo(CValueTracer::Initialize(m_pInfo));
 
-        IfFailGo(m_Tracer->Initialize());
+        IfFailGo(HRESULT_FROM_NT(BCryptCreateHash(BCRYPT_SHA1_ALG_HANDLE, &m_hHash, NULL, 0, NULL, 0, NULL)));
         IfFailGo(InstallHooksWithInfo());
     }
     else
@@ -218,7 +393,7 @@ HRESULT CCorProfilerCallback::ThreadNameChanged(ThreadID threadId, ULONG cchName
 #pragma endregion
 #pragma region CCorProfilerCallback
 
-CCorProfilerCallback* CCorProfilerCallback::g_pProfiler;
+CCorProfilerCallback* g_pProfiler;
 HANDLE CCorProfilerCallback::g_hExitProcess;
 
 thread_local WCHAR debugBuffer[2000];
@@ -262,7 +437,7 @@ UINT_PTR __stdcall CCorProfilerCallback::RecordFunction(FunctionID funcId, void*
     IfFailGo(pInfo->GetFunctionInfo2(funcId, NULL, NULL, &moduleId, NULL, 0, NULL, NULL));
 
     //Get the module name
-    IfFailGo(pInfo->GetModuleInfo(moduleId, NULL, NAME_BUFFER_SIZE, NULL, moduleName, NULL));
+    IfFailGo(pInfo->GetModuleInfo(moduleId, NULL, NAME_BUFFER_SIZE, NULL, g_szModuleName, NULL));
 
     if (!ShouldHook())
     {
@@ -276,7 +451,7 @@ UINT_PTR __stdcall CCorProfilerCallback::RecordFunction(FunctionID funcId, void*
         IfFailGo(pMDI->GetMethodProps(
             methodDef,
             &typeDef,
-            methodName,
+            g_szMethodName,
             NAME_BUFFER_SIZE,
             NULL,
             NULL,
@@ -288,11 +463,13 @@ UINT_PTR __stdcall CCorProfilerCallback::RecordFunction(FunctionID funcId, void*
 
         CSigReader reader(methodDef, pMDI, pSigBlob);
 
-        if (reader.ParseMethod(methodName, TRUE, (CSigMethod**)&method) == S_OK)
+        if (reader.ParseMethod(g_szMethodName, TRUE, (CSigMethod**)&method) == S_OK)
         {
-            g_pProfiler->m_MethodMutex.lock();
+            method->m_ModuleID = moduleId;
+
+            CLock methodMutex(&g_pProfiler->m_MethodMutex, true);
+
             g_pProfiler->m_MethodInfoMap[funcId] = method;
-            g_pProfiler->m_MethodMutex.unlock();
         }
     }
     else
@@ -301,7 +478,7 @@ UINT_PTR __stdcall CCorProfilerCallback::RecordFunction(FunctionID funcId, void*
         IfFailGo(pMDI->GetMethodProps(
             methodDef,
             &typeDef,
-            methodName,
+            g_szMethodName,
             NAME_BUFFER_SIZE,
             NULL,
             NULL,
@@ -313,14 +490,14 @@ UINT_PTR __stdcall CCorProfilerCallback::RecordFunction(FunctionID funcId, void*
     }
 
     //Get the type name
-    IfFailGo(pMDI->GetTypeDefProps(typeDef, typeName, NAME_BUFFER_SIZE, NULL, NULL, NULL));
+    IfFailGo(pMDI->GetTypeDefProps(typeDef, g_szTypeName, NAME_BUFFER_SIZE, NULL, NULL, NULL));
 
     //Write the event
 
     if (g_pProfiler->m_Detailed)
-        EventWriteMethodInfoDetailedEvent(funcId, methodName, typeName, moduleName, methodDef, cbSigBlob, pSigBlob);
+        EventWriteMethodInfoDetailedEvent(funcId, g_szMethodName, g_szTypeName, g_szModuleName, methodDef, cbSigBlob, pSigBlob);
     else
-        EventWriteMethodInfoEvent(funcId, methodName, typeName, moduleName);
+        EventWriteMethodInfoEvent(funcId, g_szMethodName, g_szTypeName, g_szModuleName);
 
 ErrExit:
     if (pMDI)
@@ -347,7 +524,7 @@ LPCWSTR blacklist[] = {
 
 BOOL CCorProfilerCallback::ShouldHook()
 {
-    WCHAR* ptr = wcsrchr(moduleName, '\\');
+    WCHAR* ptr = wcsrchr(g_szModuleName, '\\');
 
     //Path doesn't contain a slash; assume we should hook it
     if (!ptr)
@@ -373,7 +550,9 @@ HRESULT CCorProfilerCallback::SetEventMask()
     {
         flags |= COR_PRF_ENABLE_FUNCTION_ARGS | COR_PRF_ENABLE_FUNCTION_RETVAL | COR_PRF_ENABLE_FRAME_INFO; //Detailed frame info
 
-        flags |= COR_PRF_MONITOR_CLASS_LOADS; //Record known classes for looking up their structure when getting their field's values
+        flags |= COR_PRF_MONITOR_ASSEMBLY_LOADS; //Record assemblies for resolving mdTypeRef -> mdAssemblyRef -> CAssemblyInfo -> CModuleInfo -> ModuleID + mdtypeDef
+        flags |= COR_PRF_MONITOR_MODULE_LOADS;   //Record modules for resolving mdTypeRefs
+        flags |= COR_PRF_MONITOR_CLASS_LOADS;    //Record known classes for looking up their structure when getting their field's values
     }
 
     return m_pInfo->SetEventMask(flags);
@@ -482,13 +661,15 @@ HRESULT CCorProfilerCallback::GetClassInfo(
 
         IfFailGo(m_pInfo->GetModuleMetaData(moduleId, ofRead, IID_IMetaDataImport2, (IUnknown**)&pMDI));
 
-        IfFailGo(pMDI->GetTypeDefProps(typeDef, typeName, NAME_BUFFER_SIZE, NULL, NULL, NULL));
+        IfFailGo(pMDI->GetTypeDefProps(typeDef, g_szTypeName, NAME_BUFFER_SIZE, NULL, NULL, NULL));
 
-        if (wcscmp(typeName, L"System.String") == 0)
+        CorElementType knownType = GetElementTypeFromClassName(g_szTypeName);
+
+        if (knownType != ELEMENT_TYPE_END)
         {
             //When we have an array of strings, baseElemType reports the type as ELEMENT_TYPE_CLASS. GetClassLayout will return E_INVALIDARG
-            //if you attempt to query a classId of a string
-            pClassInfo = new StringClassInfo();
+            //if you attempt to query a classId of a string. For other types, such as Int32, these types have been boxed, so we'll record their boxed type so we can unbox them later
+            pClassInfo = new CKnownTypeInfo(knownType);
             goto ErrExit;
         }
 
@@ -509,7 +690,7 @@ HRESULT CCorProfilerCallback::GetClassInfo(
                 IfFailGo(pMDI->GetFieldProps(
                     fieldDef,
                     NULL,
-                    fieldName,
+                    g_szFieldName,
                     NAME_BUFFER_SIZE,
                     NULL,
                     NULL,
@@ -524,13 +705,13 @@ HRESULT CCorProfilerCallback::GetClassInfo(
 
                 CSigField* sigField;
 
-                IfFailGo(reader.ParseField(fieldName, &sigField));
+                IfFailGo(reader.ParseField(g_szFieldName, &sigField));
 
                 fields[i] = sigField;
             }
         }
 
-        pClassInfo = new CClassInfo(typeName, typeDef, cFieldOffset, fields, rFieldOffset);
+        pClassInfo = new CClassInfo(g_szTypeName, moduleId, typeDef, cFieldOffset, fields, rFieldOffset);
     }
 
 ErrExit:
@@ -564,6 +745,132 @@ ErrExit:
         pMDI->Release();
 
     return hr;
+}
+
+HRESULT CCorProfilerCallback::GetAssemblyName(
+    _In_ ULONG chName,
+    _In_ ASSEMBLYMETADATA& asmMetaData,
+    _In_ const BYTE* pbPublicKeyOrToken,
+    _In_ ULONG cbPublicKeyOrToken,
+    _In_ BOOL isPublicKey,
+    _Out_ LPWSTR* szAssemblyName)
+{
+    HRESULT hr = S_OK;
+    const BYTE* pbTempPublicKeyToken = nullptr;
+
+    chName--; //Ignore the null terminator
+
+    chName += swprintf_s(
+        g_szAssemblyName + chName,
+        NAME_BUFFER_SIZE - chName,
+        L", Version=%d.%d.%d.%d, Culture=",
+        asmMetaData.usMajorVersion,
+        asmMetaData.usMinorVersion,
+        asmMetaData.usBuildNumber,
+        asmMetaData.usRevisionNumber
+    );
+
+    chName += swprintf_s(
+        g_szAssemblyName + chName,
+        NAME_BUFFER_SIZE - chName,
+        L"%s",
+        asmMetaData.szLocale == nullptr ? L"neutral" : asmMetaData.szLocale
+    );
+
+    if (isPublicKey)
+    {
+        IfFailGo(GetPublicKeyToken(pbPublicKeyOrToken, cbPublicKeyOrToken, (const void**)&pbTempPublicKeyToken));
+
+        pbPublicKeyOrToken = pbTempPublicKeyToken;
+        cbPublicKeyOrToken = 8;
+    }
+
+    chName += swprintf_s(
+        g_szAssemblyName + chName,
+        NAME_BUFFER_SIZE - chName,
+        L", PublicKeyToken="
+    );
+
+    if (cbPublicKeyOrToken)
+    {
+        for (ULONG i = 0; i < cbPublicKeyOrToken; i++)
+        {
+            chName += swprintf_s(
+                g_szAssemblyName + chName,
+                NAME_BUFFER_SIZE - chName,
+                L"%2.2x",
+                pbPublicKeyOrToken[i]
+            );
+        }
+    }
+
+    *szAssemblyName = _wcsdup(g_szAssemblyName);
+
+ErrExit:
+    if (pbTempPublicKeyToken)
+        free((void*)pbTempPublicKeyToken);
+
+    return hr;
+}
+
+HRESULT CCorProfilerCallback::GetPublicKeyToken(
+    _In_ const void* pbPublicKey,
+    _In_ ULONG cbPublicKey,
+    _Out_ const void** ppbPublicKeyToken)
+{
+    NTSTATUS ntStatus = 0;
+    BYTE* pbPublicKeyToken;
+
+    //A SHA-1 hash is 20 bytes. This saves us from having to call BCryptGetProperty with BCRYPT_HASH_LENGTH
+    BYTE hashBuffer[20];
+    ULONG bufferLength = sizeof(hashBuffer);
+
+    ntStatus = BCryptHashData(m_hHash, (BYTE*)pbPublicKey, cbPublicKey, 0);
+
+    if (!BCRYPT_SUCCESS(ntStatus))
+        goto ErrExit;
+
+    ntStatus = BCryptFinishHash(m_hHash, hashBuffer, bufferLength, 0);
+
+    pbPublicKeyToken = (BYTE*)malloc(8);
+
+    for(ULONG i = 0; i < 8; i++)
+    {
+        pbPublicKeyToken[i] = hashBuffer[bufferLength - 1 - i];
+    }
+
+    *ppbPublicKeyToken = pbPublicKeyToken;
+
+ErrExit:
+    return HRESULT_FROM_NT(ntStatus);
+}
+
+#define CHECK_ELEMENT_TYPE(name, elementType) \
+    if (_wcsnicmp(szName, name, sizeof(name) / sizeof(WCHAR)) == 0) \
+        return elementType
+
+CorElementType CCorProfilerCallback::GetElementTypeFromClassName(LPWSTR szName)
+{
+    CHECK_ELEMENT_TYPE(L"System.Boolean", ELEMENT_TYPE_BOOLEAN);
+    CHECK_ELEMENT_TYPE(L"System.Char", ELEMENT_TYPE_CHAR);
+    CHECK_ELEMENT_TYPE(L"System.SByte", ELEMENT_TYPE_I1);
+    CHECK_ELEMENT_TYPE(L"System.Byte", ELEMENT_TYPE_U1);
+    CHECK_ELEMENT_TYPE(L"System.Int16", ELEMENT_TYPE_I2);
+    CHECK_ELEMENT_TYPE(L"System.UInt16", ELEMENT_TYPE_U2);
+    CHECK_ELEMENT_TYPE(L"System.Int32", ELEMENT_TYPE_I4);
+    CHECK_ELEMENT_TYPE(L"System.UInt32", ELEMENT_TYPE_U4);
+    CHECK_ELEMENT_TYPE(L"System.Int64", ELEMENT_TYPE_I8);
+    CHECK_ELEMENT_TYPE(L"System.UInt64", ELEMENT_TYPE_U8);
+    CHECK_ELEMENT_TYPE(L"System.Single", ELEMENT_TYPE_R4);
+    CHECK_ELEMENT_TYPE(L"System.Double", ELEMENT_TYPE_R8);
+    CHECK_ELEMENT_TYPE(L"System.IntPtr", ELEMENT_TYPE_I);
+    CHECK_ELEMENT_TYPE(L"System.UIntPtr", ELEMENT_TYPE_U);
+    CHECK_ELEMENT_TYPE(L"System.String", ELEMENT_TYPE_STRING);
+
+    //ELEMENT_TYPE_OBJECT is intentionally not listed here; ELEMENT_TYPE_OBJECT goes to TraceClass() anyway, so flagging object as a "known type" will result in an infinite loop
+    //as TraceClass() repeatedly tries to dispatch the element type to itself
+
+    return ELEMENT_TYPE_END;
 }
 
 void NTAPI CCorProfilerCallback::ExitProcessCallback(

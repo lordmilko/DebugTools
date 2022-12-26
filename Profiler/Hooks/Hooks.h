@@ -5,6 +5,7 @@
 //(unlike v2 where Tailcall takes 3 parameters instead of 4)
 
 #include "DebugToolsProfiler.h"
+#include "CValueTracer.h"
 
 #include "EnterHook.h"
 #include "LeaveHook.h"

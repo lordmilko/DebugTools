@@ -129,6 +129,10 @@ namespace DebugTools.TestHost
                     instance.StringArg("foo");
                     break;
 
+                case ValueTestType.ObjectArg:
+                    instance.ObjectArg(new object());
+                    break;
+
                 case ValueTestType.EmptyStringArg:
                     instance.EmptyStringArg(string.Empty);
                     break;
@@ -161,6 +165,10 @@ namespace DebugTools.TestHost
                     instance.ClassWithPropertyArg(new Class1WithProperty{Property1 = 1});
                     break;
 
+                case ValueTestType.ExternalClass:
+                    instance.ExternalClass(new Uri("https://www.google.com"));
+                    break;
+
                 case ValueTestType.ClassArrayArg:
                     instance.ClassArrayArg(new Class1[]{new Class1(), new Class1()});
                     break;
@@ -175,6 +183,14 @@ namespace DebugTools.TestHost
 
                 case ValueTestType.EmptyObjectArrayArg:
                     instance.EmptyObjectArrayArg(new object[0]);
+                    break;
+
+                case ValueTestType.ObjectArrayOfObjectArray:
+                    instance.ObjectArrayOfObjectArray(new object[]
+                    {
+                        new object[] {1},
+                        new object[] {"2"}
+                    });
                     break;
 
                 case ValueTestType.ValueTypeArrayArg:
@@ -195,6 +211,26 @@ namespace DebugTools.TestHost
 
                 case ValueTestType.StructWithPropertyArg:
                     instance.StructWithPropertyArg(new Struct1WithProperty {Property1 = 1});
+                    break;
+
+                case ValueTestType.ExternalStruct:
+                    instance.ExternalStruct(new DateTime(2022, 8, 1, 3, 4, 5));
+                    break;
+
+                case ValueTestType.StructArrayArg:
+                    instance.StructArrayArg(new[]{new Struct1WithProperty { Property1 = 1 }, new Struct1WithProperty { Property1 = 2 }});
+                    break;
+
+                case ValueTestType.ExternalStructArrayArg:
+                    instance.ExternalStructArrayArg(new[]{ new DateTime(2022, 8, 1, 3, 4, 5) , new DateTime(2000, 8, 1, 3, 4, 5) });
+                    break;
+
+                case ValueTestType.BoxedStructArrayArg:
+                    instance.BoxedStructArrayArg(new object[] { new Struct1WithProperty { Property1 = 1 }, "b" });
+                    break;
+
+                case ValueTestType.BoxedExternalStructArrayArg:
+                    instance.BoxedExternalStructArrayArg(new object[] { new DateTime(2022, 8, 1, 3, 4, 5), "b" });
                     break;
 
                 default:

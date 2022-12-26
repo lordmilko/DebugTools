@@ -8,19 +8,26 @@ public:
     IClassInfo(BOOL isArray)
     {
         m_IsArray = isArray;
-        m_IsString = FALSE;
+        m_IsKnownType = FALSE;
     }
 
     BOOL m_IsArray;
-    BOOL m_IsString;
+    BOOL m_IsKnownType;
 };
 
 class CClassInfo : public IClassInfo
 {
 public:
-    CClassInfo(LPWSTR szName, mdTypeDef typeDef, ULONG numFields, CSigField** fields, COR_FIELD_OFFSET* fieldOffsets) : IClassInfo(FALSE)
+    CClassInfo(
+        LPWSTR szName,
+        ModuleID moduleId,
+        mdTypeDef typeDef,
+        ULONG numFields,
+        CSigField** fields,
+        COR_FIELD_OFFSET* fieldOffsets) : IClassInfo(FALSE)
     {
         m_szName = _wcsdup(szName);
+        m_ModuleID = moduleId;
         m_TypeDef = typeDef;
         m_NumFields = numFields;
         m_Fields = fields;
@@ -45,6 +52,7 @@ public:
     }
 
     LPWSTR m_szName;
+    ModuleID m_ModuleID;
     mdTypeDef m_TypeDef;
     ULONG m_NumFields;
     CSigField** m_Fields;
@@ -72,11 +80,15 @@ public:
     ULONG m_Rank;
 };
 
-class StringClassInfo : public IClassInfo
+class CKnownTypeInfo : public IClassInfo
 {
 public:
-    StringClassInfo() : IClassInfo(FALSE)
+    CKnownTypeInfo(CorElementType elementType) : IClassInfo(FALSE)
     {
-        m_IsString = TRUE;
+        m_ElementType = elementType;
+
+        m_IsKnownType = TRUE;
     }
+
+    CorElementType m_ElementType;
 };

@@ -18,7 +18,7 @@ namespace Profiler.Tests
             var dispenser = new MetaDataDispenserEx();
 
             import = dispenser.OpenScope<MetaDataImport>(ProfilerInfo.TestHost, CorOpenFlags.ofReadOnly);
-            typeDef = import.FindTypeDefByName("DebugTools.TestHost.SigBlobType", mdToken.Nil);
+            typeDef = import.FindTypeDefByName("DebugTools.TestHost.ValueType", mdToken.Nil);
         }
 
         #region SigMethodDef

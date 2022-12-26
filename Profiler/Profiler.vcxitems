@@ -17,14 +17,17 @@
     <ProjectCapability Include="SourceItemsFromImports" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="$(MSBuildThisFileDirectory)CAssemblyInfo.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)CClassFactory.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)CClassInfo.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)CCommunication.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)CCorProfilerCallback.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)CModuleInfo.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)CSigField.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)CSigMethod.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)CSigReader.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)CSigType.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)CTypeRefResolver.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)CValueTracer.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)DebugToolsProfiler.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)Hooks\EnterHook.h" />
@@ -38,11 +41,13 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)Hooks\TailcallHookWithInfo.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="$(MSBuildThisFileDirectory)CAssemblyInfo.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)CClassFactory.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)CCommunication.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)CCorProfilerCallback.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)CSigReader.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)CSigType.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)CTypeRefResolver.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)CValueTracer.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)dllmain.cpp" />
   </ItemGroup>

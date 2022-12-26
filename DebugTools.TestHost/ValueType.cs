@@ -76,6 +76,10 @@ namespace DebugTools.TestHost
         {
         }
 
+        public void ObjectArg(object a)
+        {
+        }
+
         public void EmptyStringArg(string a)
         {
         }
@@ -108,6 +112,10 @@ namespace DebugTools.TestHost
         {
         }
 
+        public void ExternalClass(Uri a)
+        {
+        }
+
         public void ClassArrayArg(Class1[] a)
         {
         }
@@ -121,6 +129,10 @@ namespace DebugTools.TestHost
         }
 
         public void EmptyObjectArrayArg(object[] a)
+        {
+        }
+
+        public void ObjectArrayOfObjectArray(object[] a)
         {
         }
 
@@ -141,6 +153,26 @@ namespace DebugTools.TestHost
         }
 
         public void StructWithPropertyArg(Struct1WithProperty a)
+        {
+        }
+
+        public void ExternalStruct(DateTime a)
+        {
+        }
+
+        public void StructArrayArg(Struct1WithProperty[] a)
+        {
+        }
+
+        public void ExternalStructArrayArg(DateTime[] a)
+        {
+        }
+
+        public void BoxedStructArrayArg(object[] a)
+        {
+        }
+
+        public void BoxedExternalStructArrayArg(object[] a)
         {
         }
 

@@ -11,6 +11,7 @@
 #include <Windows.h>
 #include <cor.h>
 #include <corprof.h>
+#include <shared_mutex>
 
 #define IfFailGoto(EXPR, LABEL) do { hr = (EXPR); if(FAILED(hr)) { goto LABEL;  } } while (0)
 #define IfFailWin32Goto(EXPR, LABEL) do { hr = (EXPR); if(hr != ERROR_SUCCESS) { hr = HRESULT_FROM_WIN32(hr); goto LABEL; } } while (0)
@@ -27,5 +28,32 @@ inline BOOL GetBoolEnv(LPCSTR name)
 }
 
 void dprintf(LPCWSTR format, ...);
+
+class CLock
+{
+public:
+    CLock(std::shared_mutex* mutex, bool exclusive = false)
+    {
+        m_Mutex = mutex;
+        m_Exclusive = exclusive;
+
+        if (exclusive)
+            mutex->lock();
+        else
+            mutex->lock_shared();
+    }
+
+    ~CLock()
+    {
+        if (m_Exclusive)
+            m_Mutex->unlock();
+        else
+            m_Mutex->unlock_shared();
+    }
+
+private:
+    std::shared_mutex* m_Mutex;
+    bool m_Exclusive;
+};
 
 #endif //PCH_H

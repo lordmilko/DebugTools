@@ -30,15 +30,37 @@ namespace Profiler.Tests
         StringArg,
         EmptyStringArg,
         NullStringArg,
+
+        ObjectArg,
+
         StringArrayArg,
         EmptyStringArrayArg,
+        ObjectArrayContainingStringArg,
 
         ClassArg,
+        ClassWithFieldArg,
+        ClassWithPropertyArg,
+        ExternalClass,
+
         ClassArrayArg,
         EmptyClassArrayArg,
-        ObjectArrayContainingStringArg,
+        
         ObjectArrayArg,
-        EmptyObjectArrayArg
+        EmptyObjectArrayArg,
+        ObjectArrayOfObjectArray,
+
+        ValueTypeArrayArg,
+        EmptyValueTypeArrayArg,
+
+        StructArg,
+        StructWithFieldArg,
+        StructWithPropertyArg,
+        ExternalStruct,
+
+        StructArrayArg,
+        ExternalStructArrayArg,
+        BoxedStructArrayArg,
+        BoxedExternalStructArrayArg
     }
 
     enum ProfilerTestType

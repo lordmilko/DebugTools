@@ -33,30 +33,20 @@ namespace Profiler.Tests
 
         public void HasValue<T>(T value)
         {
-            var detailed = (MethodFrameDetailed)frame;
+            var parameter = GetParameter();
 
-            var serializer = new ValueSerializer(detailed.Value);
-
-            var parameters = serializer.Parameters;
-
-            Assert.AreEqual(1, parameters.Count);
-
-            var valueObj = (IValue<T>) parameters[0];
+            var valueObj = (IValue<T>) parameter;
 
             Assert.AreEqual(value, valueObj.Value);
         }
 
         public void HasArrayValues<T>(CorElementType type, params T[] values)
         {
-            var detailed = (MethodFrameDetailed)frame;
+            var parameter = GetParameter();
 
-            var serializer = new ValueSerializer(detailed.Value);
+            var arrObj = (SZArrayValue) parameter;
 
-            var parameters = serializer.Parameters;
-
-            Assert.AreEqual(1, parameters.Count);
-
-            var arrObj = (SZArrayValue)parameters[0];
+            Assert.AreEqual(type, arrObj.ElementType);
 
             Assert.AreEqual(values.Length, arrObj.Value.Length, "Expected number of array elements was incorrect");
 
@@ -70,15 +60,11 @@ namespace Profiler.Tests
 
         public void HasArrayClassValues(CorElementType type, params string[] classNames)
         {
-            var detailed = (MethodFrameDetailed)frame;
+            var parameter = GetParameter();
 
-            var serializer = new ValueSerializer(detailed.Value);
+            var arrObj = (SZArrayValue) parameter;
 
-            var parameters = serializer.Parameters;
-
-            Assert.AreEqual(1, parameters.Count);
-
-            var arrObj = (SZArrayValue)parameters[0];
+            Assert.AreEqual(type, arrObj.ElementType);
 
             Assert.AreEqual(classNames.Length, arrObj.Value.Length, "Expected number of array elements was incorrect");
 
@@ -90,43 +76,98 @@ namespace Profiler.Tests
             }
         }
 
+        public void HasArrayStructValues(CorElementType type, params string[] structNames)
+        {
+            var parameter = GetParameter();
+
+            var arrObj = (SZArrayValue) parameter;
+
+            Assert.AreEqual(type, arrObj.ElementType);
+
+            Assert.AreEqual(structNames.Length, arrObj.Value.Length, "Expected number of array elements was incorrect");
+
+            for (var i = 0; i < structNames.Length; i++)
+            {
+                var valueObj = (ValueType)arrObj.Value[i];
+
+                Assert.AreEqual(structNames[i], valueObj.Name);
+            }
+        }
+
         public void HasClassType(string name)
         {
-            var detailed = (MethodFrameDetailed)frame;
+            var parameter = GetParameter();
 
-            var serializer = new ValueSerializer(detailed.Value);
-
-            var parameters = serializer.Parameters;
-
-            Assert.AreEqual(1, parameters.Count, "Expected number of parameters was incorrect");
-
-            var classObj = (ClassValue)parameters[0];
+            var classObj = (ClassValue) parameter;
 
             Assert.AreEqual(name, classObj.Name);
         }
 
+        public void HasValueType(string name)
+        {
+            var parameter = GetParameter();
+
+            var valueObj = (ValueType) parameter;
+
+            Assert.AreEqual(name, valueObj.Name);
+        }
+
         public void HasFieldValue<T>(T value)
         {
-            var detailed = (MethodFrameDetailed)frame;
-
-            var serializer = new ValueSerializer(detailed.Value);
-
-            var parameters = serializer.Parameters;
-
-            Assert.AreEqual(1, parameters.Count, "Expected number of parameters was incorrect");
-
-            List<object> fields;
-
-            if (parameters[0] is ClassValue)
-                fields = ((ClassValue) parameters[0]).FieldValues;
-            else
-                fields = ((ValueType)parameters[0]).FieldValues;
+            var parameter = GetParameter();
+            var fields = GetFields(parameter);
 
             Assert.AreEqual(1, fields.Count, "Expected number of fields was incorrect");
 
             var valueObj = (IValue<T>) fields[0];
 
             Assert.AreEqual(value, valueObj.Value);
+        }
+
+        public void HasFieldValue<T>(int index, T value)
+        {
+            var parameter = GetParameter();
+
+            var fields = GetFields(parameter);
+
+            if (fields.Count < index)
+                Assert.Fail($"Expected fields to have at least {index + 1} element(s). Actual: {fields.Count}");
+
+            var valueObj = (IValue<T>)fields[index];
+
+            Assert.AreEqual(value, valueObj.Value);
+        }
+
+        public List<object> GetParameters()
+        {
+            var detailed = (MethodFrameDetailed)frame;
+
+            var serializer = new ValueSerializer(detailed.Value);
+
+            var parameters = serializer.Parameters;
+
+            return parameters;
+        }
+
+        public object GetParameter()
+        {
+            var parameters = GetParameters();
+
+            Assert.AreEqual(1, parameters.Count, "Expected number of parameters was incorrect");
+
+            return parameters[0];
+        }
+
+        private List<object> GetFields(object parameter)
+        {
+            List<object> fields;
+
+            if (parameter is ClassValue)
+                fields = ((ClassValue)parameter).FieldValues;
+            else
+                fields = ((ValueType)parameter).FieldValues;
+
+            return fields;
         }
     }
 }

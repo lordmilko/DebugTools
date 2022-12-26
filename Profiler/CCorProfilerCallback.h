@@ -1,13 +1,24 @@
 #pragma once
 
+#include "CAssemblyInfo.h"
 #include "CCommunication.h"
 #include "CClassInfo.h"
+#include "CModuleInfo.h"
 #include "CSigMethod.h"
-#include "CValueTracer.h"
+#include <bcrypt.h>
 #include <unordered_map>
-#include <mutex>
+#include <shared_mutex>
 
 #undef GetClassInfo
+
+//Thread local buffers (to avoid reallocating with each RecordFunction invocation that is made)
+#define NAME_BUFFER_SIZE 512
+
+extern thread_local WCHAR g_szMethodName[NAME_BUFFER_SIZE];
+extern thread_local WCHAR g_szTypeName[NAME_BUFFER_SIZE];
+extern thread_local WCHAR g_szModuleName[NAME_BUFFER_SIZE];
+extern thread_local WCHAR g_szAssemblyName[NAME_BUFFER_SIZE];
+extern thread_local WCHAR g_szFieldName[NAME_BUFFER_SIZE];
 
 class CCorProfilerCallback final : public ICorProfilerCallback3
 {
@@ -18,8 +29,8 @@ public:
 
     CCorProfilerCallback() :
         m_pInfo(nullptr),
-        m_Tracer(nullptr),
         m_Detailed(FALSE),
+        m_hHash(nullptr),
         m_RefCount(0)
     {
     }
@@ -32,11 +43,17 @@ public:
         for (auto const& kv : m_ClassInfoMap)
             delete kv.second;
 
-        if (m_Tracer)
-            delete m_Tracer;
+        for (auto const& kv : m_ModuleInfoMap)
+            delete kv.second;
+
+        for (auto const& kv : m_AssemblyInfoMap)
+            delete kv.second;
 
         if (m_pInfo)
             m_pInfo->Release();
+
+        if (m_hHash)
+            BCryptDestroyHash(m_hHash);
     }
 
     //Performs a one time registration function for each unique function that is JITted
@@ -51,6 +68,21 @@ public:
     HRESULT GetClassInfo(
         _In_ ClassID classId,
         _Out_ IClassInfo** ppClassInfo);
+
+    HRESULT GetAssemblyName(
+        _In_ ULONG chName,
+        _In_ ASSEMBLYMETADATA& asmMetaData,
+        _In_ const BYTE* pbPublicKeyOrToken,
+        _In_ ULONG cbPublicKeyOrToken,
+        _In_ BOOL isPublicKey,
+        _Out_ LPWSTR* szAssemblyName);
+
+    HRESULT GetPublicKeyToken(
+        _In_ const void* pbPublicKey,
+        _In_ ULONG cbPublicKey,
+        _Out_ const void** ppbPublicKeyToken);
+
+    CorElementType GetElementTypeFromClassName(LPWSTR szName);
 
 #pragma region IUnknown
     STDMETHODIMP_(ULONG) AddRef() override;
@@ -70,12 +102,12 @@ public:
     STDMETHODIMP AssemblyLoadStarted(AssemblyID assemblyId) override { return S_OK; }
     STDMETHODIMP AssemblyLoadFinished(AssemblyID assemblyId, HRESULT hrStatus) override { return S_OK; }
     STDMETHODIMP AssemblyUnloadStarted(AssemblyID assemblyId) override { return S_OK; }
-    STDMETHODIMP AssemblyUnloadFinished(AssemblyID assemblyId, HRESULT hrStatus) override { return S_OK; }
+    STDMETHODIMP AssemblyUnloadFinished(AssemblyID assemblyId, HRESULT hrStatus) override;
     STDMETHODIMP ModuleLoadStarted(ModuleID moduleId) override { return S_OK; }
     STDMETHODIMP ModuleLoadFinished(ModuleID moduleId, HRESULT hrStatus) override { return S_OK; }
     STDMETHODIMP ModuleUnloadStarted(ModuleID moduleId) override { return S_OK; }
-    STDMETHODIMP ModuleUnloadFinished(ModuleID moduleId, HRESULT hrStatus) override { return S_OK; }
-    STDMETHODIMP ModuleAttachedToAssembly(ModuleID moduleId, AssemblyID assemblyId) override { return S_OK; }
+    STDMETHODIMP ModuleUnloadFinished(ModuleID moduleId, HRESULT hrStatus) override;
+    STDMETHODIMP ModuleAttachedToAssembly(ModuleID moduleId, AssemblyID assemblyId) override;
     STDMETHODIMP ClassLoadStarted(ClassID classId) override { return S_OK; }
     STDMETHODIMP ClassLoadFinished(ClassID classId, HRESULT hrStatus) override;
     STDMETHODIMP ClassUnloadStarted(ClassID classId) override { return S_OK; }
@@ -151,17 +183,27 @@ public:
 #pragma endregion
 
     ICorProfilerInfo3* m_pInfo;
-    CValueTracer* m_Tracer;
     BOOL m_Detailed;
 
+    std::unordered_map<AssemblyID, CAssemblyInfo*> m_AssemblyInfoMap;
+    std::unordered_map<std::wstring_view, CAssemblyInfo*> m_AssemblyNameMap;
+    std::unordered_map<std::wstring_view, CAssemblyInfo*> m_AssemblyShortNameMap;
+    std::shared_mutex m_AssemblyMutex;
+
+    std::unordered_map<ModuleID, CModuleInfo*> m_ModuleInfoMap;
+    std::shared_mutex m_ModuleMutex;
+
     std::unordered_map<ClassID, IClassInfo*> m_ClassInfoMap;
-    std::mutex m_ClassMutex;
+    std::shared_mutex m_ClassMutex;
 
     std::unordered_map<FunctionID, CSigMethodDef*> m_MethodInfoMap;
-    std::mutex m_MethodMutex;
+    std::shared_mutex m_MethodMutex;
 
 private:
     CCommunication m_Communication;
+    BCRYPT_HASH_HANDLE m_hHash;
 
     long m_RefCount;
 };
+
+#define g_pProfiler CCorProfilerCallback::g_pProfiler

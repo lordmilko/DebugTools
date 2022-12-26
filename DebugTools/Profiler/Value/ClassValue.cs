@@ -17,6 +17,14 @@ namespace DebugTools.Profiler
             Value = this;
 
             var length = reader.ReadInt32();
+
+            if (length == 0)
+            {
+                //It's null
+                Value = null;
+                return;
+            }
+
             var nameBytes = reader.ReadBytes(length * 2);
             Name = Encoding.Unicode.GetString(nameBytes, 0, (length - 1) * 2);
 

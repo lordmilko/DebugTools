@@ -83,6 +83,7 @@ namespace DebugTools.Profiler
                     return new StringValue(reader);
 
                 case CorElementType.Class:
+                case CorElementType.Object:
                     return new ClassValue(reader, this);
 
                 case CorElementType.SZArray:

@@ -3,6 +3,7 @@ using System.Linq;
 using ClrDebug;
 using DebugTools.Profiler;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using ValueType = DebugTools.Profiler.ValueType;
 
 namespace Profiler.Tests
 {
@@ -83,6 +84,11 @@ namespace Profiler.Tests
             Test(ValueTestType.NullStringArg, v => v.HasValue<string>(null));
 
         #endregion
+
+        [TestMethod]
+        public void Value_ObjectArg() =>
+            Test(ValueTestType.ObjectArg, v => v.HasClassType("System.Object"), ProfilerEnvFlags.WaitForDebugger);
+
         #region String Array
 
         [TestMethod]
@@ -112,6 +118,10 @@ namespace Profiler.Tests
         public void Value_ClassWithPropertyArg() =>
             Test(ValueTestType.ClassWithPropertyArg, v => v.HasFieldValue(1));
 
+        [TestMethod]
+        public void Value_ExternalClass() =>
+            Test(ValueTestType.ExternalClass, v => v.HasFieldValue(0, "https://www.google.com"), ProfilerEnvFlags.WaitForDebugger);
+
         #endregion
         #region Class Array
 
@@ -135,6 +145,28 @@ namespace Profiler.Tests
         public void Value_EmptyObjectArrayArg() =>
             Test(ValueTestType.EmptyObjectArrayArg, v => v.HasArrayValues(CorElementType.Class, new object[0]));
 
+        [TestMethod]
+        public void Value_ObjectArrayOfObjectArray() =>
+            Test(ValueTestType.ObjectArrayOfObjectArray, v =>
+            {
+                var parameter = (SZArrayValue) v.GetParameter();
+
+                Assert.AreEqual(2, parameter.Value.Length);
+
+                var firstArray = (SZArrayValue) parameter.Value[0];
+                var secondArray = (SZArrayValue) parameter.Value[1];
+
+                Assert.AreEqual(1, firstArray.Value.Length);
+                Assert.AreEqual(1, secondArray.Value.Length);
+
+                var firstValue = (Int32Value) firstArray.Value[0];
+                var secondValue = (StringValue) secondArray.Value[0];
+
+                Assert.AreEqual(1, firstValue.Value);
+                Assert.AreEqual("2", secondValue.Value);
+            });
+
+        #endregion
         #region ValueType Array
 
         [TestMethod]
@@ -150,7 +182,7 @@ namespace Profiler.Tests
 
         [TestMethod]
         public void Value_StructArg() =>
-            Test(ValueTestType.StructArg, v => v.HasArrayValues(CorElementType.I4, 1, 2));
+            Test(ValueTestType.StructArg, v => v.HasValueType("DebugTools.TestHost.Struct1"));
 
         [TestMethod]
         public void Value_StructWithFieldArg() =>
@@ -159,6 +191,81 @@ namespace Profiler.Tests
         [TestMethod]
         public void Value_StructWithPropertyArg() =>
             Test(ValueTestType.StructWithPropertyArg, v => v.HasFieldValue(1));
+
+        [TestMethod]
+        public void Value_ExternalStruct() =>
+            Test(ValueTestType.ExternalStruct, v => v.HasFieldValue((ulong) 637949198450000000));
+
+        #endregion
+        #region Struct Array
+
+        [TestMethod]
+        public void Value_StructArrayArg() =>
+            Test(ValueTestType.StructArrayArg, v =>
+            {
+                v.HasArrayStructValues(CorElementType.ValueType, "DebugTools.TestHost.Struct1WithProperty", "DebugTools.TestHost.Struct1WithProperty");
+
+                var parameter = v.GetParameter();
+
+                var arrObj = (SZArrayValue)parameter;
+                var firstElm = (ValueType)arrObj.Value[0];
+                var secondElm = (ValueType)arrObj.Value[1];
+
+                var firstValue = (Int32Value) firstElm.FieldValues[0];
+                var secondValue = (Int32Value) secondElm.FieldValues[0];
+
+                Assert.AreEqual(1, firstValue.Value);
+                Assert.AreEqual(2, secondValue.Value);
+            });
+
+        [TestMethod]
+        public void Value_ExternalStructArrayArg() =>
+            Test(ValueTestType.ExternalStructArrayArg, v =>
+            {
+                v.HasArrayStructValues(CorElementType.ValueType, "System.DateTime", "System.DateTime");
+
+                var parameter = v.GetParameter();
+
+                var arrObj = (SZArrayValue)parameter;
+                var firstElm = (ValueType)arrObj.Value[0];
+                var secondElm = (ValueType)arrObj.Value[1];
+
+                var firstValue = (UInt64Value) firstElm.FieldValues[0];
+                var secondValue = (UInt64Value) secondElm.FieldValues[0];
+
+                Assert.AreEqual((ulong) 637949198450000000, firstValue.Value);
+                Assert.AreEqual((ulong)631006958450000000, secondValue.Value);
+            });
+
+        [TestMethod]
+        public void Value_BoxedStructArrayArg() =>
+            Test(ValueTestType.BoxedStructArrayArg, v =>
+            {
+                var parameter = (SZArrayValue) v.GetParameter();
+
+                Assert.AreEqual(2, parameter.Value.Length);
+
+                var first = (ValueType) parameter.Value[0];
+                var second = (StringValue) parameter.Value[1];
+
+                Assert.AreEqual(1, ((Int32Value) first.FieldValues[0]).Value);
+                Assert.AreEqual("b", second.Value);
+            });
+
+        [TestMethod]
+        public void Value_BoxedExternalStructArrayArg() =>
+            Test(ValueTestType.BoxedExternalStructArrayArg, v =>
+            {
+                var parameter = (SZArrayValue)v.GetParameter();
+
+                Assert.AreEqual(2, parameter.Value.Length);
+
+                var first = (ValueType)parameter.Value[0];
+                var second = (StringValue)parameter.Value[1];
+
+                Assert.AreEqual((ulong) 637949198450000000, ((UInt64Value) first.FieldValues[0]).Value);
+                Assert.AreEqual("b", second.Value);
+            });
 
         #endregion
 

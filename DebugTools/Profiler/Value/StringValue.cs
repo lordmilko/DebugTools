@@ -3,7 +3,7 @@ using System.Text;
 
 namespace DebugTools.Profiler
 {
-    class StringValue : IValue<string>
+    public class StringValue : IValue<string>
     {
         public int Length { get; }
 
@@ -22,7 +22,7 @@ namespace DebugTools.Profiler
 
         public override string ToString()
         {
-            return Value;
+            return Value ?? "null";
         }
     }
 }

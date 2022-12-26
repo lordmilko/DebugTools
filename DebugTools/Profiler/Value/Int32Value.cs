@@ -2,7 +2,7 @@
 
 namespace DebugTools.Profiler
 {
-    class Int32Value : IValue<int>
+    public class Int32Value : IValue<int>
     {
         public int Value { get; }
 

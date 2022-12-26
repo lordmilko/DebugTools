@@ -2,7 +2,7 @@
 
 namespace DebugTools.Profiler
 {
-    class UInt64Value : IValue<ulong>
+    public class UInt64Value : IValue<ulong>
     {
         public ulong Value { get; }
 
