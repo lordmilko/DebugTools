@@ -1,11 +1,12 @@
 #pragma once
 
+#include "CUnknown.h"
 #include <functional>
 
 class CSigReader;
 class CSigMethod;
 
-class CSigType
+class CSigType : public CUnknown
 {
 public:
     static HRESULT New(_In_ CSigReader& reader, _Out_ CSigType** ppType);
@@ -52,7 +53,7 @@ public:
     ~CSigArrayType()
     {
         if (m_pElementType)
-            delete m_pElementType;
+            m_pElementType->Release();
 
         if (m_Sizes)
             delete[] m_Sizes;
@@ -149,7 +150,7 @@ public:
         if (m_GenericArgs)
         {
             for (ULONG i = 0; i < m_NumGenericArgs; i++)
-                delete m_GenericArgs[i];
+                m_GenericArgs[i]->Release();
 
             delete m_GenericArgs;
         }
@@ -217,7 +218,7 @@ public:
     ~CSigPtrType()
     {
         if (m_pPtrType)
-            delete m_pPtrType;
+            m_pPtrType->Release();
     }
 
     HRESULT Initialize(CSigReader& reader) override;
@@ -236,7 +237,7 @@ public:
     ~CSigSZArrayType()
     {
         if (m_pElementType)
-            delete m_pElementType;
+            m_pElementType->Release();
     }
 
     HRESULT Initialize(CSigReader& reader) override;

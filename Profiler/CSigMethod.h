@@ -1,9 +1,10 @@
 #pragma once
 
 #include "CSigType.h"
+#include "CUnknown.h"
 #include "ISigParameter.h"
 
-class CSigMethod
+class CSigMethod : public CUnknown
 {
 public:
     CSigMethod(
@@ -27,12 +28,12 @@ public:
             free(m_szName);
 
         if (m_pRetType)
-            delete m_pRetType;
+            m_pRetType->Release();
 
         if (m_Parameters)
         {
             for (ULONG i = 0; i < m_NumParameters; i++)
-                delete m_Parameters[i];
+                m_Parameters[i]->Release();
 
             delete m_Parameters;
         }
@@ -101,7 +102,7 @@ public:
     ~CSigMethodRef()
     {
         for (ULONG i = 0; i < m_NumVarArgParameters; i++)
-            delete m_VarArgParameters[i];
+            m_VarArgParameters[i]->Release();
 
         delete m_VarArgParameters;
     }

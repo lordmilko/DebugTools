@@ -149,7 +149,7 @@ ErrExit:
     else
     {
         if (pType)
-            delete pType;
+            pType->Release();
     }
 
     return hr;
@@ -335,7 +335,7 @@ ErrExit:
 CSigFnPtrType::~CSigFnPtrType()
 {
     if (m_pMethod)
-        delete m_pMethod;
+        m_pMethod->Release();
 }
 
 HRESULT CSigFnPtrType::Initialize(CSigReader& reader)
@@ -377,7 +377,7 @@ ErrExit:
     else
     {
         for (ULONG j = 0; j < i; j++)
-            delete genericArgs[j];
+            genericArgs[j]->Release();
 
         delete genericArgs;
     }

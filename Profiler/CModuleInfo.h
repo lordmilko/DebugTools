@@ -1,9 +1,10 @@
 #pragma once
 
+#include "CUnknown.h"
 #include <mutex>
 #include <unordered_map>
 
-class CModuleIDAndTypeDef
+class CModuleIDAndTypeDef : public CUnknown
 {
 public:
     CModuleIDAndTypeDef(ModuleID moduleId, mdTypeDef typeDef, BOOL failed)
@@ -19,7 +20,7 @@ public:
     BOOL m_Failed;
 };
 
-class CModuleInfo
+class CModuleInfo : public CUnknown
 {
 public:
     CModuleInfo(AssemblyID assemblyID, ModuleID moduleID, IMetaDataImport2* pMDI)
@@ -35,7 +36,7 @@ public:
     ~CModuleInfo()
     {
         for (auto const& kv : m_AsmRefMap)
-            delete kv.second;
+            kv.second->Release();
 
         if (m_pMDI)
             m_pMDI->Release();

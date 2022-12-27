@@ -2,7 +2,7 @@
 
 #include "CSigType.h"
 
-class ISigParameter
+class ISigParameter : public CUnknown
 {
 public:
     CSigType* m_pType;
@@ -11,6 +11,12 @@ protected:
     ISigParameter(CSigType* pType)
     {
         m_pType = pType;
+    }
+
+    virtual ~ISigParameter()
+    {
+        if (m_pType)
+            m_pType->Release();
     }
 };
 

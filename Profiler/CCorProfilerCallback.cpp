@@ -82,15 +82,17 @@ HRESULT CCorProfilerCallback::AssemblyUnloadFinished(AssemblyID assemblyId, HRES
 
     CLock assemblyLock(&m_AssemblyMutex, true);
 
-    CAssemblyInfo* info = m_AssemblyInfoMap[assemblyId];
+    auto match = m_AssemblyInfoMap.find(assemblyId);
 
-    if (info)
+    if (match != m_AssemblyInfoMap.end())
     {
+        CAssemblyInfo* info = match->second;
+
         m_AssemblyInfoMap.erase(assemblyId);
         m_AssemblyShortNameMap.erase(info->m_szShortName);
         m_AssemblyNameMap.erase(info->m_szName);
 
-        delete info;
+        info->Release();
     }
 
     return S_OK;
@@ -106,18 +108,20 @@ HRESULT CCorProfilerCallback::ModuleUnloadFinished(ModuleID moduleId, HRESULT hr
     CLock moduleLock(&m_ModuleMutex, true);
     CLock assemblyLock(&m_AssemblyMutex, true);
 
-    CModuleInfo* info = m_ModuleInfoMap[moduleId];
+    auto moduleMatch = m_ModuleInfoMap.find(moduleId);
 
-    if (info)
+    if (moduleMatch != m_ModuleInfoMap.end())
     {
-        CAssemblyInfo* asmInfo = m_AssemblyInfoMap[info->m_AssemblyID];
+        CModuleInfo* info = moduleMatch->second;
 
-        if (asmInfo)
-            asmInfo->RemoveModule(info);
+        auto asmMatch = m_AssemblyInfoMap.find(info->m_AssemblyID);
+
+        if (asmMatch != m_AssemblyInfoMap.end())
+            asmMatch->second->RemoveModule(info);
 
         m_ModuleInfoMap.erase(moduleId);
 
-        delete info;
+        info->Release();
     }
 
     return S_OK;
@@ -144,11 +148,11 @@ HRESULT CCorProfilerCallback::ModuleAttachedToAssembly(ModuleID moduleId, Assemb
 
     CLock assemblyLock(&m_AssemblyMutex, true);
 
+    auto asmMatch = m_AssemblyInfoMap.find(assemblyId);
+
     IfFailGo(m_pInfo->GetModuleMetaData(moduleId, ofRead, IID_IMetaDataImport2, (IUnknown**)&pMDI));
 
-    pAssemblyInfo = m_AssemblyInfoMap[assemblyId];
-
-    if (!pAssemblyInfo)
+    if (asmMatch == m_AssemblyInfoMap.end())
     {
         pAssemblyInfo = nullptr;
 
@@ -181,6 +185,8 @@ HRESULT CCorProfilerCallback::ModuleAttachedToAssembly(ModuleID moduleId, Assemb
             &assemblyName
         ));
     }
+    else
+        pAssemblyInfo = asmMatch->second;
 
 ErrExit:
     if (SUCCEEDED(hr))
@@ -265,13 +271,13 @@ HRESULT CCorProfilerCallback::ClassUnloadFinished(ClassID classId, HRESULT hrSta
 
     CLock classLock(&m_ClassMutex, true);
 
-    IClassInfo* info = m_ClassInfoMap[classId];
+    auto match = m_ClassInfoMap.find(classId);
 
-    if (info)
+    if (match != m_ClassInfoMap.end())
     {
         m_ClassInfoMap.erase(classId);
 
-        delete info;
+        match->second->Release();
     }
 
     return S_OK;
@@ -725,7 +731,7 @@ ErrExit:
         {
             for (ULONG j = 0; j < i; j++)
             {
-                delete fields[i];
+                fields[i]->Release();
             }
 
             delete fields;
@@ -735,10 +741,10 @@ ErrExit:
             delete rFieldOffset;
 
         if (pElementType)
-            delete pElementType;
+            pElementType->Release();
 
         if (pClassInfo)
-            delete pClassInfo;
+            pClassInfo->Release();
     }
 
     if (pMDI)

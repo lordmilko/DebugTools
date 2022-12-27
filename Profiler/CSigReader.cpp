@@ -82,11 +82,14 @@ ErrExit:
         {
             for(ULONG j = 0; j < i; j++)
             {
-                delete parameters[i];
+                parameters[i]->Release();
             }
 
             delete parameters;
         }
+
+        if (retType)
+            retType->Release();
     }
 
     return hr;
@@ -114,7 +117,7 @@ ErrExit:
     else
     {
         if (pType)
-            delete pType;
+            pType->Release();
     }
 
     return hr;
@@ -188,7 +191,7 @@ ErrExit:
     {
         for(ULONG j = 0; j < i; j++)
         {
-            delete ppParameters[i];
+            ppParameters[i]->Release();
         }
 
         delete ppParameters;
@@ -196,7 +199,7 @@ ErrExit:
         if (ppVarArgParameters)
         {
             for (ULONG j = 0; j < *numVarArgParameters; j++)
-                delete ppVarArgParameters[j];
+                ppVarArgParameters[j]->Release();
 
             delete ppVarArgParameters;
         }

@@ -1,8 +1,9 @@
 #pragma once
 
+#include "CUnknown.h"
 #include "CSigType.h"
 
-class CSigField
+class CSigField : public CUnknown
 {
 public:
     CSigField(LPWSTR szName, CSigType* pType)
@@ -17,7 +18,7 @@ public:
             free(m_szName);
 
         if (m_pType)
-            delete m_pType;
+            m_pType->Release();
     }
 
     LPWSTR m_szName;

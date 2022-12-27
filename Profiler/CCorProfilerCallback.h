@@ -20,6 +20,10 @@ extern thread_local WCHAR g_szModuleName[NAME_BUFFER_SIZE];
 extern thread_local WCHAR g_szAssemblyName[NAME_BUFFER_SIZE];
 extern thread_local WCHAR g_szFieldName[NAME_BUFFER_SIZE];
 
+#if _DEBUG && DEBUG_UNKNOWN
+extern std::unordered_map<CUnknown*, BYTE>* g_UnknownMap;
+#endif
+
 class CCorProfilerCallback final : public ICorProfilerCallback3
 {
 public:
@@ -38,22 +42,26 @@ public:
     ~CCorProfilerCallback()
     {
         for (auto const& kv : m_MethodInfoMap)
-            delete kv.second;
+            kv.second->Release();
 
         for (auto const& kv : m_ClassInfoMap)
-            delete kv.second;
+            kv.second->Release();
 
         for (auto const& kv : m_ModuleInfoMap)
-            delete kv.second;
+            kv.second->Release();
 
         for (auto const& kv : m_AssemblyInfoMap)
-            delete kv.second;
+            kv.second->Release();
 
         if (m_pInfo)
             m_pInfo->Release();
 
         if (m_hHash)
             BCryptDestroyHash(m_hHash);
+
+#if _DEBUG && DEBUG_UNKNOWN
+        _ASSERTE(g_UnknownMap->size() == 1); //+1 for CSigType Sentinel which is a static member
+#endif
     }
 
     //Performs a one time registration function for each unique function that is JITted

@@ -11,17 +11,17 @@ HRESULT CTypeRefResolver::Resolve(
     CorTokenType resolutionScopeType;
     CLock moduleMutex(&g_pProfiler->m_ModuleMutex);
 
-    CModuleInfo* pModuleInfo = g_pProfiler->m_ModuleInfoMap[m_ModuleID];
+    auto match = g_pProfiler->m_ModuleInfoMap.find(m_ModuleID);
 
-    if (!pModuleInfo)
+    if (match == g_pProfiler->m_ModuleInfoMap.end())
     {
         hr = E_FAIL;
         goto ErrExit;
     }
 
-    m_pModuleInfo = pModuleInfo;
+    m_pModuleInfo = match->second;
 
-    IfFailGo(pModuleInfo->m_pMDI->GetTypeRefProps(m_TypeRef, &tkResolutionScope, g_szTypeName, NAME_BUFFER_SIZE, NULL));
+    IfFailGo(m_pModuleInfo->m_pMDI->GetTypeRefProps(m_TypeRef, &tkResolutionScope, g_szTypeName, NAME_BUFFER_SIZE, NULL));
 
     resolutionScopeType = (CorTokenType) TypeFromToken(tkResolutionScope);
 
@@ -84,15 +84,17 @@ HRESULT CTypeRefResolver::ResolveAssemblyRef(
     {
         CLock asmRefLock(&m_pModuleInfo->m_AsmRefMutex);
 
-        CModuleIDAndTypeDef* match = m_pModuleInfo->m_AsmRefMap[assemblyRef];
+        auto match = m_pModuleInfo->m_AsmRefMap.find(assemblyRef);
 
-        if (match)
+        if (match != m_pModuleInfo->m_AsmRefMap.end())
         {
-            if (match->m_Failed)
+            CModuleIDAndTypeDef* item = match->second;
+
+            if (item->m_Failed)
                 return E_FAIL;
 
-            *moduleId = match->m_ModuleID;
-            *typeDef = match->m_TypeDef;
+            *moduleId = item->m_ModuleID;
+            *typeDef = item->m_TypeDef;
             return S_OK;
         }
     }
@@ -128,15 +130,21 @@ HRESULT CTypeRefResolver::ResolveAssemblyRef(
     {
         CLock assemblyLock(&g_pProfiler->m_AssemblyMutex);
 
-        pAssemblyInfo = g_pProfiler->m_AssemblyNameMap[assemblyName];
+        auto nameMatch = g_pProfiler->m_AssemblyNameMap.find(assemblyName);
 
-        if (pAssemblyInfo == nullptr)
-            pAssemblyInfo = g_pProfiler->m_AssemblyShortNameMap[shortAsmName];
-
-        if (!pAssemblyInfo)
+        if (nameMatch != g_pProfiler->m_AssemblyNameMap.end())
+            pAssemblyInfo = nameMatch->second;
+        else
         {
-            hr = E_NOTIMPL;
-            goto ErrExit;
+            auto shortNameMatch = g_pProfiler->m_AssemblyShortNameMap.find(shortAsmName);
+
+            if (shortNameMatch != g_pProfiler->m_AssemblyShortNameMap.end())
+                pAssemblyInfo = shortNameMatch->second;
+            else
+            {
+                hr = E_NOTIMPL;
+                goto ErrExit;
+            }
         }
 
         //Maintain lock on pAssemblyInfo as long as we are still using it

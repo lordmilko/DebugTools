@@ -42,7 +42,12 @@ HRESULT CValueTracer::EnterWithInfo(FunctionIDOrClientID functionId, COR_PRF_ELT
 
     CLock methodLock(&g_pProfiler->m_MethodMutex);
 
-    pMethod = g_pProfiler->m_MethodInfoMap[functionId.functionID];
+    auto match = g_pProfiler->m_MethodInfoMap.find(functionId.functionID);
+
+    if (match == g_pProfiler->m_MethodInfoMap.end())
+        return E_FAIL;
+
+    pMethod = match->second;
 
     if (!pMethod)
         return E_FAIL;
@@ -771,9 +776,9 @@ HRESULT CValueTracer::GetClassInfo(ClassID classId, IClassInfo** ppClassInfo)
 
     CLock classLock(&g_pProfiler->m_ClassMutex, true);
 
-    pClassInfo = CCorProfilerCallback::g_pProfiler->m_ClassInfoMap[classId];
+    auto match = g_pProfiler->m_ClassInfoMap.find(classId);
 
-    if(!pClassInfo)
+    if (match == g_pProfiler->m_ClassInfoMap.end())
     {
         //Array types don't seem to hit ClassLoadFinished, so if we got an unknown type it's probably because it's an array
 
@@ -781,6 +786,8 @@ HRESULT CValueTracer::GetClassInfo(ClassID classId, IClassInfo** ppClassInfo)
 
         CCorProfilerCallback::g_pProfiler->m_ClassInfoMap[classId] = pClassInfo;
     }
+    else
+        pClassInfo = match->second;
 
 ErrExit:
     if (SUCCEEDED(hr))

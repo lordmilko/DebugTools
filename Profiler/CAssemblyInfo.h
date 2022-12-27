@@ -1,8 +1,10 @@
 #pragma once
 
+#include "CUnknown.h"
+
 class CModuleInfo;
 
-class CAssemblyInfo
+class CAssemblyInfo : public CUnknown
 {
 public:
     CAssemblyInfo(

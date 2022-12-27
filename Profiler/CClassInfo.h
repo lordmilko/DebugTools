@@ -2,7 +2,7 @@
 
 #include "CSigField.h"
 
-class IClassInfo
+class IClassInfo : public CUnknown
 {
 public:
     IClassInfo(BOOL isArray)
@@ -42,7 +42,7 @@ public:
         if (m_Fields)
         {
             for (ULONG i = 0; i < m_NumFields; i++)
-                delete m_Fields[i];
+                m_Fields[i]->Release();
 
             delete m_Fields;
         }
@@ -72,7 +72,7 @@ public:
     ~CArrayInfo()
     {
         if (m_pElementType)
-            delete m_pElementType;
+            m_pElementType->Release();
     }
 
     IClassInfo* m_pElementType;
