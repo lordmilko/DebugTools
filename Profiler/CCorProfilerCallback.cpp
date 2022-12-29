@@ -431,16 +431,30 @@ UINT_PTR __stdcall CCorProfilerCallback::RecordFunction(FunctionID funcId, void*
     mdMethodDef methodDef;
     mdTypeDef typeDef;
     ModuleID moduleId;
+    ClassID* typeArgs = 0;
     PCCOR_SIGNATURE pSigBlob = nullptr;
     ULONG cbSigBlob = 0;
 
     CSigMethodDef* method = nullptr;
+    BOOL methodSaved = FALSE;
 
     //Get the IMetaDataImport and mdMethodDef
     IfFailGo(pInfo->GetTokenAndMetaDataFromFunction(funcId, IID_IMetaDataImport, reinterpret_cast<IUnknown**>(&pMDI), &methodDef));
 
-    //Get the ModuleID
-    IfFailGo(pInfo->GetFunctionInfo2(funcId, NULL, NULL, &moduleId, NULL, 0, NULL, NULL));
+    /* Get the ModuleIDand any type arguments.Due to the fact reference types will tend to share a single generic type definition,
+     * in order to get proper typeArg information, we need to have a COR_PRF_FRAME_INFO, which we'll only have during EnterWithInfo().
+     * While we don't query for generic info here, we'll know if a method is generic thanks to m_NumGenericTypeArgNames. For more info on generics,
+     * see https://github.com/dotnet/runtime/blob/57bfe474518ab5b7cfe6bf7424a79ce3af9d6657/docs/design/coreclr/profiling/davbr-blog-archive/Generics%20and%20Your%20Profiler.md */
+    IfFailGo(pInfo->GetFunctionInfo2(
+        funcId,     //[in] funcId
+        NULL,       //[in] frameInfo
+        NULL,       //[out] pClassId
+        &moduleId,  //[out] pModuleId
+        NULL,       //[out] pToken
+        0,          //[in] cTypeArgs
+        NULL, //[out] pcTypeArgs
+        NULL        //[out] typeArgs
+    ));
 
     //Get the module name
     IfFailGo(pInfo->GetModuleInfo(moduleId, NULL, NAME_BUFFER_SIZE, NULL, g_szModuleName, NULL));
@@ -448,7 +462,7 @@ UINT_PTR __stdcall CCorProfilerCallback::RecordFunction(FunctionID funcId, void*
     if (!ShouldHook())
     {
         *pbHookFunction = FALSE;
-        goto Exit;
+        goto ErrExit;
     }
 
     if (g_pProfiler->m_Detailed)
@@ -476,6 +490,8 @@ UINT_PTR __stdcall CCorProfilerCallback::RecordFunction(FunctionID funcId, void*
             CLock methodMutex(&g_pProfiler->m_MethodMutex, true);
 
             g_pProfiler->m_MethodInfoMap[funcId] = method;
+
+            methodSaved = TRUE;
         }
     }
     else
@@ -506,12 +522,14 @@ UINT_PTR __stdcall CCorProfilerCallback::RecordFunction(FunctionID funcId, void*
         EventWriteMethodInfoEvent(funcId, g_szMethodName, g_szTypeName, g_szModuleName);
 
 ErrExit:
+    if (typeArgs && !methodSaved)
+        free(typeArgs);
+
     if (pMDI)
         pMDI->Release();
 
     *pbHookFunction = true;
 
-Exit:
     return funcId;
 }
 
@@ -628,6 +646,8 @@ HRESULT CCorProfilerCallback::GetClassInfo(
 
     ModuleID moduleId;
     mdTypeDef typeDef;
+    ULONG32 cNumTypeArgs = 0;
+    ClassID* typeArgs = nullptr;
 
     CorElementType baseElemType;
     ClassID baseClassId;
@@ -663,7 +683,30 @@ HRESULT CCorProfilerCallback::GetClassInfo(
     {
         //It's not an array
 
-        IfFailGo(m_pInfo->GetClassIDInfo(classId, &moduleId, &typeDef));
+        IfFailGo(m_pInfo->GetClassIDInfo2(
+            classId,
+            &moduleId,
+            &typeDef,
+            NULL,
+            0,
+            &cNumTypeArgs,
+            NULL
+        ));
+
+        if (cNumTypeArgs)
+        {
+            typeArgs = new ClassID[cNumTypeArgs];
+
+            IfFailGo(m_pInfo->GetClassIDInfo2(
+                classId,
+                &moduleId,
+                &typeDef,
+                NULL,
+                cNumTypeArgs,
+                &cNumTypeArgs,
+                typeArgs
+            ));
+        }
 
         IfFailGo(m_pInfo->GetModuleMetaData(moduleId, ofRead, IID_IMetaDataImport2, (IUnknown**)&pMDI));
 
@@ -674,8 +717,8 @@ HRESULT CCorProfilerCallback::GetClassInfo(
         if (knownType != ELEMENT_TYPE_END)
         {
             //When we have an array of strings, baseElemType reports the type as ELEMENT_TYPE_CLASS. GetClassLayout will return E_INVALIDARG
-            //if you attempt to query a classId of a string. For other types, such as Int32, these types have been boxed, so we'll record their boxed type so we can unbox them later
-            pClassInfo = new CKnownTypeInfo(knownType);
+            //if you attempt to query a classId of a string. For other types, such as Int32, either these types have been boxed, or we're looking at the class ID of some generic type args; either way we'll record their boxed type so we can unbox them later
+            pClassInfo = new CStandardTypeInfo(knownType);
             goto ErrExit;
         }
 
@@ -717,7 +760,17 @@ HRESULT CCorProfilerCallback::GetClassInfo(
             }
         }
 
-        pClassInfo = new CClassInfo(g_szTypeName, moduleId, typeDef, cFieldOffset, fields, rFieldOffset);
+        pClassInfo = new CClassInfo(
+            g_szTypeName,
+            moduleId,
+            typeDef,
+            cFieldOffset,
+            fields,
+            rFieldOffset,
+            cNumTypeArgs,
+            typeArgs
+        );
+        typeArgs = nullptr; //Clear this out in case there's an error after this so we don't double free it (CClassInfo will free it in its destructor)
     }
 
 ErrExit:

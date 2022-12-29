@@ -4,7 +4,7 @@
 #include "DebugToolsProfiler.h"
 #include "CTypeRefResolver.h"
 
-#define VALUE_BUFFER_SIZE 10000
+#define VALUE_BUFFER_SIZE 1000000
 
 thread_local std::unordered_map<UINT_PTR, int> g_SeenMap;
 thread_local BYTE g_ValueBuffer[VALUE_BUFFER_SIZE];
@@ -39,6 +39,9 @@ HRESULT CValueTracer::EnterWithInfo(FunctionIDOrClientID functionId, COR_PRF_ELT
     COR_PRF_ELT_INFO frameInfo;
     ULONG cbArgumentInfo = 0;
     COR_PRF_FUNCTION_ARGUMENT_INFO* argumentInfo = nullptr;
+    ClassID* typeArgs = nullptr;
+    ClassID classId;
+    IClassInfo* pClassInfo;
 
     CLock methodLock(&g_pProfiler->m_MethodMutex);
 
@@ -78,7 +81,49 @@ HRESULT CValueTracer::EnterWithInfo(FunctionIDOrClientID functionId, COR_PRF_ELT
             argumentInfo
         ));
 
-        IfFailGo(TraceParameters(argumentInfo, pMethod));
+        if (pMethod->m_NumGenericTypeArgNames)
+        {
+            typeArgs = new ClassID[pMethod->m_NumGenericTypeArgNames];
+            ULONG32 cTypeArgs;
+
+            IfFailGo(g_pProfiler->m_pInfo->GetFunctionInfo2(
+                functionId.functionID,
+                frameInfo,
+                &classId,
+                NULL,
+                NULL,
+                pMethod->m_NumGenericTypeArgNames,
+                &cTypeArgs,
+                typeArgs
+            ));
+
+            m_GenericTypeArgs = new IClassInfo*[pMethod->m_NumGenericTypeArgNames];
+
+            for(ULONG i = 0; i < pMethod->m_NumGenericTypeArgNames; i++)
+            {
+                IClassInfo* info;
+                IfFailGo(GetClassInfo(typeArgs[i], &info));
+
+                m_GenericTypeArgs[i] = info;
+            }
+        }
+        else
+        {
+            IfFailGo(g_pProfiler->m_pInfo->GetFunctionInfo2(
+                functionId.functionID,
+                frameInfo,
+                &classId,
+                NULL,
+                NULL,
+                0,
+                NULL,
+                NULL
+            ));
+        }
+
+        IfFailGo(GetClassInfo(classId, &pClassInfo));
+
+        IfFailGo(TraceParameters(argumentInfo, pMethod, pClassInfo));
     }
 
 ErrExit:
@@ -86,6 +131,9 @@ ErrExit:
 
     if (argumentInfo != nullptr)
         free(argumentInfo);
+
+    if (typeArgs)
+        delete typeArgs;
 
     return hr;
 }
@@ -108,7 +156,10 @@ HRESULT CValueTracer::TailcallWithInfo(FunctionIDOrClientID functionId, COR_PRF_
     return hr;
 }
 
-HRESULT CValueTracer::TraceParameters(COR_PRF_FUNCTION_ARGUMENT_INFO* argumentInfo, CSigMethodDef* pMethod)
+HRESULT CValueTracer::TraceParameters(
+    _In_ COR_PRF_FUNCTION_ARGUMENT_INFO* argumentInfo,
+    _In_ CSigMethodDef* pMethod,
+    _In_ IClassInfo* pClassInfo)
 {
     HRESULT hr = S_OK;
 
@@ -134,14 +185,18 @@ HRESULT CValueTracer::TraceParameters(COR_PRF_FUNCTION_ARGUMENT_INFO* argumentIn
 
         ISigParameter* pParameter = pMethod->m_Parameters[i];
 
-        IfFailGo(TraceParameter(&range, pParameter, pMethod->m_ModuleID));
+        IfFailGo(TraceParameter(&range, pParameter, pClassInfo, pMethod->m_ModuleID));
     }
 
 ErrExit:
     return hr;
 }
 
-HRESULT CValueTracer::TraceParameter(COR_PRF_FUNCTION_ARGUMENT_RANGE* range, ISigParameter* pParameter, ModuleID typeTokenModule)
+HRESULT CValueTracer::TraceParameter(
+    _In_ COR_PRF_FUNCTION_ARGUMENT_RANGE* range,
+    _In_ ISigParameter* pParameter,
+    _In_ IClassInfo* pClassInfo,
+    _In_ ModuleID typeTokenModule)
 {
     HRESULT hr = S_OK;
 
@@ -152,12 +207,15 @@ HRESULT CValueTracer::TraceParameter(COR_PRF_FUNCTION_ARGUMENT_RANGE* range, ISi
     CSigType* pType = pParameter->m_pType;
 
     mdToken typeToken = GetTypeToken(pType);
+    long genericIndex = GetGenericIndex(pType);
 
     IfFailGo(TraceValue(
         pAddress,
         pType->m_Type,
         typeToken,
         typeTokenModule,
+        genericIndex,
+        pClassInfo,
         bytesRead
     ));
 
@@ -171,6 +229,8 @@ HRESULT CValueTracer::TraceValue(
     _In_ CorElementType elementType,
     _In_ mdToken typeToken,
     _In_ ModuleID typeTokenModule,
+    _In_ long genericIndex,
+    _In_ IClassInfo* pClassInfo,
     _Out_opt_ ULONG& bytesRead)
 {
     if (g_SeenMap[startAddress] && elementType == ELEMENT_TYPE_CLASS)
@@ -251,10 +311,10 @@ HRESULT CValueTracer::TraceValue(
         return TraceValueType(startAddress, typeToken, typeTokenModule, bytesRead);
 
     case ELEMENT_TYPE_VAR:
-        return TraceTypeGenericType(startAddress, bytesRead);
+        return TraceTypeGenericType(startAddress, genericIndex, (CClassInfo*)pClassInfo, bytesRead);
 
     case ELEMENT_TYPE_MVAR:
-        return TraceMethodGenericType(startAddress, bytesRead);
+        return TraceMethodGenericType(startAddress, genericIndex, bytesRead);
 
     case ELEMENT_TYPE_PTR:
         return TracePtrType(startAddress, bytesRead);
@@ -532,7 +592,7 @@ HRESULT CValueTracer::TraceClass(_In_ UINT_PTR startAddress, _In_ CorElementType
 
     IfFailGo(GetClassInfo(classId, &info));
 
-    if (info->m_IsArray)
+    if (info->m_InfoType == ClassInfoType::Array)
     {
         CArrayInfo* pArrayInfo = (CArrayInfo*)info;
 
@@ -543,14 +603,14 @@ HRESULT CValueTracer::TraceClass(_In_ UINT_PTR startAddress, _In_ CorElementType
     }
     else
     {
-        if (info->m_IsKnownType)
+        if (info->m_InfoType == ClassInfoType::StandardType)
         {
-            CKnownTypeInfo* pKnownTypeInfo = (CKnownTypeInfo*)info;
+            CStandardTypeInfo* pStandardTypeInfo = (CStandardTypeInfo*)info;
 
             if (g_pProfiler->m_pInfo->GetBoxClassLayout(classId, &boxedValueOffset) == S_OK)
-                IfFailGo(TraceValue(objectId + boxedValueOffset, pKnownTypeInfo->m_ElementType, mdTokenNil, 0, innerBytesRead));
+                IfFailGo(TraceValue(objectId + boxedValueOffset, pStandardTypeInfo->m_ElementType, mdTokenNil, 0, -1, nullptr, innerBytesRead));
             else
-                TraceValue(startAddress, pKnownTypeInfo->m_ElementType, mdTokenNil, 0, innerBytesRead);
+                TraceValue(startAddress, pStandardTypeInfo->m_ElementType, mdTokenNil, 0, -1, nullptr, innerBytesRead);
         }
         else
         {
@@ -597,15 +657,39 @@ HRESULT CValueTracer::TraceSZArray(_In_ UINT_PTR startAddress, _Out_opt_ ULONG& 
     ObjectID objectId = *(ObjectID*)startAddress;
     ClassID classId;
     CArrayInfo* pArrayInfo;
-    ULONG arrayLength;
-    ULONG arrBytesRead = 0;
+
+    if (objectId == NULL)
+    {
+        WriteType(ELEMENT_TYPE_SZARRAY);
+        WriteType(ELEMENT_TYPE_END);
+
+        bytesRead += sizeof(void*);
+
+        return S_OK;
+    }
 
     IfFailGo(g_pProfiler->m_pInfo->GetClassFromObject(objectId, &classId));
     IfFailGo(GetClassInfo(classId, (IClassInfo**)&pArrayInfo));
 
+    IfFailGo(TraceSZArrayInternal(pArrayInfo, objectId, bytesRead));
+
+ErrExit:
+    return hr;
+}
+
+HRESULT CValueTracer::TraceSZArrayInternal(
+    _In_ CArrayInfo* pArrayInfo,
+    _In_ ObjectID objectId,
+    _Out_opt_ ULONG& bytesRead)
+{
+    HRESULT hr = S_OK;
+
     ULONG32 dimensionSizes[1];
     int dimensionLowerBounds[1];
     BYTE* pData;
+
+    ULONG arrayLength;
+    ULONG arrBytesRead = 0;
 
     IfFailGo(g_pProfiler->m_pInfo->GetArrayObjectInfo(objectId, 1, dimensionSizes, dimensionLowerBounds, &pData));
 
@@ -616,17 +700,19 @@ HRESULT CValueTracer::TraceSZArray(_In_ UINT_PTR startAddress, _Out_opt_ ULONG& 
 
     WriteValue(&arrayLength, 4);
 
-    if (pArrayInfo->m_pElementType->m_IsKnownType)
+    if (pArrayInfo->m_pElementType->m_InfoType == ClassInfoType::StandardType)
     {
-        CKnownTypeInfo* pKnownTypeInfo = (CKnownTypeInfo*)pArrayInfo->m_pElementType;
+        CStandardTypeInfo* pStandardTypeInfo = (CStandardTypeInfo*)pArrayInfo->m_pElementType;
 
         for (ULONG i = 0; i < arrayLength; i++)
         {
             IfFailGo(TraceValue(
                 (UINT_PTR)(pData + arrBytesRead),
-                pKnownTypeInfo->m_ElementType,
+                pStandardTypeInfo->m_ElementType,
                 mdTokenNil,
                 0,
+                -1,
+                nullptr,
                 arrBytesRead
             ));
         }
@@ -705,17 +791,121 @@ ErrExit:
     return hr;
 }
 
-HRESULT CValueTracer::TraceTypeGenericType(_In_ UINT_PTR startAddress, _Out_opt_ ULONG& bytesRead)
+HRESULT CValueTracer::TraceTypeGenericType(
+    _In_ UINT_PTR startAddress,
+    _In_ long genericIndex,
+    _In_ CClassInfo* pClassInfo,
+    _Out_opt_ ULONG& bytesRead)
 {
     HRESULT hr = S_OK;
 
+    IClassInfo* genericInfo;
+
+    ClassID classId = pClassInfo->m_GenericTypeArgs[genericIndex];
+
+    IfFailGo(GetClassInfo(classId, &genericInfo));
+
+    IfFailGo(TraceGenericTypeInternal(startAddress, genericInfo, bytesRead));
+
+ErrExit:
     return hr;
 }
 
-HRESULT CValueTracer::TraceMethodGenericType(_In_ UINT_PTR startAddress, _Out_opt_ ULONG& bytesRead)
+HRESULT CValueTracer::TraceMethodGenericType(_In_ UINT_PTR startAddress, _In_ long genericIndex, _Out_opt_ ULONG& bytesRead)
 {
     HRESULT hr = S_OK;
 
+    IClassInfo* info = m_GenericTypeArgs[genericIndex];
+
+    IfFailGo(TraceGenericTypeInternal(startAddress, info, bytesRead));
+
+ErrExit:
+    return hr;
+}
+
+HRESULT CValueTracer::TraceGenericTypeInternal(
+    _In_ UINT_PTR startAddress,
+    _In_ IClassInfo* info,
+    _Out_opt_ ULONG& bytesRead)
+{
+    HRESULT hr = S_OK;
+
+    ClassID classId;
+    ObjectID objectId = *(ObjectID*)startAddress;
+
+    switch (info->m_InfoType)
+    {
+    case ClassInfoType::StandardType:
+    {
+        CStandardTypeInfo* pStandardTypeInfo = (CStandardTypeInfo*)info;
+
+        return TraceValue(
+            startAddress,
+            pStandardTypeInfo->m_ElementType,
+            mdTokenNil,
+            0,
+            -1,
+            (CClassInfo*)info,
+            bytesRead
+        );
+    }
+        CClassInfo* pClassInfo = (CClassInfo*)info;
+
+        IfFailGo(g_pProfiler->m_pInfo->GetClassFromToken(pClassInfo->m_ModuleID, pClassInfo->m_TypeDef, &classId));
+
+        ULONG32 pBufferOffset;
+
+        //All GetBoxClassLayout() does is return Object::GetOffsetOfFirstField() (which is sizeof(Object)) provided classId points to a value type.
+        //Therefore this method can easily be used to check whether a type is a value type or not, regardless of whether a particular instance of it
+        //is boxed or not
+        if (g_pProfiler->m_pInfo->GetBoxClassLayout(classId, &pBufferOffset) == S_OK)
+            IfFailGo(TraceClassOrStruct(pClassInfo, startAddress, ELEMENT_TYPE_VALUETYPE, bytesRead));
+        else
+        {
+            if (objectId == NULL)
+            {
+                //It's a null object
+                ULONG size = 0;
+
+                WriteType(ELEMENT_TYPE_CLASS);
+                WriteValue(&size, 4);
+
+                bytesRead += sizeof(void*);
+                goto ErrExit;
+            }
+
+            IfFailGo(TraceClassOrStruct(pClassInfo, objectId, ELEMENT_TYPE_CLASS, bytesRead));
+            bytesRead += sizeof(void*); //ValueType will increase bytesRead but class won't
+        }
+
+        break;
+    }
+
+    //In the case of specifying an array as a generic parameter for a method (an ELEMENT_TYPE_MVAR-like scenario), the parameter type will end up
+    //simply being ELEMENT_TYPE_SZARRAY rather than ELEMENT_TYPE_MVAR, so this codepath isn't hit. But if an aray is specified as a generic parameter to a type,
+    //it is hit
+    case ClassInfoType::Array:
+    {
+        if (objectId == NULL)
+        {
+            WriteType(ELEMENT_TYPE_SZARRAY);
+            WriteType(ELEMENT_TYPE_END);
+
+            bytesRead += sizeof(void*);
+
+            return S_OK;
+        }
+
+        IfFailGo(TraceSZArrayInternal((CArrayInfo*)info, objectId, bytesRead)); //bytesRead will be increased
+
+        break;
+    }
+    default:
+        hr = E_FAIL;
+        break;
+    }
+
+ErrExit:
     return hr;
 }
 
@@ -760,6 +950,8 @@ HRESULT CValueTracer::TraceClassOrStruct(CClassInfo* pClassInfo, ObjectID object
             field->m_pType->m_Type,
             GetTypeToken(field->m_pType),
             pClassInfo->m_ModuleID,
+            GetGenericIndex(field->m_pType),
+            pClassInfo,
             bytesRead
         ));
     }
@@ -772,7 +964,6 @@ HRESULT CValueTracer::GetClassInfo(ClassID classId, IClassInfo** ppClassInfo)
 {
     HRESULT hr = S_OK;
     IClassInfo* pClassInfo = nullptr;
-
 
     CLock classLock(&g_pProfiler->m_ClassMutex, true);
 
@@ -813,4 +1004,23 @@ mdToken CValueTracer::GetTypeToken(CSigType* pType)
     }
 
     return typeToken;
+}
+
+long CValueTracer::GetGenericIndex(CSigType* pType)
+{
+    long index = -1;
+
+    switch (pType->m_Type)
+    {
+    case ELEMENT_TYPE_MVAR:
+        index = ((CSigMethodGenericArgType*)pType)->m_Index;
+        break;
+    case ELEMENT_TYPE_VAR:
+        index = ((CSigTypeGenericArgType*)pType)->m_Index;
+        break;
+    default:
+        break;
+    }
+
+    return index;
 }

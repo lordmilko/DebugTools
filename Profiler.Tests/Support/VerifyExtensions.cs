@@ -10,6 +10,11 @@ namespace Profiler.Tests
             return new FrameVerifier(frame);
         }
 
+        public static ValueVerifier VerifyValue(this object value)
+        {
+            return new ValueVerifier(value);
+        }
+
         public static SigMethodVerifier Verify(this SigMethod method)
         {
             return new SigMethodVerifier(method);

@@ -7,13 +7,15 @@ class CSigType;
 class ISigParameter;
 class IClassInfo;
 class CClassInfo;
+class CArrayInfo;
 
 #undef GetClassInfo
 
 #define WriteType(elementType) \
     if (g_ValueBufferPosition - 1 >= VALUE_BUFFER_SIZE) \
     { \
-        hr = E_FAIL; \
+        hr = PROFILER_E_BUFFERFULL; \
+        LogError("WriteType"); \
         goto ErrExit; \
     } \
     *(g_ValueBuffer + g_ValueBufferPosition) = elementType; \
@@ -22,7 +24,8 @@ class CClassInfo;
 #define WriteValue(pValue, length) \
     if (g_ValueBufferPosition >= VALUE_BUFFER_SIZE - (int)(length)) \
     { \
-        hr = E_FAIL; \
+        hr = PROFILER_E_BUFFERFULL; \
+        LogError("WriteValue"); \
         goto ErrExit; \
     } \
     memcpy(g_ValueBuffer + g_ValueBufferPosition, pValue, length); \
@@ -37,6 +40,12 @@ class CClassInfo;
 class CValueTracer
 {
 public:
+    ~CValueTracer()
+    {
+        if (m_GenericTypeArgs)
+            delete m_GenericTypeArgs;
+    }
+
     static HRESULT Initialize(ICorProfilerInfo3* pInfo);
 
     HRESULT EnterWithInfo(FunctionIDOrClientID functionId, COR_PRF_ELT_INFO eltInfo);
@@ -44,14 +53,25 @@ public:
     HRESULT TailcallWithInfo(FunctionIDOrClientID functionId, COR_PRF_ELT_INFO eltInfo);
 
 private:
-    HRESULT TraceParameters(COR_PRF_FUNCTION_ARGUMENT_INFO* argumentInfo, CSigMethodDef* pMethod);
-    HRESULT TraceParameter(COR_PRF_FUNCTION_ARGUMENT_RANGE* range, ISigParameter* pParameter, ModuleID typeTokenModule);
+
+    HRESULT TraceParameters(
+        _In_ COR_PRF_FUNCTION_ARGUMENT_INFO* argumentInfo,
+        _In_ CSigMethodDef* pMethod,
+        _In_ IClassInfo* pClassInfo);
+
+    HRESULT TraceParameter(
+        _In_ COR_PRF_FUNCTION_ARGUMENT_RANGE* range,
+        _In_ ISigParameter* pParameter,
+        _In_ IClassInfo* pClassInfo,
+        _In_ ModuleID typeTokenModule);
 
     HRESULT TraceValue(
         _In_ UINT_PTR startAddress,
         _In_ CorElementType elementType,
         _In_ mdToken typeToken,
         _In_ ModuleID typeTokenModule,
+        _In_ long genericIndex,
+        _In_ IClassInfo* pClassInfo,
         _Out_opt_ ULONG& bytesRead);
 
     HRESULT TraceBool(_In_ UINT_PTR startAddress, _Out_opt_ ULONG& bytesRead);
@@ -76,9 +96,20 @@ private:
     HRESULT TraceObject(_In_ UINT_PTR startAddress, _Out_opt_ ULONG& bytesRead);
     HRESULT TraceSZArray(_In_ UINT_PTR startAddress, _Out_opt_ ULONG& bytesRead);
 
+    HRESULT TraceSZArrayInternal(
+        _In_ CArrayInfo* pArrayInfo,
+        _In_ ObjectID objectId,
+        _Out_opt_ ULONG& bytesRead);
+
     HRESULT TraceValueType(_In_ UINT_PTR startAddress, _In_ mdToken typeToken, _In_ ModuleID typeTokenModule, _Out_opt_ ULONG& bytesRead);
-    HRESULT TraceTypeGenericType(_In_ UINT_PTR startAddress, _Out_opt_ ULONG& bytesRead);
-    HRESULT TraceMethodGenericType(_In_ UINT_PTR startAddress, _Out_opt_ ULONG& bytesRead);
+    HRESULT TraceTypeGenericType(_In_ UINT_PTR startAddress, _In_ long genericIndex, _In_ CClassInfo* pClassInfo, _Out_opt_ ULONG& bytesRead);
+    HRESULT TraceMethodGenericType(_In_ UINT_PTR startAddress, _In_ long genericIndex, _Out_opt_ ULONG& bytesRead);
+
+    HRESULT TraceGenericTypeInternal(
+        _In_ UINT_PTR startAddress,
+        _In_ IClassInfo* info,
+        _Out_opt_ ULONG& bytesRead);
+
     HRESULT TracePtrType(_In_ UINT_PTR startAddress, _Out_opt_ ULONG& bytesRead);
     HRESULT TraceFnPtr(_In_ UINT_PTR startAddress, _Out_opt_ ULONG& bytesRead);
 
@@ -86,7 +117,11 @@ private:
 
     HRESULT GetClassInfo(ClassID classId, IClassInfo** ppClassInfo);
     mdToken GetTypeToken(CSigType* pType);
+    long GetGenericIndex(CSigType* pType);
 
     static ULONG s_StringLengthOffset;
     static ULONG s_StringBufferOffset;
+
+    ULONG m_NumGenericTypeArgs;
+    IClassInfo** m_GenericTypeArgs;
 };

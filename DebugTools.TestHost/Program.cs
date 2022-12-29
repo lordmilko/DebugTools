@@ -133,6 +133,94 @@ namespace DebugTools.TestHost
                     instance.ObjectArg(new object());
                     break;
 
+                #region MethodVar
+
+                case ValueTestType.Generic_MethodVar_ElementTypeClassArg:
+                    instance.Generic_MethodVar_ElementTypeClassArg(new Class1WithField {field1 = 1});
+                    break;
+
+                case ValueTestType.Generic_MethodVar_ElementTypeValueTypeArg:
+                    instance.Generic_MethodVar_ElementTypeValueTypeArg(new Struct1WithField { field1 = 1 });
+                    break;
+
+                case ValueTestType.Generic_MethodVar_ElementTypeSimpleArg:
+                    instance.Generic_MethodVar_ElementTypeSimpleArg(1);
+                    break;
+
+                #endregion
+                #region MethodVar Array
+
+                case ValueTestType.Generic_MethodVar_ElementTypeClassArrayArg:
+                    instance.Generic_MethodVar_ElementTypeClassArrayArg(new[]{ new Class1WithField { field1 = 1 }, new Class1WithField { field1 = 2 }});
+                    break;
+
+                case ValueTestType.Generic_MethodVar_ElementTypeValueTypeArrayArg:
+                    instance.Generic_MethodVar_ElementTypeValueTypeArrayArg(new []{new Struct1WithField { field1 = 1 }, new Struct1WithField { field1 = 2 }});
+                    break;
+
+                case ValueTestType.Generic_MethodVar_ElementTypeSimpleArrayArg:
+                    instance.Generic_MethodVar_ElementTypeSimpleArrayArg(new[]{1, 2});
+                    break;
+
+                #endregion
+                #region MethodVar Generic Value
+
+                case ValueTestType.Generic_MethodVar_ElementTypeGenericClassArg:
+                    instance.Generic_MethodVar_ElementTypeGenericClassArg(new GenericType<Class1WithField>{field1 = new Class1WithField
+                    {
+                        field1 = 1
+                    }});
+                    break;
+
+                case ValueTestType.Generic_MethodVar_ElementTypeGenericClassArrayArg:
+                    instance.Generic_MethodVar_ElementTypeGenericClassArrayArg(new GenericType<Class1WithField[]>
+                    {
+                        field1 = new[]
+                        {
+                            new Class1WithField
+                            {
+                                field1 = 1
+                            },
+                            new Class1WithField
+                            {
+                                field1 = 2
+                            }
+                        }
+                    });
+                    break;
+
+                #endregion
+                #region TypeVar
+
+                case ValueTestType.Generic_TypeVar_ElementTypeClassArg:
+                    new GenericValueType<Class1WithField>().Generic_TypeVar_ElementTypeClassArg(new Class1WithField { field1 = 1 });
+                    break;
+
+                case ValueTestType.Generic_TypeVar_ElementTypeValueTypeArg:
+                    new GenericValueType<Struct1WithField>().Generic_TypeVar_ElementTypeValueTypeArg(new Struct1WithField { field1 = 1 });
+                    break;
+
+                case ValueTestType.Generic_TypeVar_ElementTypeSimpleArg:
+                    new GenericValueType<int>().Generic_TypeVar_ElementTypeSimpleArg(1);
+                    break;
+
+                #endregion
+                #region TypeVar Array
+
+                case ValueTestType.Generic_TypeVar_ElementTypeClassArrayArg:
+                    new GenericValueType<Class1WithField[]>().Generic_TypeVar_ElementTypeClassArrayArg(new[]{new Class1WithField { field1 = 1 },new Class1WithField { field1 = 2 }});
+                    break;
+
+                case ValueTestType.Generic_TypeVar_ElementTypeValueTypeArrayArg:
+                    new GenericValueType<Struct1WithField[]>().Generic_TypeVar_ElementTypeValueTypeArrayArg(new[]{new Struct1WithField { field1 = 1 },new Struct1WithField { field1 = 2 }});
+                    break;
+
+                case ValueTestType.Generic_TypeVar_ElementTypeSimpleArrayArg:
+                    new GenericValueType<int[]>().Generic_TypeVar_ElementTypeSimpleArrayArg(new[] {1,2});
+                    break;
+
+                #endregion
+
                 case ValueTestType.EmptyStringArg:
                     instance.EmptyStringArg(string.Empty);
                     break;

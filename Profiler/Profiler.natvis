@@ -18,6 +18,7 @@ $split = $_ -split ' '
             <Item Name="m_szName">m_szName</Item>
             <Item Name="m_CallingConv">m_CallingConv</Item>
             <Item Name="m_pRetType">*m_pRetType</Item>
+            <Item Name="m_RefCount">m_RefCount</Item>
             <Synthetic Name="m_Parameters">
                 <DisplayString>m_NumParameters = {m_NumParameters}</DisplayString>
                 <Expand>
@@ -31,13 +32,14 @@ $split = $_ -split ' '
     </Type>
     <Type Name="CSigMethodDef">
         <DisplayString Condition="m_NumParameters == 0 &amp; m_GenericTypeArgNames == 0">{*m_pRetType} {m_szName,sub}()</DisplayString>
-        <DisplayString Condition="m_NumParameters == 0 &amp; m_GenericTypeArgNames > 0">{*m_pRetType} {m_szName,sub}&lt;{m_NumGenericTypeArgs,d}&gt;()</DisplayString>
+        <DisplayString Condition="m_NumParameters == 0 &amp; m_GenericTypeArgNames > 0">{*m_pRetType} {m_szName,sub}&lt;{m_NumGenericTypeArgNames,d}&gt;()</DisplayString>
         <DisplayString Condition="m_NumParameters > 0 &amp; m_GenericTypeArgNames == 0">{*m_pRetType} {m_szName,sub}(...)</DisplayString>
-        <DisplayString Condition="m_NumParameters > 0 &amp; m_GenericTypeArgNames > 0">{*m_pRetType} {m_szName,sub}&lt;{m_NumGenericTypeArgs,d}&gt;(...)</DisplayString>
+        <DisplayString Condition="m_NumParameters > 0 &amp; m_GenericTypeArgNames > 0">{*m_pRetType} {m_szName,sub}&lt;{m_NumGenericTypeArgNames,d}&gt;(...)</DisplayString>
         <Expand>
             <Item Name="m_szName">m_szName</Item>
             <Item Name="m_CallingConv">m_CallingConv</Item>
             <Item Name="m_pRetType">*m_pRetType</Item>
+            <Item Name="m_RefCount">m_RefCount</Item>
             <Synthetic Name="m_Parameters">
                 <DisplayString>m_NumParameters = {m_NumParameters}</DisplayString>
                 <Expand>
@@ -48,11 +50,20 @@ $split = $_ -split ' '
                 </Expand>
             </Synthetic>
             <Synthetic Name="m_GenericTypeArgNames">
+                <DisplayString>m_NumGenericTypeArgNames = {m_NumGenericTypeArgNames}</DisplayString>
+                <Expand>
+                    <IndexListItems>
+                        <Size>m_NumGenericTypeArgNames</Size>
+                        <ValueNode>*m_GenericTypeArgNames[$i]</ValueNode>
+                    </IndexListItems>
+                </Expand>
+            </Synthetic>
+            <Synthetic Name="m_GenericTypeArgs">
                 <DisplayString>m_NumGenericTypeArgs = {m_NumGenericTypeArgs}</DisplayString>
                 <Expand>
                     <IndexListItems>
                         <Size>m_NumGenericTypeArgs</Size>
-                        <ValueNode>*m_GenericTypeArgNames[$i]</ValueNode>
+                        <ValueNode>m_GenericTypeArgs[$i]</ValueNode>
                     </IndexListItems>
                 </Expand>
             </Synthetic>
@@ -64,6 +75,7 @@ $split = $_ -split ' '
         <Expand>
             <Item Name="m_szName">m_szName</Item>
             <Item Name="m_pType">m_pType</Item>
+            <Item Name="m_RefCount">m_RefCount</Item>
         </Expand>
     </Type>
     <Type Name="ISigParameter">
@@ -127,6 +139,7 @@ $split = $_ -split ' '
         <Expand>
             <Item Name="m_Type">m_Type,en</Item>
             <Item Name="m_IsByRef">m_IsByRef</Item>
+            <Item Name="m_RefCount">m_RefCount</Item>
         </Expand>
     </Type>
     <Type Name="CSigArrayType">
@@ -284,6 +297,7 @@ $split = $_ -split ' '
         <DisplayString>{m_szName,sub}</DisplayString>
 
         <Expand>
+            <Item Name="m_RefCount">m_RefCount</Item>
             <Synthetic Name="m_Fields">
                 <DisplayString>m_NumFields = {m_NumFields}</DisplayString>
                 <Expand>
@@ -305,8 +319,21 @@ $split = $_ -split ' '
                     </IndexListItems>
                 </Expand>
             </Synthetic>
+            <Synthetic Name="m_GenericTypeArgs">
+                <DisplayString>m_NumGenericTypeArgs = {m_NumGenericTypeArgs}</DisplayString>
+                <Expand>
+                    <IndexListItems>
+                        <Size>m_NumGenericTypeArgs</Size>
+                        <ValueNode>m_GenericTypeArgs[$i]</ValueNode>
+                    </IndexListItems>
+                </Expand>
+            </Synthetic>
         </Expand>
     </Type>
+
+    <HResult Name="PROFILER_E_BUFFERFULL">
+        <HRValue>0x80041001</HRValue>
+    </HResult>
 
     <HResult Name="CEE_E_ENTRYPOINT">
         <HRValue>0x80131000</HRValue>

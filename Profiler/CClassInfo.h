@@ -2,17 +2,22 @@
 
 #include "CSigField.h"
 
+enum class ClassInfoType
+{
+    Class,
+    Array,
+    StandardType
+};
+
 class IClassInfo : public CUnknown
 {
 public:
-    IClassInfo(BOOL isArray)
+    IClassInfo(ClassInfoType infoType)
     {
-        m_IsArray = isArray;
-        m_IsKnownType = FALSE;
+        m_InfoType = infoType;
     }
 
-    BOOL m_IsArray;
-    BOOL m_IsKnownType;
+    ClassInfoType m_InfoType;
 };
 
 class CClassInfo : public IClassInfo
@@ -24,7 +29,9 @@ public:
         mdTypeDef typeDef,
         ULONG numFields,
         CSigField** fields,
-        COR_FIELD_OFFSET* fieldOffsets) : IClassInfo(FALSE)
+        COR_FIELD_OFFSET* fieldOffsets,
+        ULONG32 numGenericTypeArgs,
+        ClassID* genericTypeArgs) : IClassInfo(ClassInfoType::Class)
     {
         m_szName = _wcsdup(szName);
         m_ModuleID = moduleId;
@@ -32,6 +39,8 @@ public:
         m_NumFields = numFields;
         m_Fields = fields;
         m_FieldOffsets = fieldOffsets;
+        m_NumGenericTypeArgs = numGenericTypeArgs;
+        m_GenericTypeArgs = genericTypeArgs;
     }
 
     ~CClassInfo()
@@ -49,6 +58,9 @@ public:
 
         if (m_FieldOffsets)
             delete m_FieldOffsets;
+
+        if (m_GenericTypeArgs)
+            delete m_GenericTypeArgs;
     }
 
     LPWSTR m_szName;
@@ -57,12 +69,14 @@ public:
     ULONG m_NumFields;
     CSigField** m_Fields;
     COR_FIELD_OFFSET* m_FieldOffsets;
+    ULONG32 m_NumGenericTypeArgs;
+    ClassID* m_GenericTypeArgs;
 };
 
 class CArrayInfo : public IClassInfo
 {
 public:
-    CArrayInfo(IClassInfo* pElementType, CorElementType elementType, ULONG rank) : IClassInfo(TRUE)
+    CArrayInfo(IClassInfo* pElementType, CorElementType elementType, ULONG rank) : IClassInfo(ClassInfoType::Array)
     {
         m_pElementType = pElementType;
         m_CorElementType = elementType;
@@ -80,14 +94,12 @@ public:
     ULONG m_Rank;
 };
 
-class CKnownTypeInfo : public IClassInfo
+class CStandardTypeInfo : public IClassInfo
 {
 public:
-    CKnownTypeInfo(CorElementType elementType) : IClassInfo(FALSE)
+    CStandardTypeInfo(CorElementType elementType) : IClassInfo(ClassInfoType::StandardType)
     {
         m_ElementType = elementType;
-
-        m_IsKnownType = TRUE;
     }
 
     CorElementType m_ElementType;

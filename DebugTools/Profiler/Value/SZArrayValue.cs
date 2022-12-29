@@ -15,17 +15,25 @@ namespace DebugTools.Profiler
         public SZArrayValue(BinaryReader reader, ValueSerializer serializer)
         {
             ElementType = (CorElementType)reader.ReadByte();
-            Length = reader.ReadInt32();
 
-            var list = new List<object>();
-
-            if (Length > 0)
+            if (ElementType == CorElementType.End)
             {
-                for (var i = 0; i < Length; i++)
-                    list.Add(serializer.ReadValue());
+                Value = null;
             }
+            else
+            {
+                Length = reader.ReadInt32();
 
-            Value = list.ToArray();
+                var list = new List<object>();
+
+                if (Length > 0)
+                {
+                    for (var i = 0; i < Length; i++)
+                        list.Add(serializer.ReadValue());
+                }
+
+                Value = list.ToArray();
+            }
         }
     }
 }

@@ -155,6 +155,9 @@ namespace DebugTools.Profiler
 
         private void Parser_CallEnterDetailed(CallDetailedArgs args) => CallEnter(args, (t, v, m) =>
         {
+            if ((uint) args.HRESULT >= 0x80041001 && (uint) args.HRESULT <= 0x80042000)
+                throw new ProfilerException((PROFILER_HRESULT) (uint) args.HRESULT);
+
             args.HRESULT.ThrowOnNotOK();
 
             t.AddMethodDetailed(v, m);

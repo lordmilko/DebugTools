@@ -61,7 +61,7 @@ public:
         LPWSTR* genericTypeArgNames) : CSigMethod(szName, callingConvention, retType, numParameters, parameters),
         m_ModuleID(0)
     {
-        m_NumGenericTypeArgs = numGenericArgNames;
+        m_NumGenericTypeArgNames = numGenericArgNames;
         m_GenericTypeArgNames = genericTypeArgNames;
     }
 
@@ -69,14 +69,14 @@ public:
     {
         if (m_GenericTypeArgNames)
         {
-            for (ULONG i = 0; i < m_NumGenericTypeArgs; i++)
+            for (ULONG i = 0; i < m_NumGenericTypeArgNames; i++)
                 free(m_GenericTypeArgNames[i]);
 
             free(m_GenericTypeArgNames);
         }
     }
 
-    ULONG m_NumGenericTypeArgs;
+    ULONG m_NumGenericTypeArgNames;
     LPWSTR* m_GenericTypeArgNames;
 
     ModuleID m_ModuleID;

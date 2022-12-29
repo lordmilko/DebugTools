@@ -13,4 +13,9 @@
     {
         public int Property1 { get; set; }
     }
+
+    class GenericType<T>
+    {
+        public T field1;
+    }
 }

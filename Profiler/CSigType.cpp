@@ -391,7 +391,9 @@ HRESULT CSigMethodGenericArgType::Initialize(CSigReader& reader)
 
     m_Index = CorSigUncompressData(reader.m_pSigBlob);
 
-    if (TypeFromToken(reader.m_Token) == mdtMethodDef)
+    CorTokenType type = (CorTokenType)TypeFromToken(reader.m_Token);
+
+    if (type == mdtMethodDef)
     {
         IfFailGo(GetGenericArgName(m_Index, reader.m_Token, reader, &m_szName));
     }
@@ -406,7 +408,9 @@ HRESULT CSigTypeGenericArgType::Initialize(CSigReader& reader)
 
     m_Index = CorSigUncompressData(reader.m_pSigBlob);
 
-    if (TypeFromToken(reader.m_Token) == mdtMethodDef)
+    CorTokenType type = (CorTokenType)TypeFromToken(reader.m_Token);
+
+    if (type == mdtMethodDef)
     {
         mdTypeDef pClass;
 
@@ -415,6 +419,26 @@ HRESULT CSigTypeGenericArgType::Initialize(CSigReader& reader)
             &pClass,
             NULL,
             0,
+            NULL,
+            NULL,
+            NULL,
+            NULL,
+            NULL,
+            NULL
+        ));
+
+        IfFailGo(GetGenericArgName(m_Index, pClass, reader, &m_szName));
+    }
+    else if (type == mdtFieldDef)
+    {
+        mdTypeDef pClass;
+
+        IfFailGo(reader.m_pMDI->GetFieldProps(
+            reader.m_Token,
+            &pClass,
+            NULL,
+            0,
+            NULL,
             NULL,
             NULL,
             NULL,

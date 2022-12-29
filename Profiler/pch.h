@@ -13,7 +13,9 @@
 #include <corprof.h>
 #include <shared_mutex>
 
-#define IfFailGoto(EXPR, LABEL) do { hr = (EXPR); if(FAILED(hr)) { goto LABEL;  } } while (0)
+#define LogError(EXPR) dprintf(L"Error 0x%X occurred calling %S at %S(%d)\n", hr, #EXPR, __FILE__, __LINE__); DebugBreak();
+
+#define IfFailGoto(EXPR, LABEL) do { hr = (EXPR); if(FAILED(hr)) { LogError(EXPR); goto LABEL;  } } while (0)
 #define IfFailWin32Goto(EXPR, LABEL) do { hr = (EXPR); if(hr != ERROR_SUCCESS) { hr = HRESULT_FROM_WIN32(hr); goto LABEL; } } while (0)
 #define IfFailRet(EXPR)         do { hr = (EXPR); if(FAILED(hr)) { return (hr); } } while (0)
 
@@ -28,6 +30,8 @@ inline BOOL GetBoolEnv(LPCSTR name)
 }
 
 void dprintf(LPCWSTR format, ...);
+
+#define PROFILER_E_BUFFERFULL MAKE_HRESULT(SEVERITY_ERROR, FACILITY_ITF, 0x1001);
 
 class CLock
 {

@@ -2,6 +2,33 @@
 
 namespace DebugTools.TestHost
 {
+    class GenericValueType<TType>
+    {
+        public void Generic_TypeVar_ElementTypeClassArg(TType a)
+        {
+        }
+
+        public void Generic_TypeVar_ElementTypeValueTypeArg(TType a)
+        {
+        }
+
+        public void Generic_TypeVar_ElementTypeSimpleArg(TType a)
+        {
+        }
+
+        public void Generic_TypeVar_ElementTypeClassArrayArg(TType a)
+        {
+        }
+
+        public void Generic_TypeVar_ElementTypeValueTypeArrayArg(TType a)
+        {
+        }
+
+        public void Generic_TypeVar_ElementTypeSimpleArrayArg(TType a)
+        {
+        }
+    }
+
     class ValueType
     {
         public void NoArgs_ReturnVoid()
@@ -80,6 +107,37 @@ namespace DebugTools.TestHost
         {
         }
 
+        public void Generic_MethodVar_ElementTypeClassArg<TMethod>(TMethod a)
+        {
+        }
+
+        public void Generic_MethodVar_ElementTypeValueTypeArg<TMethod>(TMethod a)
+        {
+        }
+
+        public void Generic_MethodVar_ElementTypeSimpleArg<TMethod>(TMethod a)
+        {
+        }
+
+        public void Generic_MethodVar_ElementTypeClassArrayArg<TMethod>(TMethod[] a)
+        {
+        }
+
+        public void Generic_MethodVar_ElementTypeValueTypeArrayArg<TMethod>(TMethod[] a)
+        {
+        }
+
+        public void Generic_MethodVar_ElementTypeSimpleArrayArg<TMethod>(TMethod[] a)
+        {
+        }
+
+        public void Generic_MethodVar_ElementTypeGenericClassArg<TMethod>(GenericType<TMethod> a)
+        {
+        }
+
+        public void Generic_MethodVar_ElementTypeGenericClassArrayArg<TMethod>(GenericType<TMethod> a)
+        {
+        }
         public void EmptyStringArg(string a)
         {
         }

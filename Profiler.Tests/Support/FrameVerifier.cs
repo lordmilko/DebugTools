@@ -1,8 +1,10 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using ClrDebug;
 using DebugTools.Profiler;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using ValueType = DebugTools.Profiler.ValueType;
 
 namespace Profiler.Tests
 {
@@ -31,14 +33,7 @@ namespace Profiler.Tests
                 Assert.AreEqual(names[i], frame.Children[i].MethodInfo.MethodName);
         }
 
-        public void HasValue<T>(T value)
-        {
-            var parameter = GetParameter();
-
-            var valueObj = (IValue<T>) parameter;
-
-            Assert.AreEqual(value, valueObj.Value);
-        }
+        public void HasValue<T>(T value) => GetParameter().VerifyValue().HasValue(value);
 
         public void HasArrayValues<T>(CorElementType type, params T[] values)
         {
@@ -94,49 +89,39 @@ namespace Profiler.Tests
             }
         }
 
-        public void HasClassType(string name)
+        public FrameVerifier HasClassType(string name)
         {
             var parameter = GetParameter();
 
             var classObj = (ClassValue) parameter;
 
             Assert.AreEqual(name, classObj.Name);
+
+            return this;
         }
 
-        public void HasValueType(string name)
+        public FrameVerifier HasValueType(string name)
         {
             var parameter = GetParameter();
 
             var valueObj = (ValueType) parameter;
 
             Assert.AreEqual(name, valueObj.Name);
+
+            return this;
         }
 
-        public void HasFieldValue<T>(T value)
-        {
-            var parameter = GetParameter();
-            var fields = GetFields(parameter);
+        public void HasFieldValue<T>(T value) =>
+            GetParameter().VerifyValue().HasFieldValue(value);
 
-            Assert.AreEqual(1, fields.Count, "Expected number of fields was incorrect");
+        public void HasFieldValue(Action<ValueVerifier> value) =>
+            GetParameter().VerifyValue().HasFieldValue(value);
 
-            var valueObj = (IValue<T>) fields[0];
+        public void HasFieldValue<T>(int index, T value) =>
+            GetParameter().VerifyValue().HasFieldValue(index, value);
 
-            Assert.AreEqual(value, valueObj.Value);
-        }
-
-        public void HasFieldValue<T>(int index, T value)
-        {
-            var parameter = GetParameter();
-
-            var fields = GetFields(parameter);
-
-            if (fields.Count < index)
-                Assert.Fail($"Expected fields to have at least {index + 1} element(s). Actual: {fields.Count}");
-
-            var valueObj = (IValue<T>)fields[index];
-
-            Assert.AreEqual(value, valueObj.Value);
-        }
+        public void VerifyArray(params Action<ValueVerifier>[] actions) =>
+            GetParameter().VerifyValue().VerifyArray(actions);
 
         public List<object> GetParameters()
         {

@@ -87,8 +87,93 @@ namespace Profiler.Tests
 
         [TestMethod]
         public void Value_ObjectArg() =>
-            Test(ValueTestType.ObjectArg, v => v.HasClassType("System.Object"), ProfilerEnvFlags.WaitForDebugger);
+            Test(ValueTestType.ObjectArg, v => v.HasClassType("System.Object"));
+        [TestMethod]
+        public void Value_Generic_MethodVar_ElementTypeClassArg() =>
+            Test(ValueTestType.Generic_MethodVar_ElementTypeClassArg, v => v.HasClassType("DebugTools.TestHost.Class1WithField").HasFieldValue(1));
 
+        [TestMethod]
+        public void Value_Generic_MethodVar_ElementTypeValueTypeArg() =>
+            Test(ValueTestType.Generic_MethodVar_ElementTypeValueTypeArg, v => v.HasValueType("DebugTools.TestHost.Struct1WithField").HasFieldValue(1));
+
+        [TestMethod]
+        public void Value_Generic_MethodVar_ElementTypeSimpleArg() =>
+            Test(ValueTestType.Generic_MethodVar_ElementTypeSimpleArg, v => v.HasValue(1));
+
+        [TestMethod]
+        public void Value_Generic_MethodVar_ElementTypeClassArrayArg() =>
+            Test(ValueTestType.Generic_MethodVar_ElementTypeClassArrayArg, v =>
+            {
+                v.HasArrayClassValues(CorElementType.Class, "DebugTools.TestHost.Class1WithField", "DebugTools.TestHost.Class1WithField");
+
+                v.VerifyArray(
+                    e => e.HasFieldValue(1),
+                    e => e.HasFieldValue(2)
+                );
+            });
+
+        [TestMethod]
+        public void Value_Generic_MethodVar_ElementTypeValueTypeArrayArg() =>
+            Test(ValueTestType.Generic_MethodVar_ElementTypeValueTypeArrayArg, v =>
+            {
+                v.HasArrayStructValues(CorElementType.ValueType, "DebugTools.TestHost.Struct1WithField", "DebugTools.TestHost.Struct1WithField");
+
+                v.VerifyArray(
+                    e => e.HasFieldValue(1),
+                    e => e.HasFieldValue(2)
+                );
+            });
+
+        [TestMethod]
+        public void Value_Generic_MethodVar_ElementTypeSimpleArrayArg() =>
+            Test(ValueTestType.Generic_MethodVar_ElementTypeSimpleArrayArg, v => v.HasArrayValues(CorElementType.I4, 1, 2));
+
+        [TestMethod]
+        public void Value_Generic_MethodVar_ElementTypeGenericClassArg() =>
+            Test(ValueTestType.Generic_MethodVar_ElementTypeGenericClassArg, v => v.HasFieldValue(
+                f => f.HasFieldValue(1)
+            ));
+
+        [TestMethod]
+        public void Value_Generic_MethodVar_ElementTypeGenericClassArrayArg() =>
+            Test(ValueTestType.Generic_MethodVar_ElementTypeGenericClassArrayArg, v => v.HasFieldValue(
+                f => f.VerifyArray(
+                    e => e.HasFieldValue(1),
+                    e => e.HasFieldValue(2)
+                )
+            ));
+
+        [TestMethod]
+        public void Value_Generic_TypeVar_ElementTypeClassArg() =>
+            Test(ValueTestType.Generic_TypeVar_ElementTypeClassArg, v => v.HasFieldValue(1));
+
+        [TestMethod]
+        public void Value_Generic_TypeVar_ElementTypeValueTypeArg() =>
+            Test(ValueTestType.Generic_TypeVar_ElementTypeValueTypeArg, v => v.HasFieldValue(1));
+
+        [TestMethod]
+        public void Value_Generic_TypeVar_ElementTypeSimpleArg() =>
+            Test(ValueTestType.Generic_TypeVar_ElementTypeSimpleArg, v => v.HasValue(1));
+
+        [TestMethod]
+        public void Value_Generic_TypeVar_ElementTypeClassArrayArg() =>
+            Test(ValueTestType.Generic_TypeVar_ElementTypeClassArrayArg, v => v.VerifyArray(
+                e => e.HasFieldValue(1),
+                e => e.HasFieldValue(2)
+            ));
+
+        [TestMethod]
+        public void Value_Generic_TypeVar_ElementTypeValueTypeArrayArg() =>
+            Test(ValueTestType.Generic_TypeVar_ElementTypeValueTypeArrayArg, v => v.VerifyArray(
+                e => e.HasFieldValue(1),
+                e => e.HasFieldValue(2)
+            ));
+
+        [TestMethod]
+        public void Value_Generic_TypeVar_ElementTypeSimpleArrayArg() =>
+            Test(ValueTestType.Generic_TypeVar_ElementTypeSimpleArrayArg, v => v.HasArrayValues(CorElementType.I4, 1, 2));
+
+        #endregion
         #region String Array
 
         [TestMethod]
@@ -120,7 +205,7 @@ namespace Profiler.Tests
 
         [TestMethod]
         public void Value_ExternalClass() =>
-            Test(ValueTestType.ExternalClass, v => v.HasFieldValue(0, "https://www.google.com"), ProfilerEnvFlags.WaitForDebugger);
+            Test(ValueTestType.ExternalClass, v => v.HasFieldValue(0, "https://www.google.com"));
 
         #endregion
         #region Class Array
@@ -149,21 +234,14 @@ namespace Profiler.Tests
         public void Value_ObjectArrayOfObjectArray() =>
             Test(ValueTestType.ObjectArrayOfObjectArray, v =>
             {
-                var parameter = (SZArrayValue) v.GetParameter();
-
-                Assert.AreEqual(2, parameter.Value.Length);
-
-                var firstArray = (SZArrayValue) parameter.Value[0];
-                var secondArray = (SZArrayValue) parameter.Value[1];
-
-                Assert.AreEqual(1, firstArray.Value.Length);
-                Assert.AreEqual(1, secondArray.Value.Length);
-
-                var firstValue = (Int32Value) firstArray.Value[0];
-                var secondValue = (StringValue) secondArray.Value[0];
-
-                Assert.AreEqual(1, firstValue.Value);
-                Assert.AreEqual("2", secondValue.Value);
+                v.VerifyArray(
+                    e1 => e1.VerifyArray(
+                        e2 => e2.HasValue(1)
+                    ),
+                    e1 => e1.VerifyArray(
+                        e2 => e2.HasValue("2")
+                    )
+                );
             });
 
         #endregion
@@ -205,17 +283,10 @@ namespace Profiler.Tests
             {
                 v.HasArrayStructValues(CorElementType.ValueType, "DebugTools.TestHost.Struct1WithProperty", "DebugTools.TestHost.Struct1WithProperty");
 
-                var parameter = v.GetParameter();
-
-                var arrObj = (SZArrayValue)parameter;
-                var firstElm = (ValueType)arrObj.Value[0];
-                var secondElm = (ValueType)arrObj.Value[1];
-
-                var firstValue = (Int32Value) firstElm.FieldValues[0];
-                var secondValue = (Int32Value) secondElm.FieldValues[0];
-
-                Assert.AreEqual(1, firstValue.Value);
-                Assert.AreEqual(2, secondValue.Value);
+                v.VerifyArray(
+                    e => e.HasFieldValue(1),
+                    e => e.HasFieldValue(2)
+                );
             });
 
         [TestMethod]
@@ -224,32 +295,20 @@ namespace Profiler.Tests
             {
                 v.HasArrayStructValues(CorElementType.ValueType, "System.DateTime", "System.DateTime");
 
-                var parameter = v.GetParameter();
-
-                var arrObj = (SZArrayValue)parameter;
-                var firstElm = (ValueType)arrObj.Value[0];
-                var secondElm = (ValueType)arrObj.Value[1];
-
-                var firstValue = (UInt64Value) firstElm.FieldValues[0];
-                var secondValue = (UInt64Value) secondElm.FieldValues[0];
-
-                Assert.AreEqual((ulong) 637949198450000000, firstValue.Value);
-                Assert.AreEqual((ulong)631006958450000000, secondValue.Value);
+                v.VerifyArray(
+                    e => e.HasFieldValue((ulong)637949198450000000),
+                    e => e.HasFieldValue((ulong)631006958450000000)
+                );
             });
 
         [TestMethod]
         public void Value_BoxedStructArrayArg() =>
             Test(ValueTestType.BoxedStructArrayArg, v =>
             {
-                var parameter = (SZArrayValue) v.GetParameter();
-
-                Assert.AreEqual(2, parameter.Value.Length);
-
-                var first = (ValueType) parameter.Value[0];
-                var second = (StringValue) parameter.Value[1];
-
-                Assert.AreEqual(1, ((Int32Value) first.FieldValues[0]).Value);
-                Assert.AreEqual("b", second.Value);
+                v.VerifyArray(
+                    e => e.HasFieldValue(1),
+                    e => e.HasValue("b")
+                );
             });
 
         [TestMethod]
@@ -258,13 +317,10 @@ namespace Profiler.Tests
             {
                 var parameter = (SZArrayValue)v.GetParameter();
 
-                Assert.AreEqual(2, parameter.Value.Length);
-
-                var first = (ValueType)parameter.Value[0];
-                var second = (StringValue)parameter.Value[1];
-
-                Assert.AreEqual((ulong) 637949198450000000, ((UInt64Value) first.FieldValues[0]).Value);
-                Assert.AreEqual("b", second.Value);
+                v.VerifyArray(
+                    e => e.HasFieldValue((ulong)637949198450000000),
+                    e => e.HasValue("b")
+                );
             });
 
         #endregion

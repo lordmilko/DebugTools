@@ -32,6 +32,22 @@ namespace Profiler.Tests
         NullStringArg,
 
         ObjectArg,
+        Generic_MethodVar_ElementTypeClassArg,
+        Generic_MethodVar_ElementTypeValueTypeArg,
+        Generic_MethodVar_ElementTypeSimpleArg,
+        Generic_MethodVar_ElementTypeClassArrayArg,
+        Generic_MethodVar_ElementTypeValueTypeArrayArg,
+        Generic_MethodVar_ElementTypeSimpleArrayArg,
+
+        Generic_TypeVar_ElementTypeClassArg,
+        Generic_TypeVar_ElementTypeValueTypeArg,
+        Generic_TypeVar_ElementTypeSimpleArg,
+        Generic_TypeVar_ElementTypeClassArrayArg,
+        Generic_TypeVar_ElementTypeValueTypeArrayArg,
+        Generic_TypeVar_ElementTypeSimpleArrayArg,
+
+        Generic_MethodVar_ElementTypeGenericClassArg,
+        Generic_MethodVar_ElementTypeGenericClassArrayArg,
 
         StringArrayArg,
         EmptyStringArrayArg,
