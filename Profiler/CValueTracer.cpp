@@ -41,7 +41,7 @@ HRESULT CValueTracer::EnterWithInfo(FunctionIDOrClientID functionId, COR_PRF_ELT
     COR_PRF_FUNCTION_ARGUMENT_INFO* argumentInfo = nullptr;
     ClassID* typeArgs = nullptr;
     ClassID classId;
-    IClassInfo* pClassInfo;
+    IClassInfo* pMethodClassInfo;
 
     CLock methodLock(&g_pProfiler->m_MethodMutex);
 
@@ -121,9 +121,10 @@ HRESULT CValueTracer::EnterWithInfo(FunctionIDOrClientID functionId, COR_PRF_ELT
             ));
         }
 
-        IfFailGo(GetClassInfo(classId, &pClassInfo));
+        //Get the class info of the class the method being invoked is defined in
+        IfFailGo(GetClassInfo(classId, &pMethodClassInfo));
 
-        IfFailGo(TraceParameters(argumentInfo, pMethod, pClassInfo));
+        IfFailGo(TraceParameters(argumentInfo, pMethod, pMethodClassInfo));
     }
 
 ErrExit:
@@ -159,7 +160,7 @@ HRESULT CValueTracer::TailcallWithInfo(FunctionIDOrClientID functionId, COR_PRF_
 HRESULT CValueTracer::TraceParameters(
     _In_ COR_PRF_FUNCTION_ARGUMENT_INFO* argumentInfo,
     _In_ CSigMethodDef* pMethod,
-    _In_ IClassInfo* pClassInfo)
+    _In_ IClassInfo* pMethodClassInfo)
 {
     HRESULT hr = S_OK;
 
@@ -185,7 +186,7 @@ HRESULT CValueTracer::TraceParameters(
 
         ISigParameter* pParameter = pMethod->m_Parameters[i];
 
-        IfFailGo(TraceParameter(&range, pParameter, pClassInfo, pMethod->m_ModuleID));
+        IfFailGo(TraceParameter(&range, pParameter, pMethodClassInfo, pMethod->m_ModuleID));
     }
 
 ErrExit:
@@ -207,15 +208,18 @@ HRESULT CValueTracer::TraceParameter(
     CSigType* pType = pParameter->m_pType;
 
     mdToken typeToken = GetTypeToken(pType);
-    long genericIndex = GetGenericIndex(pType);
+
+    CorElementType type = pType->m_Type;;
+    long genericIndex = -1;
+
+    GetGenericInfo(pType, &type, &genericIndex);
+
+    TraceValueContext ctx = MakeTraceValueContext(typeToken, typeTokenModule, genericIndex, pClassInfo, (CSigGenericType*)pType);
 
     IfFailGo(TraceValue(
         pAddress,
-        pType->m_Type,
-        typeToken,
-        typeTokenModule,
-        genericIndex,
-        pClassInfo,
+        type,
+        &ctx,
         bytesRead
     ));
 
@@ -223,16 +227,25 @@ ErrExit:
     return hr;
 }
 
+#define TraceSimpleValue(STARTADDRESS, ELEMENTTYPE, BYTESREAD) \
+    TraceValue( \
+        (STARTADDRESS), /* startAddress */ \
+        (ELEMENTTYPE),  /* elementType */ \
+        nullptr,        /* pContext */ \
+        (BYTESREAD)     /* bytesRead */ \
+    )
+
 //typeTokenModule is the module that applies to the context in which typeToken was resolved. If typeToken is an mdTypeDef, that means it was resolved within the scope of typeTokenModule
 HRESULT CValueTracer::TraceValue(
     _In_ UINT_PTR startAddress,
     _In_ CorElementType elementType,
-    _In_ mdToken typeToken,
-    _In_ ModuleID typeTokenModule,
-    _In_ long genericIndex,
-    _In_ IClassInfo* pClassInfo,
+    _In_ TraceValueContext* pContext,
     _Out_opt_ ULONG& bytesRead)
 {
+    //Unsafe.IsNullRef can pass an address of 0
+    if (startAddress == 0)
+        return E_FAIL;
+
     if (g_SeenMap[startAddress] && elementType == ELEMENT_TYPE_CLASS)
         return S_OK;
 
@@ -300,7 +313,7 @@ HRESULT CValueTracer::TraceValue(
         return TraceArray(startAddress, bytesRead);
 
     case ELEMENT_TYPE_GENERICINST:
-        return TraceGenericType(startAddress, bytesRead);
+        return TraceGenericType(startAddress, pContext, bytesRead);
 
     case ELEMENT_TYPE_SZARRAY:
         return TraceSZArray(startAddress, bytesRead);
@@ -308,13 +321,13 @@ HRESULT CValueTracer::TraceValue(
     #pragma endregion
 
     case ELEMENT_TYPE_VALUETYPE:
-        return TraceValueType(startAddress, typeToken, typeTokenModule, bytesRead);
+        return TraceValueType(startAddress, pContext, bytesRead);
 
     case ELEMENT_TYPE_VAR:
-        return TraceTypeGenericType(startAddress, genericIndex, (CClassInfo*)pClassInfo, bytesRead);
+        return TraceTypeGenericType(startAddress, pContext, bytesRead);
 
     case ELEMENT_TYPE_MVAR:
-        return TraceMethodGenericType(startAddress, genericIndex, bytesRead);
+        return TraceMethodGenericType(startAddress, pContext, bytesRead);
 
     case ELEMENT_TYPE_PTR:
         return TracePtrType(startAddress, bytesRead);
@@ -608,9 +621,21 @@ HRESULT CValueTracer::TraceClass(_In_ UINT_PTR startAddress, _In_ CorElementType
             CStandardTypeInfo* pStandardTypeInfo = (CStandardTypeInfo*)info;
 
             if (g_pProfiler->m_pInfo->GetBoxClassLayout(classId, &boxedValueOffset) == S_OK)
-                IfFailGo(TraceValue(objectId + boxedValueOffset, pStandardTypeInfo->m_ElementType, mdTokenNil, 0, -1, nullptr, innerBytesRead));
+            {
+                IfFailGo(TraceSimpleValue(
+                    objectId + boxedValueOffset,
+                    pStandardTypeInfo->m_ElementType,
+                    innerBytesRead
+                ));
+            }
             else
-                TraceValue(startAddress, pStandardTypeInfo->m_ElementType, mdTokenNil, 0, -1, nullptr, innerBytesRead);
+            {
+                IfFailGo(TraceSimpleValue(
+                    startAddress,
+                    pStandardTypeInfo->m_ElementType,
+                    innerBytesRead
+                ));
+            }
         }
         else
         {
@@ -636,10 +661,37 @@ HRESULT CValueTracer::TraceArray(_In_ UINT_PTR startAddress, _Out_opt_ ULONG& by
     return hr;
 }
 
-HRESULT CValueTracer::TraceGenericType(_In_ UINT_PTR startAddress, _Out_opt_ ULONG& bytesRead)
+HRESULT CValueTracer::TraceGenericType(_In_ UINT_PTR startAddress, _In_ TraceValueContext* pContext, _Out_opt_ ULONG& bytesRead)
 {
+    //Someone has passed a value like 'new Foo<T>()' as a value to a function. T could be related to the method generic type,
+    //the containing struct/class generic type, or something hardcoded
+
     HRESULT hr = S_OK;
 
+    if (pContext->GenericInst.GenericType->m_GenericInstType == ELEMENT_TYPE_CLASS)
+    {
+        return TraceClass(startAddress, ELEMENT_TYPE_CLASS, bytesRead);
+    }
+    else
+    {
+        ClassID classId;
+
+        CClassInfo* pClassInfo;
+
+        IfFailGo(GetClassId(
+            pContext->GenericArg.ClassInfo,
+            pContext->GenericInst.GenericType,
+            pContext->ValueType.ModuleOfTypeToken,
+            pContext->ValueType.TypeToken,
+            &classId
+        ));
+
+        IfFailGo(GetClassInfo(classId, (IClassInfo**)&pClassInfo));
+
+        IfFailGo(TraceClassOrStruct(pClassInfo, startAddress, ELEMENT_TYPE_VALUETYPE, bytesRead));
+    }
+
+ErrExit:
     return hr;
 }
 
@@ -706,13 +758,9 @@ HRESULT CValueTracer::TraceSZArrayInternal(
 
         for (ULONG i = 0; i < arrayLength; i++)
         {
-            IfFailGo(TraceValue(
+            IfFailGo(TraceSimpleValue(
                 (UINT_PTR)(pData + arrBytesRead),
                 pStandardTypeInfo->m_ElementType,
-                mdTokenNil,
-                0,
-                -1,
-                nullptr,
                 arrBytesRead
             ));
         }
@@ -724,11 +772,12 @@ HRESULT CValueTracer::TraceSZArrayInternal(
 
         for (ULONG i = 0; i < arrayLength; i++)
         {
+            TraceValueContext ctx = MakeTraceValueContext(pElementType->m_TypeDef, pElementType->m_ModuleID, -1, pElementType, nullptr);
+
             IfFailGo(TraceValue(
                 (UINT_PTR)(pData + arrBytesRead),
                 pArrayInfo->m_CorElementType,
-                pElementType->m_TypeDef,
-                pElementType->m_ModuleID,
+                &ctx,
                 arrBytesRead
             ));
         }
@@ -744,8 +793,7 @@ ErrExit:
 
 HRESULT CValueTracer::TraceValueType(
     _In_ UINT_PTR startAddress,
-    _In_ mdToken typeToken,
-    _In_ ModuleID typeTokenModule,
+    _In_ TraceValueContext* pContext,
     _Out_opt_ ULONG& bytesRead)
 {
     //todo: apparently resolving value types from another assembly is very complicated https://github.com/wickyhu/simple-assembly-explorer/blob/master/SimpleProfiler/ProfilerCallback.cpp
@@ -754,35 +802,17 @@ HRESULT CValueTracer::TraceValueType(
     HRESULT hr = S_OK;
     ObjectID objectId = startAddress;
     IMetaDataImport2* pMDI = nullptr;
-    ClassID classId;
-    CClassInfo* pClassInfo;
+    IClassInfo* pClassInfo;
+    CModuleInfo* pModuleInfo;
     ModuleID moduleId = 0;
     mdTypeDef typeDef = 0;
 
-    CorTokenType tokenType = (CorTokenType) TypeFromToken(typeToken);
+    IfFailGo(GetTypeDefAndModule(pContext->ValueType.ModuleOfTypeToken, pContext->ValueType.TypeToken, &moduleId, &typeDef));
 
-    if (tokenType == mdtTypeDef)
-    {
-        moduleId = typeTokenModule;
-        typeDef = typeToken;
-    }
-    else if (tokenType == mdtTypeRef)
-    {
-        CTypeRefResolver resolver(typeTokenModule, typeToken);
+    IfFailGo(GetModuleInfo(moduleId, &pModuleInfo));
+    IfFailGo(GetClassInfo(pModuleInfo, typeDef, 0, &pClassInfo));
 
-        IfFailGo(resolver.Resolve(&moduleId, &typeDef));
-    }
-    else
-    {
-        hr = E_NOTIMPL;
-        goto ErrExit;
-    }
-
-    IfFailGo(g_pProfiler->m_pInfo->GetClassFromToken(moduleId, typeDef, &classId));
-
-    IfFailGo(GetClassInfo(classId, (IClassInfo**)&pClassInfo));
-
-    IfFailGo(TraceClassOrStruct(pClassInfo, objectId, ELEMENT_TYPE_VALUETYPE, bytesRead));
+    IfFailGo(TraceClassOrStruct((CClassInfo*)pClassInfo, objectId, ELEMENT_TYPE_VALUETYPE, bytesRead));
 
 ErrExit:
     if (pMDI)
@@ -791,17 +821,183 @@ ErrExit:
     return hr;
 }
 
+HRESULT CValueTracer::GetTypeDefAndModule(
+    _In_ ModuleID moduleOfTypeToken,
+    _In_ mdToken typeToken,
+    _Out_ ModuleID* moduleId,
+    _Out_ mdTypeDef* typeDef)
+{
+    HRESULT hr = S_OK;
+
+    CorTokenType tokenType = (CorTokenType)TypeFromToken(typeToken);
+
+    if (tokenType == mdtTypeDef)
+    {
+        *moduleId = moduleOfTypeToken;
+        *typeDef = typeToken;
+    }
+    else if (tokenType == mdtTypeRef)
+    {
+        CTypeRefResolver resolver(moduleOfTypeToken, typeToken);
+
+        IfFailGo(resolver.Resolve(moduleId, typeDef));
+    }
+    else
+    {
+        hr = E_NOTIMPL;
+        goto ErrExit;
+    }
+
+ErrExit:
+    return hr;
+}
+
+HRESULT CValueTracer::GetModuleInfo(ModuleID moduleId, CModuleInfo** ppModuleInfo)
+{
+    HRESULT hr = S_OK;
+
+    auto match = g_pProfiler->m_ModuleInfoMap.find(moduleId);
+
+    if (match == g_pProfiler->m_ModuleInfoMap.end())
+    {
+        hr = E_FAIL;
+        goto ErrExit;
+    }
+
+    *ppModuleInfo = match->second;
+
+ErrExit:
+    return hr;
+}
+
+HRESULT CValueTracer::GetClassId(
+    _In_ CClassInfo* pClassInfo,
+    _In_ CSigType* pType,
+    _In_ ModuleID moduleOfTypeToken,
+    _In_ mdToken typeToken,
+    _Out_ ClassID* classId)
+{
+    HRESULT hr = S_OK;
+
+    ClassID* typeArgIds = nullptr;
+    ModuleID moduleId;
+    mdTypeDef typeDef;
+    ClassID childClassId;
+    WCHAR typeName[NAME_BUFFER_SIZE];
+
+    if (pType->m_Type == ELEMENT_TYPE_GENERICINST)
+    {
+        CSigGenericType* pGenericType = (CSigGenericType*) pType;
+
+        typeArgIds = new ClassID[pGenericType->m_NumGenericArgs];
+
+        for (ULONG i = 0; i < pGenericType->m_NumGenericArgs; i++)
+        {
+            CSigType* current = pGenericType->m_GenericArgs[i];
+
+            if (current->m_Type == ELEMENT_TYPE_MVAR)
+            {
+                IClassInfo* info = m_GenericTypeArgs[((CSigMethodGenericArgType*)current)->m_Index];
+
+                childClassId = info->m_ClassID;
+            }
+            else if (current->m_Type == ELEMENT_TYPE_VAR)
+            {
+                childClassId = pClassInfo->m_GenericTypeArgs[((CSigTypeGenericArgType*)current)->m_Index];
+            }
+            else if (IsPrimitiveType(current->m_Type) || current->m_Type == ELEMENT_TYPE_STRING)
+            {
+                CLock classLock(&g_pProfiler->m_ClassMutex);
+
+                auto match = g_pProfiler->m_StandardTypeMap.find(current->m_Type);
+
+                if (match == g_pProfiler->m_StandardTypeMap.end())
+                {
+                    hr = E_FAIL;
+                    goto ErrExit;
+                }
+
+                childClassId = match->second->m_ClassID;
+            }
+            else
+            {
+                mdToken token = GetTypeToken(current);
+
+                _ASSERTE(token != mdTokenNil);
+
+                IfFailGo(GetTypeDefAndModule(moduleOfTypeToken, token, &moduleId, &typeDef));
+
+                IfFailGo(GetClassId(pClassInfo, current, moduleId, typeDef, &childClassId));
+            }
+
+            typeArgIds[i] = childClassId;
+        }
+
+        ModuleID outerModuleId;
+        mdTypeDef outerTypeDef;
+
+        IfFailGo(GetTypeDefAndModule(moduleOfTypeToken, typeToken, &outerModuleId, &outerTypeDef));
+
+        CModuleInfo* moduleInfo = g_pProfiler->m_ModuleInfoMap[outerModuleId];
+
+        moduleInfo->m_pMDI->GetTypeDefProps(outerTypeDef, typeName, NAME_BUFFER_SIZE, NULL, NULL, NULL);
+
+        IfFailGo(g_pProfiler->m_pInfo->GetClassFromTokenAndTypeArgs(
+            outerModuleId,
+            outerTypeDef,
+            pGenericType->m_NumGenericArgs,
+            typeArgIds,
+            classId
+        ));
+    }
+    else
+    {
+        IfFailGo(g_pProfiler->m_pInfo->GetClassFromToken(moduleOfTypeToken, typeToken, classId));
+    }
+
+ErrExit:
+    if (typeArgIds != nullptr)
+        delete typeArgIds;
+
+    return hr;
+}
+
+HRESULT CValueTracer::GetClassInfo(
+    CModuleInfo* pModuleInfo,
+    mdTypeDef typeDef,
+    long numGenericTypeArgs,
+    IClassInfo** ppClassInfo)
+{
+    HRESULT hr = S_OK;
+    ClassID classId;
+    IClassInfo* pClassInfo;
+
+    if (numGenericTypeArgs == 0)
+        IfFailGo(g_pProfiler->m_pInfo->GetClassFromToken(pModuleInfo->m_ModuleID, typeDef, &classId));
+    else
+    {
+        hr = E_FAIL;
+        goto ErrExit;
+    }
+
+    IfFailGo(GetClassInfo(classId, &pClassInfo));
+
+    *ppClassInfo = pClassInfo;
+
+ErrExit:
+    return hr;
+}
+
 HRESULT CValueTracer::TraceTypeGenericType(
     _In_ UINT_PTR startAddress,
-    _In_ long genericIndex,
-    _In_ CClassInfo* pClassInfo,
+    _In_ TraceValueContext* pContext,
     _Out_opt_ ULONG& bytesRead)
 {
     HRESULT hr = S_OK;
 
     IClassInfo* genericInfo;
 
-    ClassID classId = pClassInfo->m_GenericTypeArgs[genericIndex];
+    ClassID classId = pContext->GenericArg.ClassInfo->m_GenericTypeArgs[pContext->GenericArg.GenericIndex];
 
     IfFailGo(GetClassInfo(classId, &genericInfo));
 
@@ -811,11 +1007,11 @@ ErrExit:
     return hr;
 }
 
-HRESULT CValueTracer::TraceMethodGenericType(_In_ UINT_PTR startAddress, _In_ long genericIndex, _Out_opt_ ULONG& bytesRead)
+HRESULT CValueTracer::TraceMethodGenericType(_In_ UINT_PTR startAddress, _In_ TraceValueContext* pContext, _Out_opt_ ULONG& bytesRead)
 {
     HRESULT hr = S_OK;
 
-    IClassInfo* info = m_GenericTypeArgs[genericIndex];
+    IClassInfo* info = m_GenericTypeArgs[pContext->GenericArg.GenericIndex];
 
     IfFailGo(TraceGenericTypeInternal(startAddress, info, bytesRead));
 
@@ -839,16 +1035,15 @@ HRESULT CValueTracer::TraceGenericTypeInternal(
     {
         CStandardTypeInfo* pStandardTypeInfo = (CStandardTypeInfo*)info;
 
-        return TraceValue(
+        return TraceSimpleValue(
             startAddress,
             pStandardTypeInfo->m_ElementType,
-            mdTokenNil,
-            0,
-            -1,
-            (CClassInfo*)info,
             bytesRead
         );
     }
+
+    case ClassInfoType::Class:
+    {
         CClassInfo* pClassInfo = (CClassInfo*)info;
 
         IfFailGo(g_pProfiler->m_pInfo->GetClassFromToken(pClassInfo->m_ModuleID, pClassInfo->m_TypeDef, &classId));
@@ -927,6 +1122,7 @@ HRESULT CValueTracer::TraceClassOrStruct(CClassInfo* pClassInfo, ObjectID object
 {
     HRESULT hr = S_OK;
     ULONG nameLength;
+    long genericIndex = -1;
 
     WriteType(elementType);
 
@@ -943,15 +1139,23 @@ HRESULT CValueTracer::TraceClassOrStruct(CClassInfo* pClassInfo, ObjectID object
         COR_FIELD_OFFSET offset = pClassInfo->m_FieldOffsets[i];
         CSigField* field = pClassInfo->m_Fields[i];
 
+        CorElementType type = field->m_pType->m_Type;
         UINT_PTR fieldAddress = objectId + offset.ulOffset;
+
+        GetGenericInfo(field->m_pType, &type, &genericIndex);
+
+        TraceValueContext ctx = MakeTraceValueContext(
+            GetTypeToken(field->m_pType),
+            pClassInfo->m_ModuleID,
+            genericIndex,
+            pClassInfo,
+            (CSigGenericType*)field->m_pType
+        );
 
         IfFailGo(TraceValue(
             fieldAddress,
             field->m_pType->m_Type,
-            GetTypeToken(field->m_pType),
-            pClassInfo->m_ModuleID,
-            GetGenericIndex(field->m_pType),
-            pClassInfo,
+            &ctx,
             bytesRead
         ));
     }
@@ -975,7 +1179,16 @@ HRESULT CValueTracer::GetClassInfo(ClassID classId, IClassInfo** ppClassInfo)
 
         IfFailGo(CCorProfilerCallback::g_pProfiler->GetClassInfo(classId, &pClassInfo));
 
+        //We already hold the class lock (see above)
         CCorProfilerCallback::g_pProfiler->m_ClassInfoMap[classId] = pClassInfo;
+
+        if (pClassInfo->m_InfoType == ClassInfoType::StandardType)
+        {
+            CStandardTypeInfo* std = (CStandardTypeInfo*)pClassInfo;
+            std->AddRef();
+
+            CCorProfilerCallback::g_pProfiler->m_StandardTypeMap[std->m_ElementType] = std;
+        }
     }
     else
         pClassInfo = match->second;
@@ -999,6 +1212,9 @@ mdToken CValueTracer::GetTypeToken(CSigType* pType)
     case ELEMENT_TYPE_VALUETYPE:
         typeToken = ((CSigValueType*)pType)->m_Token;
         break;
+    case ELEMENT_TYPE_GENERICINST:
+        typeToken = ((CSigGenericType*)pType)->m_GenericTypeDefinitionToken;
+        break;
     default:
         break;
     }
@@ -1006,21 +1222,27 @@ mdToken CValueTracer::GetTypeToken(CSigType* pType)
     return typeToken;
 }
 
-long CValueTracer::GetGenericIndex(CSigType* pType)
+void CValueTracer::GetGenericInfo(
+    CSigType* pType,
+    CorElementType* type,
+    long* genericIndex)
 {
-    long index = -1;
-
     switch (pType->m_Type)
     {
-    case ELEMENT_TYPE_MVAR:
-        index = ((CSigMethodGenericArgType*)pType)->m_Index;
-        break;
     case ELEMENT_TYPE_VAR:
-        index = ((CSigTypeGenericArgType*)pType)->m_Index;
+        *genericIndex = ((CSigTypeGenericArgType*)pType)->m_Index;
         break;
-    default:
+
+    case ELEMENT_TYPE_MVAR:
+        *genericIndex = ((CSigMethodGenericArgType*)pType)->m_Index;
         break;
     }
+}
 
-    return index;
+BOOL CValueTracer::IsPrimitiveType(CorElementType type)
+{
+    if (type <= ELEMENT_TYPE_R8)
+        return TRUE;
+
+    return type == ELEMENT_TYPE_I || type == ELEMENT_TYPE_U;
 }

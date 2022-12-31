@@ -251,11 +251,20 @@ HRESULT CCorProfilerCallback::ClassLoadFinished(ClassID classId, HRESULT hrStatu
     IClassInfo* pClassInfo;
     IfFailGo(GetClassInfo(classId, &pClassInfo));
 
-    //Lock scope
+    //Lock scope. We need this scope because IfFailGo above will skip initialization of the classLock which we want to
+    //declare after we've got the class info
     {
         CLock classLock(&m_ClassMutex, true);
 
         m_ClassInfoMap[classId] = pClassInfo;
+
+        if (pClassInfo->m_InfoType == ClassInfoType::StandardType)
+        {
+            CStandardTypeInfo* std = (CStandardTypeInfo*)pClassInfo;
+            std->AddRef();
+
+            CCorProfilerCallback::g_pProfiler->m_StandardTypeMap[std->m_ElementType] = std;
+        }
     }
 
 ErrExit:
@@ -278,6 +287,14 @@ HRESULT CCorProfilerCallback::ClassUnloadFinished(ClassID classId, HRESULT hrSta
         m_ClassInfoMap.erase(classId);
 
         match->second->Release();
+
+        if (match->second->m_InfoType == ClassInfoType::StandardType)
+        {
+            CStandardTypeInfo* std = (CStandardTypeInfo*)match->second;
+
+            m_StandardTypeMap.erase(std->m_ElementType);
+            std->Release();
+        }
     }
 
     return S_OK;
@@ -534,6 +551,7 @@ ErrExit:
 }
 
 LPCWSTR blacklist[] = {
+    //.NET Framework
     L"mscorlib.dll",
     L"System.dll",
     L"System.Core.dll",
@@ -543,11 +561,17 @@ LPCWSTR blacklist[] = {
     L"Newtonsoft.Json.dll",
     L"PresentationFramework.dll",
     L"PresentationCore.dll",
-    L"WindowsBase.dll"
+    L"WindowsBase.dll",
+
+    //.NET Core
+    L"System.Private.CoreLib.dll"
 };
 
 BOOL CCorProfilerCallback::ShouldHook()
 {
+    if (wcsstr(g_szModuleName, L"dotnet\\shared\\Microsoft.NETCore.App") != NULL || wcsstr(g_szModuleName, L"dotnet\\sdk\\") != NULL)
+        return FALSE;
+
     WCHAR* ptr = wcsrchr(g_szModuleName, '\\');
 
     //Path doesn't contain a slash; assume we should hook it
@@ -677,7 +701,7 @@ HRESULT CCorProfilerCallback::GetClassInfo(
 
         IfFailGo(GetClassInfo(baseClassId, &pElementType));
 
-        pClassInfo = new CArrayInfo(pElementType, baseElemType, cRank);
+        pClassInfo = new CArrayInfo(classId, pElementType, baseElemType, cRank);
     }
     else if (hr == S_FALSE)
     {
@@ -718,7 +742,7 @@ HRESULT CCorProfilerCallback::GetClassInfo(
         {
             //When we have an array of strings, baseElemType reports the type as ELEMENT_TYPE_CLASS. GetClassLayout will return E_INVALIDARG
             //if you attempt to query a classId of a string. For other types, such as Int32, either these types have been boxed, or we're looking at the class ID of some generic type args; either way we'll record their boxed type so we can unbox them later
-            pClassInfo = new CStandardTypeInfo(knownType);
+            pClassInfo = new CStandardTypeInfo(classId, knownType);
             goto ErrExit;
         }
 
@@ -762,6 +786,7 @@ HRESULT CCorProfilerCallback::GetClassInfo(
 
         pClassInfo = new CClassInfo(
             g_szTypeName,
+            classId,
             moduleId,
             typeDef,
             cFieldOffset,

@@ -1,7 +1,7 @@
 #pragma once
 
 #include "CUnknown.h"
-#include <mutex>
+#include <shared_mutex>
 #include <unordered_map>
 
 class CModuleIDAndTypeDef : public CUnknown
@@ -33,19 +33,12 @@ public:
         m_pMDI = pMDI;
     }
 
-    ~CModuleInfo()
-    {
-        for (auto const& kv : m_AsmRefMap)
-            kv.second->Release();
-
-        if (m_pMDI)
-            m_pMDI->Release();
-    }
+    ~CModuleInfo();
 
     AssemblyID m_AssemblyID;
     ModuleID m_ModuleID;
     IMetaDataImport2* m_pMDI;
 
-    std::shared_mutex m_AsmRefMutex;
-    std::unordered_map<mdAssemblyRef, CModuleIDAndTypeDef*> m_AsmRefMap;
+    std::shared_mutex m_TypeRefMutex;
+    std::unordered_map<mdTypeRef, CModuleIDAndTypeDef*> m_TypeRefMap;
 };

@@ -53,6 +53,9 @@ public:
         for (auto const& kv : m_AssemblyInfoMap)
             kv.second->Release();
 
+        for (auto const& kv : m_StandardTypeMap)
+            kv.second->Release();
+
         if (m_pInfo)
             m_pInfo->Release();
 
@@ -202,6 +205,7 @@ public:
     std::shared_mutex m_ModuleMutex;
 
     std::unordered_map<ClassID, IClassInfo*> m_ClassInfoMap;
+    std::unordered_map<CorElementType, CStandardTypeInfo*> m_StandardTypeMap;
     std::shared_mutex m_ClassMutex;
 
     std::unordered_map<FunctionID, CSigMethodDef*> m_MethodInfoMap;

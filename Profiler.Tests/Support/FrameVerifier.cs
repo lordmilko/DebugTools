@@ -89,27 +89,9 @@ namespace Profiler.Tests
             }
         }
 
-        public FrameVerifier HasClassType(string name)
-        {
-            var parameter = GetParameter();
+        public ValueVerifier HasClassType(string name) => GetParameter().VerifyValue().HasClassType(name);
 
-            var classObj = (ClassValue) parameter;
-
-            Assert.AreEqual(name, classObj.Name);
-
-            return this;
-        }
-
-        public FrameVerifier HasValueType(string name)
-        {
-            var parameter = GetParameter();
-
-            var valueObj = (ValueType) parameter;
-
-            Assert.AreEqual(name, valueObj.Name);
-
-            return this;
-        }
+        public ValueVerifier HasValueType(string name) => GetParameter().VerifyValue().HasValueType(name);
 
         public void HasFieldValue<T>(T value) =>
             GetParameter().VerifyValue().HasFieldValue(value);
@@ -117,7 +99,7 @@ namespace Profiler.Tests
         public void HasFieldValue(Action<ValueVerifier> value) =>
             GetParameter().VerifyValue().HasFieldValue(value);
 
-        public void HasFieldValue<T>(int index, T value) =>
+        public ValueVerifier HasFieldValue<T>(int index, T value) =>
             GetParameter().VerifyValue().HasFieldValue(index, value);
 
         public void VerifyArray(params Action<ValueVerifier>[] actions) =>

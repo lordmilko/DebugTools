@@ -12,12 +12,14 @@ enum class ClassInfoType
 class IClassInfo : public CUnknown
 {
 public:
-    IClassInfo(ClassInfoType infoType)
+    IClassInfo(ClassInfoType infoType, ClassID classId)
     {
         m_InfoType = infoType;
+        m_ClassID = classId;
     }
 
     ClassInfoType m_InfoType;
+    ClassID m_ClassID;
 };
 
 class CClassInfo : public IClassInfo
@@ -25,13 +27,14 @@ class CClassInfo : public IClassInfo
 public:
     CClassInfo(
         LPWSTR szName,
+        ClassID classId,
         ModuleID moduleId,
         mdTypeDef typeDef,
         ULONG numFields,
         CSigField** fields,
         COR_FIELD_OFFSET* fieldOffsets,
         ULONG32 numGenericTypeArgs,
-        ClassID* genericTypeArgs) : IClassInfo(ClassInfoType::Class)
+        ClassID* genericTypeArgs) : IClassInfo(ClassInfoType::Class, classId)
     {
         m_szName = _wcsdup(szName);
         m_ModuleID = moduleId;
@@ -76,7 +79,7 @@ public:
 class CArrayInfo : public IClassInfo
 {
 public:
-    CArrayInfo(IClassInfo* pElementType, CorElementType elementType, ULONG rank) : IClassInfo(ClassInfoType::Array)
+    CArrayInfo(ClassID classId, IClassInfo* pElementType, CorElementType elementType, ULONG rank) : IClassInfo(ClassInfoType::Array, classId)
     {
         m_pElementType = pElementType;
         m_CorElementType = elementType;
@@ -97,7 +100,7 @@ public:
 class CStandardTypeInfo : public IClassInfo
 {
 public:
-    CStandardTypeInfo(CorElementType elementType) : IClassInfo(ClassInfoType::StandardType)
+    CStandardTypeInfo(ClassID classId, CorElementType elementType) : IClassInfo(ClassInfoType::StandardType, classId)
     {
         m_ElementType = elementType;
     }

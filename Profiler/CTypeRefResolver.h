@@ -6,10 +6,10 @@ class CModuleInfo;
 class CTypeRefResolver
 {
 public:
-    CTypeRefResolver(ModuleID moduleId, mdTypeDef typeDef)
+    CTypeRefResolver(ModuleID moduleId, mdTypeRef typeRef)
     {
         m_ModuleID = moduleId;
-        m_TypeRef = typeDef;
+        m_TypeRef = typeRef;
     }
 
     HRESULT Resolve(
@@ -24,6 +24,12 @@ public:
 
     HRESULT GetModuleIDAndTypeDefFromAssembly(
         _In_ CAssemblyInfo* pAssemblyInfo,
+        _Out_ ModuleID* moduleId,
+        _Out_ mdTypeDef* typeDef);
+
+    HRESULT GetModuleIDAndTypeDefFromForwardedType(
+        _In_ IMetaDataImport* pMDI,
+        _In_ CModuleInfo* pModuleInfo,
         _Out_ ModuleID* moduleId,
         _Out_ mdTypeDef* typeDef);
 

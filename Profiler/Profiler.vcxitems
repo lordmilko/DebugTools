@@ -46,6 +46,7 @@
     <ClCompile Include="$(MSBuildThisFileDirectory)CClassFactory.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)CCommunication.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)CCorProfilerCallback.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)CModuleInfo.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)CSigReader.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)CSigType.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)CTypeRefResolver.cpp" />

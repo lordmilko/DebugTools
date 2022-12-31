@@ -8,6 +8,8 @@ class ISigParameter;
 class IClassInfo;
 class CClassInfo;
 class CArrayInfo;
+class CModuleInfo;
+class CSigGenericType;
 
 #undef GetClassInfo
 
@@ -35,7 +37,32 @@ class CArrayInfo;
     _ASSERTE(sizeof(*(pValue)) == (expectedSize)); \
      WriteType(elementType); \
      WriteValue(pValue, sizeof(*(pValue)))
-    
+
+typedef struct _ValueTypeContext {
+    mdToken TypeToken;
+    ModuleID ModuleOfTypeToken;
+} ValueTypeContext;
+
+typedef struct _GenericArgContext {
+    long GenericIndex;
+    CClassInfo* ClassInfo; //Used by ELEMENT_TYPE_VAR only
+} GenericArgContext;
+
+typedef struct _GenericInstContext {
+    CSigGenericType* GenericType;
+} GenericInstContext;
+
+typedef struct _TraceValueContext {
+    ValueTypeContext ValueType;
+    GenericArgContext GenericArg;
+    GenericInstContext GenericInst;
+} TraceValueContext;
+
+#define MakeTraceValueContext(typeToken, moduleOfTypeToken, genericIndex, classInfo, genericType) { \
+    {typeToken, moduleOfTypeToken}, \
+    {genericIndex, (CClassInfo*)classInfo}, \
+    {genericType} \
+}
 
 class CValueTracer
 {
@@ -57,21 +84,18 @@ private:
     HRESULT TraceParameters(
         _In_ COR_PRF_FUNCTION_ARGUMENT_INFO* argumentInfo,
         _In_ CSigMethodDef* pMethod,
-        _In_ IClassInfo* pClassInfo);
+        _In_ IClassInfo* pMethodClassInfo);
 
     HRESULT TraceParameter(
         _In_ COR_PRF_FUNCTION_ARGUMENT_RANGE* range,
         _In_ ISigParameter* pParameter,
-        _In_ IClassInfo* pClassInfo,
+        _In_ IClassInfo* pMethodClassInfo,
         _In_ ModuleID typeTokenModule);
 
     HRESULT TraceValue(
         _In_ UINT_PTR startAddress,
         _In_ CorElementType elementType,
-        _In_ mdToken typeToken,
-        _In_ ModuleID typeTokenModule,
-        _In_ long genericIndex,
-        _In_ IClassInfo* pClassInfo,
+        _In_ TraceValueContext* pContext,
         _Out_opt_ ULONG& bytesRead);
 
     HRESULT TraceBool(_In_ UINT_PTR startAddress, _Out_opt_ ULONG& bytesRead);
@@ -92,7 +116,7 @@ private:
     HRESULT TraceString(_In_ UINT_PTR startAddress, _Out_opt_ ULONG& bytesRead);
     HRESULT TraceClass(_In_ UINT_PTR startAddress, _In_ CorElementType classElementType, _Out_opt_ ULONG& bytesRead);
     HRESULT TraceArray(_In_ UINT_PTR startAddress, _Out_opt_ ULONG& bytesRead);
-    HRESULT TraceGenericType(_In_ UINT_PTR startAddress, _Out_opt_ ULONG& bytesRead);
+    HRESULT TraceGenericType(_In_ UINT_PTR startAddress, _In_ TraceValueContext* pContext, _Out_opt_ ULONG& bytesRead);
     HRESULT TraceObject(_In_ UINT_PTR startAddress, _Out_opt_ ULONG& bytesRead);
     HRESULT TraceSZArray(_In_ UINT_PTR startAddress, _Out_opt_ ULONG& bytesRead);
 
@@ -101,9 +125,26 @@ private:
         _In_ ObjectID objectId,
         _Out_opt_ ULONG& bytesRead);
 
-    HRESULT TraceValueType(_In_ UINT_PTR startAddress, _In_ mdToken typeToken, _In_ ModuleID typeTokenModule, _Out_opt_ ULONG& bytesRead);
-    HRESULT TraceTypeGenericType(_In_ UINT_PTR startAddress, _In_ long genericIndex, _In_ CClassInfo* pClassInfo, _Out_opt_ ULONG& bytesRead);
-    HRESULT TraceMethodGenericType(_In_ UINT_PTR startAddress, _In_ long genericIndex, _Out_opt_ ULONG& bytesRead);
+    HRESULT TraceValueType(
+        _In_ UINT_PTR startAddress,
+        _In_ TraceValueContext* pContext,
+        _Out_opt_ ULONG& bytesRead);
+
+    HRESULT GetTypeDefAndModule(
+        _In_ ModuleID moduleOfTypeToken,
+        _In_ mdToken typeToken,
+        _Out_ ModuleID* moduleId,
+        _Out_ mdTypeDef* typeDef);
+
+    HRESULT GetClassId(
+        _In_ CClassInfo* pClassInfo,
+        _In_ CSigType* pType,
+        _In_ ModuleID moduleOfTypeToken,
+        _In_ mdToken typeToken,
+        _Out_ ClassID* classId);
+
+    HRESULT TraceTypeGenericType(_In_ UINT_PTR startAddress, _In_ TraceValueContext* pContext, _Out_opt_ ULONG& bytesRead);
+    HRESULT TraceMethodGenericType(_In_ UINT_PTR startAddress, _In_ _In_ TraceValueContext* pContext, _Out_opt_ ULONG& bytesRead);
 
     HRESULT TraceGenericTypeInternal(
         _In_ UINT_PTR startAddress,
@@ -115,9 +156,14 @@ private:
 
     HRESULT TraceClassOrStruct(CClassInfo* pClassInfo, ObjectID objectId, CorElementType elementType, ULONG& bytesRead);
 
+    HRESULT GetModuleInfo(ModuleID moduleId, CModuleInfo** ppModuleInfo);
+    HRESULT GetClassInfo(CModuleInfo* pModuleInfo, mdTypeDef typeDef, long numGenericTypeArgs, IClassInfo** ppClassInfo);
+
     HRESULT GetClassInfo(ClassID classId, IClassInfo** ppClassInfo);
     mdToken GetTypeToken(CSigType* pType);
-    long GetGenericIndex(CSigType* pType);
+    void GetGenericInfo(CSigType* pType, CorElementType* type, long* genericIndex);
+
+    BOOL IsPrimitiveType(CorElementType type);
 
     static ULONG s_StringLengthOffset;
     static ULONG s_StringBufferOffset;

@@ -107,6 +107,26 @@ namespace DebugTools.TestHost
         {
         }
 
+        public void InterfaceArg(IInterface a)
+        {
+        }
+
+        public void GenericClassArg(GenericClassType<Class1WithField> a)
+        {
+        }
+
+        public void GenericValueTypeArg(GenericValueTypeType<Struct1WithField> a)
+        {
+        }
+
+        public void GenericClass_ToObjectArg(object a)
+        {
+        }
+
+        public void GenericValueType_ToObjectArg(object a)
+        {
+        }
+
         public void Generic_MethodVar_ElementTypeClassArg<TMethod>(TMethod a)
         {
         }
@@ -131,13 +151,22 @@ namespace DebugTools.TestHost
         {
         }
 
-        public void Generic_MethodVar_ElementTypeGenericClassArg<TMethod>(GenericType<TMethod> a)
+        public void Generic_MethodVar_ElementTypeGenericClassArg<TMethod>(GenericClassType<TMethod> a)
         {
         }
 
-        public void Generic_MethodVar_ElementTypeGenericClassArrayArg<TMethod>(GenericType<TMethod> a)
+        public void Generic_MethodVar_ElementTypeGenericClassArrayArg<TMethod>(GenericClassType<TMethod> a)
         {
         }
+
+        public void Generic_MethodVar_ElementTypeGenericValueTypeArg<TMethod>(GenericValueTypeType<TMethod> a)
+        {
+        }
+
+        public void Generic_MethodVar_ElementTypeGenericValueTypeArrayArg<TMethod>(GenericValueTypeType<TMethod> a)
+        {
+        }
+
         public void EmptyStringArg(string a)
         {
         }

@@ -137,6 +137,7 @@ public:
     CSigGenericType(CorElementType type, BOOL isByRef) : CSigType(type, isByRef),
         m_GenericTypeDefinitionToken(0),
         m_szGenericTypeDefinitionName(nullptr),
+        m_GenericInstType(ELEMENT_TYPE_END),
         m_NumGenericArgs(0),
         m_GenericArgs(nullptr)
     {
@@ -160,6 +161,12 @@ public:
 
     mdToken m_GenericTypeDefinitionToken;
     LPWSTR m_szGenericTypeDefinitionName;
+
+    /// <summary>
+    /// Gets or sets whether this generic type is a class or a struct.
+    /// This does NOT have anything to do with the type of any generic type arguments that were specified on this generic type.
+    /// </summary>
+    CorElementType m_GenericInstType;
 
     ULONG m_NumGenericArgs;
     CSigType** m_GenericArgs;

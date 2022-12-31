@@ -350,7 +350,7 @@ HRESULT CSigGenericType::Initialize(CSigReader& reader)
     CSigType** genericArgs = nullptr;
     ULONG i = 0;
 
-    m_Type = CorSigUncompressElementType(reader.m_pSigBlob);
+    m_GenericInstType = CorSigUncompressElementType(reader.m_pSigBlob);
 
     m_GenericTypeDefinitionToken = CorSigUncompressToken(reader.m_pSigBlob);
 

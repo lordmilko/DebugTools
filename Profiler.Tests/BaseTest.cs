@@ -31,7 +31,7 @@ namespace Profiler.Tests
                     if (session.Process.ExitCode == 2)
                         throw new InvalidOperationException($"Test '{type}' -> '{subType}' has not been defined in TestHost");
 
-                    throw new InvalidOperationException($"TestHost exited with exit code {session.Process.ExitCode}");
+                    throw new InvalidOperationException($"TestHost exited with exit code 0x{session.Process.ExitCode.ToString("X")}");
                 }
 
                 var validator = new Validator(threadStacks, methods);

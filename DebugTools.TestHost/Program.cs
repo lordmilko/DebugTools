@@ -133,6 +133,49 @@ namespace DebugTools.TestHost
                     instance.ObjectArg(new object());
                     break;
 
+                case ValueTestType.InterfaceArg:
+                    instance.InterfaceArg(new ImplInterface());
+                    break;
+
+                case ValueTestType.GenericClassArg:
+                    instance.GenericClassArg(new GenericClassType<Class1WithField>
+                    {
+                        field1 = new Class1WithField
+                        {
+                            field1 = 1
+                        }
+                    });
+                    break;
+
+                case ValueTestType.GenericValueTypeArg:
+                    instance.GenericValueTypeArg(new GenericValueTypeType<Struct1WithField>
+                    {
+                        field1 = new Struct1WithField
+                        {
+                            field1 = 1
+                        }
+                    });
+                    break;
+
+                case ValueTestType.GenericClass_ToObjectArg:
+                    instance.GenericClass_ToObjectArg(new GenericClassType<Class1WithField>
+                    {
+                        field1 = new Class1WithField
+                        {
+                            field1 = 1
+                        }
+                    });
+                    break;
+
+                case ValueTestType.GenericValueType_ToObjectArg:
+                    instance.GenericValueType_ToObjectArg(new GenericValueTypeType<Struct1WithField>
+                    {
+                        field1 = new Struct1WithField
+                        {
+                            field1 = 1
+                        }
+                    });
+                    break;
                 #region MethodVar
 
                 case ValueTestType.Generic_MethodVar_ElementTypeClassArg:
@@ -166,14 +209,14 @@ namespace DebugTools.TestHost
                 #region MethodVar Generic Value
 
                 case ValueTestType.Generic_MethodVar_ElementTypeGenericClassArg:
-                    instance.Generic_MethodVar_ElementTypeGenericClassArg(new GenericType<Class1WithField>{field1 = new Class1WithField
+                    instance.Generic_MethodVar_ElementTypeGenericClassArg(new GenericClassType<Class1WithField>{field1 = new Class1WithField
                     {
                         field1 = 1
                     }});
                     break;
 
                 case ValueTestType.Generic_MethodVar_ElementTypeGenericClassArrayArg:
-                    instance.Generic_MethodVar_ElementTypeGenericClassArrayArg(new GenericType<Class1WithField[]>
+                    instance.Generic_MethodVar_ElementTypeGenericClassArrayArg(new GenericClassType<Class1WithField[]>
                     {
                         field1 = new[]
                         {
@@ -189,6 +232,32 @@ namespace DebugTools.TestHost
                     });
                     break;
 
+                case ValueTestType.Generic_MethodVar_ElementTypeGenericValueTypeArg:
+                    instance.Generic_MethodVar_ElementTypeGenericValueTypeArg(new GenericValueTypeType<Struct1WithField>
+                    {
+                        field1 = new Struct1WithField
+                        {
+                            field1 = 1
+                        }
+                    });
+                    break;
+
+                case ValueTestType.Generic_MethodVar_ElementTypeGenericValueTypeArrayArg:
+                    instance.Generic_MethodVar_ElementTypeGenericValueTypeArrayArg(new GenericValueTypeType<Struct1WithField[]>
+                    {
+                        field1 = new[]
+                        {
+                            new Struct1WithField
+                            {
+                                field1 = 1
+                            },
+                            new Struct1WithField
+                            {
+                                field1 = 2
+                            }
+                        }
+                    });
+                    break;
                 #endregion
                 #region TypeVar
 

@@ -88,6 +88,38 @@ namespace Profiler.Tests
         [TestMethod]
         public void Value_ObjectArg() =>
             Test(ValueTestType.ObjectArg, v => v.HasClassType("System.Object"));
+
+        [TestMethod]
+        public void Value_InterfaceArg() =>
+            Test(ValueTestType.InterfaceArg, v => v.HasClassType("DebugTools.TestHost.ImplInterface"));
+
+        [TestMethod]
+        public void Value_GenericClassArg() =>
+            Test(ValueTestType.GenericClassArg, v =>
+                v.HasClassType("DebugTools.TestHost.GenericClassType`1")
+                 .HasFieldValue(f => f.HasClassType("DebugTools.TestHost.Class1WithField").HasFieldValue(1)));
+
+        [TestMethod]
+        public void Value_GenericValueTypeArg() =>
+            Test(ValueTestType.GenericValueTypeArg, v =>
+                v.HasValueType("DebugTools.TestHost.GenericValueTypeType`1")
+                 .HasFieldValue(f => f.HasValueType("DebugTools.TestHost.Struct1WithField").HasFieldValue(1)));
+
+        [TestMethod]
+        public void Value_GenericClass_ToObjectArg() =>
+            Test(ValueTestType.GenericClass_ToObjectArg, v =>
+                v.HasClassType("DebugTools.TestHost.GenericClassType`1")
+                    .HasFieldValue(f => f.HasClassType("DebugTools.TestHost.Class1WithField").HasFieldValue(1)));
+
+        [TestMethod]
+        public void Value_GenericValueType_ToObjectArg() =>
+            Test(ValueTestType.GenericValueType_ToObjectArg, v =>
+                v.HasValueType("DebugTools.TestHost.GenericValueTypeType`1")
+                    .HasFieldValue(f => f.HasValueType("DebugTools.TestHost.Struct1WithField").HasFieldValue(1)));
+
+        #region Generic
+        #region MethodVar
+
         [TestMethod]
         public void Value_Generic_MethodVar_ElementTypeClassArg() =>
             Test(ValueTestType.Generic_MethodVar_ElementTypeClassArg, v => v.HasClassType("DebugTools.TestHost.Class1WithField").HasFieldValue(1));
@@ -99,6 +131,9 @@ namespace Profiler.Tests
         [TestMethod]
         public void Value_Generic_MethodVar_ElementTypeSimpleArg() =>
             Test(ValueTestType.Generic_MethodVar_ElementTypeSimpleArg, v => v.HasValue(1));
+
+        #endregion
+        #region MethodVar Array
 
         [TestMethod]
         public void Value_Generic_MethodVar_ElementTypeClassArrayArg() =>
@@ -128,6 +163,9 @@ namespace Profiler.Tests
         public void Value_Generic_MethodVar_ElementTypeSimpleArrayArg() =>
             Test(ValueTestType.Generic_MethodVar_ElementTypeSimpleArrayArg, v => v.HasArrayValues(CorElementType.I4, 1, 2));
 
+        #endregion
+        #region MethodVar Generic Value
+
         [TestMethod]
         public void Value_Generic_MethodVar_ElementTypeGenericClassArg() =>
             Test(ValueTestType.Generic_MethodVar_ElementTypeGenericClassArg, v => v.HasFieldValue(
@@ -144,6 +182,24 @@ namespace Profiler.Tests
             ));
 
         [TestMethod]
+        public void Value_Generic_MethodVar_ElementTypeGenericValueTypeArg() =>
+            Test(ValueTestType.Generic_MethodVar_ElementTypeGenericValueTypeArg, v => v.HasFieldValue(
+                f => f.HasFieldValue(1)
+            ));
+
+        [TestMethod]
+        public void Value_Generic_MethodVar_ElementTypeGenericValueTypeArrayArg() =>
+            Test(ValueTestType.Generic_MethodVar_ElementTypeGenericValueTypeArrayArg, v => v.HasFieldValue(
+                f => f.VerifyArray(
+                    e => e.HasFieldValue(1),
+                    e => e.HasFieldValue(2)
+                )
+            ));
+
+        #endregion
+        #region TypeVar
+
+        [TestMethod]
         public void Value_Generic_TypeVar_ElementTypeClassArg() =>
             Test(ValueTestType.Generic_TypeVar_ElementTypeClassArg, v => v.HasFieldValue(1));
 
@@ -154,6 +210,9 @@ namespace Profiler.Tests
         [TestMethod]
         public void Value_Generic_TypeVar_ElementTypeSimpleArg() =>
             Test(ValueTestType.Generic_TypeVar_ElementTypeSimpleArg, v => v.HasValue(1));
+
+        #endregion
+        #region TypeVar Array
 
         [TestMethod]
         public void Value_Generic_TypeVar_ElementTypeClassArrayArg() =>
@@ -173,6 +232,7 @@ namespace Profiler.Tests
         public void Value_Generic_TypeVar_ElementTypeSimpleArrayArg() =>
             Test(ValueTestType.Generic_TypeVar_ElementTypeSimpleArrayArg, v => v.HasArrayValues(CorElementType.I4, 1, 2));
 
+        #endregion
         #endregion
         #region String Array
 

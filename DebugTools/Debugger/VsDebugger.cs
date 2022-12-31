@@ -151,6 +151,8 @@ namespace DebugTools
             {
                 try
                 {
+                    //If RPC_E_SERVERCALL_RETRYLATER is thrown here, disable breaking on this exception;
+                    //we will try again thanks to the message filter
                     if (process.ProcessID == target.Id)
                         return true;
 

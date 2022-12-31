@@ -21,6 +21,25 @@ HRESULT CTypeRefResolver::Resolve(
 
     m_pModuleInfo = match->second;
 
+    if (m_TypeRef != mdTokenNil)
+    {
+        CLock typeRefLock(&m_pModuleInfo->m_TypeRefMutex);
+
+        auto refMatch = m_pModuleInfo->m_TypeRefMap.find(m_TypeRef);
+
+        if (refMatch != m_pModuleInfo->m_TypeRefMap.end())
+        {
+            CModuleIDAndTypeDef* item = refMatch->second;
+
+            if (item->m_Failed)
+                return E_FAIL;
+
+            *moduleId = item->m_ModuleID;
+            *typeDef = item->m_TypeDef;
+            return S_OK;
+        }
+    }
+
     IfFailGo(m_pModuleInfo->m_pMDI->GetTypeRefProps(m_TypeRef, &tkResolutionScope, g_szTypeName, NAME_BUFFER_SIZE, NULL));
 
     resolutionScopeType = (CorTokenType) TypeFromToken(tkResolutionScope);
@@ -29,6 +48,8 @@ HRESULT CTypeRefResolver::Resolve(
     {
         IfFailGo(ResolveAssemblyRef(tkResolutionScope, moduleId, typeDef));
     }
+    else
+        hr = E_FAIL;
 
 ErrExit:
     return hr;
@@ -79,25 +100,6 @@ HRESULT CTypeRefResolver::ResolveAssemblyRef(
     CAssemblyInfo* pAssemblyInfo;
     LPWSTR shortAsmName = nullptr;
     BOOL added = FALSE;
-
-    //Lock scope
-    {
-        CLock asmRefLock(&m_pModuleInfo->m_AsmRefMutex);
-
-        auto match = m_pModuleInfo->m_AsmRefMap.find(assemblyRef);
-
-        if (match != m_pModuleInfo->m_AsmRefMap.end())
-        {
-            CModuleIDAndTypeDef* item = match->second;
-
-            if (item->m_Failed)
-                return E_FAIL;
-
-            *moduleId = item->m_ModuleID;
-            *typeDef = item->m_TypeDef;
-            return S_OK;
-        }
-    }
 
     LPWSTR assemblyName = nullptr;
     IfFailGo(m_pModuleInfo->m_pMDI->QueryInterface(IID_IMetaDataAssemblyImport, (void**)&pMDAI));
@@ -151,20 +153,20 @@ HRESULT CTypeRefResolver::ResolveAssemblyRef(
         IfFailGo(GetModuleIDAndTypeDefFromAssembly(pAssemblyInfo, moduleId, typeDef));
     }
 
-    //Lock scope
+    if (m_TypeRef != mdTokenNil)
     {
-        CLock asmRefLock(&m_pModuleInfo->m_AsmRefMutex);
+        CLock typeRefLock(&m_pModuleInfo->m_TypeRefMutex);
 
-        m_pModuleInfo->m_AsmRefMap[assemblyRef] = new CModuleIDAndTypeDef(*moduleId, *typeDef, FALSE);
+        m_pModuleInfo->m_TypeRefMap[m_TypeRef] = new CModuleIDAndTypeDef(*moduleId, *typeDef, FALSE);
         added = TRUE;
     }
 
 ErrExit:
-    if (!added)
+    if (!added && m_TypeRef != mdTokenNil)
     {
-        CLock asmRefLock(&m_pModuleInfo->m_AsmRefMutex);
+        CLock typeRefLock(&m_pModuleInfo->m_TypeRefMutex);
 
-        m_pModuleInfo->m_AsmRefMap[assemblyRef] = new CModuleIDAndTypeDef(0, 0, TRUE);
+        m_pModuleInfo->m_TypeRefMap[m_TypeRef] = new CModuleIDAndTypeDef(0, 0, TRUE);
     }
 
     if (assemblyName)
@@ -193,7 +195,13 @@ HRESULT CTypeRefResolver::GetModuleIDAndTypeDefFromAssembly(
 
         hr = pMDI->FindTypeDefByName(g_szTypeName, mdTokenNil, &ptd);
 
-        if (hr == S_OK)
+        if (hr == CLDB_E_RECORD_NOTFOUND)
+        {
+            //Maybe it's actually a forwarded type
+            if (GetModuleIDAndTypeDefFromForwardedType(pMDI, pAssemblyInfo->m_Modules[i], moduleId, typeDef) == S_OK)
+                break;
+        }
+        else if (hr == S_OK)
         {
             *moduleId = pAssemblyInfo->m_Modules[i]->m_ModuleID;
             *typeDef = ptd;
@@ -201,5 +209,47 @@ HRESULT CTypeRefResolver::GetModuleIDAndTypeDefFromAssembly(
         }
     }
 
+    return hr;
+}
+
+HRESULT CTypeRefResolver::GetModuleIDAndTypeDefFromForwardedType(
+    _In_ IMetaDataImport* pMDI,
+    _In_ CModuleInfo* pModuleInfo,
+    _Out_ ModuleID* moduleId,
+    _Out_ mdTypeDef* typeDef)
+{
+    HRESULT hr = S_OK;
+    IMetaDataAssemblyImport* pMDAI = nullptr;
+    mdExportedType tkExportedType;
+    mdToken tkImplementation;
+    CorTokenType implType;
+
+    IfFailGo(pMDI->QueryInterface(IID_IMetaDataAssemblyImport, (void**)&pMDAI));
+
+    IfFailGo(pMDAI->FindExportedTypeByName(g_szTypeName, mdExportedTypeNil, &tkExportedType));
+
+    IfFailGo(pMDAI->GetExportedTypeProps(
+        tkExportedType,
+        g_szTypeName,
+        NAME_BUFFER_SIZE,
+        NULL,
+        &tkImplementation,
+        NULL,
+        NULL
+    ));
+
+    implType = (CorTokenType)TypeFromToken(tkImplementation);
+
+    if (implType == mdtAssemblyRef)
+    {
+        CTypeRefResolver resolver(pModuleInfo->m_ModuleID, mdTokenNil);
+        resolver.m_pModuleInfo = pModuleInfo;
+
+        IfFailGo(resolver.ResolveAssemblyRef(tkImplementation, moduleId, typeDef));
+    }
+    else
+        hr = E_FAIL;
+
+ErrExit:
     return hr;
 }

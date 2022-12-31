@@ -22,6 +22,24 @@ namespace Profiler.Tests
             Assert.AreEqual(value, valueObj.Value);
         }
 
+        public ValueVerifier HasClassType(string name)
+        {
+            var classObj = (ClassValue) v;
+
+            Assert.AreEqual(name, classObj.Name);
+
+            return this;
+        }
+
+        public ValueVerifier HasValueType(string name)
+        {
+            var valueObj = (ValueType) v;
+
+            Assert.AreEqual(name, valueObj.Name);
+
+            return this;
+        }
+
         public void HasFieldValue<T>(T value)
         {
             var fields = GetFields();
@@ -44,7 +62,7 @@ namespace Profiler.Tests
             action(valueObj.VerifyValue());
         }
 
-        public void HasFieldValue<T>(int index, T value)
+        public ValueVerifier HasFieldValue<T>(int index, T value)
         {
             var fields = GetFields();
 
@@ -54,6 +72,8 @@ namespace Profiler.Tests
             var valueObj = (IValue<T>)fields[index];
 
             Assert.AreEqual(value, valueObj.Value);
+
+            return this;
         }
 
         public void VerifyArray(params Action<ValueVerifier>[] actions)
@@ -66,6 +86,20 @@ namespace Profiler.Tests
             {
                 actions[i](array.Value[i].VerifyValue());
             }
+        }
+
+        public ValueVerifier HasFieldValue(int index, Action<ValueVerifier> action)
+        {
+            var fields = GetFields();
+
+            if (fields.Count < index)
+                Assert.Fail($"Expected fields to have at least {index + 1} element(s). Actual: {fields.Count}");
+
+            var valueObj = fields[index];
+
+            action(valueObj.VerifyValue());
+
+            return this;
         }
 
         private List<object> GetFields()

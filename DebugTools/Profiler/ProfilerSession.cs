@@ -245,6 +245,16 @@ namespace DebugTools.Profiler
 
                         cancelThread.Start();
                     }
+                    else
+                    {
+                        //If the application crashes early during startup, it might not have transmitted any events to us yet;
+                        //give it a few seconds to process some events so we can catch an exception
+                        if (p.ExitCode != 0)
+                        {
+                            Thread.Sleep(3000);
+                            TraceEventSession.Dispose();
+                        }
+                    }
                 };
             }, flags);
 

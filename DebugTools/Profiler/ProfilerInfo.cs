@@ -48,6 +48,12 @@ namespace DebugTools.Profiler
                 { "COR_PROFILER", Guid.ToString("B") },
                 { "COR_PROFILER_PATH_32", Profilerx86 },
                 { "COR_PROFILER_PATH_64", Profilerx64 },
+
+                { "CORECLR_ENABLE_PROFILING", "1" },
+                { "CORECLR_PROFILER", Guid.ToString("B") },
+                { "CORECLR_PROFILER_PATH_32", Profilerx86 },
+                { "CORECLR_PROFILER_PATH_64", Profilerx64 },
+
                 { "DEBUGTOOLS_PARENT_PID", Process.GetCurrentProcess().Id.ToString() }
             };
 

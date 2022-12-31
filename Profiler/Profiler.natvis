@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <!--
 (gc "C:\Program Files (x86)\Windows Kits\NETFXSDK\4.8\Include\um\CorError.h"|sls "#define"|sls "0x"|sls "EMAKEHR") -replace "#define (.+?) .+0x(.+?)\)",'$1 $2' | foreach {
 $split = $_ -split ' '
@@ -12,7 +12,7 @@ $split = $_ -split ' '
 -->
 <AutoVisualizer xmlns="http://schemas.microsoft.com/vstudio/debugger/natvis/2010">
     <Type Name="CSigMethod">
-        <DisplayString Condition="m_NumParameters == 0">{*m_pRetType} {m_szName,sub}()</DisplayString>
+        <DisplayString Condition="m_cNumParameters == 0">{*m_pRetType} {m_szName,sub}()</DisplayString>
         <DisplayString Condition="m_NumParameters > 0">{*m_pRetType} {m_szName,sub}(...)</DisplayString>
         <Expand>
             <Item Name="m_szName">m_szName</Item>
@@ -55,15 +55,6 @@ $split = $_ -split ' '
                     <IndexListItems>
                         <Size>m_NumGenericTypeArgNames</Size>
                         <ValueNode>*m_GenericTypeArgNames[$i]</ValueNode>
-                    </IndexListItems>
-                </Expand>
-            </Synthetic>
-            <Synthetic Name="m_GenericTypeArgs">
-                <DisplayString>m_NumGenericTypeArgs = {m_NumGenericTypeArgs}</DisplayString>
-                <Expand>
-                    <IndexListItems>
-                        <Size>m_NumGenericTypeArgs</Size>
-                        <ValueNode>m_GenericTypeArgs[$i]</ValueNode>
                     </IndexListItems>
                 </Expand>
             </Synthetic>
@@ -206,6 +197,8 @@ $split = $_ -split ' '
 
         <Expand>
             <Item Name="m_szGenericTypeDefinitionName">m_szGenericTypeDefinitionName</Item>
+            <Item Name="m_GenericTypeDefinitionToken">m_GenericTypeDefinitionToken</Item>
+            <Item Name="m_GenericInstType">m_GenericInstType</Item>
             <Item Name="m_Type">m_Type,en</Item>
             <Item Name="m_IsByRef">m_IsByRef</Item>
 
@@ -293,11 +286,25 @@ $split = $_ -split ' '
             </Synthetic>
         </Expand>
     </Type>
+    <Type Name="CArrayInfo">
+        <DisplayString>{*m_pElementType}[]</DisplayString>
+
+        <Expand>
+            <Item Name="m_RefCount">m_RefCount</Item>
+            <Item Name="m_pElementType">*m_pElementType</Item>
+            <Item Name="m_CorElementType">m_CorElementType</Item>
+            <Item Name="m_Rank">m_Rank</Item>
+            <Item Name="m_ClassID">m_ClassID</Item>
+        </Expand>
+    </Type>
     <Type Name="CClassInfo">
         <DisplayString>{m_szName,sub}</DisplayString>
 
         <Expand>
             <Item Name="m_RefCount">m_RefCount</Item>
+            <Item Name="m_ModuleID">m_ModuleID</Item>
+            <Item Name="m_TypeDef">m_TypeDef</Item>
+            <Item Name="m_ClassID">m_ClassID</Item>
             <Synthetic Name="m_Fields">
                 <DisplayString>m_NumFields = {m_NumFields}</DisplayString>
                 <Expand>
