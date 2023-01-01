@@ -94,6 +94,10 @@ namespace Profiler.Tests
             Test(ValueTestType.InterfaceArg, v => v.HasClassType("DebugTools.TestHost.ImplInterface"));
 
         [TestMethod]
+        public void Value_GenericWithObjectTypeArg() =>
+            Test(ValueTestType.GenericWithObjectTypeArg, v => v.HasValueType("DebugTools.TestHost.GenericValueTypeType`1").HasFieldValue(f => f.HasClassType("System.Object")), ProfilerEnvFlags.WaitForDebugger);
+
+        [TestMethod]
         public void Value_GenericClassArg() =>
             Test(ValueTestType.GenericClassArg, v =>
                 v.HasClassType("DebugTools.TestHost.GenericClassType`1")
@@ -203,6 +207,11 @@ namespace Profiler.Tests
         [TestMethod]
         public void Value_Generic_MethodVar_ElementTypeNullablePrimitive() =>
             Test(ValueTestType.Generic_MethodVar_ElementTypeNullablePrimitive, v => v.HasFieldValue(0, true).HasFieldValue(1, 1));
+
+        [TestMethod]
+        public void Value_Generic_MethodVar_ElementTypeNullableValueType() =>
+            Test(ValueTestType.Generic_MethodVar_ElementTypeNullableValueType, v => v.HasFieldValue(0, true).HasFieldValue(1, f => f.HasFieldValue((ulong)637949198450000000)));
+
         [TestMethod]
         public void Value_Generic_MethodVar_ElementTypeGenericValueType_SZArrayValueArg() =>
             Test(ValueTestType.Generic_MethodVar_ElementTypeGenericValueType_SZArrayValueArg, v =>
@@ -411,6 +420,8 @@ namespace Profiler.Tests
 
         #endregion
         #region Struct Array
+
+        //todo: externalstruct (resolving datetime) isnt working when we're targeting net5.0
 
         [TestMethod]
         public void Value_StructArrayArg() =>

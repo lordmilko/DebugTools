@@ -975,6 +975,7 @@ HRESULT CValueTracer::GetClassId(
         case ELEMENT_TYPE_STRING: //String gets a CStandardTypeInfo, which is never used since ELEMENT_TYPE_STRING gets processed specially
         case ELEMENT_TYPE_I:
         case ELEMENT_TYPE_U:
+        case ELEMENT_TYPE_OBJECT:
         {
             CLock classLock(&g_pProfiler->m_ClassMutex);
 
@@ -1026,9 +1027,6 @@ HRESULT CValueTracer::GetClassId(
 
         #pragma endregion
 
-        case ELEMENT_TYPE_OBJECT:
-            hr = PROFILER_E_GENERICCLASSID;
-            break;
         case ELEMENT_TYPE_SZARRAY:
         case ELEMENT_TYPE_ARRAY:
         {

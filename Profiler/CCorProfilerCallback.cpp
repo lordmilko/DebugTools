@@ -656,7 +656,16 @@ void CCorProfilerCallback::AddClassNoLock(IClassInfo* pClassInfo)
 {
     m_ClassInfoMap[pClassInfo->m_ClassID] = pClassInfo;
 
-    if (pClassInfo->m_InfoType == ClassInfoType::StandardType)
+    if (pClassInfo->m_InfoType == ClassInfoType::Class)
+    {
+        CClassInfo* info = (CClassInfo*)pClassInfo;
+
+        if (m_StandardTypeMap.find(ELEMENT_TYPE_OBJECT) == m_StandardTypeMap.end() && _wcsnicmp(info->m_szName, L"System.Object", sizeof(L"System.Object") / sizeof(WCHAR)) == 0)
+        {
+            m_StandardTypeMap[ELEMENT_TYPE_OBJECT] = new CStandardTypeInfo(info->m_ClassID, ELEMENT_TYPE_OBJECT);
+        }
+    }
+    else if (pClassInfo->m_InfoType == ClassInfoType::StandardType)
     {
         CStandardTypeInfo* std = (CStandardTypeInfo*)pClassInfo;
         std->AddRef();
