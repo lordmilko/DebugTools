@@ -778,11 +778,13 @@ HRESULT CValueTracer::TraceArrayInternal(
 
             for (ULONG i = 0; i < arrayLength; i++)
             {
+                UINT_PTR elmAddress = (UINT_PTR)(pData + arrBytesRead);
+
                 if (pArrayInfo->m_CorElementType == ELEMENT_TYPE_VALUETYPE)
                 {
                     IfFailGo(TraceClassOrStruct(
                         pElementType,
-                        (UINT_PTR)(pData + arrBytesRead),
+                        elmAddress,
                         pArrayInfo->m_CorElementType,
                         arrBytesRead
                     ));
@@ -792,7 +794,7 @@ HRESULT CValueTracer::TraceArrayInternal(
                     TraceValueContext ctx = MakeTraceValueContext(pElementType->m_TypeDef, pElementType->m_ModuleID, -1, pElementType, nullptr);
 
                     IfFailGo(TraceValue(
-                        (UINT_PTR)(pData + arrBytesRead),
+                        elmAddress,
                         pArrayInfo->m_CorElementType,
                         &ctx,
                         arrBytesRead
@@ -1286,7 +1288,8 @@ HRESULT CValueTracer::TraceGenericTypeInternal(
                 goto ErrExit;
             }
 
-            IfFailGo(TraceClassOrStruct(pClassInfo, objectId, ELEMENT_TYPE_CLASS, bytesRead));
+            ULONG innerBytesRead = 0;
+            IfFailGo(TraceClassOrStruct(pClassInfo, objectId, ELEMENT_TYPE_CLASS, innerBytesRead));
             bytesRead += sizeof(void*); //ValueType will increase bytesRead but class won't
         }
 
@@ -1349,6 +1352,7 @@ HRESULT CValueTracer::TraceClassOrStruct(CClassInfo* pClassInfo, ObjectID object
     HRESULT hr = S_OK;
     ULONG nameLength;
     long genericIndex = -1;
+    ULONG innerBytesRead = 0;
 
     WriteType(elementType);
 
@@ -1377,14 +1381,48 @@ HRESULT CValueTracer::TraceClassOrStruct(CClassInfo* pClassInfo, ObjectID object
             pClassInfo,
             (CSigGenericType*)field->m_pType
         );
-
         IfFailGo(TraceValue(
             fieldAddress,
             field->m_pType->m_Type,
             &ctx,
-            bytesRead
+            innerBytesRead //todo: we should store an inner bytes read and then assign it to bytesread after alignment
         ));
     }
+
+    _ASSERTE(elementType == ELEMENT_TYPE_CLASS || elementType == ELEMENT_TYPE_OBJECT || elementType == ELEMENT_TYPE_VALUETYPE);
+
+    if (elementType == ELEMENT_TYPE_VALUETYPE)
+    {
+        /* Structures must be aligned to a certain extent. To demonstrate this, consider a Dictionary<string, int>. This type contains a field private Dictionary<TKey, TValue>.Entry[] entries, defined as
+         * 
+         *   public int hashCode;
+         *   public int next;
+         *   public TKey key;
+         *   public TValue value;
+         * 
+         * On x64, the size of this structure would be 20 bytes. If you have two entries in this dictionary, things will explode upon trying to read the second entry, because we only looked 20 bytes ahead for the second element, when in fact
+         * we needed to look 24 bytes ahead. We would similarly have an issue if the structure was less than a pointer large. The following alignment logic is taken from MethodTableBuilder::PlaceInstanceFields()
+         */
+
+        // The JITs like to copy full machine words,
+        // so if the size is bigger than a void* round it up to minAlign
+        // and if the size is smaller than void* round it up to next power of two
+        unsigned minAlign;
+
+        if (innerBytesRead > sizeof(void*)) {
+            minAlign = sizeof(void*);
+        }
+        else {
+            minAlign = 1;
+            while (minAlign < innerBytesRead)
+                minAlign *= 2;
+        }
+
+        ULONG alignedBytesRead = (innerBytesRead + minAlign-1) & ~(minAlign-1);
+        innerBytesRead = alignedBytesRead;
+    }
+
+    bytesRead += innerBytesRead;
 
 ErrExit:
     return hr;
