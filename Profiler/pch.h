@@ -14,7 +14,7 @@
 #include <shared_mutex>
 
 #ifdef _DEBUG
-#define LogError(EXPR) dprintf(L"Error 0x%X occurred calling %S at %S(%d)\n", hr, #EXPR, __FILE__, __LINE__); DebugBreak()
+#define LogError(EXPR) dprintf(L"Error 0x%X occurred calling %S at %S(%d)\n", hr, #EXPR, __FILE__, __LINE__); if (IsDebuggerPresent()) DebugBreak()
 #else
 #define LogError(EXPR)
 #endif
@@ -36,6 +36,7 @@ inline BOOL GetBoolEnv(LPCSTR name)
 void dprintf(LPCWSTR format, ...);
 
 #define PROFILER_E_BUFFERFULL MAKE_HRESULT(SEVERITY_ERROR, FACILITY_ITF, 0x1001);
+#define PROFILER_E_GENERICCLASSID MAKE_HRESULT(SEVERITY_ERROR, FACILITY_ITF, 0x1002);
 
 class CLock
 {

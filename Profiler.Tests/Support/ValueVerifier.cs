@@ -88,6 +88,30 @@ namespace Profiler.Tests
             }
         }
 
+        public void VerifyMultiArray(params Action<ValueVerifier>[] actions)
+        {
+            var array = (ArrayValue)v;
+
+            Assert.AreEqual(actions.Length, array.Value.Length);
+
+            for (var i = 0; i < actions.Length; i++)
+            {
+                actions[i](array.Value[i].VerifyValue());
+            }
+        }
+
+        public void VerifyRawArray(params Action<ValueVerifier>[] actions)
+        {
+            var array = (object[])v;
+
+            Assert.AreEqual(actions.Length, array.Length);
+
+            for (var i = 0; i < actions.Length; i++)
+            {
+                actions[i](array[i].VerifyValue());
+            }
+        }
+
         public ValueVerifier HasFieldValue(int index, Action<ValueVerifier> action)
         {
             var fields = GetFields();

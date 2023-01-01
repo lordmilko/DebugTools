@@ -10,33 +10,34 @@ class CClassInfo;
 class CArrayInfo;
 class CModuleInfo;
 class CSigGenericType;
+class ISigArrayType;
 
 #undef GetClassInfo
 
 #define WriteType(elementType) \
-    if (g_ValueBufferPosition - 1 >= VALUE_BUFFER_SIZE) \
+    do { if (g_ValueBufferPosition - 1 >= VALUE_BUFFER_SIZE) \
     { \
         hr = PROFILER_E_BUFFERFULL; \
         LogError("WriteType"); \
         goto ErrExit; \
     } \
     *(g_ValueBuffer + g_ValueBufferPosition) = elementType; \
-    g_ValueBufferPosition++
+    g_ValueBufferPosition++; } while(0)
 
 #define WriteValue(pValue, length) \
-    if (g_ValueBufferPosition >= VALUE_BUFFER_SIZE - (int)(length)) \
+    do { if (g_ValueBufferPosition >= VALUE_BUFFER_SIZE - (int)(length)) \
     { \
         hr = PROFILER_E_BUFFERFULL; \
         LogError("WriteValue"); \
         goto ErrExit; \
     } \
     memcpy(g_ValueBuffer + g_ValueBufferPosition, pValue, length); \
-    g_ValueBufferPosition += length
+    g_ValueBufferPosition += length; } while(0)
 
 #define Write(pValue, elementType, expectedSize) \
-    _ASSERTE(sizeof(*(pValue)) == (expectedSize)); \
+     do { _ASSERTE(sizeof(*(pValue)) == (expectedSize)); \
      WriteType(elementType); \
-     WriteValue(pValue, sizeof(*(pValue)))
+     WriteValue(pValue, sizeof(*(pValue))); } while(0)
 
 typedef struct _ValueTypeContext {
     mdToken TypeToken;
@@ -118,9 +119,9 @@ private:
     HRESULT TraceArray(_In_ UINT_PTR startAddress, _Out_opt_ ULONG& bytesRead);
     HRESULT TraceGenericType(_In_ UINT_PTR startAddress, _In_ TraceValueContext* pContext, _Out_opt_ ULONG& bytesRead);
     HRESULT TraceObject(_In_ UINT_PTR startAddress, _Out_opt_ ULONG& bytesRead);
-    HRESULT TraceSZArray(_In_ UINT_PTR startAddress, _Out_opt_ ULONG& bytesRead);
+    HRESULT TraceArray(_In_ UINT_PTR startAddress, _In_ CorElementType type, _Out_opt_ ULONG& bytesRead);
 
-    HRESULT TraceSZArrayInternal(
+    HRESULT TraceArrayInternal(
         _In_ CArrayInfo* pArrayInfo,
         _In_ ObjectID objectId,
         _Out_opt_ ULONG& bytesRead);
@@ -141,7 +142,31 @@ private:
         _In_ CSigType* pType,
         _In_ ModuleID moduleOfTypeToken,
         _In_ mdToken typeToken,
+        _In_ CSigGenericType* curGenericType,
+        _In_ ULONG curGenericArg,
         _Out_ ClassID* classId);
+
+    HRESULT GetArrayClassId(
+        _In_ CClassInfo* pClassInfo, //The current class that any ELEMENT_TYPE_VAR references will be resolved from
+        _In_ CSigType* pType,
+        _In_ ModuleID moduleOfTypeToken,
+        _In_ CSigGenericType* curGenericType,
+        _In_ ULONG curGenericArg,
+        _Out_ ClassID* classId);
+
+    HRESULT GetArrayClassIdFast(
+        _In_ ISigArrayType* arr,
+        _In_ ClassID elmClassId,
+        _Out_ ClassID* classId);
+
+    HRESULT GetArrayClassIdSlow(
+        _In_ ISigArrayType* arr,
+        _In_ ClassID elmClassId,
+        _In_ CSigGenericType* curGenericType,
+        _In_ ULONG curGenericArg,
+        _Out_ ClassID* classId);
+
+    BOOL IsArrayMatch(ISigArrayType* arr, CArrayInfo* info);
 
     HRESULT TraceTypeGenericType(_In_ UINT_PTR startAddress, _In_ TraceValueContext* pContext, _Out_opt_ ULONG& bytesRead);
     HRESULT TraceMethodGenericType(_In_ UINT_PTR startAddress, _In_ _In_ TraceValueContext* pContext, _Out_opt_ ULONG& bytesRead);
@@ -157,13 +182,11 @@ private:
     HRESULT TraceClassOrStruct(CClassInfo* pClassInfo, ObjectID objectId, CorElementType elementType, ULONG& bytesRead);
 
     HRESULT GetModuleInfo(ModuleID moduleId, CModuleInfo** ppModuleInfo);
-    HRESULT GetClassInfo(CModuleInfo* pModuleInfo, mdTypeDef typeDef, long numGenericTypeArgs, IClassInfo** ppClassInfo);
+    HRESULT GetClassInfoFromTypeDef(CModuleInfo* pModuleInfo, mdTypeDef typeDef, IClassInfo** ppClassInfo);
 
-    HRESULT GetClassInfo(ClassID classId, IClassInfo** ppClassInfo);
+    HRESULT GetClassInfoFromClassId(ClassID classId, IClassInfo** ppClassInfo, bool lock = true);
     mdToken GetTypeToken(CSigType* pType);
     void GetGenericInfo(CSigType* pType, CorElementType* type, long* genericIndex);
-
-    BOOL IsPrimitiveType(CorElementType type);
 
     static ULONG s_StringLengthOffset;
     static ULONG s_StringBufferOffset;

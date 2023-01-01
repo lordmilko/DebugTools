@@ -196,6 +196,81 @@ namespace Profiler.Tests
                 )
             ));
 
+        [TestMethod]
+        public void Value_Generic_MethodVar_ElementTypeGenericValueType_SimpleArg() =>
+            Test(ValueTestType.Generic_MethodVar_ElementTypeGenericValueType_SimpleArg, v => v.HasFieldValue(1));
+
+        [TestMethod]
+        public void Value_Generic_MethodVar_ElementTypeNullablePrimitive() =>
+            Test(ValueTestType.Generic_MethodVar_ElementTypeNullablePrimitive, v => v.HasFieldValue(0, true).HasFieldValue(1, 1));
+        [TestMethod]
+        public void Value_Generic_MethodVar_ElementTypeGenericValueType_SZArrayValueArg() =>
+            Test(ValueTestType.Generic_MethodVar_ElementTypeGenericValueType_SZArrayValueArg, v =>
+            {
+                v.HasArrayStructValues(CorElementType.ValueType, "DebugTools.TestHost.GenericValueTypeType`1", "DebugTools.TestHost.GenericValueTypeType`1");
+
+                v.VerifyArray(
+                    e => e.HasFieldValue(f => f.HasFieldValue(1)),
+                    e => e.HasFieldValue(f => f.HasFieldValue(2))
+                );
+            });
+
+        [TestMethod]
+        public void Value_Generic_MethodVar_ElementTypeGenericValueType_SZArrayArg() =>
+            Test(ValueTestType.Generic_MethodVar_ElementTypeGenericValueType_SZArrayArg, v =>
+            {
+                v.HasValueType("DebugTools.TestHost.GenericValueTypeType`1");
+                v.HasFieldValue(
+                    f1 => f1.VerifyArray(
+                        e => e.HasValueType("DebugTools.TestHost.Struct1WithField").HasFieldValue(1),
+                        e => e.HasValueType("DebugTools.TestHost.Struct1WithField").HasFieldValue(2)
+                    )
+                );
+            });
+
+        [TestMethod]
+        public void Value_Generic_MethodVar_ElementTypeGenericValueType_MultiArrayValueArg() =>
+            Test(ValueTestType.Generic_MethodVar_ElementTypeGenericValueType_MultiArrayValueArg, v =>
+            {
+                v.VerifyMultiArray(
+                    e1 => e1.VerifyRawArray(
+                        e2 => e2.HasValueType("DebugTools.TestHost.GenericValueTypeType`1").HasFieldValue(
+                            f1 => f1.HasValueType("DebugTools.TestHost.Struct1WithField").HasFieldValue(1)
+                        ),
+                        e2 => e2.HasValueType("DebugTools.TestHost.GenericValueTypeType`1").HasFieldValue(
+                            f1 => f1.HasValueType("DebugTools.TestHost.Struct1WithField").HasFieldValue(2)
+                        )
+                    ),
+                    e1 => e1.VerifyRawArray(
+                        e2 => e2.HasValueType("DebugTools.TestHost.GenericValueTypeType`1").HasFieldValue(
+                            f1 => f1.HasValueType("DebugTools.TestHost.Struct1WithField").HasFieldValue(3)
+                        ),
+                        e2 => e2.HasValueType("DebugTools.TestHost.GenericValueTypeType`1").HasFieldValue(
+                            f1 => f1.HasValueType("DebugTools.TestHost.Struct1WithField").HasFieldValue(4)
+                        )
+                    )
+                );
+            });
+
+        [TestMethod]
+        public void Value_Generic_MethodVar_ElementTypeGenericValueType_MultiArrayArg() =>
+            Test(ValueTestType.Generic_MethodVar_ElementTypeGenericValueType_MultiArrayArg, v =>
+            {
+                v.HasValueType("DebugTools.TestHost.GenericValueTypeType`1");
+                v.HasFieldValue(
+                    f1 => f1.VerifyMultiArray(
+                        e1 => e1.VerifyRawArray(
+                            e2 => e2.HasValueType("DebugTools.TestHost.Struct1WithField").HasFieldValue(1),
+                            e2 => e2.HasValueType("DebugTools.TestHost.Struct1WithField").HasFieldValue(2)
+                        ),
+                        e1 => e1.VerifyRawArray(
+                            e2 => e2.HasValueType("DebugTools.TestHost.Struct1WithField").HasFieldValue(3),
+                            e2 => e2.HasValueType("DebugTools.TestHost.Struct1WithField").HasFieldValue(4)
+                        )
+                    )
+                );
+            });
+
         #endregion
         #region TypeVar
 

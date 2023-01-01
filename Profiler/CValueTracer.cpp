@@ -102,7 +102,7 @@ HRESULT CValueTracer::EnterWithInfo(FunctionIDOrClientID functionId, COR_PRF_ELT
             for(ULONG i = 0; i < pMethod->m_NumGenericTypeArgNames; i++)
             {
                 IClassInfo* info;
-                IfFailGo(GetClassInfo(typeArgs[i], &info));
+                IfFailGo(GetClassInfoFromClassId(typeArgs[i], &info));
 
                 m_GenericTypeArgs[i] = info;
             }
@@ -122,7 +122,7 @@ HRESULT CValueTracer::EnterWithInfo(FunctionIDOrClientID functionId, COR_PRF_ELT
         }
 
         //Get the class info of the class the method being invoked is defined in
-        IfFailGo(GetClassInfo(classId, &pMethodClassInfo));
+        IfFailGo(GetClassInfoFromClassId(classId, &pMethodClassInfo));
 
         IfFailGo(TraceParameters(argumentInfo, pMethod, pMethodClassInfo));
     }
@@ -310,13 +310,11 @@ HRESULT CValueTracer::TraceValue(
         return TraceClass(startAddress, elementType, bytesRead);
 
     case ELEMENT_TYPE_ARRAY:
-        return TraceArray(startAddress, bytesRead);
+    case ELEMENT_TYPE_SZARRAY:
+        return TraceArray(startAddress, elementType, bytesRead);
 
     case ELEMENT_TYPE_GENERICINST:
         return TraceGenericType(startAddress, pContext, bytesRead);
-
-    case ELEMENT_TYPE_SZARRAY:
-        return TraceSZArray(startAddress, bytesRead);
 
     #pragma endregion
 
@@ -517,7 +515,7 @@ HRESULT CValueTracer::TraceIntPtr(_In_ UINT_PTR startAddress, _Out_opt_ ULONG& b
 {
     HRESULT hr = S_OK;
 
-    INT_PTR* pPtr = (INT_PTR*)startAddress;
+    __int64* pPtr = (__int64*)startAddress;
 
     Write(pPtr, ELEMENT_TYPE_I, 8);
     bytesRead += sizeof(INT_PTR);
@@ -530,7 +528,7 @@ HRESULT CValueTracer::TraceUIntPtr(_In_ UINT_PTR startAddress, _Out_opt_ ULONG& 
 {
     HRESULT hr = S_OK;
 
-    UINT_PTR* pPtr = (UINT_PTR*)startAddress;
+    __int64* pPtr = (__int64*)startAddress;
 
     Write(pPtr, ELEMENT_TYPE_U, 8);
     bytesRead += sizeof(UINT_PTR);
@@ -585,7 +583,7 @@ HRESULT CValueTracer::TraceClass(_In_ UINT_PTR startAddress, _In_ CorElementType
     ULONG32 boxedValueOffset;
     ClassID classId;
     IClassInfo* info = nullptr;
-    ULONG innerBytesRead;
+    ULONG innerBytesRead = 0;
 
     ObjectID objectId = *(ObjectID*)startAddress;
 
@@ -603,16 +601,13 @@ HRESULT CValueTracer::TraceClass(_In_ UINT_PTR startAddress, _In_ CorElementType
 
     IfFailGo(g_pProfiler->m_pInfo->GetClassFromObject(objectId, &classId));
 
-    IfFailGo(GetClassInfo(classId, &info));
+    IfFailGo(GetClassInfoFromClassId(classId, &info));
 
     if (info->m_InfoType == ClassInfoType::Array)
     {
         CArrayInfo* pArrayInfo = (CArrayInfo*)info;
 
-        if (pArrayInfo->m_Rank == 1)
-            IfFailGo(TraceSZArray(startAddress, innerBytesRead));
-        else
-            IfFailGo(TraceArray(startAddress, innerBytesRead));
+        IfFailGo(TraceArrayInternal(pArrayInfo, objectId, innerBytesRead));
     }
     else
     {
@@ -683,10 +678,12 @@ HRESULT CValueTracer::TraceGenericType(_In_ UINT_PTR startAddress, _In_ TraceVal
             pContext->GenericInst.GenericType,
             pContext->ValueType.ModuleOfTypeToken,
             pContext->ValueType.TypeToken,
+            pContext->GenericInst.GenericType,
+            -1,
             &classId
         ));
 
-        IfFailGo(GetClassInfo(classId, (IClassInfo**)&pClassInfo));
+        IfFailGo(GetClassInfoFromClassId(classId, (IClassInfo**)&pClassInfo));
 
         IfFailGo(TraceClassOrStruct(pClassInfo, startAddress, ELEMENT_TYPE_VALUETYPE, bytesRead));
     }
@@ -702,7 +699,7 @@ HRESULT CValueTracer::TraceObject(_In_ UINT_PTR startAddress, _Out_opt_ ULONG& b
     return hr;
 }
 
-HRESULT CValueTracer::TraceSZArray(_In_ UINT_PTR startAddress, _Out_opt_ ULONG& bytesRead)
+HRESULT CValueTracer::TraceArray(_In_ UINT_PTR startAddress, _In_ CorElementType type, _Out_opt_ ULONG& bytesRead)
 {
     HRESULT hr = S_OK;
 
@@ -712,7 +709,7 @@ HRESULT CValueTracer::TraceSZArray(_In_ UINT_PTR startAddress, _Out_opt_ ULONG& 
 
     if (objectId == NULL)
     {
-        WriteType(ELEMENT_TYPE_SZARRAY);
+        WriteType(type);
         WriteType(ELEMENT_TYPE_END);
 
         bytesRead += sizeof(void*);
@@ -721,71 +718,99 @@ HRESULT CValueTracer::TraceSZArray(_In_ UINT_PTR startAddress, _Out_opt_ ULONG& 
     }
 
     IfFailGo(g_pProfiler->m_pInfo->GetClassFromObject(objectId, &classId));
-    IfFailGo(GetClassInfo(classId, (IClassInfo**)&pArrayInfo));
+    IfFailGo(GetClassInfoFromClassId(classId, (IClassInfo**)&pArrayInfo));
 
-    IfFailGo(TraceSZArrayInternal(pArrayInfo, objectId, bytesRead));
+    IfFailGo(TraceArrayInternal(pArrayInfo, objectId, bytesRead));
 
 ErrExit:
     return hr;
 }
 
-HRESULT CValueTracer::TraceSZArrayInternal(
+HRESULT CValueTracer::TraceArrayInternal(
     _In_ CArrayInfo* pArrayInfo,
     _In_ ObjectID objectId,
     _Out_opt_ ULONG& bytesRead)
 {
     HRESULT hr = S_OK;
 
-    ULONG32 dimensionSizes[1];
-    int dimensionLowerBounds[1];
+    ULONG32* dimensionSizes = new ULONG32[pArrayInfo->m_Rank];
+    int* dimensionLowerBounds = new int[pArrayInfo->m_Rank];
     BYTE* pData;
 
     ULONG arrayLength;
     ULONG arrBytesRead = 0;
 
-    IfFailGo(g_pProfiler->m_pInfo->GetArrayObjectInfo(objectId, 1, dimensionSizes, dimensionLowerBounds, &pData));
+    IfFailGo(g_pProfiler->m_pInfo->GetArrayObjectInfo(objectId, pArrayInfo->m_Rank, dimensionSizes, dimensionLowerBounds, &pData));
 
-    WriteType(ELEMENT_TYPE_SZARRAY);
-    WriteType(pArrayInfo->m_CorElementType);
-
-    arrayLength = dimensionSizes[0];
-
-    WriteValue(&arrayLength, 4);
-
-    if (pArrayInfo->m_pElementType->m_InfoType == ClassInfoType::StandardType)
-    {
-        CStandardTypeInfo* pStandardTypeInfo = (CStandardTypeInfo*)pArrayInfo->m_pElementType;
-
-        for (ULONG i = 0; i < arrayLength; i++)
-        {
-            IfFailGo(TraceSimpleValue(
-                (UINT_PTR)(pData + arrBytesRead),
-                pStandardTypeInfo->m_ElementType,
-                arrBytesRead
-            ));
-        }
-    }
+    if (pArrayInfo->m_Rank == 1)
+        WriteType(ELEMENT_TYPE_SZARRAY);
     else
     {
-        //We're assuming we can't have a CArrayInfo inside another CArrayInfo
-        CClassInfo* pElementType = (CClassInfo*)pArrayInfo->m_pElementType;
+        WriteType(ELEMENT_TYPE_ARRAY);
+        WriteValue(&pArrayInfo->m_Rank, 4);
+    }
 
-        for (ULONG i = 0; i < arrayLength; i++)
+    WriteType(pArrayInfo->m_CorElementType);
+
+    for(ULONG i = 0; i < pArrayInfo->m_Rank; i++)
+    {
+        arrayLength = dimensionSizes[i];
+
+        WriteValue(&arrayLength, 4);
+
+        if (pArrayInfo->m_pElementType->m_InfoType == ClassInfoType::StandardType)
         {
-            TraceValueContext ctx = MakeTraceValueContext(pElementType->m_TypeDef, pElementType->m_ModuleID, -1, pElementType, nullptr);
+            CStandardTypeInfo* pStandardTypeInfo = (CStandardTypeInfo*)pArrayInfo->m_pElementType;
 
-            IfFailGo(TraceValue(
-                (UINT_PTR)(pData + arrBytesRead),
-                pArrayInfo->m_CorElementType,
-                &ctx,
-                arrBytesRead
-            ));
+            for (ULONG i = 0; i < arrayLength; i++)
+            {
+                IfFailGo(TraceSimpleValue(
+                    (UINT_PTR)(pData + arrBytesRead),
+                    pStandardTypeInfo->m_ElementType,
+                    arrBytesRead
+                ));
+            }
+        }
+        else
+        {
+            //We're assuming we can't have a CArrayInfo inside another CArrayInfo
+            CClassInfo* pElementType = (CClassInfo*)pArrayInfo->m_pElementType;
+
+            for (ULONG i = 0; i < arrayLength; i++)
+            {
+                if (pArrayInfo->m_CorElementType == ELEMENT_TYPE_VALUETYPE)
+                {
+                    IfFailGo(TraceClassOrStruct(
+                        pElementType,
+                        (UINT_PTR)(pData + arrBytesRead),
+                        pArrayInfo->m_CorElementType,
+                        arrBytesRead
+                    ));
+                }
+                else
+                {
+                    TraceValueContext ctx = MakeTraceValueContext(pElementType->m_TypeDef, pElementType->m_ModuleID, -1, pElementType, nullptr);
+
+                    IfFailGo(TraceValue(
+                        (UINT_PTR)(pData + arrBytesRead),
+                        pArrayInfo->m_CorElementType,
+                        &ctx,
+                        arrBytesRead
+                    ));
+                }
+            }
         }
     }
 
     bytesRead += sizeof(void*);
 
 ErrExit:
+    if (dimensionSizes)
+        delete dimensionSizes;
+
+    if (dimensionLowerBounds)
+        delete dimensionLowerBounds;
+
     return hr;
 }
 
@@ -810,7 +835,9 @@ HRESULT CValueTracer::TraceValueType(
     IfFailGo(GetTypeDefAndModule(pContext->ValueType.ModuleOfTypeToken, pContext->ValueType.TypeToken, &moduleId, &typeDef));
 
     IfFailGo(GetModuleInfo(moduleId, &pModuleInfo));
-    IfFailGo(GetClassInfo(pModuleInfo, typeDef, 0, &pClassInfo));
+
+    //If the type is generic, it should have been handled in another call path (potentially resulting in TraceClassOrStruct() being called directly). If a generic struct goes through this code path GetClassFromToken() will explode
+    IfFailGo(GetClassInfoFromTypeDef(pModuleInfo, typeDef, &pClassInfo));
 
     IfFailGo(TraceClassOrStruct((CClassInfo*)pClassInfo, objectId, ELEMENT_TYPE_VALUETYPE, bytesRead));
 
@@ -871,10 +898,12 @@ ErrExit:
 }
 
 HRESULT CValueTracer::GetClassId(
-    _In_ CClassInfo* pClassInfo,
+    _In_ CClassInfo* pClassInfo, //The current class that any ELEMENT_TYPE_VAR references will be resolved from
     _In_ CSigType* pType,
     _In_ ModuleID moduleOfTypeToken,
     _In_ mdToken typeToken,
+    _In_ CSigGenericType* curGenericType,
+    _In_ ULONG curGenericArg,
     _Out_ ClassID* classId)
 {
     HRESULT hr = S_OK;
@@ -882,12 +911,12 @@ HRESULT CValueTracer::GetClassId(
     ClassID* typeArgIds = nullptr;
     ModuleID moduleId;
     mdTypeDef typeDef;
-    ClassID childClassId;
     WCHAR typeName[NAME_BUFFER_SIZE];
 
     if (pType->m_Type == ELEMENT_TYPE_GENERICINST)
     {
         CSigGenericType* pGenericType = (CSigGenericType*) pType;
+        ClassID childClassId;
 
         typeArgIds = new ClassID[pGenericType->m_NumGenericArgs];
 
@@ -895,40 +924,15 @@ HRESULT CValueTracer::GetClassId(
         {
             CSigType* current = pGenericType->m_GenericArgs[i];
 
-            if (current->m_Type == ELEMENT_TYPE_MVAR)
-            {
-                IClassInfo* info = m_GenericTypeArgs[((CSigMethodGenericArgType*)current)->m_Index];
-
-                childClassId = info->m_ClassID;
-            }
-            else if (current->m_Type == ELEMENT_TYPE_VAR)
-            {
-                childClassId = pClassInfo->m_GenericTypeArgs[((CSigTypeGenericArgType*)current)->m_Index];
-            }
-            else if (IsPrimitiveType(current->m_Type) || current->m_Type == ELEMENT_TYPE_STRING)
-            {
-                CLock classLock(&g_pProfiler->m_ClassMutex);
-
-                auto match = g_pProfiler->m_StandardTypeMap.find(current->m_Type);
-
-                if (match == g_pProfiler->m_StandardTypeMap.end())
-                {
-                    hr = E_FAIL;
-                    goto ErrExit;
-                }
-
-                childClassId = match->second->m_ClassID;
-            }
-            else
-            {
-                mdToken token = GetTypeToken(current);
-
-                _ASSERTE(token != mdTokenNil);
-
-                IfFailGo(GetTypeDefAndModule(moduleOfTypeToken, token, &moduleId, &typeDef));
-
-                IfFailGo(GetClassId(pClassInfo, current, moduleId, typeDef, &childClassId));
-            }
+            IfFailGo(GetClassId(
+                pClassInfo,
+                current,
+                moduleOfTypeToken,
+                typeToken,
+                pGenericType,
+                i,
+                &childClassId
+            ));
 
             typeArgIds[i] = childClassId;
         }
@@ -952,7 +956,103 @@ HRESULT CValueTracer::GetClassId(
     }
     else
     {
-        IfFailGo(g_pProfiler->m_pInfo->GetClassFromToken(moduleOfTypeToken, typeToken, classId));
+        switch (pType->m_Type)
+        {
+        #pragma region CStandardInfoType
+
+        case ELEMENT_TYPE_BOOLEAN:
+        case ELEMENT_TYPE_CHAR:
+        case ELEMENT_TYPE_I1:
+        case ELEMENT_TYPE_U1:
+        case ELEMENT_TYPE_I2:
+        case ELEMENT_TYPE_U2:
+        case ELEMENT_TYPE_I4:
+        case ELEMENT_TYPE_U4:
+        case ELEMENT_TYPE_I8:
+        case ELEMENT_TYPE_U8:
+        case ELEMENT_TYPE_R4:
+        case ELEMENT_TYPE_R8:
+        case ELEMENT_TYPE_STRING: //String gets a CStandardTypeInfo, which is never used since ELEMENT_TYPE_STRING gets processed specially
+        case ELEMENT_TYPE_I:
+        case ELEMENT_TYPE_U:
+        {
+            CLock classLock(&g_pProfiler->m_ClassMutex);
+
+            auto match = g_pProfiler->m_StandardTypeMap.find(pType->m_Type);
+
+            if (match == g_pProfiler->m_StandardTypeMap.end())
+            {
+                hr = E_FAIL;
+                goto ErrExit;
+            }
+
+            *classId = match->second->m_ClassID;
+
+            break;
+        }
+
+        #pragma endregion
+        #pragma region Generic Type
+
+        case ELEMENT_TYPE_VAR:
+        {
+            *classId = pClassInfo->m_GenericTypeArgs[((CSigTypeGenericArgType*)pType)->m_Index];
+            break;
+        }
+
+        case ELEMENT_TYPE_MVAR:
+        {
+            IClassInfo* info = m_GenericTypeArgs[((CSigMethodGenericArgType*)pType)->m_Index];
+
+            *classId = info->m_ClassID;
+            break;
+        }
+
+        #pragma endregion
+        #pragma region Class / ValueType
+
+        case ELEMENT_TYPE_VALUETYPE:
+        case ELEMENT_TYPE_CLASS:
+        {
+            mdToken token = GetTypeToken(pType);
+
+            _ASSERTE(token != mdTokenNil);
+
+            IfFailGo(GetTypeDefAndModule(moduleOfTypeToken, token, &moduleId, &typeDef));
+
+            IfFailGo(g_pProfiler->m_pInfo->GetClassFromToken(moduleId, typeDef, classId));
+            break;
+        }
+
+        #pragma endregion
+
+        case ELEMENT_TYPE_OBJECT:
+            hr = PROFILER_E_GENERICCLASSID;
+            break;
+        case ELEMENT_TYPE_SZARRAY:
+        case ELEMENT_TYPE_ARRAY:
+        {
+            IfFailGo(GetArrayClassId(pClassInfo, pType, moduleOfTypeToken, curGenericType, curGenericArg, classId));
+            break;
+        }
+
+        case ELEMENT_TYPE_END:
+        case ELEMENT_TYPE_VOID:
+        case ELEMENT_TYPE_PTR:
+        case ELEMENT_TYPE_BYREF:
+        case ELEMENT_TYPE_TYPEDBYREF:
+        case ELEMENT_TYPE_FNPTR:
+        case ELEMENT_TYPE_CMOD_REQD:
+        case ELEMENT_TYPE_CMOD_OPT:
+        case ELEMENT_TYPE_INTERNAL:
+        case ELEMENT_TYPE_MAX:
+        case ELEMENT_TYPE_MODIFIER:
+        case ELEMENT_TYPE_SENTINEL:
+        case ELEMENT_TYPE_PINNED:
+        default:
+            hr = PROFILER_E_GENERICCLASSID;
+            break;
+        }
     }
 
 ErrExit:
@@ -962,25 +1062,147 @@ ErrExit:
     return hr;
 }
 
-HRESULT CValueTracer::GetClassInfo(
+HRESULT CValueTracer::GetArrayClassId(
+    _In_ CClassInfo* pClassInfo, //The current class that any ELEMENT_TYPE_VAR references will be resolved from
+    _In_ CSigType* pType,
+    _In_ ModuleID moduleOfTypeToken,
+    _In_ CSigGenericType* curGenericType,
+    _In_ ULONG curGenericArg,
+    _Out_ ClassID* classId)
+{
+    HRESULT hr = S_OK;
+    ISigArrayType* arr = (ISigArrayType*)(pType);
+    ClassID elmClassId;
+    mdToken elmToken = GetTypeToken(arr->m_pElementType);
+
+    IfFailGo(GetClassId(
+        pClassInfo,
+        arr->m_pElementType,
+        moduleOfTypeToken,
+        elmToken,
+        curGenericType,
+        curGenericArg,
+        &elmClassId
+    ));
+
+    /* We have a generic instance like new GenericValueTypeType<Struct1WithField[,]>.We've got the class ID
+     * of Struct1WithField (the element type), and we need to get the class ID of Struct1WithField[,] (the array itself).
+     * If the array type has been seen before, it's been cached on m_ArrayTypeMap; if not, we need to search all the classes
+     * for a GenericValueTypeType<> containing a compatible array of type Struct1WithField */
+    if (GetArrayClassIdFast(arr, elmClassId, classId) != S_OK)
+    {
+        if (curGenericType == NULL)
+            return E_FAIL;
+
+        IfFailGo(GetArrayClassIdSlow(arr, elmClassId, curGenericType, curGenericArg, classId));
+    }
+
+ErrExit:
+    return hr;
+}
+
+HRESULT CValueTracer::GetArrayClassIdFast(
+    _In_ ISigArrayType* arr,
+    _In_ ClassID elmClassId,
+    _Out_ ClassID* classId)
+{
+    CLock classLock(&g_pProfiler->m_ClassMutex);
+
+    auto match = g_pProfiler->m_ArrayTypeMap.find(elmClassId);
+
+    if (match != g_pProfiler->m_ArrayTypeMap.end())
+    {
+        CUnknownArray<CArrayInfo>* unkArr = match->second;
+
+        for(ULONG i = 0; i < match->second->m_Length; i++)
+        {
+            CArrayInfo* item = unkArr->operator[](i);
+
+            //We know elmClassId matches beacuse it was the index into m_ArrayTypeMap
+            if (IsArrayMatch(arr, item))
+            {
+                *classId = item->m_ClassID;
+                return S_OK;
+            }
+        }
+    }
+
+    return E_FAIL;
+}
+
+HRESULT CValueTracer::GetArrayClassIdSlow(
+    _In_ ISigArrayType* arr,
+    _In_ ClassID elmClassId,
+    _In_ CSigGenericType* curGenericType,
+    _In_ ULONG curGenericArg,
+    _Out_ ClassID* classId)
+{
+    HRESULT hr = S_OK;
+
+    CLock classLock(&g_pProfiler->m_ClassMutex, true);
+
+    for (auto& v : g_pProfiler->m_ClassInfoMap)
+    {
+        if (v.second->m_InfoType == ClassInfoType::Class)
+        {
+            CClassInfo* info = (CClassInfo*)v.second;
+
+            if (wcscmp(info->m_szName, curGenericType->m_szGenericTypeDefinitionName) == 0 && info->m_NumGenericTypeArgs == curGenericType->m_NumGenericArgs)
+            {
+                //Even if there's multiple generic types that define this array at a given generic type arg index, this doesn't matter;
+                //the definition of the array is still the same. We'll get the true class ID of the generic type via GetClassFromTokenAndTypeArgs()
+                IClassInfo* genericTypeArg;
+                IfFailGo(GetClassInfoFromClassId(info->m_GenericTypeArgs[curGenericArg], &genericTypeArg, false));
+
+                if (genericTypeArg->m_InfoType == ClassInfoType::Array)
+                {
+                    CArrayInfo* curArr = (CArrayInfo*)genericTypeArg;
+
+                    IClassInfo* temp;
+
+                    GetClassInfoFromClassId(elmClassId, &temp, false);
+
+                    if (curArr->m_pElementType->m_ClassID == elmClassId && IsArrayMatch(arr, curArr))
+                    {
+                        *classId = curArr->m_ClassID;
+                        dprintf(L"matched array with classId %llX\n", curArr->m_ClassID);
+                        return S_OK;
+                    }
+                }
+            }
+        }
+    }
+
+    hr = E_FAIL;
+
+ErrExit:
+    return hr;
+}
+
+BOOL CValueTracer::IsArrayMatch(ISigArrayType* arr, CArrayInfo* info)
+{
+    //We know elmClassId matches if this method was called; now we just need to compare the nature of the array
+
+    if (arr->GetRank() != info->m_Rank)
+        return FALSE;
+
+    //In order to compare the sizes of the dimensions and the lower bounds, we need to call GetArrayObjectInfo() which relies on an ObjectID
+
+    return TRUE;
+}
+
+HRESULT CValueTracer::GetClassInfoFromTypeDef(
     CModuleInfo* pModuleInfo,
     mdTypeDef typeDef,
-    long numGenericTypeArgs,
     IClassInfo** ppClassInfo)
 {
     HRESULT hr = S_OK;
     ClassID classId;
     IClassInfo* pClassInfo;
 
-    if (numGenericTypeArgs == 0)
-        IfFailGo(g_pProfiler->m_pInfo->GetClassFromToken(pModuleInfo->m_ModuleID, typeDef, &classId));
-    else
-    {
-        hr = E_FAIL;
-        goto ErrExit;
-    }
+    IfFailGo(g_pProfiler->m_pInfo->GetClassFromToken(pModuleInfo->m_ModuleID, typeDef, &classId));
 
-    IfFailGo(GetClassInfo(classId, &pClassInfo));
+    IfFailGo(GetClassInfoFromClassId(classId, &pClassInfo));
 
     *ppClassInfo = pClassInfo;
 
@@ -999,7 +1221,7 @@ HRESULT CValueTracer::TraceTypeGenericType(
 
     ClassID classId = pContext->GenericArg.ClassInfo->m_GenericTypeArgs[pContext->GenericArg.GenericIndex];
 
-    IfFailGo(GetClassInfo(classId, &genericInfo));
+    IfFailGo(GetClassInfoFromClassId(classId, &genericInfo));
 
     IfFailGo(TraceGenericTypeInternal(startAddress, genericInfo, bytesRead));
 
@@ -1026,7 +1248,6 @@ HRESULT CValueTracer::TraceGenericTypeInternal(
 {
     HRESULT hr = S_OK;
 
-    ClassID classId;
     ObjectID objectId = *(ObjectID*)startAddress;
 
     switch (info->m_InfoType)
@@ -1046,14 +1267,12 @@ HRESULT CValueTracer::TraceGenericTypeInternal(
     {
         CClassInfo* pClassInfo = (CClassInfo*)info;
 
-        IfFailGo(g_pProfiler->m_pInfo->GetClassFromToken(pClassInfo->m_ModuleID, pClassInfo->m_TypeDef, &classId));
-
         ULONG32 pBufferOffset;
 
         //All GetBoxClassLayout() does is return Object::GetOffsetOfFirstField() (which is sizeof(Object)) provided classId points to a value type.
         //Therefore this method can easily be used to check whether a type is a value type or not, regardless of whether a particular instance of it
         //is boxed or not
-        if (g_pProfiler->m_pInfo->GetBoxClassLayout(classId, &pBufferOffset) == S_OK)
+        if (g_pProfiler->m_pInfo->GetBoxClassLayout(pClassInfo->m_ClassID, &pBufferOffset) == S_OK)
             IfFailGo(TraceClassOrStruct(pClassInfo, startAddress, ELEMENT_TYPE_VALUETYPE, bytesRead));
         else
         {
@@ -1081,9 +1300,18 @@ HRESULT CValueTracer::TraceGenericTypeInternal(
     //it is hit
     case ClassInfoType::Array:
     {
+        CArrayInfo* arr = (CArrayInfo*)info;
+
         if (objectId == NULL)
         {
-            WriteType(ELEMENT_TYPE_SZARRAY);
+            if (arr->m_Rank == 1)
+                WriteType(ELEMENT_TYPE_SZARRAY);
+            else
+            {
+                WriteType(ELEMENT_TYPE_ARRAY);
+                WriteValue(&arr->m_Rank, 4);
+            }
+
             WriteType(ELEMENT_TYPE_END);
 
             bytesRead += sizeof(void*);
@@ -1091,7 +1319,7 @@ HRESULT CValueTracer::TraceGenericTypeInternal(
             return S_OK;
         }
 
-        IfFailGo(TraceSZArrayInternal((CArrayInfo*)info, objectId, bytesRead)); //bytesRead will be increased
+        IfFailGo(TraceArrayInternal(arr, objectId, bytesRead)); //bytesRead will be increased
 
         break;
     }
@@ -1164,12 +1392,15 @@ ErrExit:
     return hr;
 }
 
-HRESULT CValueTracer::GetClassInfo(ClassID classId, IClassInfo** ppClassInfo)
+HRESULT CValueTracer::GetClassInfoFromClassId(ClassID classId, IClassInfo** ppClassInfo, bool lock)
 {
     HRESULT hr = S_OK;
     IClassInfo* pClassInfo = nullptr;
 
-    CLock classLock(&g_pProfiler->m_ClassMutex, true);
+    CLock* classLock = nullptr;
+
+    if (lock)
+        classLock = new CLock(&g_pProfiler->m_ClassMutex, true);
 
     auto match = g_pProfiler->m_ClassInfoMap.find(classId);
 
@@ -1180,20 +1411,15 @@ HRESULT CValueTracer::GetClassInfo(ClassID classId, IClassInfo** ppClassInfo)
         IfFailGo(CCorProfilerCallback::g_pProfiler->GetClassInfo(classId, &pClassInfo));
 
         //We already hold the class lock (see above)
-        CCorProfilerCallback::g_pProfiler->m_ClassInfoMap[classId] = pClassInfo;
-
-        if (pClassInfo->m_InfoType == ClassInfoType::StandardType)
-        {
-            CStandardTypeInfo* std = (CStandardTypeInfo*)pClassInfo;
-            std->AddRef();
-
-            CCorProfilerCallback::g_pProfiler->m_StandardTypeMap[std->m_ElementType] = std;
-        }
+        g_pProfiler->AddClassNoLock(pClassInfo);
     }
     else
         pClassInfo = match->second;
 
 ErrExit:
+    if (classLock)
+        delete classLock;
+
     if (SUCCEEDED(hr))
         *ppClassInfo = pClassInfo;
 
@@ -1237,12 +1463,4 @@ void CValueTracer::GetGenericInfo(
         *genericIndex = ((CSigMethodGenericArgType*)pType)->m_Index;
         break;
     }
-}
-
-BOOL CValueTracer::IsPrimitiveType(CorElementType type)
-{
-    if (type <= ELEMENT_TYPE_R8)
-        return TRUE;
-
-    return type == ELEMENT_TYPE_I || type == ELEMENT_TYPE_U;
 }

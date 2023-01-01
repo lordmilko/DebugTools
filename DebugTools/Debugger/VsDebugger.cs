@@ -5,6 +5,7 @@ using System.Runtime.InteropServices;
 using System.Runtime.InteropServices.ComTypes;
 using System.Threading;
 using System.Threading.Tasks;
+using ClrDebug;
 using DebugTools.PowerShell;
 
 namespace DebugTools
@@ -13,28 +14,41 @@ namespace DebugTools
     {
         public static void Attach(Process target)
         {
-            using (new MessageFilter())
+            while(true)
             {
-                if (Debugger.IsAttached)
+                try
                 {
-                    var debuggerDte = GetDTEDebuggingMe();
-
-                    foreach (var process in debuggerDte?.Debugger.LocalProcesses.OfType<EnvDTE80.Process2>())
+                    using (new MessageFilter())
                     {
-                        if (CheckProcessId(target, process))
+                        if (Debugger.IsAttached)
                         {
-                            try
-                            {
-                                process.Attach2("Native");
-                            }
-                            catch (Exception ex)
-                            {
-                                throw new Exception("Failed to attach debugger; make sure mixed mode debugging is disabled", ex);
-                            }
+                            var debuggerDte = GetDTEDebuggingMe();
 
-                            break;
+                            foreach (var process in debuggerDte?.Debugger.LocalProcesses.OfType<EnvDTE80.Process2>())
+                            {
+                                if (CheckProcessId(target, process))
+                                {
+                                    try
+                                    {
+                                        process.Attach2("Native");
+                                    }
+                                    catch (Exception ex)
+                                    {
+                                        throw new Exception("Failed to attach debugger; make sure mixed mode debugging is disabled", ex);
+                                    }
+
+                                    break;
+                                }
+                            }
                         }
                     }
+
+                    break;
+                }
+                catch (COMException ex)
+                {
+                    if (((HRESULT)ex.HResult) != HRESULT.RPC_E_SERVERCALL_RETRYLATER)
+                        throw;
                 }
             }
         }

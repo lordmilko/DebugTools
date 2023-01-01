@@ -125,7 +125,7 @@ $split = $_ -split ' '
             UIntPtr
         </DisplayString>
         <DisplayString Condition="m_Type == 0x1C">
-            UIntPtr
+            object
         </DisplayString>
         <Expand>
             <Item Name="m_Type">m_Type,en</Item>
@@ -287,7 +287,8 @@ $split = $_ -split ' '
         </Expand>
     </Type>
     <Type Name="CArrayInfo">
-        <DisplayString>{*m_pElementType}[]</DisplayString>
+        <DisplayString Condition="m_Rank == 1">{*m_pElementType}[]</DisplayString>
+        <DisplayString Condition="m_Rank > 1">{*m_pElementType}[&lt;{m_Rank,d}&gt;]</DisplayString>
 
         <Expand>
             <Item Name="m_RefCount">m_RefCount</Item>
@@ -305,12 +306,11 @@ $split = $_ -split ' '
             <Item Name="m_ModuleID">m_ModuleID</Item>
             <Item Name="m_TypeDef">m_TypeDef</Item>
             <Item Name="m_ClassID">m_ClassID</Item>
+            <Item Name="m_szName">m_szName</Item>
+            <Item Name="m_TypeDef">m_TypeDef</Item>
             <Synthetic Name="m_Fields">
                 <DisplayString>m_NumFields = {m_NumFields}</DisplayString>
                 <Expand>
-                    <Item Name="m_szName">m_szName</Item>
-                    <Item Name="m_TypeDef">m_TypeDef</Item>
-
                     <IndexListItems>
                         <Size>m_NumFields</Size>
                         <ValueNode>*m_Fields[$i]</ValueNode>
@@ -335,6 +335,15 @@ $split = $_ -split ' '
                     </IndexListItems>
                 </Expand>
             </Synthetic>
+        </Expand>
+    </Type>
+    <Type Name="CUnknownArray&lt;*&gt;">
+        <Expand>
+            <Item Name="[size]">m_Length</Item>
+            <ArrayItems>
+                <Size>m_Length</Size>
+                <ValuePointer>m_Buffer</ValuePointer>
+            </ArrayItems>
         </Expand>
     </Type>
 

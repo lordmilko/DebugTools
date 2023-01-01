@@ -8,6 +8,7 @@
 #include <bcrypt.h>
 #include <unordered_map>
 #include <shared_mutex>
+#include "CUnknownArray.h"
 
 #undef GetClassInfo
 
@@ -56,6 +57,9 @@ public:
         for (auto const& kv : m_StandardTypeMap)
             kv.second->Release();
 
+        for (auto const& kv : m_ArrayTypeMap)
+            delete kv.second;
+
         if (m_pInfo)
             m_pInfo->Release();
 
@@ -76,6 +80,9 @@ public:
     HRESULT InstallHooks();
     HRESULT InstallHooksWithInfo();
     HRESULT BindLifetimeToParentProcess();
+
+    void AddClassNoLock(IClassInfo* pClassInfo);
+
     HRESULT GetClassInfo(
         _In_ ClassID classId,
         _Out_ IClassInfo** ppClassInfo);
@@ -206,6 +213,7 @@ public:
 
     std::unordered_map<ClassID, IClassInfo*> m_ClassInfoMap;
     std::unordered_map<CorElementType, CStandardTypeInfo*> m_StandardTypeMap;
+    std::unordered_map<ClassID, CUnknownArray<CArrayInfo>*> m_ArrayTypeMap;
     std::shared_mutex m_ClassMutex;
 
     std::unordered_map<FunctionID, CSigMethodDef*> m_MethodInfoMap;

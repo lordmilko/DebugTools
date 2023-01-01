@@ -199,7 +199,10 @@ HRESULT CTypeRefResolver::GetModuleIDAndTypeDefFromAssembly(
         {
             //Maybe it's actually a forwarded type
             if (GetModuleIDAndTypeDefFromForwardedType(pMDI, pAssemblyInfo->m_Modules[i], moduleId, typeDef) == S_OK)
+            {
+                hr = S_OK;
                 break;
+            }
         }
         else if (hr == S_OK)
         {

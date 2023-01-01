@@ -29,6 +29,7 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)CSigType.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)CTypeRefResolver.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)CUnknown.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)CUnknownArray.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)CValueTracer.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)DebugToolsProfiler.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)Hooks\EnterHook.h" />

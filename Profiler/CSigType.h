@@ -37,11 +37,30 @@ public:
     BOOL m_IsByRef;
 };
 
-class CSigArrayType final : public CSigType
+class ISigArrayType : public CSigType
 {
 public:
-    CSigArrayType(CorElementType type, BOOL isByRef) : CSigType(type, isByRef),
-        m_pElementType(nullptr),
+    ISigArrayType(CorElementType type, BOOL isByRef) :
+        CSigType(type, isByRef),
+        m_pElementType(nullptr)
+    {
+    }
+
+    virtual ~ISigArrayType()
+    {
+        if (m_pElementType)
+            m_pElementType->Release();
+    }
+
+    virtual ULONG GetRank() = 0;
+
+    CSigType* m_pElementType;
+};
+
+class CSigArrayType final : public ISigArrayType
+{
+public:
+    CSigArrayType(CorElementType type, BOOL isByRef) : ISigArrayType(type, isByRef),
         m_Rank(0),
         m_NumSizes(0),
         m_Sizes(nullptr),
@@ -52,9 +71,6 @@ public:
 
     ~CSigArrayType()
     {
-        if (m_pElementType)
-            m_pElementType->Release();
-
         if (m_Sizes)
             delete[] m_Sizes;
 
@@ -64,7 +80,11 @@ public:
 
     HRESULT Initialize(CSigReader& reader) override;
 
-    CSigType* m_pElementType;
+    ULONG GetRank() override
+    {
+        return m_Rank;
+    }
+
     ULONG m_Rank;
 
     ULONG m_NumSizes;
@@ -233,21 +253,17 @@ public:
     CSigType* m_pPtrType;
 };
 
-class CSigSZArrayType final : public CSigType
+class CSigSZArrayType final : public ISigArrayType
 {
 public:
-    CSigSZArrayType(CorElementType type, BOOL isByRef) : CSigType(type, isByRef),
-        m_pElementType(nullptr)
+    CSigSZArrayType(CorElementType type, BOOL isByRef) : ISigArrayType(type, isByRef)
     {
-    }
-
-    ~CSigSZArrayType()
-    {
-        if (m_pElementType)
-            m_pElementType->Release();
     }
 
     HRESULT Initialize(CSigReader& reader) override;
 
-    CSigType* m_pElementType;
+    ULONG GetRank() override
+    {
+        return 1;
+    }
 };

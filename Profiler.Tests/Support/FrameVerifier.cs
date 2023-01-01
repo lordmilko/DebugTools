@@ -105,6 +105,9 @@ namespace Profiler.Tests
         public void VerifyArray(params Action<ValueVerifier>[] actions) =>
             GetParameter().VerifyValue().VerifyArray(actions);
 
+        public void VerifyMultiArray(params Action<ValueVerifier>[] actions) =>
+            GetParameter().VerifyValue().VerifyMultiArray(actions);
+
         public List<object> GetParameters()
         {
             var detailed = (MethodFrameDetailed)frame;

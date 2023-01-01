@@ -256,15 +256,7 @@ HRESULT CCorProfilerCallback::ClassLoadFinished(ClassID classId, HRESULT hrStatu
     {
         CLock classLock(&m_ClassMutex, true);
 
-        m_ClassInfoMap[classId] = pClassInfo;
-
-        if (pClassInfo->m_InfoType == ClassInfoType::StandardType)
-        {
-            CStandardTypeInfo* std = (CStandardTypeInfo*)pClassInfo;
-            std->AddRef();
-
-            CCorProfilerCallback::g_pProfiler->m_StandardTypeMap[std->m_ElementType] = std;
-        }
+        AddClassNoLock(pClassInfo);
     }
 
 ErrExit:
@@ -658,6 +650,40 @@ HRESULT CCorProfilerCallback::BindLifetimeToParentProcess()
 
 Exit:
     return S_OK;
+}
+
+void CCorProfilerCallback::AddClassNoLock(IClassInfo* pClassInfo)
+{
+    m_ClassInfoMap[pClassInfo->m_ClassID] = pClassInfo;
+
+    if (pClassInfo->m_InfoType == ClassInfoType::StandardType)
+    {
+        CStandardTypeInfo* std = (CStandardTypeInfo*)pClassInfo;
+        std->AddRef();
+
+        m_StandardTypeMap[std->m_ElementType] = std;
+    }
+    else if (pClassInfo->m_InfoType == ClassInfoType::Array)
+    {
+        CArrayInfo* arr = (CArrayInfo*)pClassInfo;
+
+        ClassID elmClassID = arr->m_pElementType->m_ClassID;
+
+        auto match = m_ArrayTypeMap.find(elmClassID);
+
+        if (match == m_ArrayTypeMap.end())
+        {
+            CUnknownArray<CArrayInfo>* elmArray = new CUnknownArray<CArrayInfo>();
+
+            elmArray->Add(arr);
+
+            m_ArrayTypeMap[elmClassID] = elmArray;
+        }
+        else
+        {
+            match->second->Add(arr);
+        }
+    }
 }
 
 HRESULT CCorProfilerCallback::GetClassInfo(

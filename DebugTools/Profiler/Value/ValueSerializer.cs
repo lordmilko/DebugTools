@@ -89,6 +89,9 @@ namespace DebugTools.Profiler
                 case CorElementType.SZArray:
                     return new SZArrayValue(reader, this);
 
+                case CorElementType.Array:
+                    return new ArrayValue(reader, this);
+
                 case CorElementType.ValueType:
                     return new ValueType(reader, this);
 
