@@ -1049,7 +1049,7 @@ HRESULT CValueTracer::TraceValueType(
 
     IfFailGo(GetTypeDefAndModule(pContext->ValueType.ModuleOfTypeToken, pContext->ValueType.TypeToken, &moduleId, &typeDef));
 
-    IfFailGo(GetModuleInfo(moduleId, &pModuleInfo));
+    IfFailGo(g_pProfiler->GetModuleInfo(moduleId, &pModuleInfo));
 
     //If the type is generic, it should have been handled in another call path (potentially resulting in TraceClassOrStruct() being called directly). If a generic struct goes through this code path GetClassFromToken() will explode
     IfFailGo(GetClassInfoFromTypeDef(pModuleInfo, typeDef, &pClassInfo));
@@ -1089,24 +1089,6 @@ HRESULT CValueTracer::GetTypeDefAndModule(
         hr = E_NOTIMPL;
         goto ErrExit;
     }
-
-ErrExit:
-    return hr;
-}
-
-HRESULT CValueTracer::GetModuleInfo(ModuleID moduleId, CModuleInfo** ppModuleInfo)
-{
-    HRESULT hr = S_OK;
-
-    auto match = g_pProfiler->m_ModuleInfoMap.find(moduleId);
-
-    if (match == g_pProfiler->m_ModuleInfoMap.end())
-    {
-        hr = PROFILER_E_MISSING_MODULE;
-        goto ErrExit;
-    }
-
-    *ppModuleInfo = match->second;
 
 ErrExit:
     return hr;

@@ -138,6 +138,10 @@ namespace DebugTools.TestHost
                     instance.InterfaceArg(new ImplInterface());
                     break;
 
+                case ValueTestType.NestedNestedExternalType:
+                    instance.NestedNestedExternalType(new Dictionary<string, int>{{"a", 1}}.Values.GetEnumerator());
+                    break;
+
                 case ValueTestType.GenericWithObjectTypeArg:
                     instance.GenericWithObjectTypeArg(new GenericValueTypeType<object>{field1 = new object()});
                     break;

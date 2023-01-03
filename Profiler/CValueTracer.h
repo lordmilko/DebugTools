@@ -239,7 +239,6 @@ private:
 
     HRESULT TraceClassOrStruct(CClassInfo* pClassInfo, ObjectID objectId, CorElementType elementType, ULONG& bytesRead);
 
-    HRESULT GetModuleInfo(ModuleID moduleId, CModuleInfo** ppModuleInfo);
     HRESULT GetClassInfoFromTypeDef(CModuleInfo* pModuleInfo, mdTypeDef typeDef, IClassInfo** ppClassInfo);
 
     HRESULT GetClassInfoFromClassId(ClassID classId, IClassInfo** ppClassInfo, bool lock = true);

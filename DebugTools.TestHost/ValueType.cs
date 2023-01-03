@@ -112,6 +112,10 @@ namespace DebugTools.TestHost
         {
         }
 
+        public void NestedNestedExternalType(Dictionary<string, int>.ValueCollection.Enumerator a)
+        {
+        }
+
         public void GenericWithObjectTypeArg(GenericValueTypeType<object> a)
         {
         }

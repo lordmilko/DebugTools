@@ -38,6 +38,7 @@ namespace Profiler.Tests
         GenericClass_ToObjectArg,
         GenericValueType_ToObjectArg,
         InterfaceArg,
+        NestedNestedExternalType,
         GenericWithObjectTypeArg,
 
         #region MethodVar

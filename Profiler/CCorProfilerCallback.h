@@ -87,6 +87,10 @@ public:
         _In_ ClassID classId,
         _Out_ IClassInfo** ppClassInfo);
 
+    HRESULT GetModuleInfo(
+        _In_ ModuleID moduleId,
+        _Out_ CModuleInfo** ppModuleInfo);
+
     HRESULT GetAssemblyName(
         _In_ ULONG chName,
         _In_ ASSEMBLYMETADATA& asmMetaData,

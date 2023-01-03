@@ -94,6 +94,10 @@ namespace Profiler.Tests
             Test(ValueTestType.InterfaceArg, v => v.HasClassType("DebugTools.TestHost.ImplInterface"));
 
         [TestMethod]
+        public void Value_NestedNestedExternalType() =>
+            Test(ValueTestType.NestedNestedExternalType, v => v.HasValueType("Enumerator"));
+
+        [TestMethod]
         public void Value_GenericWithObjectTypeArg() =>
             Test(ValueTestType.GenericWithObjectTypeArg, v => v.HasValueType("DebugTools.TestHost.GenericValueTypeType`1").HasFieldValue(f => f.HasClassType("System.Object")), ProfilerEnvFlags.WaitForDebugger);
 

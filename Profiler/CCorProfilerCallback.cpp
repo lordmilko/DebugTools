@@ -530,7 +530,9 @@ UINT_PTR __stdcall CCorProfilerCallback::RecordFunction(FunctionID funcId, void*
 
 ErrExit:
     if (FAILED(hr) && !*pbHookFunction)
+    {
         LogShouldHook(L"Not tracing %llX due to HRESULT 0x%X\n", funcId, hr);
+    }
 
     if (typeArgs && !methodSaved)
         free(typeArgs);
@@ -866,6 +868,24 @@ ErrExit:
     if (pMDI)
         pMDI->Release();
 
+    return hr;
+}
+
+HRESULT CCorProfilerCallback::GetModuleInfo(_In_ ModuleID moduleId, _Out_ CModuleInfo** ppModuleInfo)
+{
+    HRESULT hr = S_OK;
+
+    auto match = g_pProfiler->m_ModuleInfoMap.find(moduleId);
+
+    if (match == g_pProfiler->m_ModuleInfoMap.end())
+    {
+        hr = PROFILER_E_MISSING_MODULE;
+        goto ErrExit;
+    }
+
+    *ppModuleInfo = match->second;
+
+ErrExit:
     return hr;
 }
 

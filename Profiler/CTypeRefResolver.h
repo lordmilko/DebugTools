@@ -19,17 +19,25 @@ public:
 
     HRESULT ResolveAssemblyRef(
         _In_ mdAssemblyRef assemblyRef,
+        _In_ LPWSTR szTypeName,
+        _Out_ ModuleID* moduleId,
+        _Out_ mdTypeDef* typeDef);
+
+    HRESULT ResolveNestedType(
+        _In_ mdTypeRef parentTypeRef,
+        _In_ LPWSTR szNestedType,
         _Out_ ModuleID* moduleId,
         _Out_ mdTypeDef* typeDef);
 
     HRESULT GetModuleIDAndTypeDefFromAssembly(
         _In_ CAssemblyInfo* pAssemblyInfo,
+        _In_ LPWSTR szTypeName,
         _Out_ ModuleID* moduleId,
         _Out_ mdTypeDef* typeDef);
 
     HRESULT GetModuleIDAndTypeDefFromForwardedType(
-        _In_ IMetaDataImport* pMDI,
         _In_ CModuleInfo* pModuleInfo,
+        _In_ LPWSTR szTypeName,
         _Out_ ModuleID* moduleId,
         _Out_ mdTypeDef* typeDef);
 
