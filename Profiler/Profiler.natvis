@@ -350,6 +350,24 @@ $split = $_ -split ' '
     <HResult Name="PROFILER_E_BUFFERFULL">
         <HRValue>0x80041001</HRValue>
     </HResult>
+    <HResult Name="PROFILER_E_GENERICCLASSID">
+        <HRValue>0x80041002</HRValue>
+    </HResult>
+    <HResult Name="PROFILER_E_UNKNOWN_GENERIC_ARRAY">
+        <HRValue>0x80041003</HRValue>
+    </HResult>
+    <HResult Name="PROFILER_E_NO_CLASSID">
+        <HRValue>0x80041004</HRValue>
+    </HResult>
+    <HResult Name="PROFILER_E_UNKNOWN_RESOLUTION_SCOPE">
+        <HRValue>0x80041005</HRValue>
+    </HResult>
+    <HResult Name="PROFILER_E_MISSING_MODULE">
+        <HRValue>0x80041006</HRValue>
+    </HResult>
+    <HResult Name="PROFILER_E_UNKNOWN_FRAME">
+        <HRValue>0x80041007</HRValue>
+    </HResult>
 
     <HResult Name="CEE_E_ENTRYPOINT">
         <HRValue>0x80131000</HRValue>

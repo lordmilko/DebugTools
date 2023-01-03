@@ -15,7 +15,7 @@ namespace Profiler.Tests
 
                 session.TraceEventSession.Source.Completed += () => wait.Set();
 
-                session.Start(CancellationToken.None, $"{ProfilerInfo.TestHost} {type} {subType}", flags, true);
+                session.Start(CancellationToken.None, $"{ProfilerInfo.TestHost} {type} {subType}", flags, true, -1);
 
                 session.Process.WaitForExit();
 

@@ -27,6 +27,12 @@ namespace DebugTools.PowerShell.Cmdlets
         [Parameter(Mandatory = false)]
         public string[] Highlight { get; set; }
 
+        [Parameter(Mandatory = false)]
+        public string StringValue { get; set; }
+
+        [Parameter(Mandatory = false)]
+        public SwitchParameter ExcludeNamespace { get; set; }
+
         private WildcardPattern[] highlight;
         private List<IFrame> highlightFrames = new List<IFrame>();
 
@@ -34,10 +40,14 @@ namespace DebugTools.PowerShell.Cmdlets
 
         private FindDbgProfilerStackFrame findDbgProfilerStackFrame;
 
+        private MethodFrameFormatter methodFrameFormatter;
+
         protected override void BeginProcessing()
         {
             if (Highlight != null)
                 highlight = Highlight.Select(h => new WildcardPattern(h, WildcardOptions.IgnoreCase)).ToArray();
+
+            methodFrameFormatter = new MethodFrameFormatter(ExcludeNamespace);
 
             if (Include != null)
             {
@@ -45,7 +55,8 @@ namespace DebugTools.PowerShell.Cmdlets
                 {
                     Include = Include,
                     Exclude = Exclude,
-                    Unique = Unique
+                    Unique = Unique,
+                    StringValue = StringValue
                 };
 
                 findDbgProfilerStackFrame.Begin();
@@ -140,6 +151,18 @@ namespace DebugTools.PowerShell.Cmdlets
                         newItem = newRoot;
                         newParent = newRoot;
                     }
+                    else if (item is MethodFrameDetailed d)
+                    {
+                        newItem = new MethodFrameDetailed
+                        {
+                            Parent = newParent,
+                            MethodInfo = d.MethodInfo,
+                            EnterValue = d.EnterValue,
+                            ExitValue = d.ExitValue
+                        };
+                        newParent.Children.Add((MethodFrame)newItem);
+                        newParent = newItem;
+                    }
                     else if (item is MethodFrame m)
                     {
                         newItem = new MethodFrame
@@ -183,7 +206,7 @@ namespace DebugTools.PowerShell.Cmdlets
                 }
             }
 
-            var str = item.ToString();
+            var str = methodFrameFormatter.ToString(item);
 
             if (ShouldHighlight(str) || highlightFrames.Contains(item))
                 WriteColor(str, ConsoleColor.Green);

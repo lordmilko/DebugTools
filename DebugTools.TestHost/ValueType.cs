@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 
 namespace DebugTools.TestHost
 {
@@ -111,11 +112,19 @@ namespace DebugTools.TestHost
         {
         }
 
+        public void GenericWithObjectTypeArg(GenericValueTypeType<object> a)
+        {
+        }
+
         public void GenericClassArg(GenericClassType<Class1WithField> a)
         {
         }
 
         public void GenericValueTypeArg(GenericValueTypeType<Struct1WithField> a)
+        {
+        }
+
+        public void GenericTwoTypeArgs(Dictionary<string, int> a)
         {
         }
 
@@ -164,6 +173,34 @@ namespace DebugTools.TestHost
         }
 
         public void Generic_MethodVar_ElementTypeGenericValueTypeArrayArg<TMethod>(GenericValueTypeType<TMethod> a)
+        {
+        }
+
+        public void Generic_MethodVar_ElementTypeGenericValueType_SimpleArg<TMethod>(GenericValueTypeType<TMethod> a)
+        {
+        }
+
+        public void Generic_MethodVar_ElementTypeNullablePrimitive(int? a)
+        {
+        }
+
+        public void Generic_MethodVar_ElementTypeNullableValueType(DateTime? a)
+        {
+        }
+
+        public void Generic_MethodVar_ElementTypeGenericValueType_SZArrayValueArg<TMethod>(GenericValueTypeType<TMethod>[] a)
+        {
+        }
+
+        public void Generic_MethodVar_ElementTypeGenericValueType_SZArrayArg<TMethod>(GenericValueTypeType<TMethod[]> a)
+        {
+        }
+
+        public void Generic_MethodVar_ElementTypeGenericValueType_MultiArrayValueArg<TMethod>(GenericValueTypeType<TMethod>[,] a)
+        {
+        }
+
+        public void Generic_MethodVar_ElementTypeGenericValueType_MultiArrayArg<TMethod>(GenericValueTypeType<TMethod[,]> a)
         {
         }
 

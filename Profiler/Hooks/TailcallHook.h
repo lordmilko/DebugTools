@@ -7,7 +7,14 @@
 // ReSharper disable once CppNonInlineFunctionDefinitionInHeaderFile
 extern "C" void STDMETHODCALLTYPE TailcallStub(FunctionIDOrClientID functionId)
 {
-    EventWriteTailcallEvent(functionId.functionID);
+    HRESULT hr = S_OK;
+
+    LEAVE_FUNCTION(functionId);
+
+    ValidateETW(EventWriteTailcallEvent(functionId.functionID, g_Sequence, hr));
+
+ErrExit:
+    return;
 }
 
 #ifdef _X86_

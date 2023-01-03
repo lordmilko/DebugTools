@@ -7,7 +7,14 @@
 // ReSharper disable once CppNonInlineFunctionDefinitionInHeaderFile
 extern "C" void STDMETHODCALLTYPE EnterStub(FunctionIDOrClientID functionId)
 {
-    EventWriteCallEnterEvent(functionId.functionID);
+    HRESULT hr = S_OK;
+
+    ENTER_FUNCTION(functionId);
+
+    ValidateETW(EventWriteCallEnterEvent(functionId.functionID, g_Sequence, hr));
+
+ErrExit:
+    return;
 }
 
 #ifdef _X86_

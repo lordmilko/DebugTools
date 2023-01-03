@@ -16,10 +16,7 @@ namespace DebugTools.Profiler
 
         public override string ToString()
         {
-            if (ThreadName == null)
-                return ThreadId.ToString();
-
-            return $"{ThreadName} {ThreadId}";
+            return MethodFrameFormatter.Default.ToString(this);
         }
     }
 }

@@ -104,6 +104,22 @@ namespace Profiler.Tests
                  .HasFieldValue(f => f.HasClassType("DebugTools.TestHost.Class1WithField").HasFieldValue(1)));
 
         [TestMethod]
+        public void Value_GenericTwoTypeArgs() =>
+            Test(ValueTestType.GenericTwoTypeArgs, v =>
+            {
+                var dict = (ClassValue) v.GetParameter();
+                var entries = (SZArrayValue) dict.FieldValues[1];
+
+                var first = (ValueType) entries.Value[0];
+                first.VerifyValue().HasFieldValue(2, "first");
+                first.VerifyValue().HasFieldValue(3, 1);
+
+                var second = (ValueType)entries.Value[1];
+                second.VerifyValue().HasFieldValue(2, "second");
+                second.VerifyValue().HasFieldValue(3, 2);
+            });
+
+        [TestMethod]
         public void Value_GenericValueTypeArg() =>
             Test(ValueTestType.GenericValueTypeArg, v =>
                 v.HasValueType("DebugTools.TestHost.GenericValueTypeType`1")

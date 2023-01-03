@@ -35,7 +35,10 @@ namespace DebugTools.Profiler
                 FieldValues = new List<object>();
 
                 for (var i = 0; i < numFields; i++)
-                    FieldValues.Add(serializer.ReadValue());
+                {
+                    var value = serializer.ReadValue();
+
+                    FieldValues.Add(value);
             }
         }
 

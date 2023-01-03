@@ -37,6 +37,24 @@ class __declspec(uuid("9FA9EA80-BE5D-419E-A667-15A672CBD280")) Profiler;
 /// some other profiler is requested, or another HRESULT indicating failure.</returns>
 extern "C" HRESULT WINAPI DllGetClassObject(REFCLSID rclsid, REFIID riid, void** ppv)
 {
+    WCHAR targetProcess[MAX_PATH];
+
+    //If we want to limit profiling to a particular child process, DEBUGTOOLS_TARGET_PROCESS can be specified,
+    //indicating a substring of the full EXE path that should be included (e.g. "powershell")
+    DWORD actualSize = GetEnvironmentVariable(L"DEBUGTOOLS_TARGET_PROCESS", targetProcess, MAX_PATH);
+
+    if (actualSize > 0 && actualSize < MAX_PATH)
+    {
+        WCHAR fileName[MAX_PATH];
+        ZeroMemory(fileName, MAX_PATH);
+
+        GetModuleFileName(NULL, fileName, MAX_PATH);
+
+        //If the target process filename is not in the active proces filename, disable profiling immediately
+        if (wcsstr(targetProcess, fileName) == nullptr)
+            return CLASS_E_CLASSNOTAVAILABLE;
+    }
+
     if (IsEqualCLSID(rclsid, __uuidof(Profiler)))
     {
         IClassFactory* pClassFactory = new CClassFactory();

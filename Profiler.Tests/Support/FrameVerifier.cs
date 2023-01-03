@@ -112,11 +112,9 @@ namespace Profiler.Tests
         {
             var detailed = (MethodFrameDetailed)frame;
 
-            var serializer = new ValueSerializer(detailed.Value);
+            var result = detailed.GetEnterParameters();
 
-            var parameters = serializer.Parameters;
-
-            return parameters;
+            return result;
         }
 
         public object GetParameter()

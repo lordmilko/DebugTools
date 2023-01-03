@@ -20,6 +20,9 @@ namespace DebugTools.PowerShell.Cmdlets
         [Parameter(Mandatory = false)]
         public SwitchParameter TraceStart { get; set; }
 
+        [Parameter(Mandatory = false)]
+        public int TraceDepth { get; set; }
+
         protected override void ProcessRecord()
         {
             var session = new ProfilerSession();
@@ -33,7 +36,10 @@ namespace DebugTools.PowerShell.Cmdlets
             if (Detailed)
                 flags.Add(ProfilerEnvFlags.Detailed);
 
-            session.Start(CancellationToken, ProcessName, flags.ToArray(), TraceStart);
+            if (MyInvocation.BoundParameters.ContainsKey(nameof(TraceDepth)))
+                flags.Add(ProfilerEnvFlags.TraceDepth);
+
+            session.Start(CancellationToken, ProcessName, flags.ToArray(), TraceStart, TraceDepth);
 
             if (TraceStart)
             {

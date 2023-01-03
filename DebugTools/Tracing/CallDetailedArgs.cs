@@ -13,11 +13,13 @@ namespace DebugTools.Tracing
     {
         public long FunctionID => GetInt64At(0);
 
-        public HRESULT HRESULT => (HRESULT)GetInt32At(8);
+        public long Sequence => GetInt64At(8);
 
-        public int ValueLength => GetInt32At(12);
+        public HRESULT HRESULT => (HRESULT)GetInt32At(16);
 
-        public byte[] Value => GetByteArrayAt(16, ValueLength);
+        public int ValueLength => GetInt32At(20);
+
+        public byte[] Value => GetByteArrayAt(24, ValueLength);
 
         private Action<CallDetailedArgs> action;
 
@@ -38,7 +40,7 @@ namespace DebugTools.Tracing
             get
             {
                 if (payloadNames == null)
-                    payloadNames = new[] { nameof(FunctionID), nameof(HRESULT), nameof(ValueLength), nameof(Value) };
+                    payloadNames = new[] { nameof(FunctionID), nameof(Sequence), nameof(HRESULT), nameof(ValueLength), nameof(Value) };
 
                 return payloadNames;
             }
@@ -52,12 +54,15 @@ namespace DebugTools.Tracing
                     return FunctionID;
 
                 case 1:
-                    return HRESULT;
+                    return Sequence;
 
                 case 2:
-                    return ValueLength;
+                    return HRESULT;
 
                 case 3:
+                    return ValueLength;
+
+                case 4:
                     return Value;
 
                 default:
@@ -70,6 +75,7 @@ namespace DebugTools.Tracing
         {
             Prefix(sb);
             XmlAttrib(sb, nameof(FunctionID), FunctionID);
+            XmlAttrib(sb, nameof(Sequence), Sequence);
             XmlAttrib(sb, nameof(HRESULT), HRESULT);
             XmlAttrib(sb, nameof(ValueLength), ValueLength);
             XmlAttrib(sb, nameof(Value), Value);

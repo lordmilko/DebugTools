@@ -682,14 +682,14 @@ EXTERN_C __declspec(selectany) const GUID DebugToolsProfiler = {0xc6f30827, 0xdd
 //
 EXTERN_C __declspec(selectany) const EVENT_DESCRIPTOR CallEnterEvent = {0x1, 0x0, 0x0, 0x5, 0x0, 0x0, 0x8000000000};
 #define CallEnterEvent_value 0x1
-EXTERN_C __declspec(selectany) const EVENT_DESCRIPTOR CallExitEvent = {0x2, 0x0, 0x0, 0x5, 0x0, 0x0, 0x8000000000};
-#define CallExitEvent_value 0x2
+EXTERN_C __declspec(selectany) const EVENT_DESCRIPTOR CallLeaveEvent = {0x2, 0x0, 0x0, 0x5, 0x0, 0x0, 0x8000000000};
+#define CallLeaveEvent_value 0x2
 EXTERN_C __declspec(selectany) const EVENT_DESCRIPTOR TailcallEvent = {0x3, 0x0, 0x0, 0x5, 0x0, 0x0, 0x8000000000};
 #define TailcallEvent_value 0x3
 EXTERN_C __declspec(selectany) const EVENT_DESCRIPTOR CallEnterDetailedEvent = {0x4, 0x0, 0x0, 0x5, 0x0, 0x0, 0x8000000000};
 #define CallEnterDetailedEvent_value 0x4
-EXTERN_C __declspec(selectany) const EVENT_DESCRIPTOR CallExitDetailedEvent = {0x5, 0x0, 0x0, 0x5, 0x0, 0x0, 0x8000000000};
-#define CallExitDetailedEvent_value 0x5
+EXTERN_C __declspec(selectany) const EVENT_DESCRIPTOR CallLeaveDetailedEvent = {0x5, 0x0, 0x0, 0x5, 0x0, 0x0, 0x8000000000};
+#define CallLeaveDetailedEvent_value 0x5
 EXTERN_C __declspec(selectany) const EVENT_DESCRIPTOR TailcallDetailedEvent = {0x6, 0x0, 0x0, 0x5, 0x0, 0x0, 0x8000000000};
 #define TailcallDetailedEvent_value 0x6
 EXTERN_C __declspec(selectany) const EVENT_DESCRIPTOR MethodInfoEvent = {0x7, 0x0, 0x0, 0x5, 0x0, 0x0, 0x1};
@@ -849,42 +849,42 @@ _mcgen_CheckContextType_DebugToolsProfiler(_In_ McGenContext_DebugToolsProfiler*
 //
 // Event write macros for event "CallEnterEvent"
 //
-#define EventWriteCallEnterEvent(FunctionID) \
+#define EventWriteCallEnterEvent(FunctionID, Sequence, HRESULT) \
         MCGEN_EVENT_ENABLED(CallEnterEvent) \
-        ? _mcgen_TEMPLATE_FOR_CallEnterEvent(&DebugToolsProfiler_Context, &CallEnterEvent, FunctionID) : 0
-#define EventWriteCallEnterEvent_AssumeEnabled(FunctionID) \
-        _mcgen_TEMPLATE_FOR_CallEnterEvent(&DebugToolsProfiler_Context, &CallEnterEvent, FunctionID)
-#define EventWriteCallEnterEvent_ForContext(pContext, FunctionID) \
+        ? _mcgen_TEMPLATE_FOR_CallEnterEvent(&DebugToolsProfiler_Context, &CallEnterEvent, FunctionID, Sequence, HRESULT) : 0
+#define EventWriteCallEnterEvent_AssumeEnabled(FunctionID, Sequence, HRESULT) \
+        _mcgen_TEMPLATE_FOR_CallEnterEvent(&DebugToolsProfiler_Context, &CallEnterEvent, FunctionID, Sequence, HRESULT)
+#define EventWriteCallEnterEvent_ForContext(pContext, FunctionID, Sequence, HRESULT) \
         MCGEN_EVENT_ENABLED_FORCONTEXT(pContext, CallEnterEvent) \
-        ? _mcgen_TEMPLATE_FOR_CallEnterEvent(&(pContext)->Context, &CallEnterEvent, FunctionID) : 0
-#define EventWriteCallEnterEvent_ForContextAssumeEnabled(pContext, FunctionID) \
-        _mcgen_TEMPLATE_FOR_CallEnterEvent(&_mcgen_CheckContextType_DebugToolsProfiler(pContext)->Context, &CallEnterEvent, FunctionID)
+        ? _mcgen_TEMPLATE_FOR_CallEnterEvent(&(pContext)->Context, &CallEnterEvent, FunctionID, Sequence, HRESULT) : 0
+#define EventWriteCallEnterEvent_ForContextAssumeEnabled(pContext, FunctionID, Sequence, HRESULT) \
+        _mcgen_TEMPLATE_FOR_CallEnterEvent(&_mcgen_CheckContextType_DebugToolsProfiler(pContext)->Context, &CallEnterEvent, FunctionID, Sequence, HRESULT)
 
 // This macro is for use by MC-generated code and should not be used directly.
-#define _mcgen_TEMPLATE_FOR_CallEnterEvent _mcgen_PASTE2(McTemplateU0x_, MCGEN_EVENTWRITETRANSFER)
+#define _mcgen_TEMPLATE_FOR_CallEnterEvent _mcgen_PASTE2(McTemplateU0xxd_, MCGEN_EVENTWRITETRANSFER)
 
 //
-// Enablement check macro for event "CallExitEvent"
+// Enablement check macro for event "CallLeaveEvent"
 //
-#define EventEnabledCallExitEvent() _mcgen_EVENT_BIT_SET(DebugToolsProfilerEnableBits, 0)
-#define EventEnabledCallExitEvent_ForContext(pContext) _mcgen_EVENT_BIT_SET(_mcgen_CheckContextType_DebugToolsProfiler(pContext)->EnableBits, 0)
+#define EventEnabledCallLeaveEvent() _mcgen_EVENT_BIT_SET(DebugToolsProfilerEnableBits, 0)
+#define EventEnabledCallLeaveEvent_ForContext(pContext) _mcgen_EVENT_BIT_SET(_mcgen_CheckContextType_DebugToolsProfiler(pContext)->EnableBits, 0)
 
 //
-// Event write macros for event "CallExitEvent"
+// Event write macros for event "CallLeaveEvent"
 //
-#define EventWriteCallExitEvent(FunctionID) \
-        MCGEN_EVENT_ENABLED(CallExitEvent) \
-        ? _mcgen_TEMPLATE_FOR_CallExitEvent(&DebugToolsProfiler_Context, &CallExitEvent, FunctionID) : 0
-#define EventWriteCallExitEvent_AssumeEnabled(FunctionID) \
-        _mcgen_TEMPLATE_FOR_CallExitEvent(&DebugToolsProfiler_Context, &CallExitEvent, FunctionID)
-#define EventWriteCallExitEvent_ForContext(pContext, FunctionID) \
-        MCGEN_EVENT_ENABLED_FORCONTEXT(pContext, CallExitEvent) \
-        ? _mcgen_TEMPLATE_FOR_CallExitEvent(&(pContext)->Context, &CallExitEvent, FunctionID) : 0
-#define EventWriteCallExitEvent_ForContextAssumeEnabled(pContext, FunctionID) \
-        _mcgen_TEMPLATE_FOR_CallExitEvent(&_mcgen_CheckContextType_DebugToolsProfiler(pContext)->Context, &CallExitEvent, FunctionID)
+#define EventWriteCallLeaveEvent(FunctionID, Sequence, HRESULT) \
+        MCGEN_EVENT_ENABLED(CallLeaveEvent) \
+        ? _mcgen_TEMPLATE_FOR_CallLeaveEvent(&DebugToolsProfiler_Context, &CallLeaveEvent, FunctionID, Sequence, HRESULT) : 0
+#define EventWriteCallLeaveEvent_AssumeEnabled(FunctionID, Sequence, HRESULT) \
+        _mcgen_TEMPLATE_FOR_CallLeaveEvent(&DebugToolsProfiler_Context, &CallLeaveEvent, FunctionID, Sequence, HRESULT)
+#define EventWriteCallLeaveEvent_ForContext(pContext, FunctionID, Sequence, HRESULT) \
+        MCGEN_EVENT_ENABLED_FORCONTEXT(pContext, CallLeaveEvent) \
+        ? _mcgen_TEMPLATE_FOR_CallLeaveEvent(&(pContext)->Context, &CallLeaveEvent, FunctionID, Sequence, HRESULT) : 0
+#define EventWriteCallLeaveEvent_ForContextAssumeEnabled(pContext, FunctionID, Sequence, HRESULT) \
+        _mcgen_TEMPLATE_FOR_CallLeaveEvent(&_mcgen_CheckContextType_DebugToolsProfiler(pContext)->Context, &CallLeaveEvent, FunctionID, Sequence, HRESULT)
 
 // This macro is for use by MC-generated code and should not be used directly.
-#define _mcgen_TEMPLATE_FOR_CallExitEvent _mcgen_PASTE2(McTemplateU0x_, MCGEN_EVENTWRITETRANSFER)
+#define _mcgen_TEMPLATE_FOR_CallLeaveEvent _mcgen_PASTE2(McTemplateU0xxd_, MCGEN_EVENTWRITETRANSFER)
 
 //
 // Enablement check macro for event "TailcallEvent"
@@ -895,19 +895,19 @@ _mcgen_CheckContextType_DebugToolsProfiler(_In_ McGenContext_DebugToolsProfiler*
 //
 // Event write macros for event "TailcallEvent"
 //
-#define EventWriteTailcallEvent(FunctionID) \
+#define EventWriteTailcallEvent(FunctionID, Sequence, HRESULT) \
         MCGEN_EVENT_ENABLED(TailcallEvent) \
-        ? _mcgen_TEMPLATE_FOR_TailcallEvent(&DebugToolsProfiler_Context, &TailcallEvent, FunctionID) : 0
-#define EventWriteTailcallEvent_AssumeEnabled(FunctionID) \
-        _mcgen_TEMPLATE_FOR_TailcallEvent(&DebugToolsProfiler_Context, &TailcallEvent, FunctionID)
-#define EventWriteTailcallEvent_ForContext(pContext, FunctionID) \
+        ? _mcgen_TEMPLATE_FOR_TailcallEvent(&DebugToolsProfiler_Context, &TailcallEvent, FunctionID, Sequence, HRESULT) : 0
+#define EventWriteTailcallEvent_AssumeEnabled(FunctionID, Sequence, HRESULT) \
+        _mcgen_TEMPLATE_FOR_TailcallEvent(&DebugToolsProfiler_Context, &TailcallEvent, FunctionID, Sequence, HRESULT)
+#define EventWriteTailcallEvent_ForContext(pContext, FunctionID, Sequence, HRESULT) \
         MCGEN_EVENT_ENABLED_FORCONTEXT(pContext, TailcallEvent) \
-        ? _mcgen_TEMPLATE_FOR_TailcallEvent(&(pContext)->Context, &TailcallEvent, FunctionID) : 0
-#define EventWriteTailcallEvent_ForContextAssumeEnabled(pContext, FunctionID) \
-        _mcgen_TEMPLATE_FOR_TailcallEvent(&_mcgen_CheckContextType_DebugToolsProfiler(pContext)->Context, &TailcallEvent, FunctionID)
+        ? _mcgen_TEMPLATE_FOR_TailcallEvent(&(pContext)->Context, &TailcallEvent, FunctionID, Sequence, HRESULT) : 0
+#define EventWriteTailcallEvent_ForContextAssumeEnabled(pContext, FunctionID, Sequence, HRESULT) \
+        _mcgen_TEMPLATE_FOR_TailcallEvent(&_mcgen_CheckContextType_DebugToolsProfiler(pContext)->Context, &TailcallEvent, FunctionID, Sequence, HRESULT)
 
 // This macro is for use by MC-generated code and should not be used directly.
-#define _mcgen_TEMPLATE_FOR_TailcallEvent _mcgen_PASTE2(McTemplateU0x_, MCGEN_EVENTWRITETRANSFER)
+#define _mcgen_TEMPLATE_FOR_TailcallEvent _mcgen_PASTE2(McTemplateU0xxd_, MCGEN_EVENTWRITETRANSFER)
 
 //
 // Enablement check macro for event "CallEnterDetailedEvent"
@@ -918,42 +918,42 @@ _mcgen_CheckContextType_DebugToolsProfiler(_In_ McGenContext_DebugToolsProfiler*
 //
 // Event write macros for event "CallEnterDetailedEvent"
 //
-#define EventWriteCallEnterDetailedEvent(FunctionID, HRESULT, ValueLength, Value) \
+#define EventWriteCallEnterDetailedEvent(FunctionID, Sequence, HRESULT, ValueLength, Value) \
         MCGEN_EVENT_ENABLED(CallEnterDetailedEvent) \
-        ? _mcgen_TEMPLATE_FOR_CallEnterDetailedEvent(&DebugToolsProfiler_Context, &CallEnterDetailedEvent, FunctionID, HRESULT, ValueLength, Value) : 0
-#define EventWriteCallEnterDetailedEvent_AssumeEnabled(FunctionID, HRESULT, ValueLength, Value) \
-        _mcgen_TEMPLATE_FOR_CallEnterDetailedEvent(&DebugToolsProfiler_Context, &CallEnterDetailedEvent, FunctionID, HRESULT, ValueLength, Value)
-#define EventWriteCallEnterDetailedEvent_ForContext(pContext, FunctionID, HRESULT, ValueLength, Value) \
+        ? _mcgen_TEMPLATE_FOR_CallEnterDetailedEvent(&DebugToolsProfiler_Context, &CallEnterDetailedEvent, FunctionID, Sequence, HRESULT, ValueLength, Value) : 0
+#define EventWriteCallEnterDetailedEvent_AssumeEnabled(FunctionID, Sequence, HRESULT, ValueLength, Value) \
+        _mcgen_TEMPLATE_FOR_CallEnterDetailedEvent(&DebugToolsProfiler_Context, &CallEnterDetailedEvent, FunctionID, Sequence, HRESULT, ValueLength, Value)
+#define EventWriteCallEnterDetailedEvent_ForContext(pContext, FunctionID, Sequence, HRESULT, ValueLength, Value) \
         MCGEN_EVENT_ENABLED_FORCONTEXT(pContext, CallEnterDetailedEvent) \
-        ? _mcgen_TEMPLATE_FOR_CallEnterDetailedEvent(&(pContext)->Context, &CallEnterDetailedEvent, FunctionID, HRESULT, ValueLength, Value) : 0
-#define EventWriteCallEnterDetailedEvent_ForContextAssumeEnabled(pContext, FunctionID, HRESULT, ValueLength, Value) \
-        _mcgen_TEMPLATE_FOR_CallEnterDetailedEvent(&_mcgen_CheckContextType_DebugToolsProfiler(pContext)->Context, &CallEnterDetailedEvent, FunctionID, HRESULT, ValueLength, Value)
+        ? _mcgen_TEMPLATE_FOR_CallEnterDetailedEvent(&(pContext)->Context, &CallEnterDetailedEvent, FunctionID, Sequence, HRESULT, ValueLength, Value) : 0
+#define EventWriteCallEnterDetailedEvent_ForContextAssumeEnabled(pContext, FunctionID, Sequence, HRESULT, ValueLength, Value) \
+        _mcgen_TEMPLATE_FOR_CallEnterDetailedEvent(&_mcgen_CheckContextType_DebugToolsProfiler(pContext)->Context, &CallEnterDetailedEvent, FunctionID, Sequence, HRESULT, ValueLength, Value)
 
 // This macro is for use by MC-generated code and should not be used directly.
-#define _mcgen_TEMPLATE_FOR_CallEnterDetailedEvent _mcgen_PASTE2(McTemplateU0xdqbr2_, MCGEN_EVENTWRITETRANSFER)
+#define _mcgen_TEMPLATE_FOR_CallEnterDetailedEvent _mcgen_PASTE2(McTemplateU0xxdqbr3_, MCGEN_EVENTWRITETRANSFER)
 
 //
-// Enablement check macro for event "CallExitDetailedEvent"
+// Enablement check macro for event "CallLeaveDetailedEvent"
 //
-#define EventEnabledCallExitDetailedEvent() _mcgen_EVENT_BIT_SET(DebugToolsProfilerEnableBits, 0)
-#define EventEnabledCallExitDetailedEvent_ForContext(pContext) _mcgen_EVENT_BIT_SET(_mcgen_CheckContextType_DebugToolsProfiler(pContext)->EnableBits, 0)
+#define EventEnabledCallLeaveDetailedEvent() _mcgen_EVENT_BIT_SET(DebugToolsProfilerEnableBits, 0)
+#define EventEnabledCallLeaveDetailedEvent_ForContext(pContext) _mcgen_EVENT_BIT_SET(_mcgen_CheckContextType_DebugToolsProfiler(pContext)->EnableBits, 0)
 
 //
-// Event write macros for event "CallExitDetailedEvent"
+// Event write macros for event "CallLeaveDetailedEvent"
 //
-#define EventWriteCallExitDetailedEvent(FunctionID, HRESULT, ValueLength, Value) \
-        MCGEN_EVENT_ENABLED(CallExitDetailedEvent) \
-        ? _mcgen_TEMPLATE_FOR_CallExitDetailedEvent(&DebugToolsProfiler_Context, &CallExitDetailedEvent, FunctionID, HRESULT, ValueLength, Value) : 0
-#define EventWriteCallExitDetailedEvent_AssumeEnabled(FunctionID, HRESULT, ValueLength, Value) \
-        _mcgen_TEMPLATE_FOR_CallExitDetailedEvent(&DebugToolsProfiler_Context, &CallExitDetailedEvent, FunctionID, HRESULT, ValueLength, Value)
-#define EventWriteCallExitDetailedEvent_ForContext(pContext, FunctionID, HRESULT, ValueLength, Value) \
-        MCGEN_EVENT_ENABLED_FORCONTEXT(pContext, CallExitDetailedEvent) \
-        ? _mcgen_TEMPLATE_FOR_CallExitDetailedEvent(&(pContext)->Context, &CallExitDetailedEvent, FunctionID, HRESULT, ValueLength, Value) : 0
-#define EventWriteCallExitDetailedEvent_ForContextAssumeEnabled(pContext, FunctionID, HRESULT, ValueLength, Value) \
-        _mcgen_TEMPLATE_FOR_CallExitDetailedEvent(&_mcgen_CheckContextType_DebugToolsProfiler(pContext)->Context, &CallExitDetailedEvent, FunctionID, HRESULT, ValueLength, Value)
+#define EventWriteCallLeaveDetailedEvent(FunctionID, Sequence, HRESULT, ValueLength, Value) \
+        MCGEN_EVENT_ENABLED(CallLeaveDetailedEvent) \
+        ? _mcgen_TEMPLATE_FOR_CallLeaveDetailedEvent(&DebugToolsProfiler_Context, &CallLeaveDetailedEvent, FunctionID, Sequence, HRESULT, ValueLength, Value) : 0
+#define EventWriteCallLeaveDetailedEvent_AssumeEnabled(FunctionID, Sequence, HRESULT, ValueLength, Value) \
+        _mcgen_TEMPLATE_FOR_CallLeaveDetailedEvent(&DebugToolsProfiler_Context, &CallLeaveDetailedEvent, FunctionID, Sequence, HRESULT, ValueLength, Value)
+#define EventWriteCallLeaveDetailedEvent_ForContext(pContext, FunctionID, Sequence, HRESULT, ValueLength, Value) \
+        MCGEN_EVENT_ENABLED_FORCONTEXT(pContext, CallLeaveDetailedEvent) \
+        ? _mcgen_TEMPLATE_FOR_CallLeaveDetailedEvent(&(pContext)->Context, &CallLeaveDetailedEvent, FunctionID, Sequence, HRESULT, ValueLength, Value) : 0
+#define EventWriteCallLeaveDetailedEvent_ForContextAssumeEnabled(pContext, FunctionID, Sequence, HRESULT, ValueLength, Value) \
+        _mcgen_TEMPLATE_FOR_CallLeaveDetailedEvent(&_mcgen_CheckContextType_DebugToolsProfiler(pContext)->Context, &CallLeaveDetailedEvent, FunctionID, Sequence, HRESULT, ValueLength, Value)
 
 // This macro is for use by MC-generated code and should not be used directly.
-#define _mcgen_TEMPLATE_FOR_CallExitDetailedEvent _mcgen_PASTE2(McTemplateU0xdqbr2_, MCGEN_EVENTWRITETRANSFER)
+#define _mcgen_TEMPLATE_FOR_CallLeaveDetailedEvent _mcgen_PASTE2(McTemplateU0xxdqbr3_, MCGEN_EVENTWRITETRANSFER)
 
 //
 // Enablement check macro for event "TailcallDetailedEvent"
@@ -964,19 +964,19 @@ _mcgen_CheckContextType_DebugToolsProfiler(_In_ McGenContext_DebugToolsProfiler*
 //
 // Event write macros for event "TailcallDetailedEvent"
 //
-#define EventWriteTailcallDetailedEvent(FunctionID, HRESULT, ValueLength, Value) \
+#define EventWriteTailcallDetailedEvent(FunctionID, Sequence, HRESULT, ValueLength, Value) \
         MCGEN_EVENT_ENABLED(TailcallDetailedEvent) \
-        ? _mcgen_TEMPLATE_FOR_TailcallDetailedEvent(&DebugToolsProfiler_Context, &TailcallDetailedEvent, FunctionID, HRESULT, ValueLength, Value) : 0
-#define EventWriteTailcallDetailedEvent_AssumeEnabled(FunctionID, HRESULT, ValueLength, Value) \
-        _mcgen_TEMPLATE_FOR_TailcallDetailedEvent(&DebugToolsProfiler_Context, &TailcallDetailedEvent, FunctionID, HRESULT, ValueLength, Value)
-#define EventWriteTailcallDetailedEvent_ForContext(pContext, FunctionID, HRESULT, ValueLength, Value) \
+        ? _mcgen_TEMPLATE_FOR_TailcallDetailedEvent(&DebugToolsProfiler_Context, &TailcallDetailedEvent, FunctionID, Sequence, HRESULT, ValueLength, Value) : 0
+#define EventWriteTailcallDetailedEvent_AssumeEnabled(FunctionID, Sequence, HRESULT, ValueLength, Value) \
+        _mcgen_TEMPLATE_FOR_TailcallDetailedEvent(&DebugToolsProfiler_Context, &TailcallDetailedEvent, FunctionID, Sequence, HRESULT, ValueLength, Value)
+#define EventWriteTailcallDetailedEvent_ForContext(pContext, FunctionID, Sequence, HRESULT, ValueLength, Value) \
         MCGEN_EVENT_ENABLED_FORCONTEXT(pContext, TailcallDetailedEvent) \
-        ? _mcgen_TEMPLATE_FOR_TailcallDetailedEvent(&(pContext)->Context, &TailcallDetailedEvent, FunctionID, HRESULT, ValueLength, Value) : 0
-#define EventWriteTailcallDetailedEvent_ForContextAssumeEnabled(pContext, FunctionID, HRESULT, ValueLength, Value) \
-        _mcgen_TEMPLATE_FOR_TailcallDetailedEvent(&_mcgen_CheckContextType_DebugToolsProfiler(pContext)->Context, &TailcallDetailedEvent, FunctionID, HRESULT, ValueLength, Value)
+        ? _mcgen_TEMPLATE_FOR_TailcallDetailedEvent(&(pContext)->Context, &TailcallDetailedEvent, FunctionID, Sequence, HRESULT, ValueLength, Value) : 0
+#define EventWriteTailcallDetailedEvent_ForContextAssumeEnabled(pContext, FunctionID, Sequence, HRESULT, ValueLength, Value) \
+        _mcgen_TEMPLATE_FOR_TailcallDetailedEvent(&_mcgen_CheckContextType_DebugToolsProfiler(pContext)->Context, &TailcallDetailedEvent, FunctionID, Sequence, HRESULT, ValueLength, Value)
 
 // This macro is for use by MC-generated code and should not be used directly.
-#define _mcgen_TEMPLATE_FOR_TailcallDetailedEvent _mcgen_PASTE2(McTemplateU0xdqbr2_, MCGEN_EVENTWRITETRANSFER)
+#define _mcgen_TEMPLATE_FOR_TailcallDetailedEvent _mcgen_PASTE2(McTemplateU0xxdqbr3_, MCGEN_EVENTWRITETRANSFER)
 
 //
 // Enablement check macro for event "MethodInfoEvent"
@@ -1151,7 +1151,7 @@ _mcgen_PASTE2(McTemplateU0_, MCGEN_EVENTWRITETRANSFER)(
 #endif // McTemplateU0_def
 
 //
-// Function for template "CallArgs" (and possibly others).
+// Function for template "ThreadArgs" (and possibly others).
 // This function is for use by MC-generated code and should not be used directly.
 //
 #ifndef McTemplateU0x_def
@@ -1175,37 +1175,70 @@ _mcgen_PASTE2(McTemplateU0x_, MCGEN_EVENTWRITETRANSFER)(
 #endif // McTemplateU0x_def
 
 //
-// Function for template "CallDetailedArgs" (and possibly others).
+// Function for template "CallArgs" (and possibly others).
 // This function is for use by MC-generated code and should not be used directly.
 //
-#ifndef McTemplateU0xdqbr2_def
-#define McTemplateU0xdqbr2_def
+#ifndef McTemplateU0xxd_def
+#define McTemplateU0xxd_def
 ETW_INLINE
 ULONG
-_mcgen_PASTE2(McTemplateU0xdqbr2_, MCGEN_EVENTWRITETRANSFER)(
+_mcgen_PASTE2(McTemplateU0xxd_, MCGEN_EVENTWRITETRANSFER)(
     _In_ PMCGEN_TRACE_CONTEXT Context,
     _In_ PCEVENT_DESCRIPTOR Descriptor,
     _In_ const unsigned __int64  _Arg0,
-    _In_ const signed int  _Arg1,
-    _In_ const unsigned int  _Arg2,
-    _In_reads_(_Arg2) const unsigned char*  _Arg3
+    _In_ const unsigned __int64  _Arg1,
+    _In_ const signed int  _Arg2
     )
 {
-#define McTemplateU0xdqbr2_ARGCOUNT 4
+#define McTemplateU0xxd_ARGCOUNT 3
 
-    EVENT_DATA_DESCRIPTOR EventData[McTemplateU0xdqbr2_ARGCOUNT + 1];
+    EVENT_DATA_DESCRIPTOR EventData[McTemplateU0xxd_ARGCOUNT + 1];
 
     EventDataDescCreate(&EventData[1],&_Arg0, sizeof(const unsigned __int64)  );
 
-    EventDataDescCreate(&EventData[2],&_Arg1, sizeof(const signed int)  );
+    EventDataDescCreate(&EventData[2],&_Arg1, sizeof(const unsigned __int64)  );
 
-    EventDataDescCreate(&EventData[3],&_Arg2, sizeof(const unsigned int)  );
+    EventDataDescCreate(&EventData[3],&_Arg2, sizeof(const signed int)  );
 
-    EventDataDescCreate(&EventData[4],_Arg3, (ULONG)sizeof(char)*_Arg2);
-
-    return McGenEventWrite(Context, Descriptor, NULL, McTemplateU0xdqbr2_ARGCOUNT + 1, EventData);
+    return McGenEventWrite(Context, Descriptor, NULL, McTemplateU0xxd_ARGCOUNT + 1, EventData);
 }
-#endif // McTemplateU0xdqbr2_def
+#endif // McTemplateU0xxd_def
+
+//
+// Function for template "CallDetailedArgs" (and possibly others).
+// This function is for use by MC-generated code and should not be used directly.
+//
+#ifndef McTemplateU0xxdqbr3_def
+#define McTemplateU0xxdqbr3_def
+ETW_INLINE
+ULONG
+_mcgen_PASTE2(McTemplateU0xxdqbr3_, MCGEN_EVENTWRITETRANSFER)(
+    _In_ PMCGEN_TRACE_CONTEXT Context,
+    _In_ PCEVENT_DESCRIPTOR Descriptor,
+    _In_ const unsigned __int64  _Arg0,
+    _In_ const unsigned __int64  _Arg1,
+    _In_ const signed int  _Arg2,
+    _In_ const unsigned int  _Arg3,
+    _In_reads_(_Arg3) const unsigned char*  _Arg4
+    )
+{
+#define McTemplateU0xxdqbr3_ARGCOUNT 5
+
+    EVENT_DATA_DESCRIPTOR EventData[McTemplateU0xxdqbr3_ARGCOUNT + 1];
+
+    EventDataDescCreate(&EventData[1],&_Arg0, sizeof(const unsigned __int64)  );
+
+    EventDataDescCreate(&EventData[2],&_Arg1, sizeof(const unsigned __int64)  );
+
+    EventDataDescCreate(&EventData[3],&_Arg2, sizeof(const signed int)  );
+
+    EventDataDescCreate(&EventData[4],&_Arg3, sizeof(const unsigned int)  );
+
+    EventDataDescCreate(&EventData[5],_Arg4, (ULONG)sizeof(char)*_Arg3);
+
+    return McGenEventWrite(Context, Descriptor, NULL, McTemplateU0xxdqbr3_ARGCOUNT + 1, EventData);
+}
+#endif // McTemplateU0xxdqbr3_def
 
 //
 // Function for template "MethodInfoArgs" (and possibly others).

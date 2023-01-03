@@ -102,6 +102,11 @@ public:
 
     CorElementType GetElementTypeFromClassName(LPWSTR szName);
 
+    BOOL IsObjectIdBlacklisted(ObjectID objectId)
+    {
+        return m_ObjectIdBlacklist.find(objectId) != m_ObjectIdBlacklist.end();
+    }
+
 #pragma region IUnknown
     STDMETHODIMP_(ULONG) AddRef() override;
     STDMETHODIMP_(ULONG) Release() override;
@@ -218,6 +223,9 @@ public:
 
     std::unordered_map<FunctionID, CSigMethodDef*> m_MethodInfoMap;
     std::shared_mutex m_MethodMutex;
+
+    std::unordered_map<ObjectID, BYTE> m_ObjectIdBlacklist;
+    std::shared_mutex m_ObjectIdBlacklistMutex;
 
 private:
     CCommunication m_Communication;

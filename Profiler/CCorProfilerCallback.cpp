@@ -349,8 +349,9 @@ ErrExit:
 /// PowerShell does not call Shutdown when closing out of the program normally, however when the "exit" command is executed, _wmainCRTStartup will call msvcrt!doexit, leading to clr!HandleExitProcessHelper calling EEShutDown, etc.</remarks>
 HRESULT CCorProfilerCallback::Shutdown()
 {
-    EventWriteShutdownEvent();
-    return S_OK;
+    HRESULT hr = S_OK;
+    ValidateETW(EventWriteShutdownEvent());
+    return hr;
 }
 
 /// <summary>
@@ -365,7 +366,7 @@ HRESULT CCorProfilerCallback::ThreadCreated(ThreadID threadId)
     DWORD win32ThreadId;
     IfFailGo(m_pInfo->GetThreadInfo(threadId, &win32ThreadId));
 
-    EventWriteThreadCreateEvent(win32ThreadId);
+    ValidateETW(EventWriteThreadCreateEvent(win32ThreadId));
 
 ErrExit:
     return hr;
@@ -383,7 +384,7 @@ HRESULT CCorProfilerCallback::ThreadDestroyed(ThreadID threadId)
     DWORD win32ThreadId;
     IfFailGo(m_pInfo->GetThreadInfo(threadId, &win32ThreadId));
 
-    EventWriteThreadDestroyEvent(win32ThreadId);
+    ValidateETW(EventWriteThreadDestroyEvent(win32ThreadId));
 
 ErrExit:
     return hr;
@@ -394,15 +395,17 @@ ErrExit:
 
 HRESULT CCorProfilerCallback::ThreadNameChanged(ThreadID threadId, ULONG cchName, WCHAR* name)
 {
+    HRESULT hr = S_OK;
+
     WCHAR copy[100];
 
     //MSDN states the name is not guaranteed to be null terminated, so we make a copy just in case
     StringCchCopyN(copy, 100, name, cchName);
     copy[cchName + 1] = '\0';
 
-    EventWriteThreadNameEvent(copy);
+    ValidateETW(EventWriteThreadNameEvent(copy));
 
-    return S_OK;
+    return hr;
 }
 
 #pragma endregion
@@ -410,17 +413,6 @@ HRESULT CCorProfilerCallback::ThreadNameChanged(ThreadID threadId, ULONG cchName
 
 CCorProfilerCallback* g_pProfiler;
 HANDLE CCorProfilerCallback::g_hExitProcess;
-
-thread_local WCHAR debugBuffer[2000];
-
-void dprintf(LPCWSTR format, ...)
-{
-    va_list args;
-    va_start(args, format);
-    vswprintf_s(debugBuffer, format, args);
-    va_end(args);
-    OutputDebugString(debugBuffer);
-}
 
 /// <summary>
 /// A function that is called exactly once for each function that is JITted. Allows the profiler to report on the function,
@@ -447,6 +439,8 @@ UINT_PTR __stdcall CCorProfilerCallback::RecordFunction(FunctionID funcId, void*
     CSigMethodDef* method = nullptr;
     BOOL methodSaved = FALSE;
 
+    *pbHookFunction = FALSE;
+
     //Get the IMetaDataImport and mdMethodDef
     IfFailGo(pInfo->GetTokenAndMetaDataFromFunction(funcId, IID_IMetaDataImport, reinterpret_cast<IUnknown**>(&pMDI), &methodDef));
 
@@ -470,6 +464,7 @@ UINT_PTR __stdcall CCorProfilerCallback::RecordFunction(FunctionID funcId, void*
 
     if (!ShouldHook())
     {
+        LogShouldHook(L"Not tracing %llX\n", funcId);
         *pbHookFunction = FALSE;
         goto ErrExit;
     }
@@ -525,19 +520,23 @@ UINT_PTR __stdcall CCorProfilerCallback::RecordFunction(FunctionID funcId, void*
 
     //Write the event
 
+    LogShouldHook(L"Tracing %s %llX\n", g_szMethodName, funcId);
+    *pbHookFunction = true;
+
     if (g_pProfiler->m_Detailed)
-        EventWriteMethodInfoDetailedEvent(funcId, g_szMethodName, g_szTypeName, g_szModuleName, methodDef, cbSigBlob, pSigBlob);
+        ValidateETW(EventWriteMethodInfoDetailedEvent(funcId, g_szMethodName, g_szTypeName, g_szModuleName, methodDef, cbSigBlob, pSigBlob));
     else
-        EventWriteMethodInfoEvent(funcId, g_szMethodName, g_szTypeName, g_szModuleName);
+        ValidateETW(EventWriteMethodInfoEvent(funcId, g_szMethodName, g_szTypeName, g_szModuleName));
 
 ErrExit:
+    if (FAILED(hr) && !*pbHookFunction)
+        LogShouldHook(L"Not tracing %llX due to HRESULT 0x%X\n", funcId, hr);
+
     if (typeArgs && !methodSaved)
         free(typeArgs);
 
     if (pMDI)
         pMDI->Release();
-
-    *pbHookFunction = true;
 
     return funcId;
 }
@@ -583,7 +582,11 @@ BOOL CCorProfilerCallback::ShouldHook()
 
 HRESULT CCorProfilerCallback::SetEventMask()
 {
-    DWORD flags = COR_PRF_MONITOR_ENTERLEAVE | COR_PRF_MONITOR_THREADS | COR_PRF_DISABLE_ALL_NGEN_IMAGES;
+    DWORD flags =
+        COR_PRF_MONITOR_ENTERLEAVE |     //Inject Enter/Leave/Tailcall hooks during JIT
+        COR_PRF_MONITOR_EXCEPTIONS |     //Leave won't be called when an exception occurs, so we must unwind ourselves
+        COR_PRF_MONITOR_THREADS    |     //Record basic thread information
+        COR_PRF_DISABLE_ALL_NGEN_IMAGES; //Don't use NGEN images (we need a fresh JIT to be able to inject our Enter/Leave/Tailcall hooks)
 
     //WithInfo hooks won't be called unless advanced event flags are set
     if (m_Detailed)

@@ -33,10 +33,12 @@ namespace Profiler.Tests
 
         ObjectArg,
         GenericClassArg,
+        GenericTwoTypeArgs,
         GenericValueTypeArg,
         GenericClass_ToObjectArg,
         GenericValueType_ToObjectArg,
         InterfaceArg,
+        GenericWithObjectTypeArg,
 
         #region MethodVar
 
@@ -58,6 +60,14 @@ namespace Profiler.Tests
         Generic_MethodVar_ElementTypeGenericClassArrayArg,
         Generic_MethodVar_ElementTypeGenericValueTypeArg,
         Generic_MethodVar_ElementTypeGenericValueTypeArrayArg,
+        Generic_MethodVar_ElementTypeGenericValueType_SimpleArg,
+        Generic_MethodVar_ElementTypeNullablePrimitive,
+        Generic_MethodVar_ElementTypeNullableValueType,
+
+        Generic_MethodVar_ElementTypeGenericValueType_SZArrayValueArg,
+        Generic_MethodVar_ElementTypeGenericValueType_SZArrayArg,
+        Generic_MethodVar_ElementTypeGenericValueType_MultiArrayValueArg,
+        Generic_MethodVar_ElementTypeGenericValueType_MultiArrayArg,
 
         #endregion
         #region TypeVar

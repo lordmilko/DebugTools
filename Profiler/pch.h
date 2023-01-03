@@ -13,11 +13,7 @@
 #include <corprof.h>
 #include <shared_mutex>
 
-#ifdef _DEBUG
-#define LogError(EXPR) dprintf(L"Error 0x%X occurred calling %S at %S(%d)\n", hr, #EXPR, __FILE__, __LINE__); if (IsDebuggerPresent()) DebugBreak()
-#else
-#define LogError(EXPR)
-#endif
+#include "ErrorHandling.h"
 
 #define IfFailGoto(EXPR, LABEL) do { hr = (EXPR); if(FAILED(hr)) { LogError(EXPR); goto LABEL;  } } while (0)
 #define IfFailWin32Goto(EXPR, LABEL) do { hr = (EXPR); if(hr != ERROR_SUCCESS) { hr = HRESULT_FROM_WIN32(hr); goto LABEL; } } while (0)
@@ -26,17 +22,22 @@
 #define IfFailGo(EXPR) IfFailGoto(EXPR, ErrExit)
 #define IfFailWin32Go(EXPR) IfFailWin32Goto(EXPR, ErrExit)
 
+#define ValidateETW(call) do {\
+        hr = HRESULT_FROM_WIN32(call); \
+        if (hr != S_OK) \
+        { \
+            dprintf(L"###### %S failed with \n", #call, hr); \
+            if (IsDebuggerPresent()) \
+                DebugBreak(); \
+        }\
+    } while(0)
+
 inline BOOL GetBoolEnv(LPCSTR name)
 {
     CHAR buffer[2];
     DWORD size = GetEnvironmentVariableA(name, buffer, 2);
     return size == 1 && buffer[0] == '1';
 }
-
-void dprintf(LPCWSTR format, ...);
-
-#define PROFILER_E_BUFFERFULL MAKE_HRESULT(SEVERITY_ERROR, FACILITY_ITF, 0x1001);
-#define PROFILER_E_GENERICCLASSID MAKE_HRESULT(SEVERITY_ERROR, FACILITY_ITF, 0x1002);
 
 class CLock
 {

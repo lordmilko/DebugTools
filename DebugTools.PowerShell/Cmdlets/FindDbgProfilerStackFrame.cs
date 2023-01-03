@@ -18,6 +18,9 @@ namespace DebugTools.PowerShell.Cmdlets
         [Parameter(Mandatory = false)]
         public string[] Exclude { get; set; }
 
+        [Parameter(Mandatory = false)]
+        public string StringValue { get; set; }
+
         private WildcardPattern[] includeWildcards;
         private WildcardPattern[] excludeWildcards;
 
@@ -62,8 +65,15 @@ namespace DebugTools.PowerShell.Cmdlets
                 {
                     if (item is RootFrame r)
                     {
-                        if (r.ThreadName != null && includeWildcards.Any(i => i.IsMatch(r.ThreadName)) && !ShouldExclude(r))
+                        if (r.ThreadName != null && includeWildcards.Any(i => i.IsMatch(r.ThreadName)) && !ShouldExclude(r) && !HasValueFilter())
                             includes[item] = 0;
+                    }
+                    else if (item is MethodFrameDetailed d)
+                    {
+                        if (includeWildcards.Any(i => i.IsMatch(d.MethodInfo.MethodName) || i.IsMatch(d.MethodInfo.TypeName)) && HasValue(d) && !ShouldExclude(d))
+                        {
+                            includes[item] = 0;
+                        }
                     }
                     else if (item is MethodFrame m)
                     {
@@ -76,6 +86,41 @@ namespace DebugTools.PowerShell.Cmdlets
                     foreach (var child in item.Children)
                         queue.Enqueue(child);
                 });
+            }
+        }
+
+        private bool HasValueFilter()
+        {
+            return StringValue != null;
+        }
+
+        private bool HasValue(MethodFrameDetailed d)
+        {
+            if (StringValue != null)
+            {
+                var parameters = d.GetEnterParameters();
+
+                foreach (var parameter in parameters)
+                {
+                    if (parameter is StringValue s)
+                    {
+                        if (s.Value == StringValue)
+                            return true;
+                    }
+                }
+
+                var returnValue = d.GetExitResult();
+
+                if (returnValue is StringValue sr)
+                {
+                    return sr.Value == StringValue;
+                }
+
+                return false;
+            }
+            else
+            {
+                return true;
             }
         }
 

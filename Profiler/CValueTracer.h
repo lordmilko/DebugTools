@@ -1,5 +1,6 @@
 #pragma once
 
+#include <stack>
 #include <unordered_map>
 
 class CSigMethodDef;
@@ -14,30 +15,72 @@ class ISigArrayType;
 
 #undef GetClassInfo
 
+//Stores a number that uniquely identifies each Enter/Leave/Tailcall event for the current thread.
+extern thread_local ULONG g_Sequence;
+
+//Stores the current stack of function calls for the current thread.
+extern thread_local std::stack<FunctionID> g_CallStack;
+
+#define ENTER_FUNCTION(FUNCTIONID) \
+    do { \
+    g_Sequence++; \
+    g_CallStack.push(FUNCTIONID.functionID); \
+    } while(0)
+
+#define LEAVE_FUNCTION(FUNCTIONID) \
+    g_Sequence++; \
+    do { \
+        FunctionID old = g_CallStack.top(); \
+        g_CallStack.pop(); \
+        if (old != functionId.functionID) \
+        { \
+            dprintf(L"Stack Error: Expected %llX but got %llX\n", old, functionId.functionID); \
+           hr = PROFILER_E_UNKNOWN_FRAME; \
+           goto ErrExit; \
+        } \
+    } while(0)
+
+//An extra -1 on comparing the buffer size because the maximum index is VALUE_BUFFER_SIZE - 1 (arrays are 0 based!)
+
 #define WriteType(elementType) \
-    do { if (g_ValueBufferPosition - 1 >= VALUE_BUFFER_SIZE) \
+    do { if (g_ValueBufferPosition >= VALUE_BUFFER_SIZE - 1 - 1) \
     { \
         hr = PROFILER_E_BUFFERFULL; \
         LogError("WriteType"); \
         goto ErrExit; \
     } \
     *(g_ValueBuffer + g_ValueBufferPosition) = elementType; \
-    g_ValueBufferPosition++; } while(0)
+    g_ValueBufferPosition++; \
+    if (g_ValueBufferPosition >= VALUE_BUFFER_SIZE) DebugBreak(); \
+    } while(0)
 
 #define WriteValue(pValue, length) \
-    do { if (g_ValueBufferPosition >= VALUE_BUFFER_SIZE - (int)(length)) \
+    do { if (g_ValueBufferPosition >= VALUE_BUFFER_SIZE - (int)(length) - 1) \
     { \
         hr = PROFILER_E_BUFFERFULL; \
         LogError("WriteValue"); \
         goto ErrExit; \
     } \
     memcpy(g_ValueBuffer + g_ValueBufferPosition, pValue, length); \
-    g_ValueBufferPosition += length; } while(0)
+    g_ValueBufferPosition += length; \
+    if (g_ValueBufferPosition >= VALUE_BUFFER_SIZE) DebugBreak(); \
+    } while(0)
 
 #define Write(pValue, elementType, expectedSize) \
      do { _ASSERTE(sizeof(*(pValue)) == (expectedSize)); \
      WriteType(elementType); \
      WriteValue(pValue, sizeof(*(pValue))); } while(0)
+
+#define WriteRecursion(elementType) \
+    do { WriteType(ELEMENT_TYPE_END); \
+    WriteType(elementType); \
+    if (g_ValueBufferPosition > VALUE_BUFFER_SIZE) DebugBreak(); \
+    } while(0)
+
+#define WriteMaxTraceDepth() \
+    do { WriteType(ELEMENT_TYPE_END); \
+    WriteType(ELEMENT_TYPE_END); if (g_ValueBufferPosition > VALUE_BUFFER_SIZE) DebugBreak(); \
+    } while(0)
 
 typedef struct _ValueTypeContext {
     mdToken TypeToken;
@@ -68,6 +111,13 @@ typedef struct _TraceValueContext {
 class CValueTracer
 {
 public:
+    CValueTracer() :
+        m_NumGenericTypeArgs(0),
+        m_GenericTypeArgs(nullptr),
+        m_TraceDepth(0)
+    {
+    }
+
     ~CValueTracer()
     {
         if (m_GenericTypeArgs)
@@ -75,12 +125,21 @@ public:
     }
 
     static HRESULT Initialize(ICorProfilerInfo3* pInfo);
+    static BOOL IsInvalidObject(ObjectID objectId);
 
     HRESULT EnterWithInfo(FunctionIDOrClientID functionId, COR_PRF_ELT_INFO eltInfo);
     HRESULT LeaveWithInfo(FunctionIDOrClientID functionId, COR_PRF_ELT_INFO eltInfo);
     HRESULT TailcallWithInfo(FunctionIDOrClientID functionId, COR_PRF_ELT_INFO eltInfo);
 
 private:
+
+    HRESULT GetMethodInfoNoLock(_In_ FunctionIDOrClientID functionId, _Out_ CSigMethodDef** ppMethod);
+
+    HRESULT GetMethodTypeArgsAndContainingClass(
+        _In_ FunctionIDOrClientID functionId,
+        _In_ CSigMethodDef* pMethod,
+        _In_ COR_PRF_FRAME_INFO frameInfo,
+        _Out_ IClassInfo** ppMethodClassInfo);
 
     HRESULT TraceParameters(
         _In_ COR_PRF_FUNCTION_ARGUMENT_INFO* argumentInfo,
@@ -116,7 +175,6 @@ private:
 
     HRESULT TraceString(_In_ UINT_PTR startAddress, _Out_opt_ ULONG& bytesRead);
     HRESULT TraceClass(_In_ UINT_PTR startAddress, _In_ CorElementType classElementType, _Out_opt_ ULONG& bytesRead);
-    HRESULT TraceArray(_In_ UINT_PTR startAddress, _Out_opt_ ULONG& bytesRead);
     HRESULT TraceGenericType(_In_ UINT_PTR startAddress, _In_ TraceValueContext* pContext, _Out_opt_ ULONG& bytesRead);
     HRESULT TraceObject(_In_ UINT_PTR startAddress, _Out_opt_ ULONG& bytesRead);
     HRESULT TraceArray(_In_ UINT_PTR startAddress, _In_ CorElementType type, _Out_opt_ ULONG& bytesRead);
@@ -186,11 +244,13 @@ private:
 
     HRESULT GetClassInfoFromClassId(ClassID classId, IClassInfo** ppClassInfo, bool lock = true);
     mdToken GetTypeToken(CSigType* pType);
-    void GetGenericInfo(CSigType* pType, CorElementType* type, long* genericIndex);
+    void GetGenericInfo(CSigType* pType, long* genericIndex);
 
     static ULONG s_StringLengthOffset;
     static ULONG s_StringBufferOffset;
+    static ULONG s_MaxTraceDepth;
 
     ULONG m_NumGenericTypeArgs;
     IClassInfo** m_GenericTypeArgs;
+    ULONG m_TraceDepth;
 };

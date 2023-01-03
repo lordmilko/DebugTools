@@ -1,4 +1,5 @@
 ﻿using System;
+using ClrDebug;
 
 namespace DebugTools.Tracing
 {
@@ -9,5 +10,9 @@ namespace DebugTools.Tracing
         int ThreadID { get; }
 
         long FunctionID { get; }
+
+        long Sequence { get; }
+
+        HRESULT HRESULT { get; }
     }
 }

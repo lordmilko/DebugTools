@@ -11,7 +11,8 @@ namespace DebugTools.Profiler
     public enum ProfilerEnvFlags
     {
         WaitForDebugger,
-        Detailed
+        Detailed,
+        TraceDepth
     }
 
     public class ProfilerInfo
@@ -40,7 +41,7 @@ namespace DebugTools.Profiler
             TestHost = Path.Combine(InstallationRoot, "DebugTools.TestHost.exe");
         }
 
-        public static Process CreateProcess(string processName, Action<Process> startCallback = null, params ProfilerEnvFlags[] flags)
+        public static Process CreateProcess(string processName, Action<Process> startCallback, ProfilerEnvFlags[] flags, int traceDepth)
         {
             var envVariables = new StringDictionary
             {
@@ -75,6 +76,10 @@ namespace DebugTools.Profiler
 
                     case ProfilerEnvFlags.Detailed:
                         envVariables.Add("DEBUGTOOLS_DETAILED", "1");
+                        break;
+
+                    case ProfilerEnvFlags.TraceDepth:
+                        envVariables.Add("DEBUGTOOLS_TRACEDEPTH", traceDepth.ToString());
                         break;
 
                     default:

@@ -4,7 +4,10 @@
 #include "DebugToolsProfiler.h"
 #include "CTypeRefResolver.h"
 
-#define VALUE_BUFFER_SIZE 1000000
+#define VALUE_BUFFER_SIZE 62000 //ETW is limited to 64KB
+
+thread_local ULONG g_Sequence = 0;
+thread_local std::stack<FunctionID> g_CallStack;
 
 thread_local std::unordered_map<UINT_PTR, int> g_SeenMap;
 thread_local BYTE g_ValueBuffer[VALUE_BUFFER_SIZE];
@@ -15,12 +18,24 @@ thread_local signed long g_ValueBufferPosition = 0;
 
 ULONG CValueTracer::s_StringLengthOffset;
 ULONG CValueTracer::s_StringBufferOffset;
+ULONG CValueTracer::s_MaxTraceDepth;
 
 HRESULT CValueTracer::Initialize(ICorProfilerInfo3* pInfo)
 {
+#define BUFFER_SIZE 100
+
     HRESULT hr = S_OK;
+    CHAR envBuffer[BUFFER_SIZE];
+    DWORD actualSize;
 
     IfFailGo(pInfo->GetStringLayout2(&s_StringLengthOffset, &s_StringBufferOffset));
+
+    actualSize = GetEnvironmentVariableA("DEBUGTOOLS_TRACEDEPTH", envBuffer, BUFFER_SIZE);
+
+    if (actualSize != 0 && actualSize < BUFFER_SIZE)
+        s_MaxTraceDepth = strtol(envBuffer, NULL, 10);
+    else
+        s_MaxTraceDepth = -1;
 
 ErrExit:
     return hr;
@@ -28,6 +43,12 @@ ErrExit:
 
 HRESULT CValueTracer::EnterWithInfo(FunctionIDOrClientID functionId, COR_PRF_ELT_INFO eltInfo)
 {
+#ifdef DEBUG_BLOB
+    g_DebugBlob = FALSE;
+#endif
+
+    ENTER_FUNCTION(functionId);
+
     HRESULT hr = S_OK;
 
     g_SeenMap.clear();
@@ -36,24 +57,14 @@ HRESULT CValueTracer::EnterWithInfo(FunctionIDOrClientID functionId, COR_PRF_ELT
     CSigMethodDef* pMethod = nullptr;
 
     //GetFunctionEnter3Info
-    COR_PRF_ELT_INFO frameInfo;
+    COR_PRF_FRAME_INFO frameInfo;
     ULONG cbArgumentInfo = 0;
     COR_PRF_FUNCTION_ARGUMENT_INFO* argumentInfo = nullptr;
-    ClassID* typeArgs = nullptr;
-    ClassID classId;
-    IClassInfo* pMethodClassInfo;
+
+    IClassInfo* pMethodClassInfo = nullptr;
 
     CLock methodLock(&g_pProfiler->m_MethodMutex);
-
-    auto match = g_pProfiler->m_MethodInfoMap.find(functionId.functionID);
-
-    if (match == g_pProfiler->m_MethodInfoMap.end())
-        return E_FAIL;
-
-    pMethod = match->second;
-
-    if (!pMethod)
-        return E_FAIL;
+    IfFailRet(GetMethodInfoNoLock(functionId, &pMethod));
 
     if (pMethod->m_NumParameters == 0)
     {
@@ -81,60 +92,20 @@ HRESULT CValueTracer::EnterWithInfo(FunctionIDOrClientID functionId, COR_PRF_ELT
             argumentInfo
         ));
 
-        if (pMethod->m_NumGenericTypeArgNames)
-        {
-            typeArgs = new ClassID[pMethod->m_NumGenericTypeArgNames];
-            ULONG32 cTypeArgs;
+        IfFailGo(GetMethodTypeArgsAndContainingClass(functionId, pMethod, frameInfo, &pMethodClassInfo));
 
-            IfFailGo(g_pProfiler->m_pInfo->GetFunctionInfo2(
-                functionId.functionID,
-                frameInfo,
-                &classId,
-                NULL,
-                NULL,
-                pMethod->m_NumGenericTypeArgNames,
-                &cTypeArgs,
-                typeArgs
-            ));
-
-            m_GenericTypeArgs = new IClassInfo*[pMethod->m_NumGenericTypeArgNames];
-
-            for(ULONG i = 0; i < pMethod->m_NumGenericTypeArgNames; i++)
-            {
-                IClassInfo* info;
-                IfFailGo(GetClassInfoFromClassId(typeArgs[i], &info));
-
-                m_GenericTypeArgs[i] = info;
-            }
-        }
-        else
-        {
-            IfFailGo(g_pProfiler->m_pInfo->GetFunctionInfo2(
-                functionId.functionID,
-                frameInfo,
-                &classId,
-                NULL,
-                NULL,
-                0,
-                NULL,
-                NULL
-            ));
-        }
-
-        //Get the class info of the class the method being invoked is defined in
-        IfFailGo(GetClassInfoFromClassId(classId, &pMethodClassInfo));
+        DebugBlobHeader(L"Enter Start");
 
         IfFailGo(TraceParameters(argumentInfo, pMethod, pMethodClassInfo));
     }
 
 ErrExit:
-    EventWriteCallEnterDetailedEvent(functionId.functionID, hr, g_ValueBufferPosition, g_ValueBuffer);
+    DebugBlobHeader(L"Enter End");
+
+    ValidateETW(EventWriteCallEnterDetailedEvent(functionId.functionID, g_Sequence, hr, g_ValueBufferPosition, g_ValueBuffer));
 
     if (argumentInfo != nullptr)
         free(argumentInfo);
-
-    if (typeArgs)
-        delete typeArgs;
 
     return hr;
 }
@@ -143,7 +114,68 @@ HRESULT CValueTracer::LeaveWithInfo(FunctionIDOrClientID functionId, COR_PRF_ELT
 {
     HRESULT hr = S_OK;
 
-    EventWriteCallExitDetailedEvent(functionId.functionID, hr, 0, NULL);
+#ifdef DEBUG_BLOB
+    g_DebugBlob = FALSE;
+#endif
+
+    g_SeenMap.clear();
+    g_ValueBufferPosition = 0;
+
+    CSigMethodDef* pMethod = nullptr;
+    IClassInfo* pMethodClassInfo = nullptr;
+
+    COR_PRF_FRAME_INFO frameInfo;
+    COR_PRF_FUNCTION_ARGUMENT_RANGE retvalRange;
+
+    ULONG bytesRead = 0;
+    TraceValueContext ctx;
+    mdToken typeToken;
+    long genericIndex = -1;
+    CSigType* pType;
+
+    CLock methodLock(&g_pProfiler->m_MethodMutex);
+
+    LEAVE_FUNCTION(functionId);
+
+    IfFailRet(GetMethodInfoNoLock(functionId, &pMethod));
+
+    pType = pMethod->m_pRetType;
+
+    DebugBlobHeader(L"Return Start");
+
+    if (pType->m_Type == ELEMENT_TYPE_VOID)
+    {
+        DebugBlobCtx(L"Return Type", pMethod->m_szName);
+        WriteType(ELEMENT_TYPE_VOID);
+        goto ErrExit;
+    }
+
+    typeToken = GetTypeToken(pType);
+
+    GetGenericInfo(pType, &genericIndex);
+
+    IfFailGo(g_pProfiler->m_pInfo->GetFunctionLeave3Info(
+        functionId.functionID,
+        eltInfo,
+        &frameInfo,
+        &retvalRange
+    ));
+
+    IfFailGo(GetMethodTypeArgsAndContainingClass(functionId, pMethod, frameInfo, &pMethodClassInfo));
+
+    ctx = MakeTraceValueContext(typeToken, pMethod->m_ModuleID, genericIndex, pMethodClassInfo, (CSigGenericType*)pType);
+
+    IfFailGo(TraceValue(
+        retvalRange.startAddress,
+        pMethod->m_pRetType->m_Type,
+        &ctx,
+        bytesRead
+    ));
+
+ErrExit:
+    DebugBlobHeader(L"Return End");
+
+    ValidateETW(EventWriteCallLeaveDetailedEvent(functionId.functionID, g_Sequence, hr, g_ValueBufferPosition, g_ValueBuffer));
 
     return hr;
 }
@@ -151,8 +183,126 @@ HRESULT CValueTracer::LeaveWithInfo(FunctionIDOrClientID functionId, COR_PRF_ELT
 HRESULT CValueTracer::TailcallWithInfo(FunctionIDOrClientID functionId, COR_PRF_ELT_INFO eltInfo)
 {
     HRESULT hr = S_OK;
+    CSigMethodDef* pMethod;
+    g_ValueBufferPosition = 0;
 
-    EventWriteTailcallDetailedEvent(functionId.functionID, hr, 0, NULL);
+    CLock methodLock(&g_pProfiler->m_MethodMutex);
+
+    LEAVE_FUNCTION(functionId);
+
+    IfFailRet(GetMethodInfoNoLock(functionId, &pMethod));
+
+    ValidateETW(EventWriteTailcallDetailedEvent(functionId.functionID, g_Sequence, hr, 0, NULL));
+
+ErrExit:
+    return hr;
+}
+
+HRESULT CValueTracer::GetMethodInfoNoLock(FunctionIDOrClientID functionId, _Out_ CSigMethodDef** ppMethod)
+{
+    auto match = g_pProfiler->m_MethodInfoMap.find(functionId.functionID);
+
+    if (match == g_pProfiler->m_MethodInfoMap.end())
+    {
+        if (IsDebuggerPresent())
+            DebugBreak();
+
+        dprintf(L"Unknown func %llX called\n", functionId.functionID);
+        return E_FAIL;
+    }
+
+    CSigMethodDef* pMethod = match->second;
+
+    if (!pMethod)
+    {
+        if (IsDebuggerPresent())
+            DebugBreak();
+
+        dprintf(L"Unknown func %llX called\n", functionId.functionID);
+        return E_FAIL;
+    }
+
+    *ppMethod = pMethod;
+    return S_OK;
+}
+
+HRESULT CValueTracer::GetMethodTypeArgsAndContainingClass(
+    _In_ FunctionIDOrClientID functionId,
+    _In_ CSigMethodDef* pMethod,
+    _In_ COR_PRF_FRAME_INFO frameInfo,
+    _Out_ IClassInfo** ppMethodClassInfo)
+{
+    HRESULT hr = S_OK;
+
+    ClassID classId;
+    ClassID* typeArgs = nullptr;
+    IClassInfo* pMethodClassInfo = nullptr;
+    ModuleID moduleId = 0;
+    mdToken funcToken = 0;
+
+    if (pMethod->m_NumGenericTypeArgNames)
+    {
+        typeArgs = new ClassID[pMethod->m_NumGenericTypeArgNames];
+        ULONG32 cTypeArgs;
+
+        IfFailGo(g_pProfiler->m_pInfo->GetFunctionInfo2(
+            functionId.functionID,
+            frameInfo,
+            &classId,
+            &moduleId,
+            &funcToken,
+            pMethod->m_NumGenericTypeArgNames,
+            &cTypeArgs,
+            typeArgs
+        ));
+
+        m_GenericTypeArgs = new IClassInfo * [pMethod->m_NumGenericTypeArgNames];
+
+        for (ULONG i = 0; i < pMethod->m_NumGenericTypeArgNames; i++)
+        {
+            IClassInfo* info;
+            IfFailGo(GetClassInfoFromClassId(typeArgs[i], &info));
+
+            m_GenericTypeArgs[i] = info;
+        }
+    }
+    else
+    {
+        IfFailGo(g_pProfiler->m_pInfo->GetFunctionInfo2(
+            functionId.functionID,
+            frameInfo,
+            &classId,
+            &moduleId,
+            &funcToken,
+            0,
+            NULL,
+            NULL
+        ));
+    }
+
+    if (classId == 0)
+    {
+        //GetFunctionInfo2() can set the classId to 0 if no class information is available. In this case, lets get the function's mdTypeDef
+        //and resolve the classId using a ModuleID + mdTypeDef. Ostensibly we could give it a go trying to load the class
+        //using the ModuleID + mdTypeDef via GetClassFromToken, however this scenario has been seen to occur with generic types,
+        //meaning we need to call GetClassFromTokenAndTypeArgs, but we don't have a way to get the typearg class IDs. We could
+        //simply forgo getting an IClassInfo at all (it only affects ELEMENT_TYPE_VAR) however this has been seen to affect
+        //a GenericInst with typeargs including ELEMENT_TYPE_VAR
+
+        hr = PROFILER_E_NO_CLASSID;
+        goto ErrExit;
+    }
+    else
+    {
+        //Get the class info of the class the method being invoked is defined in
+        IfFailGo(GetClassInfoFromClassId(classId, &pMethodClassInfo));
+    }
+
+    *ppMethodClassInfo = pMethodClassInfo;
+
+ErrExit:
+    if (typeArgs)
+        delete typeArgs;
 
     return hr;
 }
@@ -178,6 +328,7 @@ HRESULT CValueTracer::TraceParameters(
         goto ErrExit;
     }
 
+    DebugBlobCtx(L"Num Method Parameters", pMethod->m_szName);
     WriteValue(&validRanges, 4);
 
     for(ULONG i = 0; i < validRanges; i++)
@@ -185,6 +336,8 @@ HRESULT CValueTracer::TraceParameters(
         COR_PRF_FUNCTION_ARGUMENT_RANGE range = argumentInfo->ranges[i + offset];
 
         ISigParameter* pParameter = pMethod->m_Parameters[i];
+
+        DebugBlob(L"\n*** TRACE PARAMETER ***");
 
         IfFailGo(TraceParameter(&range, pParameter, pMethodClassInfo, pMethod->m_ModuleID));
     }
@@ -209,16 +362,14 @@ HRESULT CValueTracer::TraceParameter(
 
     mdToken typeToken = GetTypeToken(pType);
 
-    CorElementType type = pType->m_Type;;
     long genericIndex = -1;
-
-    GetGenericInfo(pType, &type, &genericIndex);
+    GetGenericInfo(pType, &genericIndex);
 
     TraceValueContext ctx = MakeTraceValueContext(typeToken, typeTokenModule, genericIndex, pClassInfo, (CSigGenericType*)pType);
 
     IfFailGo(TraceValue(
         pAddress,
-        type,
+        pType->m_Type,
         &ctx,
         bytesRead
     ));
@@ -242,96 +393,134 @@ HRESULT CValueTracer::TraceValue(
     _In_ TraceValueContext* pContext,
     _Out_opt_ ULONG& bytesRead)
 {
+    HRESULT hr = S_OK;
+    BOOL needDecrease = FALSE;
+
     //Unsafe.IsNullRef can pass an address of 0
     if (startAddress == 0)
         return E_FAIL;
 
-    if (g_SeenMap[startAddress] && elementType == ELEMENT_TYPE_CLASS)
-        return S_OK;
+    if (g_SeenMap[startAddress] && (elementType == ELEMENT_TYPE_CLASS || elementType == ELEMENT_TYPE_GENERICINST))
+    {
+        DebugBlob(L"Recursion");
+        WriteRecursion(elementType);
+        return hr;
+    }
+
+    if (s_MaxTraceDepth != (ULONG)-1 && m_TraceDepth >= s_MaxTraceDepth)
+    {
+        DebugBlob(L"MaxTraceDepth");
+        WriteMaxTraceDepth();
+        return hr;
+    }
+
+    needDecrease = TRUE;
+    m_TraceDepth++;
 
     g_SeenMap[startAddress] = 1;
-
-    HRESULT hr = S_OK;
 
     switch (elementType)
     {
     #pragma region Primitives
 
     case ELEMENT_TYPE_BOOLEAN:
-        return TraceBool(startAddress, bytesRead);
+        IfFailGo(TraceBool(startAddress, bytesRead));
+        break;
 
     case ELEMENT_TYPE_CHAR:
-        return TraceChar(startAddress, bytesRead);
+        IfFailGo(TraceChar(startAddress, bytesRead));
+        break;
 
     case ELEMENT_TYPE_I1:
-        return TraceSByte(startAddress, bytesRead);
+        IfFailGo(TraceSByte(startAddress, bytesRead));
+        break;
 
     case ELEMENT_TYPE_U1:
-        return TraceByte(startAddress, bytesRead);
+        IfFailGo(TraceByte(startAddress, bytesRead));
+        break;
 
     case ELEMENT_TYPE_I2:
-        return TraceShort(startAddress, bytesRead);
+        IfFailGo(TraceShort(startAddress, bytesRead));
+        break;
 
     case ELEMENT_TYPE_U2:
-        return TraceUShort(startAddress, bytesRead);
+        IfFailGo(TraceUShort(startAddress, bytesRead));
+        break;
 
     case ELEMENT_TYPE_I4:
-        return TraceInt(startAddress, bytesRead);
+        IfFailGo(TraceInt(startAddress, bytesRead));
+        break;
 
     case ELEMENT_TYPE_U4:
-        return TraceUInt(startAddress, bytesRead);
+        IfFailGo(TraceUInt(startAddress, bytesRead));
+        break;
 
     case ELEMENT_TYPE_I8:
-        return TraceLong(startAddress, bytesRead);
+        IfFailGo(TraceLong(startAddress, bytesRead));
+        break;
 
     case ELEMENT_TYPE_U8:
-        return TraceULong(startAddress, bytesRead);
+        IfFailGo(TraceULong(startAddress, bytesRead));
+        break;
 
     case ELEMENT_TYPE_R4:
-        return TraceFloat(startAddress, bytesRead);
+        IfFailGo(TraceFloat(startAddress, bytesRead));
+        break;
 
     case ELEMENT_TYPE_R8:
-        return TraceDouble(startAddress, bytesRead);
+        IfFailGo(TraceDouble(startAddress, bytesRead));
+        break;
 
     case ELEMENT_TYPE_I:
-        return TraceIntPtr(startAddress, bytesRead);
+        IfFailGo(TraceIntPtr(startAddress, bytesRead));
+        break;
 
     case ELEMENT_TYPE_U:
-        return TraceUIntPtr(startAddress, bytesRead);
+        IfFailGo(TraceUIntPtr(startAddress, bytesRead));
+        break;
 
     #pragma endregion
     #pragma region ObjectID
 
     case ELEMENT_TYPE_STRING:
-        return TraceString(startAddress, bytesRead);
+        IfFailGo(TraceString(startAddress, bytesRead));
+        break;
 
     case ELEMENT_TYPE_CLASS:
     case ELEMENT_TYPE_OBJECT:
-        return TraceClass(startAddress, elementType, bytesRead);
+        IfFailGo(TraceClass(startAddress, elementType, bytesRead));
+        break;
 
     case ELEMENT_TYPE_ARRAY:
     case ELEMENT_TYPE_SZARRAY:
-        return TraceArray(startAddress, elementType, bytesRead);
+        IfFailGo(TraceArray(startAddress, elementType, bytesRead));
+        break;
 
     case ELEMENT_TYPE_GENERICINST:
-        return TraceGenericType(startAddress, pContext, bytesRead);
+        IfFailGo(TraceGenericType(startAddress, pContext, bytesRead));
+        break;
 
     #pragma endregion
 
     case ELEMENT_TYPE_VALUETYPE:
-        return TraceValueType(startAddress, pContext, bytesRead);
+        IfFailGo(TraceValueType(startAddress, pContext, bytesRead));
+        break;
 
     case ELEMENT_TYPE_VAR:
-        return TraceTypeGenericType(startAddress, pContext, bytesRead);
+        IfFailGo(TraceTypeGenericType(startAddress, pContext, bytesRead));
+        break;
 
     case ELEMENT_TYPE_MVAR:
-        return TraceMethodGenericType(startAddress, pContext, bytesRead);
+        IfFailGo(TraceMethodGenericType(startAddress, pContext, bytesRead));
+        break;
 
     case ELEMENT_TYPE_PTR:
-        return TracePtrType(startAddress, bytesRead);
+        IfFailGo(TracePtrType(startAddress, bytesRead));
+        break;
 
     case ELEMENT_TYPE_FNPTR:
-        return TraceFnPtr(startAddress, bytesRead);
+        IfFailGo(TraceFnPtr(startAddress, bytesRead));
+        break;
 
     case ELEMENT_TYPE_END:
     case ELEMENT_TYPE_VOID:
@@ -350,6 +539,10 @@ HRESULT CValueTracer::TraceValue(
         break;
     }
 
+ErrExit:
+    if (needDecrease)
+        m_TraceDepth--;
+
     return hr;
 }
 
@@ -361,6 +554,7 @@ HRESULT CValueTracer::TraceBool(_In_ UINT_PTR startAddress, _Out_opt_ ULONG& byt
 
     BOOL* pBool = (BOOL*)startAddress;
 
+    DebugBlob(L"Bool");
     Write((BYTE*)pBool, ELEMENT_TYPE_BOOLEAN, 1);
     bytesRead += sizeof(BOOL);
 
@@ -374,6 +568,7 @@ HRESULT CValueTracer::TraceChar(_In_ UINT_PTR startAddress, _Out_opt_ ULONG& byt
 
     WCHAR* pChar = (WCHAR*)startAddress;
 
+    DebugBlob(L"Char");
     Write(pChar, ELEMENT_TYPE_CHAR, 2);
     bytesRead += sizeof(WCHAR);
 
@@ -387,6 +582,7 @@ HRESULT CValueTracer::TraceSByte(_In_ UINT_PTR startAddress, _Out_opt_ ULONG& by
 
     signed char* pByte = (signed char*)startAddress;
 
+    DebugBlob(L"SByte");
     Write(pByte, ELEMENT_TYPE_I1, 1);
     bytesRead += sizeof(signed char);
 
@@ -400,6 +596,7 @@ HRESULT CValueTracer::TraceByte(_In_ UINT_PTR startAddress, _Out_opt_ ULONG& byt
 
     BYTE* pByte = (BYTE*)startAddress;
 
+    DebugBlob(L"Byte");
     Write(pByte, ELEMENT_TYPE_U1, 1);
     bytesRead += sizeof(BYTE);
 
@@ -413,6 +610,7 @@ HRESULT CValueTracer::TraceShort(_In_ UINT_PTR startAddress, _Out_opt_ ULONG& by
 
     SHORT* pShort = (SHORT*)startAddress;
 
+    DebugBlob(L"Short");
     Write(pShort, ELEMENT_TYPE_I2, 2);
     bytesRead += sizeof(SHORT);
 
@@ -426,6 +624,7 @@ HRESULT CValueTracer::TraceUShort(_In_ UINT_PTR startAddress, _Out_opt_ ULONG& b
 
     USHORT* pShort = (USHORT*)startAddress;
 
+    DebugBlob(L"UShort");
     Write(pShort, ELEMENT_TYPE_U2, 2);
     bytesRead += sizeof(USHORT);
 
@@ -439,6 +638,7 @@ HRESULT CValueTracer::TraceInt(_In_ UINT_PTR startAddress, _Out_opt_ ULONG& byte
 
     INT32* pInt = (INT32*)startAddress;
 
+    DebugBlob(L"Int");
     Write(pInt, ELEMENT_TYPE_I4, 4);
     bytesRead += sizeof(INT32);
 
@@ -452,6 +652,7 @@ HRESULT CValueTracer::TraceUInt(_In_ UINT_PTR startAddress, _Out_opt_ ULONG& byt
 
     UINT32* pInt = (UINT32*)startAddress;
 
+    DebugBlob(L"UInt");
     Write(pInt, ELEMENT_TYPE_U4, 4);
     bytesRead += sizeof(UINT32);
 
@@ -465,6 +666,7 @@ HRESULT CValueTracer::TraceLong(_In_ UINT_PTR startAddress, _Out_opt_ ULONG& byt
 
     INT64* pInt = (INT64*)startAddress;
 
+    DebugBlob(L"Long");
     Write(pInt, ELEMENT_TYPE_I8, 8);
     bytesRead += sizeof(INT64);
 
@@ -478,6 +680,7 @@ HRESULT CValueTracer::TraceULong(_In_ UINT_PTR startAddress, _Out_opt_ ULONG& by
 
     UINT64* pInt = (UINT64*)startAddress;
 
+    DebugBlob(L"ULong");
     Write(pInt, ELEMENT_TYPE_U8, 8);
     bytesRead += sizeof(UINT64);
 
@@ -491,6 +694,7 @@ HRESULT CValueTracer::TraceFloat(_In_ UINT_PTR startAddress, _Out_opt_ ULONG& by
 
     FLOAT* pFloat = (FLOAT*)startAddress;
 
+    DebugBlob(L"Float");
     Write(pFloat, ELEMENT_TYPE_R4, 4);
     bytesRead += sizeof(FLOAT);
 
@@ -504,6 +708,7 @@ HRESULT CValueTracer::TraceDouble(_In_ UINT_PTR startAddress, _Out_opt_ ULONG& b
 
     DOUBLE* pDouble = (DOUBLE*)startAddress;
 
+    DebugBlob(L"Double");
     Write(pDouble, ELEMENT_TYPE_R8, 8);
     bytesRead += sizeof(DOUBLE);
 
@@ -517,6 +722,7 @@ HRESULT CValueTracer::TraceIntPtr(_In_ UINT_PTR startAddress, _Out_opt_ ULONG& b
 
     __int64* pPtr = (__int64*)startAddress;
 
+    DebugBlob(L"IntPtr");
     Write(pPtr, ELEMENT_TYPE_I, 8);
     bytesRead += sizeof(INT_PTR);
 
@@ -530,6 +736,7 @@ HRESULT CValueTracer::TraceUIntPtr(_In_ UINT_PTR startAddress, _Out_opt_ ULONG& 
 
     __int64* pPtr = (__int64*)startAddress;
 
+    DebugBlob(L"UIntPtr");
     Write(pPtr, ELEMENT_TYPE_U, 8);
     bytesRead += sizeof(UINT_PTR);
 
@@ -549,10 +756,11 @@ HRESULT CValueTracer::TraceString(_In_ UINT_PTR startAddress, _Out_opt_ ULONG& b
 
     ObjectID objectId = *(ObjectID*)startAddress;
 
-    if (objectId == NULL)
+    if (IsInvalidObject(objectId))
     {
         ULONG size = 0;
 
+        DebugBlob(L"Null String");
         WriteType(ELEMENT_TYPE_STRING);
         WriteValue(&size, 4);
 
@@ -563,6 +771,7 @@ HRESULT CValueTracer::TraceString(_In_ UINT_PTR startAddress, _Out_opt_ ULONG& b
     length = *(ULONG*)((BYTE*)objectId + s_StringLengthOffset) + 1;
     buffer = (LPWSTR)((BYTE*)objectId + s_StringBufferOffset);
 
+    DebugBlob(L"String");
     WriteType(ELEMENT_TYPE_STRING);
     WriteValue(&length, 4);
     WriteValue(buffer, (length - 1) * sizeof(WCHAR));
@@ -581,17 +790,18 @@ HRESULT CValueTracer::TraceClass(_In_ UINT_PTR startAddress, _In_ CorElementType
 
     HRESULT hr = S_OK;
     ULONG32 boxedValueOffset;
-    ClassID classId;
+    ClassID classId = 0;
     IClassInfo* info = nullptr;
     ULONG innerBytesRead = 0;
 
     ObjectID objectId = *(ObjectID*)startAddress;
 
-    if (objectId == NULL)
+    if (IsInvalidObject(objectId))
     {
         //It's a null object
         ULONG size = 0;
 
+        DebugBlob(L"Null Class");
         WriteType(ELEMENT_TYPE_CLASS);
         WriteValue(&size, 4);
 
@@ -600,7 +810,6 @@ HRESULT CValueTracer::TraceClass(_In_ UINT_PTR startAddress, _In_ CorElementType
     }
 
     IfFailGo(g_pProfiler->m_pInfo->GetClassFromObject(objectId, &classId));
-
     IfFailGo(GetClassInfoFromClassId(classId, &info));
 
     if (info->m_InfoType == ClassInfoType::Array)
@@ -646,13 +855,6 @@ HRESULT CValueTracer::TraceClass(_In_ UINT_PTR startAddress, _In_ CorElementType
     bytesRead += sizeof(void*);
 
 ErrExit:
-    return hr;
-}
-
-HRESULT CValueTracer::TraceArray(_In_ UINT_PTR startAddress, _Out_opt_ ULONG& bytesRead)
-{
-    HRESULT hr = S_OK;
-
     return hr;
 }
 
@@ -707,9 +909,17 @@ HRESULT CValueTracer::TraceArray(_In_ UINT_PTR startAddress, _In_ CorElementType
     ClassID classId;
     CArrayInfo* pArrayInfo;
 
-    if (objectId == NULL)
+    if (IsInvalidObject(objectId))
     {
+        DebugBlob(L"Null Array");
         WriteType(type);
+
+        if (type == ELEMENT_TYPE_ARRAY)
+        {
+            ULONG rank = 0;
+            WriteValue(&rank, 4);
+        }
+
         WriteType(ELEMENT_TYPE_END);
 
         bytesRead += sizeof(void*);
@@ -742,6 +952,7 @@ HRESULT CValueTracer::TraceArrayInternal(
 
     IfFailGo(g_pProfiler->m_pInfo->GetArrayObjectInfo(objectId, pArrayInfo->m_Rank, dimensionSizes, dimensionLowerBounds, &pData));
 
+    DebugBlob(L"Array Type");
     if (pArrayInfo->m_Rank == 1)
         WriteType(ELEMENT_TYPE_SZARRAY);
     else
@@ -750,12 +961,14 @@ HRESULT CValueTracer::TraceArrayInternal(
         WriteValue(&pArrayInfo->m_Rank, 4);
     }
 
+    DebugBlob(L"Array Elm Type");
     WriteType(pArrayInfo->m_CorElementType);
 
     for(ULONG i = 0; i < pArrayInfo->m_Rank; i++)
     {
         arrayLength = dimensionSizes[i];
 
+        DebugBlob(L"Array Length");
         WriteValue(&arrayLength, 4);
 
         if (pArrayInfo->m_pElementType->m_InfoType == ClassInfoType::StandardType)
@@ -889,7 +1102,7 @@ HRESULT CValueTracer::GetModuleInfo(ModuleID moduleId, CModuleInfo** ppModuleInf
 
     if (match == g_pProfiler->m_ModuleInfoMap.end())
     {
-        hr = E_FAIL;
+        hr = PROFILER_E_MISSING_MODULE;
         goto ErrExit;
     }
 
@@ -1141,6 +1354,13 @@ HRESULT CValueTracer::GetArrayClassIdSlow(
 
     CLock classLock(&g_pProfiler->m_ClassMutex, true);
 
+#if _DEBUG
+    //For debugging which class we're working with here
+    IClassInfo* elmClassInfo;
+
+    GetClassInfoFromClassId(elmClassId, &elmClassInfo, false);
+#endif
+
     for (auto& v : g_pProfiler->m_ClassInfoMap)
     {
         if (v.second->m_InfoType == ClassInfoType::Class)
@@ -1158,14 +1378,9 @@ HRESULT CValueTracer::GetArrayClassIdSlow(
                 {
                     CArrayInfo* curArr = (CArrayInfo*)genericTypeArg;
 
-                    IClassInfo* temp;
-
-                    GetClassInfoFromClassId(elmClassId, &temp, false);
-
                     if (curArr->m_pElementType->m_ClassID == elmClassId && IsArrayMatch(arr, curArr))
                     {
                         *classId = curArr->m_ClassID;
-                        dprintf(L"matched array with classId %llX\n", curArr->m_ClassID);
                         return S_OK;
                     }
                 }
@@ -1173,7 +1388,7 @@ HRESULT CValueTracer::GetArrayClassIdSlow(
         }
     }
 
-    hr = E_FAIL;
+    hr = PROFILER_E_UNKNOWN_GENERIC_ARRAY;
 
 ErrExit:
     return hr;
@@ -1276,11 +1491,12 @@ HRESULT CValueTracer::TraceGenericTypeInternal(
             IfFailGo(TraceClassOrStruct(pClassInfo, startAddress, ELEMENT_TYPE_VALUETYPE, bytesRead));
         else
         {
-            if (objectId == NULL)
+            if (IsInvalidObject(objectId))
             {
                 //It's a null object
                 ULONG size = 0;
 
+                DebugBlob(L"Null Class");
                 WriteType(ELEMENT_TYPE_CLASS);
                 WriteValue(&size, 4);
 
@@ -1303,8 +1519,9 @@ HRESULT CValueTracer::TraceGenericTypeInternal(
     {
         CArrayInfo* arr = (CArrayInfo*)info;
 
-        if (objectId == NULL)
+        if (IsInvalidObject(objectId))
         {
+            DebugBlob(L"Null Array");
             if (arr->m_Rank == 1)
                 WriteType(ELEMENT_TYPE_SZARRAY);
             else
@@ -1337,6 +1554,10 @@ HRESULT CValueTracer::TracePtrType(_In_ UINT_PTR startAddress, _Out_opt_ ULONG& 
 {
     HRESULT hr = S_OK;
 
+    DebugBlob("Ptr");
+    WriteType(ELEMENT_TYPE_PTR);
+
+ErrExit:
     return hr;
 }
 
@@ -1344,6 +1565,10 @@ HRESULT CValueTracer::TraceFnPtr(_In_ UINT_PTR startAddress, _Out_opt_ ULONG& by
 {
     HRESULT hr = S_OK;
 
+    DebugBlob("FnPtr");
+    WriteType(ELEMENT_TYPE_FNPTR);
+
+ErrExit:
     return hr;
 }
 
@@ -1354,25 +1579,30 @@ HRESULT CValueTracer::TraceClassOrStruct(CClassInfo* pClassInfo, ObjectID object
     long genericIndex = -1;
     ULONG innerBytesRead = 0;
 
+    DebugBlob(L"Class Or Struct Type");
     WriteType(elementType);
 
     nameLength = (ULONG)wcslen(pClassInfo->m_szName) + 1;
 
+    DebugBlob(L"Class Or Struct Name");
     WriteValue(&nameLength, 4);
     WriteValue(pClassInfo->m_szName, (nameLength - 1) * sizeof(WCHAR));
     WriteValue(L"\0", sizeof(WCHAR));
 
+    DebugBlobCtx(L"Class Or Struct Num Fields", pClassInfo->m_szName);
     WriteValue(&pClassInfo->m_NumFields, 4);
 
     for (ULONG i = 0; i < pClassInfo->m_NumFields; i++)
     {
+        DebugBlobCtx(L"\n*** TRACE FIELD ***", pClassInfo->m_szName);
+
         COR_FIELD_OFFSET offset = pClassInfo->m_FieldOffsets[i];
         CSigField* field = pClassInfo->m_Fields[i];
 
         CorElementType type = field->m_pType->m_Type;
         UINT_PTR fieldAddress = objectId + offset.ulOffset;
 
-        GetGenericInfo(field->m_pType, &type, &genericIndex);
+        GetGenericInfo(field->m_pType, &genericIndex);
 
         TraceValueContext ctx = MakeTraceValueContext(
             GetTypeToken(field->m_pType),
@@ -1381,6 +1611,7 @@ HRESULT CValueTracer::TraceClassOrStruct(CClassInfo* pClassInfo, ObjectID object
             pClassInfo,
             (CSigGenericType*)field->m_pType
         );
+
         IfFailGo(TraceValue(
             fieldAddress,
             field->m_pType->m_Type,
@@ -1486,7 +1717,6 @@ mdToken CValueTracer::GetTypeToken(CSigType* pType)
 
 void CValueTracer::GetGenericInfo(
     CSigType* pType,
-    CorElementType* type,
     long* genericIndex)
 {
     switch (pType->m_Type)
@@ -1499,4 +1729,51 @@ void CValueTracer::GetGenericInfo(
         *genericIndex = ((CSigMethodGenericArgType*)pType)->m_Index;
         break;
     }
+}
+
+BOOL CValueTracer::IsInvalidObject(ObjectID objectId)
+{
+    if (objectId == NULL)
+        return TRUE;
+
+#if defined(_X86_)
+    if (objectId == (ULONG)-1)
+        return TRUE;
+#elif defined(_AMD64_)
+    if (((objectId & 0xffffffff00000000) >> 32) == (ULONG)-1)
+        return TRUE;
+#endif
+
+    //Cannot use destructors in functions that also use SEH
+    g_pProfiler->m_ObjectIdBlacklistMutex.lock();
+
+    BOOL invalid = FALSE;
+
+    //find() returns an object that needs to be destructed, which cannot be called within a function that uses SEH
+    if (g_pProfiler->IsObjectIdBlacklisted(objectId))
+    {
+        invalid = TRUE;
+        goto Exit;
+    }
+
+    __try
+    {
+        /* PowerShell's LanguagePrimitives+ConversionTypePair type had an illegal ObjectID on the "to" field (its two fields "from" and "to" are both System.Type).
+         * SOS confirmed it was illegal as well, so evidently we can't assume all ObjectIDs are valid. We can't simply __try/__except around calling GetClassFromObject(),
+         * because for some reason our __except handler won't catch the exception if it occurs in Object::GetGCSafeTypeHandleIfPossible, so we have to validate the pointer
+         * ourselves. The .NET Framework has mechanisms available to test whether a given ObjectID is valid, however they rely on the debugging APIs, and we probably
+         * shouldn't be loading mscordacwks.dll into the target process just so we can play around with ISOSDacInterface (ISOSDacInterface::GetObjectData() looks like
+         * it would do the trick) */
+        UINT_PTR val = *(UINT_PTR*)objectId;
+    }
+    __except (GetExceptionCode() == EXCEPTION_ACCESS_VIOLATION ? EXCEPTION_EXECUTE_HANDLER : EXCEPTION_CONTINUE_SEARCH)
+    {
+        invalid = TRUE;
+        g_pProfiler->m_ObjectIdBlacklist[objectId] = 1;
+    }
+
+Exit:
+    g_pProfiler->m_ObjectIdBlacklistMutex.unlock();
+
+    return invalid;
 }

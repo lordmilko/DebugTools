@@ -14,7 +14,20 @@
         public int Property1 { get; set; }
     }
 
-    class GenericType<T>
+    interface IInterface
+    {
+    }
+
+    class ImplInterface : IInterface
+    {
+    }
+
+    class GenericClassType<T>
+    {
+        public T field1;
+    }
+
+    struct GenericValueTypeType<T>
     {
         public T field1;
     }

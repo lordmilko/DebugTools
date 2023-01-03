@@ -49,7 +49,7 @@ HRESULT CTypeRefResolver::Resolve(
         IfFailGo(ResolveAssemblyRef(tkResolutionScope, moduleId, typeDef));
     }
     else
-        hr = E_FAIL;
+        hr = PROFILER_E_UNKNOWN_RESOLUTION_SCOPE;
 
 ErrExit:
     return hr;

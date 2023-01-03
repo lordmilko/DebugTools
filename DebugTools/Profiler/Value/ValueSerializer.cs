@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Text;
 using ClrDebug;
 
 namespace DebugTools.Profiler
@@ -9,26 +10,43 @@ namespace DebugTools.Profiler
     {
         private BinaryReader reader;
 
-        public uint NumParameters { get; }
-
-        public List<object> Parameters { get; }
-
         private byte[] data;
+
+        public static List<object> FromParameters(byte[] data)
+        {
+            var serializer = new ValueSerializer(data);
+
+            var numParameters = serializer.reader.ReadUInt32();
+
+            var parameters = new List<object>();
+
+            for (var i = 0; i < numParameters; i++)
+            {
+                var value = serializer.ReadValue();
+
+                parameters.Add(value);
+
+                if (value == MaxTraceDepth.Instance)
+                    break;
+            }
+
+            return parameters;
+        }
+
+        public static object FromReturnValue(byte[] data)
+        {
+            var serializer = new ValueSerializer(data);
+
+            var value = serializer.ReadValue();
+
+            return value;
+        }
 
         public ValueSerializer(byte[] data)
         {
             this.data = data;
 
-            reader = new BinaryReader(new MemoryStream(data));
-
-            NumParameters = reader.ReadUInt32();
-
-            var parameters = new List<object>();
-
-            for (var i = 0; i < NumParameters; i++)
-                parameters.Add(ReadValue());
-
-            Parameters = parameters;
+            reader = new BinaryReader(new MemoryStream(data), Encoding.Unicode);
         }
 
         internal object ReadValue()
@@ -37,6 +55,9 @@ namespace DebugTools.Profiler
 
             switch (type)
             {
+                case CorElementType.Void:
+                    return VoidValue.Instance;
+
                 case CorElementType.Boolean:
                     return new BoolValue(reader);
 
@@ -94,6 +115,27 @@ namespace DebugTools.Profiler
 
                 case CorElementType.ValueType:
                     return new ValueType(reader, this);
+
+                //We reached the max trace depth. Any values after this are missing
+                case CorElementType.End:
+                {
+                    var reason = (CorElementType)reader.ReadByte();
+
+                    switch (reason)
+                    {
+                        case CorElementType.End:
+                            return MaxTraceDepth.Instance;
+
+                        case CorElementType.Class:
+                            return RecursionValue.ClassInstance;
+
+                        case CorElementType.GenericInst:
+                            return RecursionValue.GenericInstInstance;
+
+                        default:
+                            throw new NotImplementedException($"Don't know how to handle end reason of type '{reason}'.");
+                    }
+                }
 
                 default:
                     throw new NotImplementedException($"Don't know how to handle element of type '{type}'.");

@@ -60,11 +60,11 @@ namespace DebugTools.Profiler
             parser.MethodInfoDetailed += Parser_MethodInfoDetailed;
 
             parser.CallEnter += Parser_CallEnter;
-            parser.CallExit += Parser_CallExit;
+            parser.CallLeave += Parser_CallLeave;
             parser.Tailcall += Parser_Tailcall;
 
             parser.CallEnterDetailed += Parser_CallEnterDetailed;
-            parser.CallExitDetailed += Parser_CallExitDetailed;
+            parser.CallLeaveDetailed += Parser_CallLeaveDetailed;
             parser.TailcallDetailed += Parser_TailcallDetailed;
 
             parser.ThreadName += v =>
@@ -102,16 +102,19 @@ namespace DebugTools.Profiler
         #endregion
         #region CallArgs
 
-        private void Parser_CallEnter(CallArgs args) => CallEnter(args, (t, v, m) => t.AddMethod(v, m));
+        private void Parser_CallEnter(CallArgs args) =>
+            CallEnterCommon(args, (t, v, m) => t.Enter(v, m));
 
-        private void Parser_CallExit(CallArgs v)
+        private void Parser_CallLeave(CallArgs v)
         {
             ProcessStopping(v.TimeStamp);
 
             if (collectStackTrace)
             {
+                Validate(v);
+
                 if (ThreadCache.TryGetValue(v.ThreadID, out var threadStack))
-                    threadStack.EndCall();
+                    threadStack.Leave(v, GetMethodSafe(v.FunctionID));
             }
         }
 
@@ -121,17 +124,21 @@ namespace DebugTools.Profiler
 
             if (collectStackTrace)
             {
+                Validate(v);
+
                 if (ThreadCache.TryGetValue(v.ThreadID, out var threadStack))
                     threadStack.Tailcall(v, GetMethodSafe(v.FunctionID));
             }
         }
 
-        private void CallEnter<T>(T args, Action<ThreadStack, T, MethodInfo> addMethod) where T : ICallArgs
+        private void CallEnterCommon<T>(T args, Action<ThreadStack, T, MethodInfo> addMethod) where T : ICallArgs
         {
             ProcessStopping(args.TimeStamp);
 
             if (collectStackTrace)
             {
+                Validate(args);
+
                 bool setName = false;
 
                 if (!ThreadCache.TryGetValue(args.ThreadID, out var threadStack))
@@ -153,24 +160,23 @@ namespace DebugTools.Profiler
         #endregion
         #region CallDetailedArgs
 
-        private void Parser_CallEnterDetailed(CallDetailedArgs args) => CallEnter(args, (t, v, m) =>
+        private void Parser_CallEnterDetailed(CallDetailedArgs args) => CallEnterCommon(args, (t, v, m) =>
         {
-            if ((uint) args.HRESULT >= 0x80041001 && (uint) args.HRESULT <= 0x80042000)
-                throw new ProfilerException((PROFILER_HRESULT) (uint) args.HRESULT);
+            Validate(v);
 
-            args.HRESULT.ThrowOnNotOK();
-
-            t.AddMethodDetailed(v, m);
+            t.EnterDetailed(v, m);
         });
 
-        private void Parser_CallExitDetailed(CallDetailedArgs args)
+        private void Parser_CallLeaveDetailed(CallDetailedArgs args)
         {
             ProcessStopping(args.TimeStamp);
 
             if (collectStackTrace)
             {
+                Validate(args);
+
                 if (ThreadCache.TryGetValue(args.ThreadID, out var threadStack))
-                    threadStack.EndCallDetailed(args);
+                    threadStack.LeaveDetailed(args, GetMethodSafe(args.FunctionID));
             }
         }
 
@@ -180,9 +186,25 @@ namespace DebugTools.Profiler
 
             if (collectStackTrace)
             {
+                Validate(args);
+
                 if (ThreadCache.TryGetValue(args.ThreadID, out var threadStack))
                     threadStack.TailcallDetailed(args, GetMethodSafe(args.FunctionID));
             }
+        }
+
+        private void Validate(ICallArgs args)
+        {
+            if ((uint) args.HRESULT == (uint) PROFILER_HRESULT.PROFILER_E_UNKNOWN_FRAME)
+                throw new ProfilerException("Profiler encountered an unexpected function while processing a Leave/Tailcall. Current stack frame is unknown, profiler cannot continue.", (PROFILER_HRESULT) args.HRESULT);
+
+            if ((uint) args.HRESULT >= 0x80041001 && (uint) args.HRESULT <= 0x80042000)
+            {
+                return;
+                //throw new ProfilerException((PROFILER_HRESULT)(uint)args.HRESULT);
+            }
+
+            args.HRESULT.ThrowOnNotOK();
         }
 
         #endregion
@@ -212,11 +234,12 @@ namespace DebugTools.Profiler
             return value;
         }
 
-        public void Start(CancellationToken cancellationToken, string processName, ProfilerEnvFlags[] flags, bool traceStart)
+        public void Start(CancellationToken cancellationToken, string processName, ProfilerEnvFlags[] flags, bool traceStart, int traceDepth)
         {
             collectStackTrace = traceStart;
 
             var pipeCTS = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+            traceCTS = new CancellationTokenSource();
 
             Process = ProfilerInfo.CreateProcess(processName, p =>
             {
@@ -256,12 +279,11 @@ namespace DebugTools.Profiler
                         }
                     }
                 };
-            }, flags);
+            }, flags, traceDepth);
 
             pipe = new NamedPipeClientStream(".", $"DebugToolsProfilerPipe_{Process.Id}", PipeDirection.Out);
 
             //This will wait for the pipe to be created if it doesn't exist yet
-            //wait async, with a cancellation token
             try
             {
                 pipe.ConnectAsync(10000, pipeCTS.Token).GetAwaiter().GetResult();
@@ -296,12 +318,15 @@ namespace DebugTools.Profiler
         {
             try
             {
+                threadProcException = null;
                 TraceEventSession.Source.Process();
             }
             catch(Exception ex)
             {
                 threadProcException = ex;
                 TraceEventSession.Dispose();
+                userCTS?.Cancel();
+                traceCTS?.Cancel();
             }
         }
 
@@ -332,8 +357,6 @@ namespace DebugTools.Profiler
         {
             this.userCTS = userCTS;
 
-            traceCTS = new CancellationTokenSource();
-
             collectStackTrace = true;
 
             userCTS.Token.Register(() =>
@@ -342,6 +365,9 @@ namespace DebugTools.Profiler
                 stopping = true;
                 Console.WriteLine("Stopping...");
             });
+
+            if (traceCTS.IsCancellationRequested)
+                userCTS.Cancel();
 
             userCTS.Token.WaitHandle.WaitOne();
 

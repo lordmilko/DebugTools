@@ -7,7 +7,14 @@
 // ReSharper disable once CppNonInlineFunctionDefinitionInHeaderFile
 extern "C" void STDMETHODCALLTYPE LeaveStub(FunctionIDOrClientID functionId)
 {
-    EventWriteCallExitEvent(functionId.functionID);
+    HRESULT hr = S_OK;
+
+    LEAVE_FUNCTION(functionId);
+
+    ValidateETW(EventWriteCallLeaveEvent(functionId.functionID, g_Sequence, hr));
+
+ErrExit:
+    return;
 }
 
 #ifdef _X86_

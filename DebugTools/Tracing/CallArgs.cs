@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Diagnostics;
 using System.Text;
+using ClrDebug;
 using Microsoft.Diagnostics.Tracing;
 
 namespace DebugTools.Tracing
@@ -11,6 +12,10 @@ namespace DebugTools.Tracing
     public sealed class CallArgs : TraceEvent, ICallArgs
     {
         public long FunctionID => GetInt64At(0);
+
+        public long Sequence => GetInt64At(8);
+
+        public HRESULT HRESULT => (HRESULT)GetInt32At(12);
 
         private Action<CallArgs> action;
 
@@ -31,7 +36,7 @@ namespace DebugTools.Tracing
             get
             {
                 if (payloadNames == null)
-                    payloadNames = new[] { nameof(FunctionID) };
+                    payloadNames = new[] { nameof(FunctionID), nameof(Sequence), nameof(HRESULT) };
 
                 return payloadNames;
             }
@@ -44,6 +49,12 @@ namespace DebugTools.Tracing
                 case 0:
                     return FunctionID;
 
+                case 1:
+                    return Sequence;
+
+                case 2:
+                    return HRESULT;
+
                 default:
                     Debug.Assert(false, $"Unknown payload field '{index}'");
                     return null;
@@ -54,6 +65,8 @@ namespace DebugTools.Tracing
         {
             Prefix(sb);
             XmlAttrib(sb, nameof(FunctionID), FunctionID);
+            XmlAttrib(sb, nameof(Sequence), Sequence);
+            XmlAttrib(sb, nameof(HRESULT), HRESULT);
             sb.Append("/>");
             return sb;
         }

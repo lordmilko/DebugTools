@@ -17,9 +17,11 @@ namespace DebugTools.Tracing
 
             public const int MethodInfo = 7;
             public const int MethodInfoDetailed = 8;
+
             public const int ThreadCreate = 9;
             public const int ThreadDestroy = 10;
             public const int ThreadName = 11;
+
             public const int Shutdown = 12;
         }
 
@@ -43,9 +45,9 @@ namespace DebugTools.Tracing
             remove => source.UnregisterEventTemplate(value, EventId.CallEnter, ProviderGuid);
         }
 
-        public event Action<CallArgs> CallExit
+        public event Action<CallArgs> CallLeave
         {
-            add => source.RegisterEventTemplate(CallExitTemplate(value));
+            add => source.RegisterEventTemplate(CallLeaveTemplate(value));
             remove => source.UnregisterEventTemplate(value, EventId.CallExit, ProviderGuid);
         }
 
@@ -61,9 +63,9 @@ namespace DebugTools.Tracing
             remove => source.UnregisterEventTemplate(value, EventId.CallEnterDetailed, ProviderGuid);
         }
 
-        public event Action<CallDetailedArgs> CallExitDetailed
+        public event Action<CallDetailedArgs> CallLeaveDetailed
         {
-            add => source.RegisterEventTemplate(CallExitDetailedTemplate(value));
+            add => source.RegisterEventTemplate(CallLeaveDetailedTemplate(value));
             remove => source.UnregisterEventTemplate(value, EventId.CallExitDetailed, ProviderGuid);
         }
 
@@ -121,13 +123,23 @@ namespace DebugTools.Tracing
         {
             if (events == null)
             {
-                var arr = new TraceEvent[5];
+                var arr = new TraceEvent[12];
                 arr[0] = CallEnterTemplate(null);
-                arr[1] = CallExitTemplate(null);
+                arr[1] = CallLeaveTemplate(null);
                 arr[2] = TailcallTemplate(null);
-                arr[3] = MethodInfoTemplate(null);
-                arr[4] = ThreadCreateTemplate(null);
-                arr[5] = ThreadDestroyTemplate(null);
+
+                arr[3] = CallEnterDetailedTemplate(null);
+                arr[4] = CallLeaveDetailedTemplate(null);
+                arr[5] = TailcallDetailedTemplate(null);
+
+                arr[6] = MethodInfoTemplate(null);
+                arr[7] = MethodInfoDetailedTemplate(null);
+
+                arr[8] = ThreadCreateTemplate(null);
+                arr[9] = ThreadDestroyTemplate(null);
+                arr[10] = ThreadNameTemplate(null);
+
+                arr[11] = ShutdownTemplate(null);
                 events = arr;
             }
 
@@ -142,13 +154,13 @@ namespace DebugTools.Tracing
 
         private static CallArgs CallEnterTemplate(Action<CallArgs> action) => new CallArgs(action, EventId.CallEnter, 0, null, Guid.Empty, 0, null, ProviderGuid, ProviderName);
 
-        private static CallArgs CallExitTemplate(Action<CallArgs> action) => new CallArgs(action, EventId.CallExit, 0, null, Guid.Empty, 0, null, ProviderGuid, ProviderName);
+        private static CallArgs CallLeaveTemplate(Action<CallArgs> action) => new CallArgs(action, EventId.CallExit, 0, null, Guid.Empty, 0, null, ProviderGuid, ProviderName);
 
         private static CallArgs TailcallTemplate(Action<CallArgs> action) => new CallArgs(action, EventId.Tailcall, 0, null, Guid.Empty, 0, null, ProviderGuid, ProviderName);
 
         private static CallDetailedArgs CallEnterDetailedTemplate(Action<CallDetailedArgs> action) => new CallDetailedArgs(action, EventId.CallEnterDetailed, 0, null, Guid.Empty, 0, null, ProviderGuid, ProviderName);
 
-        private static CallDetailedArgs CallExitDetailedTemplate(Action<CallDetailedArgs> action) => new CallDetailedArgs(action, EventId.CallExitDetailed, 0, null, Guid.Empty, 0, null, ProviderGuid, ProviderName);
+        private static CallDetailedArgs CallLeaveDetailedTemplate(Action<CallDetailedArgs> action) => new CallDetailedArgs(action, EventId.CallExitDetailed, 0, null, Guid.Empty, 0, null, ProviderGuid, ProviderName);
 
         private static CallDetailedArgs TailcallDetailedTemplate(Action<CallDetailedArgs> action) => new CallDetailedArgs(action, EventId.TailcallDetailed, 0, null, Guid.Empty, 0, null, ProviderGuid, ProviderName);
 

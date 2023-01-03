@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using Profiler.Tests;
 
@@ -137,6 +138,10 @@ namespace DebugTools.TestHost
                     instance.InterfaceArg(new ImplInterface());
                     break;
 
+                case ValueTestType.GenericWithObjectTypeArg:
+                    instance.GenericWithObjectTypeArg(new GenericValueTypeType<object>{field1 = new object()});
+                    break;
+
                 case ValueTestType.GenericClassArg:
                     instance.GenericClassArg(new GenericClassType<Class1WithField>
                     {
@@ -144,6 +149,14 @@ namespace DebugTools.TestHost
                         {
                             field1 = 1
                         }
+                    });
+                    break;
+
+                case ValueTestType.GenericTwoTypeArgs:
+                    instance.GenericTwoTypeArgs(new Dictionary<string, int>
+                    {
+                        { "first", 1 },
+                        { "second", 2 }
                     });
                     break;
 
@@ -255,6 +268,65 @@ namespace DebugTools.TestHost
                             {
                                 field1 = 2
                             }
+                        }
+                    });
+                    break;
+
+                case ValueTestType.Generic_MethodVar_ElementTypeGenericValueType_SimpleArg:
+                    instance.Generic_MethodVar_ElementTypeGenericValueType_SimpleArg(new GenericValueTypeType<int>
+                    {
+                        field1 = 1
+                    });
+                    break;
+
+                case ValueTestType.Generic_MethodVar_ElementTypeNullablePrimitive:
+                    instance.Generic_MethodVar_ElementTypeNullablePrimitive(1);
+                    break;
+
+                case ValueTestType.Generic_MethodVar_ElementTypeNullableValueType:
+                    instance.Generic_MethodVar_ElementTypeNullableValueType(new DateTime(2022, 8, 1, 3, 4, 5));
+                    break;
+
+                case ValueTestType.Generic_MethodVar_ElementTypeGenericValueType_SZArrayValueArg:
+                    instance.Generic_MethodVar_ElementTypeGenericValueType_SZArrayValueArg(new[]
+                    {
+                        new GenericValueTypeType<Struct1WithField>{field1 = new Struct1WithField{field1 = 1}},
+                        new GenericValueTypeType<Struct1WithField>{field1 = new Struct1WithField{field1 = 2}}
+                    });
+                    break;
+
+                case ValueTestType.Generic_MethodVar_ElementTypeGenericValueType_SZArrayArg:
+                    instance.Generic_MethodVar_ElementTypeGenericValueType_SZArrayArg(new GenericValueTypeType<Struct1WithField[]>
+                    {
+                        field1 = new[]
+                        {
+                            new Struct1WithField{field1 = 1},
+                            new Struct1WithField{field1 = 2}
+                        }
+                    });
+                    break;
+
+                case ValueTestType.Generic_MethodVar_ElementTypeGenericValueType_MultiArrayValueArg:
+                    instance.Generic_MethodVar_ElementTypeGenericValueType_MultiArrayValueArg(new[,]
+                    {
+                        {
+                            new GenericValueTypeType<Struct1WithField>{field1 = new Struct1WithField{field1 = 1}},
+                            new GenericValueTypeType<Struct1WithField>{field1 = new Struct1WithField{field1 = 2}}
+                        },
+                        {
+                            new GenericValueTypeType<Struct1WithField>{field1 = new Struct1WithField{field1 = 3}},
+                            new GenericValueTypeType<Struct1WithField>{field1 = new Struct1WithField{field1 = 4}}
+                        }
+                    });
+                    break;
+
+                case ValueTestType.Generic_MethodVar_ElementTypeGenericValueType_MultiArrayArg:
+                    instance.Generic_MethodVar_ElementTypeGenericValueType_MultiArrayArg(new GenericValueTypeType<Struct1WithField[,]>
+                    {
+                        field1 = new[,]
+                        {
+                            { new Struct1WithField{field1 = 1}, new Struct1WithField{field1 = 2} },
+                            { new Struct1WithField{field1 = 3}, new Struct1WithField{field1 = 4} }
                         }
                     });
                     break;
