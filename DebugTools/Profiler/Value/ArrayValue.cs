@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.IO;
+using System.Text;
 using ClrDebug;
 
 namespace DebugTools.Profiler
@@ -49,6 +50,38 @@ namespace DebugTools.Profiler
                 Lengths = lengths.ToArray();
                 Value = values.ToArray();
             }
+        }
+
+        public override string ToString()
+        {
+            if (Value == null)
+                return "null";
+
+            var builder = new StringBuilder();
+
+            builder.Append("{");
+
+            for (var i = 0; i < Value.Length; i++)
+            {
+                builder.Append("{");
+
+                for (var j = 0; j < Value[j].Length; j++)
+                {
+                    builder.Append(Value[j]);
+
+                    if (j < Value[j].Length)
+                        builder.Append(", ");
+                }
+
+                builder.Append("}");
+
+                if (i < Value.Length)
+                    builder.Append(", ");
+            }
+
+            builder.Append("}");
+
+            return builder.ToString();
         }
     }
 }

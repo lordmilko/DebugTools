@@ -11,5 +11,10 @@ namespace DebugTools.Profiler
         {
             Value = new IntPtr(reader.ReadInt64());
         }
+
+        public override string ToString()
+        {
+            return Value.ToString();
+        }
     }
 }

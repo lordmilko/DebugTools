@@ -1,4 +1,5 @@
-﻿using System.Collections.Concurrent;
+﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Management.Automation;
@@ -7,7 +8,7 @@ using DebugTools.Profiler;
 namespace DebugTools.PowerShell.Cmdlets
 {
     [Cmdlet(VerbsCommon.Find, "DbgProfilerStackFrame")]
-    public class FindDbgProfilerStackFrame : StackFrameCmdlet
+    public class FindDbgProfilerStackFrame : StackFrameCmdlet, IDisposable
     {
         [Parameter(Mandatory = false)]
         public SwitchParameter Unique { get; set; }
@@ -29,6 +30,8 @@ namespace DebugTools.PowerShell.Cmdlets
         public void Begin() => BeginProcessing();
         public void Process() => ProcessRecord();
         public List<IFrame> Frames => includes.Keys.ToList();
+
+        public HashSet<object> MatchedValues { get; } = new HashSet<object>();
 
         protected override void BeginProcessing()
         {
@@ -105,7 +108,12 @@ namespace DebugTools.PowerShell.Cmdlets
                     if (parameter is StringValue s)
                     {
                         if (s.Value == StringValue)
+                        {
+                            MatchedValues.Add(s);
+                            MethodFrameDetailed.ParameterCache.Add(d, parameters);
+
                             return true;
+                        }
                     }
                 }
 
@@ -113,7 +121,13 @@ namespace DebugTools.PowerShell.Cmdlets
 
                 if (returnValue is StringValue sr)
                 {
-                    return sr.Value == StringValue;
+                    if (sr.Value == StringValue)
+                    {
+                        MatchedValues.Add(sr);
+                        MethodFrameDetailed.ReturnCache.Add(d, returnValue);
+
+                        return true;
+                    }
                 }
 
                 return false;
@@ -151,6 +165,11 @@ namespace DebugTools.PowerShell.Cmdlets
                 else
                     yield break;
             }
+        }
+
+        public void Dispose()
+        {
+            MethodFrameDetailed.ClearCaches();
         }
     }
 }

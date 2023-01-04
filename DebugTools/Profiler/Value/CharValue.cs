@@ -10,5 +10,10 @@ namespace DebugTools.Profiler
         {
             Value = reader.ReadChar();
         }
+
+        public override string ToString()
+        {
+            return $"'{Value}'";
+        }
     }
 }

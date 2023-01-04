@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.IO;
+using System.Text;
 using ClrDebug;
 
 namespace DebugTools.Profiler
@@ -10,7 +11,7 @@ namespace DebugTools.Profiler
 
         public CorElementType ElementType { get; }
 
-        public object[] Value { get; } //temp
+        public object[] Value { get; }
 
         public SZArrayValue(BinaryReader reader, ValueSerializer serializer)
         {
@@ -34,6 +35,27 @@ namespace DebugTools.Profiler
 
                 Value = list.ToArray();
             }
+        }
+
+        public override string ToString()
+        {
+            if (Value == null)
+                return "null";
+
+            var builder = new StringBuilder();
+            builder.Append("new[]{");
+
+            for (var i = 0; i < Value.Length; i++)
+            {
+                builder.Append(Value[i]);
+
+                if (i < Value.Length - 1)
+                    builder.Append(", ");
+            }
+
+            builder.Append("}");
+
+            return builder.ToString();
         }
     }
 }

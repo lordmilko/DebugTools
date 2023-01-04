@@ -22,7 +22,7 @@ namespace DebugTools.Profiler
 
         public override string ToString()
         {
-            return Value ?? "null";
+            return Value != null ? $"\"{Value}\"" : "null";
         }
     }
 }

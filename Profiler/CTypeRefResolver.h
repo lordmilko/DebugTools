@@ -10,6 +10,7 @@ public:
     {
         m_ModuleID = moduleId;
         m_TypeRef = typeRef;
+        m_pModuleInfo = nullptr;
     }
 
     HRESULT Resolve(

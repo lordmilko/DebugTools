@@ -1,4 +1,4 @@
-﻿using System.Text;
+﻿using System;
 
 namespace DebugTools.Profiler
 {
@@ -13,59 +13,68 @@ namespace DebugTools.Profiler
             this.excludeNamespace = excludeNamespace;
         }
 
-        public string ToString(IFrame frame)
+        public void Format(IFrame frame, IMethodFrameWriter writer)
         {
             if (frame is RootFrame r)
             {
                 if (r.ThreadName == null)
-                    return r.ThreadId.ToString();
-
-                return $"{r.ThreadName} {r.ThreadId}";
+                    writer.Write(r.ThreadId, frame, FrameTokenKind.ThreadId);
+                else
+                {
+                    writer
+                        .Write(r.ThreadName, frame, FrameTokenKind.ThreadName)
+                        .Write(" ", frame, FrameTokenKind.Space)
+                        .Write(r.ThreadId, frame, FrameTokenKind.ThreadId);
+                }
             }
             else if (frame is MethodFrameDetailed d)
             {
-                var builder = new StringBuilder();
-
-                var info = d.MethodInfo;
-
                 var exitResult = d.GetExitResult();
 
                 if (exitResult == null)
-                    builder.Append("<Error> ");
+                    writer.Write("<Error>", frame, FrameTokenKind.ReturnValueUnknown);
                 else
-                {
-                    builder.Append(exitResult).Append(" ");
-                }
+                    writer.Write(StringifyValue(exitResult), frame, FrameTokenKind.ReturnValue);
 
-                builder.Append(GetTypeName(info.TypeName)).Append(".").Append(info.MethodName);
-                builder.Append("(");
+                writer.Write(" ", frame, FrameTokenKind.Space);
+
+                var info = d.MethodInfo;
+
+                writer
+                    .Write(GetTypeName(info.TypeName), frame, FrameTokenKind.TypeName)
+                    .Write(".", frame, FrameTokenKind.Dot)
+                    .Write(info.MethodName, frame, FrameTokenKind.MethodName);
+
+                writer.Write("(", frame, FrameTokenKind.OpenParen);
 
                 var parameters = d.GetEnterParameters();
 
                 if (parameters == null)
-                    builder.Append("<Error>");
+                    writer.Write("<Error>", frame, FrameTokenKind.ParametersUnknown); //If there's no parameters we get a list of count 0. The blob explicitly says "0 parameters"
                 else
                 {
                     for (var i = 0; i < parameters.Count; i++)
                     {
-                        builder.Append(StringifyValue(parameters[i]));
+                        writer.Write(StringifyValue(parameters[i]), frame, FrameTokenKind.Parameter);
 
                         if (i < parameters.Count - 1)
-                            builder.Append(", ");
+                            writer.Write(",", frame, FrameTokenKind.Comma).Write(" ", frame, FrameTokenKind.Space);
                     }
                 }
 
-                builder.Append(")");
-                return builder.ToString();
+                writer.Write(")", frame, FrameTokenKind.CloseParen);
             }
             else if (frame is MethodFrame m)
             {
                 var info = m.MethodInfo;
 
-                return $"{GetTypeName(info.TypeName)}.{info.MethodName}";
+                writer
+                    .Write(GetTypeName(info.TypeName), frame, FrameTokenKind.TypeName)
+                    .Write(".", frame, FrameTokenKind.Dot)
+                    .Write(info.MethodName, frame, FrameTokenKind.MethodName);
             }
             else
-                return frame.ToString();
+                throw new NotImplementedException($"Don't know how to handle frame of type '{frame}'.");
         }
 
         private string GetTypeName(string name)
@@ -84,16 +93,14 @@ namespace DebugTools.Profiler
             return name;
         }
 
-        private string StringifyValue(object value)
+        private object StringifyValue(object value)
         {
             if (value is ClassValue c)
-                return GetTypeName(c.Name);
+                return new FormattedValue(value, GetTypeName(c.Name));
             else if (value is ValueType v)
-                return GetTypeName(v.Name);
-            else if (value is StringValue s)
-                return $"\"{s.Value}\"";
+                return new FormattedValue(value, GetTypeName(v.Name));
 
-            return value.ToString();
+            return value;
         }
     }
 }

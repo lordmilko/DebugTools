@@ -10,5 +10,10 @@ namespace DebugTools.Profiler
         {
             Value = (sbyte) reader.ReadByte();
         }
+
+        public override string ToString()
+        {
+            return Value.ToString();
+        }
     }
 }

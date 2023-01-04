@@ -7,7 +7,7 @@ using DebugTools.Profiler;
 namespace DebugTools.PowerShell.Cmdlets
 {
     [Cmdlet(VerbsCommon.Show, "DbgProfilerStackTrace")]
-    public class ShowDbgProfilerStackTrace : StackFrameCmdlet
+    public class ShowDbgProfilerStackTrace : StackFrameCmdlet, IDisposable
     {
         [Parameter(Mandatory = false)]
         public int Depth { get; set; } = 10;
@@ -40,14 +40,15 @@ namespace DebugTools.PowerShell.Cmdlets
 
         private FindDbgProfilerStackFrame findDbgProfilerStackFrame;
 
-        private MethodFrameFormatter methodFrameFormatter;
+        private MethodFrameConsoleWriter methodFrameWriter;
 
         protected override void BeginProcessing()
         {
             if (Highlight != null)
                 highlight = Highlight.Select(h => new WildcardPattern(h, WildcardOptions.IgnoreCase)).ToArray();
 
-            methodFrameFormatter = new MethodFrameFormatter(ExcludeNamespace);
+            var methodFrameFormatter = new MethodFrameFormatter(ExcludeNamespace);
+            methodFrameWriter = new MethodFrameConsoleWriter(methodFrameFormatter);
 
             if (Include != null)
             {
@@ -77,7 +78,13 @@ namespace DebugTools.PowerShell.Cmdlets
         protected override void EndProcessing()
         {
             if (findDbgProfilerStackFrame != null)
+            {
                 frames = findDbgProfilerStackFrame.Frames;
+                methodFrameWriter.HighlightValues = findDbgProfilerStackFrame.MatchedValues;
+            }
+
+            methodFrameWriter.HighlightMethods = highlight;
+            methodFrameWriter.HighlightFrames = highlightFrames;
 
             if (frames.All(f => !(f is RootFrame)))
             {
@@ -161,6 +168,13 @@ namespace DebugTools.PowerShell.Cmdlets
                             ExitValue = d.ExitValue
                         };
                         newParent.Children.Add((MethodFrame)newItem);
+
+                        if (MethodFrameDetailed.ParameterCache.TryGetValue(d, out var parameters))
+                            MethodFrameDetailed.ParameterCache.Add((MethodFrameDetailed) newItem, parameters);
+
+                        if (MethodFrameDetailed.ReturnCache.TryGetValue(d, out var returnValue))
+                            MethodFrameDetailed.ReturnCache.Add((MethodFrameDetailed) newItem, returnValue);
+
                         newParent = newItem;
                     }
                     else if (item is MethodFrame m)
@@ -206,12 +220,9 @@ namespace DebugTools.PowerShell.Cmdlets
                 }
             }
 
-            var str = methodFrameFormatter.ToString(item);
+            methodFrameWriter.Print(item);
 
-            if (ShouldHighlight(str) || highlightFrames.Contains(item))
-                WriteColor(str, ConsoleColor.Green);
-            else
-                Console.WriteLine(str);
+            Console.WriteLine();
 
             IList<MethodFrame> children = item.Children;
 
@@ -227,28 +238,9 @@ namespace DebugTools.PowerShell.Cmdlets
             }
         }
 
-        private bool ShouldHighlight(string str)
+        public void Dispose()
         {
-            if (Highlight == null)
-                return false;
-
-            return highlight.Any(h => h.IsMatch(str));
-        }
-
-        private void WriteColor(string message, ConsoleColor color)
-        {
-            ConsoleColor fg = Host.UI.RawUI.ForegroundColor;
-
-            Host.UI.RawUI.ForegroundColor = color;
-
-            try
-            {
-                Console.WriteLine(message);
-            }
-            finally
-            {
-                Host.UI.RawUI.ForegroundColor = fg;
-            }
+            findDbgProfilerStackFrame?.Dispose();
         }
     }
 }

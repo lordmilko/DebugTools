@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System.Globalization;
+using System.IO;
 
 namespace DebugTools.Profiler
 {
@@ -9,6 +10,11 @@ namespace DebugTools.Profiler
         public FloatValue(BinaryReader reader)
         {
             Value = reader.ReadSingle();
+        }
+
+        public override string ToString()
+        {
+            return Value.ToString(CultureInfo.CurrentCulture);
         }
     }
 }

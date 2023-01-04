@@ -27,7 +27,7 @@ namespace DebugTools.Profiler
 
         public override string ToString()
         {
-            return MethodFrameFormatter.Default.ToString(this);
+            return MethodFrameStringWriter.Default.ToString(this);
         }
     }
 }

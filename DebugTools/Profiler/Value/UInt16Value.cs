@@ -10,5 +10,10 @@ namespace DebugTools.Profiler
         {
             Value = reader.ReadUInt16();
         }
+
+        public override string ToString()
+        {
+            return Value.ToString();
+        }
     }
 }
