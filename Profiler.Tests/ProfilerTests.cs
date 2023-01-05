@@ -40,10 +40,10 @@ namespace Profiler.Tests
             Test(ProfilerTestType.NoArgs, v =>
             {
                 v.HasFrame("NoArgs");
-            }, ProfilerEnvFlags.Detailed);
+            }, ProfilerSetting.Detailed);
         }
 
-        internal void Test(ProfilerTestType type, Action<Validator> validate, params ProfilerEnvFlags[] flags) =>
-            TestInternal(TestType.Profiler, type.ToString(), validate, flags);
+        internal void Test(ProfilerTestType type, Action<Validator> validate, params ProfilerSetting[] settings) =>
+            TestInternal(TestType.Profiler, type.ToString(), validate, settings);
     }
 }

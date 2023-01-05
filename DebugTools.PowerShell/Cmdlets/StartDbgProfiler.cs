@@ -21,25 +21,32 @@ namespace DebugTools.PowerShell.Cmdlets
         public SwitchParameter TraceStart { get; set; }
 
         [Parameter(Mandatory = false)]
-        public int TraceDepth { get; set; }
+        public int ValueDepth { get; set; }
+
+        [Alias("ChildProcess")]
+        [Parameter(Mandatory = false)]
+        public string TargetProcess { get; set; }
 
         protected override void ProcessRecord()
         {
             var session = new ProfilerSession();
             ProfilerSessionState.Sessions.Add(session);
 
-            var flags = new List<ProfilerEnvFlags>();
+            var settings = new List<ProfilerSetting>();
 
             if (Dbg)
-                flags.Add(ProfilerEnvFlags.WaitForDebugger);
+                settings.Add(ProfilerSetting.WaitForDebugger);
 
             if (Detailed)
-                flags.Add(ProfilerEnvFlags.Detailed);
+                settings.Add(ProfilerSetting.Detailed);
 
-            if (MyInvocation.BoundParameters.ContainsKey(nameof(TraceDepth)))
-                flags.Add(ProfilerEnvFlags.TraceDepth);
+            if (MyInvocation.BoundParameters.ContainsKey(nameof(ValueDepth)))
+                settings.Add(new ProfilerSetting(ProfilerEnvFlags.TraceValueDepth, ValueDepth));
 
-            session.Start(CancellationToken, ProcessName, flags.ToArray(), TraceStart, TraceDepth);
+            if (MyInvocation.BoundParameters.ContainsKey(nameof(TargetProcess)))
+                settings.Add(new ProfilerSetting(ProfilerEnvFlags.TargetProcess, TargetProcess));
+
+            session.Start(CancellationToken, ProcessName, settings.ToArray(), TraceStart);
 
             if (TraceStart)
             {

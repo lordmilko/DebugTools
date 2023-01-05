@@ -7,7 +7,7 @@ namespace Profiler.Tests
 {
     public class BaseTest
     {
-        internal void TestInternal(TestType type, string subType, Action<Validator> validate, params ProfilerEnvFlags[] flags)
+        internal void TestInternal(TestType type, string subType, Action<Validator> validate, params ProfilerSetting[] settings)
         {
             using (var session = new ProfilerSession())
             {
@@ -15,7 +15,7 @@ namespace Profiler.Tests
 
                 session.TraceEventSession.Source.Completed += () => wait.Set();
 
-                session.Start(CancellationToken.None, $"{ProfilerInfo.TestHost} {type} {subType}", flags, true, -1);
+                session.Start(CancellationToken.None, $"{ProfilerInfo.TestHost} {type} {subType}", settings, true);
 
                 session.Process.WaitForExit();
 

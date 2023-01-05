@@ -30,7 +30,7 @@ HRESULT CValueTracer::Initialize(ICorProfilerInfo3* pInfo)
 
     IfFailGo(pInfo->GetStringLayout2(&s_StringLengthOffset, &s_StringBufferOffset));
 
-    actualSize = GetEnvironmentVariableA("DEBUGTOOLS_TRACEDEPTH", envBuffer, BUFFER_SIZE);
+    actualSize = GetEnvironmentVariableA("DEBUGTOOLS_TRACEVALUEDEPTH", envBuffer, BUFFER_SIZE);
 
     if (actualSize != 0 && actualSize < BUFFER_SIZE)
         s_MaxTraceDepth = strtol(envBuffer, NULL, 10);

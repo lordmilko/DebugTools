@@ -272,7 +272,7 @@ namespace DebugTools.Profiler
             return value;
         }
 
-        public void Start(CancellationToken cancellationToken, string processName, ProfilerEnvFlags[] flags, bool traceStart, int traceDepth)
+        public void Start(CancellationToken cancellationToken, string processName, ProfilerSetting[] settings, bool traceStart)
         {
             collectStackTrace = traceStart;
 
@@ -281,7 +281,10 @@ namespace DebugTools.Profiler
 
             Process = ProfilerInfo.CreateProcess(processName, p =>
             {
-                var options = new TraceEventProviderOptions {ProcessIDFilter = new[] {p.Id}};
+                //If we're only targeting a specific child process, we can't filter based on the process we just created
+                 TraceEventProviderOptions options = settings?.Any(s => s.Flag == ProfilerEnvFlags.TargetProcess) == true
+                     ? null
+                     : new TraceEventProviderOptions {ProcessIDFilter = new[] {p.Id}};
 
                 TraceEventSession.EnableProvider(ProfilerTraceEventParser.ProviderGuid, options: options);
 
@@ -317,7 +320,7 @@ namespace DebugTools.Profiler
                         }
                     }
                 };
-            }, flags, traceDepth);
+            }, settings);
 
             pipe = new NamedPipeClientStream(".", $"DebugToolsProfilerPipe_{Process.Id}", PipeDirection.Out);
 

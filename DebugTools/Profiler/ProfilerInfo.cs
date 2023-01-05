@@ -8,13 +8,6 @@ using System.Text;
 
 namespace DebugTools.Profiler
 {
-    public enum ProfilerEnvFlags
-    {
-        WaitForDebugger,
-        Detailed,
-        TraceDepth
-    }
-
     public class ProfilerInfo
     {
         public static readonly string Profilerx86;
@@ -41,7 +34,7 @@ namespace DebugTools.Profiler
             TestHost = Path.Combine(InstallationRoot, "DebugTools.TestHost.exe");
         }
 
-        public static Process CreateProcess(string processName, Action<Process> startCallback, ProfilerEnvFlags[] flags, int traceDepth)
+        public static Process CreateProcess(string processName, Action<Process> startCallback, ProfilerSetting[] settings)
         {
             var envVariables = new StringDictionary
             {
@@ -60,30 +53,37 @@ namespace DebugTools.Profiler
 
             bool needDebug = false;
 
-            foreach (var flag in flags)
+            if (settings != null)
             {
-                switch (flag)
+                foreach (var setting in settings)
                 {
-                    case ProfilerEnvFlags.WaitForDebugger:
-                        //If we're not being debugged, there's no point trying to tell the target process that it needs to be debugged as well
-                        if (Debugger.IsAttached)
-                        {
-                            needDebug = true;
-                            envVariables.Add("DEBUGTOOLS_WAITFORDEBUG", "1");
-                        }
-                        
-                        break;
+                    switch (setting.Flag)
+                    {
+                        case ProfilerEnvFlags.WaitForDebugger:
+                            //If we're not being debugged, there's no point trying to tell the target process that it needs to be debugged as well
+                            if (Debugger.IsAttached)
+                            {
+                                needDebug = true;
+                                envVariables.Add("DEBUGTOOLS_WAITFORDEBUG", "1");
+                            }
 
-                    case ProfilerEnvFlags.Detailed:
-                        envVariables.Add("DEBUGTOOLS_DETAILED", "1");
-                        break;
+                            break;
 
-                    case ProfilerEnvFlags.TraceDepth:
-                        envVariables.Add("DEBUGTOOLS_TRACEDEPTH", traceDepth.ToString());
-                        break;
+                        case ProfilerEnvFlags.Detailed:
+                            envVariables.Add("DEBUGTOOLS_DETAILED", "1");
+                            break;
 
-                    default:
-                        throw new NotImplementedException($"Don't know how to handle flag '{flag}'.");
+                        case ProfilerEnvFlags.TraceValueDepth:
+                            envVariables.Add("DEBUGTOOLS_TRACEVALUEDEPTH", setting.Value);
+                            break;
+
+                        case ProfilerEnvFlags.TargetProcess:
+                            envVariables.Add("DEBUGTOOLS_TARGET_PROCESS", setting.Value);
+                            break;
+
+                        default:
+                            throw new NotImplementedException($"Don't know how to handle flag '{setting.Flag}'.");
+                    }
                 }
             }
 

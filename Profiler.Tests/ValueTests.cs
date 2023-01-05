@@ -99,7 +99,7 @@ namespace Profiler.Tests
 
         [TestMethod]
         public void Value_GenericWithObjectTypeArg() =>
-            Test(ValueTestType.GenericWithObjectTypeArg, v => v.HasValueType("DebugTools.TestHost.GenericValueTypeType`1").HasFieldValue(f => f.HasClassType("System.Object")), ProfilerEnvFlags.WaitForDebugger);
+            Test(ValueTestType.GenericWithObjectTypeArg, v => v.HasValueType("DebugTools.TestHost.GenericValueTypeType`1").HasFieldValue(f => f.HasClassType("System.Object")));
 
         [TestMethod]
         public void Value_GenericClassArg() =>
@@ -491,12 +491,12 @@ namespace Profiler.Tests
 
         #endregion
 
-        internal void Test(ValueTestType type, Action<FrameVerifier> validate, params ProfilerEnvFlags[] flags)
+        internal void Test(ValueTestType type, Action<FrameVerifier> validate, params ProfilerSetting[] settings)
         {
-            var flagsList = flags.ToList();
-            flagsList.Add(ProfilerEnvFlags.Detailed);
+            var settingsList = settings.ToList();
+            settingsList.Add(ProfilerSetting.Detailed);
 
-            TestInternal(TestType.Value, type.ToString(), v => validate(v.FindFrame(type.ToString()).Verify()), flagsList.ToArray());
+            TestInternal(TestType.Value, type.ToString(), v => validate(v.FindFrame(type.ToString()).Verify()), settingsList.ToArray());
         }
     }
 }
