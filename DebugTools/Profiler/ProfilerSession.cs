@@ -67,6 +67,10 @@ namespace DebugTools.Profiler
             parser.CallLeaveDetailed += Parser_CallLeaveDetailed;
             parser.TailcallDetailed += Parser_TailcallDetailed;
 
+            parser.Exception += Parser_Exception;
+            parser.ExceptionFrameUnwind += Parser_ExceptionFrameUnwind;
+            parser.ExceptionCompleted += Parser_ExceptionCompleted;
+
             parser.ThreadName += v =>
             {
                 threadNames[v.ThreadID] = v.ThreadName;
@@ -205,6 +209,40 @@ namespace DebugTools.Profiler
             }
 
             args.HRESULT.ThrowOnNotOK();
+        }
+
+        #endregion
+        #region Exception
+
+        private void Parser_Exception(ExceptionArgs args)
+        {
+            if (collectStackTrace)
+            {
+                if (ThreadCache.TryGetValue(args.ThreadID, out var threadStack))
+                    threadStack.Exception(args);
+            }
+        }
+
+        private void Parser_ExceptionFrameUnwind(CallArgs v)
+        {
+            ProcessStopping(v.TimeStamp);
+
+            if (collectStackTrace)
+            {
+                Validate(v);
+
+                if (ThreadCache.TryGetValue(v.ThreadID, out var threadStack))
+                    threadStack.ExceptionFrameUnwind(v, GetMethodSafe(v.FunctionID));
+            }
+        }
+
+        private void Parser_ExceptionCompleted(ExceptionCompletedArgs v)
+        {
+            if (collectStackTrace)
+            {
+                if (ThreadCache.TryGetValue(v.ThreadID, out var threadStack))
+                    threadStack.ExceptionCompleted(v);
+            }
         }
 
         #endregion

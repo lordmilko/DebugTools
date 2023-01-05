@@ -346,6 +346,9 @@ $split = $_ -split ' '
             </ArrayItems>
         </Expand>
     </Type>
+    <Type Name="CExceptionInfo">
+        <DisplayString>{m_pClassInfo->m_szName,sub}</DisplayString>
+    </Type>
 
     <HResult Name="PROFILER_E_BUFFERFULL">
         <HRValue>0x80041001</HRValue>

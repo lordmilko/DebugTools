@@ -204,8 +204,7 @@ HRESULT CValueTracer::GetMethodInfoNoLock(FunctionIDOrClientID functionId, _Out_
 
     if (match == g_pProfiler->m_MethodInfoMap.end())
     {
-        if (IsDebuggerPresent())
-            DebugBreak();
+        DebugBreakSafe();
 
         dprintf(L"Unknown func %llX called\n", functionId.functionID);
         return E_FAIL;
@@ -215,8 +214,7 @@ HRESULT CValueTracer::GetMethodInfoNoLock(FunctionIDOrClientID functionId, _Out_
 
     if (!pMethod)
     {
-        if (IsDebuggerPresent())
-            DebugBreak();
+        DebugBreakSafe();
 
         dprintf(L"Unknown func %llX called\n", functionId.functionID);
         return E_FAIL;

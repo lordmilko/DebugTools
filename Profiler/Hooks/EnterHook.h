@@ -11,10 +11,8 @@ extern "C" void STDMETHODCALLTYPE EnterStub(FunctionIDOrClientID functionId)
 
     ENTER_FUNCTION(functionId);
 
-    ValidateETW(EventWriteCallEnterEvent(functionId.functionID, g_Sequence, hr));
-
 ErrExit:
-    return;
+    ValidateETW(EventWriteCallEnterEvent(functionId.functionID, g_Sequence, hr));
 }
 
 #ifdef _X86_

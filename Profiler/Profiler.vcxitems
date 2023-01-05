@@ -22,6 +22,8 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)CClassInfo.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)CCommunication.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)CCorProfilerCallback.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)CExceptionInfo.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)CExceptionManager.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)CModuleInfo.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)CSigField.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)CSigMethod.h" />
@@ -48,6 +50,7 @@
     <ClCompile Include="$(MSBuildThisFileDirectory)CClassFactory.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)CCommunication.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)CCorProfilerCallback.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)CExceptionManager.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)CModuleInfo.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)CSigReader.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)CSigType.cpp" />

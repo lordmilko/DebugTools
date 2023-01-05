@@ -24,19 +24,22 @@ extern thread_local std::stack<FunctionID> g_CallStack;
 #define ENTER_FUNCTION(FUNCTIONID) \
     do { \
     g_Sequence++; \
+    LogSequence(L"Sequence is now %d %S(%d) (Enter)\n", g_Sequence, __FILE__, __LINE__); \
     g_CallStack.push(FUNCTIONID.functionID); \
     } while(0)
 
 #define LEAVE_FUNCTION(FUNCTIONID) \
     g_Sequence++; \
     do { \
+        LogSequence(L"Sequence is now %d %S(%d) (Leave)\n", g_Sequence, __FILE__, __LINE__); \
         FunctionID old = g_CallStack.top(); \
         g_CallStack.pop(); \
         if (old != functionId.functionID) \
         { \
             dprintf(L"Stack Error: Expected %llX but got %llX\n", old, functionId.functionID); \
-           hr = PROFILER_E_UNKNOWN_FRAME; \
-           goto ErrExit; \
+            DebugBreakSafe(); \
+            hr = PROFILER_E_UNKNOWN_FRAME; \
+            goto ErrExit; \
         } \
     } while(0)
 
@@ -51,7 +54,7 @@ extern thread_local std::stack<FunctionID> g_CallStack;
     } \
     *(g_ValueBuffer + g_ValueBufferPosition) = elementType; \
     g_ValueBufferPosition++; \
-    if (g_ValueBufferPosition >= VALUE_BUFFER_SIZE) DebugBreak(); \
+    if (g_ValueBufferPosition >= VALUE_BUFFER_SIZE) DebugBreakSafe(); \
     } while(0)
 
 #define WriteValue(pValue, length) \
@@ -63,7 +66,7 @@ extern thread_local std::stack<FunctionID> g_CallStack;
     } \
     memcpy(g_ValueBuffer + g_ValueBufferPosition, pValue, length); \
     g_ValueBufferPosition += length; \
-    if (g_ValueBufferPosition >= VALUE_BUFFER_SIZE) DebugBreak(); \
+    if (g_ValueBufferPosition >= VALUE_BUFFER_SIZE) DebugBreakSafe(); \
     } while(0)
 
 #define Write(pValue, elementType, expectedSize) \
@@ -74,12 +77,12 @@ extern thread_local std::stack<FunctionID> g_CallStack;
 #define WriteRecursion(elementType) \
     do { WriteType(ELEMENT_TYPE_END); \
     WriteType(elementType); \
-    if (g_ValueBufferPosition > VALUE_BUFFER_SIZE) DebugBreak(); \
+    if (g_ValueBufferPosition > VALUE_BUFFER_SIZE) DebugBreakSafe(); \
     } while(0)
 
 #define WriteMaxTraceDepth() \
     do { WriteType(ELEMENT_TYPE_END); \
-    WriteType(ELEMENT_TYPE_END); if (g_ValueBufferPosition > VALUE_BUFFER_SIZE) DebugBreak(); \
+    WriteType(ELEMENT_TYPE_END); if (g_ValueBufferPosition > VALUE_BUFFER_SIZE) DebugBreakSafe(); \
     } while(0)
 
 typedef struct _ValueTypeContext {

@@ -3,7 +3,8 @@ namespace Profiler.Tests
     enum TestType
     {
         Value,
-        Profiler
+        Profiler,
+        Exception
     }
 
     enum ValueTestType
@@ -121,5 +122,30 @@ namespace Profiler.Tests
         NoArgs,
         SingleChild,
         TwoChildren
+    }
+
+    enum ExceptionTestType
+    {
+        CaughtWithinMethod,
+        UnwindOneFrame,
+        UnwindTwoFrames,
+        Nested_ThrownInCatchAndImmediatelyCaught,
+
+        Nested_CaughtByOuterCatch,
+
+        //If the nested exception occurred within a catch, and escapes the catch, the original exception's processing will never resume.
+        Nested_UnwindOneFrameFromThrowInCatch,
+        Nested_UnwindTwoFramesFromThrowInCatch,
+
+        Nested_ThrownInFinallyAndImmediatelyCaught,
+
+        //If the nested exception occurred within a finally, and escapes the finally, the original exception's processing will never resume.
+        Nested_ThrownInFinallyAndUnwindOneFrame,
+
+        NoCatchThrowWithFinallyUnwindOneFrame,
+        NoCatchThrowInFinallyUnwindOneFrame,
+
+        UncaughtInNative,
+        CaughtInNative,
     }
 }

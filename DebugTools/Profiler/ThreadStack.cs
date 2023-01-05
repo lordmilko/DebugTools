@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using ClrDebug;
 using DebugTools.Tracing;
 
@@ -9,6 +10,8 @@ namespace DebugTools.Profiler
         public IFrame Current { get; set; }
 
         public RootFrame Root => Current.GetRoot();
+
+        public Dictionary<long, ExceptionInfo> Exceptions { get; } = new Dictionary<long, ExceptionInfo>();
 
         private long lastSequence;
 
@@ -95,6 +98,26 @@ namespace DebugTools.Profiler
         }
 
         #endregion
+        #region Exception
+
+        public void Exception(ExceptionArgs args)
+        {
+            Exceptions[args.Sequence] = new ExceptionInfo(args);
+        }
+
+        public void ExceptionFrameUnwind(CallArgs args, MethodInfo method)
+        {
+            ValidateEnd(args, method);
+
+            EndCallInternal();
+        }
+
+        public void ExceptionCompleted(ExceptionCompletedArgs args)
+        {
+            Exceptions[args.Sequence].Status = args.Reason;
+        }
+
+        #endregion
 
         private void EndCallInternal()
         {
@@ -104,8 +127,10 @@ namespace DebugTools.Profiler
 
         private void Validate(ICallArgs args)
         {
-            if (lastSequence != 0 && lastSequence + 1 != args.Sequence)
-                throw new InvalidOperationException($"Expected sequence: {lastSequence + 1}. Actual: {args.Sequence}");
+            var expectedNextSequence = lastSequence + 1;
+
+            if (lastSequence != 0 && expectedNextSequence != args.Sequence)
+                throw new InvalidOperationException($"Expected sequence: {expectedNextSequence}. Actual: {args.Sequence}");
 
             lastSequence = args.Sequence;
         }

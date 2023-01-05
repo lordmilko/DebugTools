@@ -73,6 +73,25 @@ HRESULT CCorProfilerCallback::QueryInterface(REFIID riid, void** ppvObject)
 
 //We don't utilize AssemblyLoadFinished() or ModuleLoadFinished(); if the module was successfully loaded, we'll process it and its assembly in ModuleAttachedToAssembly()
 
+#pragma region Transition
+
+HRESULT CCorProfilerCallback::UnmanagedToManagedTransition(FunctionID functionId, COR_PRF_TRANSITION_REASON reason)
+{
+    m_ExceptionManager.UnmanagedToManagedTransition(functionId, reason);
+
+    return S_OK;
+}
+
+HRESULT CCorProfilerCallback::ManagedToUnmanagedTransition(FunctionID functionId, COR_PRF_TRANSITION_REASON reason)
+{
+    m_ExceptionManager.ManagedToUnmanagedTransition(functionId, reason);
+
+    return S_OK;
+}
+
+#pragma endregion
+#pragma region Load Events
+
 HRESULT CCorProfilerCallback::AssemblyUnloadFinished(AssemblyID assemblyId, HRESULT hrStatus)
 {
     //This method only executes in detailed profiling mode
@@ -209,7 +228,7 @@ ErrExit:
             );
 
             m_AssemblyInfoMap[assemblyId] = pAssemblyInfo;
-            m_AssemblyNameMap[pAssemblyInfo->m_szShortName] = pAssemblyInfo;
+            m_AssemblyShortNameMap[pAssemblyInfo->m_szShortName] = pAssemblyInfo;
             m_AssemblyNameMap[pAssemblyInfo->m_szName] = pAssemblyInfo;
         }
 
@@ -291,6 +310,54 @@ HRESULT CCorProfilerCallback::ClassUnloadFinished(ClassID classId, HRESULT hrSta
 
     return S_OK;
 }
+
+#pragma endregion
+#pragma region Exception Events
+
+HRESULT CCorProfilerCallback::ExceptionThrown(ObjectID thrownObjectId)
+{
+    return m_ExceptionManager.ExceptionThrown(thrownObjectId);
+}
+
+#pragma region UnwindFunction
+
+HRESULT CCorProfilerCallback::ExceptionUnwindFunctionEnter(FunctionID functionId)
+{
+    return m_ExceptionManager.UnwindFunctionEnter(functionId);
+}
+HRESULT CCorProfilerCallback::ExceptionUnwindFunctionLeave()
+{
+    return m_ExceptionManager.UnwindFunctionLeave();
+}
+
+#pragma endregion
+#pragma region UnwindFinally
+
+HRESULT CCorProfilerCallback::ExceptionUnwindFinallyEnter(FunctionID functionId)
+{
+    return m_ExceptionManager.UnwindFinallyEnter(functionId);
+}
+
+HRESULT CCorProfilerCallback::ExceptionUnwindFinallyLeave()
+{
+    return m_ExceptionManager.UnwindFinallyLeave();
+}
+
+#pragma endregion
+#pragma region Catcher
+
+HRESULT CCorProfilerCallback::ExceptionCatcherEnter(FunctionID functionId, ObjectID objectId)
+{
+    return m_ExceptionManager.CatcherEnter(functionId, objectId);
+}
+
+HRESULT CCorProfilerCallback::ExceptionCatcherLeave()
+{
+    return m_ExceptionManager.CatcherLeave();
+}
+
+#pragma endregion
+#pragma endregion
 
 /// <summary>
 /// Initializes the profiler, performing initial setup such as registering our event masks function mappers and function hooks.
@@ -494,6 +561,7 @@ UINT_PTR __stdcall CCorProfilerCallback::RecordFunction(FunctionID funcId, void*
             CLock methodMutex(&g_pProfiler->m_MethodMutex, true);
 
             g_pProfiler->m_MethodInfoMap[funcId] = method;
+            g_pProfiler->m_HookedMethodMap[funcId] = 1;
 
             methodSaved = TRUE;
         }
@@ -513,6 +581,9 @@ UINT_PTR __stdcall CCorProfilerCallback::RecordFunction(FunctionID funcId, void*
             NULL,
             NULL
         ));
+
+        CLock methodMutex(&g_pProfiler->m_MethodMutex, true);
+        g_pProfiler->m_HookedMethodMap[funcId] = 1;
     }
 
     //Get the type name
@@ -585,10 +656,11 @@ BOOL CCorProfilerCallback::ShouldHook()
 HRESULT CCorProfilerCallback::SetEventMask()
 {
     DWORD flags =
-        COR_PRF_MONITOR_ENTERLEAVE |     //Inject Enter/Leave/Tailcall hooks during JIT
-        COR_PRF_MONITOR_EXCEPTIONS |     //Leave won't be called when an exception occurs, so we must unwind ourselves
-        COR_PRF_MONITOR_THREADS    |     //Record basic thread information
-        COR_PRF_DISABLE_ALL_NGEN_IMAGES; //Don't use NGEN images (we need a fresh JIT to be able to inject our Enter/Leave/Tailcall hooks)
+        COR_PRF_MONITOR_ENTERLEAVE       | //Inject Enter/Leave/Tailcall hooks during JIT
+        COR_PRF_MONITOR_EXCEPTIONS       | //Leave won't be called when an exception occurs, so we must unwind ourselves
+        COR_PRF_MONITOR_THREADS          | //Record basic thread information
+        COR_PRF_MONITOR_CODE_TRANSITIONS | //Track code transitions (but only when an exception is active) to detect when an exception is caught in unmanaged code
+        COR_PRF_DISABLE_ALL_NGEN_IMAGES;   //Don't use NGEN images (we need a fresh JIT to be able to inject our Enter/Leave/Tailcall hooks)
 
     //WithInfo hooks won't be called unless advanced event flags are set
     if (m_Detailed)
@@ -1013,6 +1085,13 @@ CorElementType CCorProfilerCallback::GetElementTypeFromClassName(LPWSTR szName)
     //as TraceClass() repeatedly tries to dispatch the element type to itself
 
     return ELEMENT_TYPE_END;
+}
+
+BOOL CCorProfilerCallback::IsHookedFunction(FunctionIDOrClientID functionId)
+{
+    CLock methodLock(&m_MethodMutex);
+
+    return m_HookedMethodMap.find(functionId.functionID) != m_HookedMethodMap.end();
 }
 
 void NTAPI CCorProfilerCallback::ExitProcessCallback(

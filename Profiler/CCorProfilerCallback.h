@@ -9,6 +9,7 @@
 #include <unordered_map>
 #include <shared_mutex>
 #include "CUnknownArray.h"
+#include "CExceptionManager.h"
 
 #undef GetClassInfo
 
@@ -66,6 +67,10 @@ public:
         if (m_hHash)
             BCryptDestroyHash(m_hHash);
 
+#if _DEBUG
+        _ASSERTE(g_ExceptionQueue.empty());
+#endif
+
 #if _DEBUG && DEBUG_UNKNOWN
         _ASSERTE(g_UnknownMap->size() == 1); //+1 for CSigType Sentinel which is a static member
 #endif
@@ -110,6 +115,8 @@ public:
     {
         return m_ObjectIdBlacklist.find(objectId) != m_ObjectIdBlacklist.end();
     }
+
+    BOOL IsHookedFunction(FunctionIDOrClientID functionId);
 
 #pragma region IUnknown
     STDMETHODIMP_(ULONG) AddRef() override;
@@ -158,8 +165,8 @@ public:
     STDMETHODIMP RemotingServerInvocationStarted() override { return S_OK; }
     STDMETHODIMP RemotingServerInvocationReturned() override { return S_OK; }
     STDMETHODIMP RemotingServerSendingReply(GUID* pCookie, BOOL fIsAsync) override { return S_OK; }
-    STDMETHODIMP UnmanagedToManagedTransition(FunctionID functionId, COR_PRF_TRANSITION_REASON reason) override { return S_OK; }
-    STDMETHODIMP ManagedToUnmanagedTransition(FunctionID functionId, COR_PRF_TRANSITION_REASON reason) override { return S_OK; }
+    STDMETHODIMP UnmanagedToManagedTransition(FunctionID functionId, COR_PRF_TRANSITION_REASON reason) override;
+    STDMETHODIMP ManagedToUnmanagedTransition(FunctionID functionId, COR_PRF_TRANSITION_REASON reason) override;
     STDMETHODIMP RuntimeSuspendStarted(COR_PRF_SUSPEND_REASON suspendReason) override { return S_OK; }
     STDMETHODIMP RuntimeSuspendFinished() override { return S_OK; }
     STDMETHODIMP RuntimeSuspendAborted() override { return S_OK; }
@@ -172,7 +179,7 @@ public:
     STDMETHODIMP ObjectsAllocatedByClass(ULONG cClassCount, ClassID classIds[], ULONG cObjects[]) override { return S_OK; }
     STDMETHODIMP ObjectReferences(ObjectID objectId, ClassID classId, ULONG cObjectRefs, ObjectID objectRefIds[]) override { return S_OK; }
     STDMETHODIMP RootReferences(ULONG cRootRefs, ObjectID rootRefIds[]) override { return S_OK; }
-    STDMETHODIMP ExceptionThrown(ObjectID thrownObjectId) override { return S_OK; }
+    STDMETHODIMP ExceptionThrown(ObjectID thrownObjectId) override;
     STDMETHODIMP ExceptionSearchFunctionEnter(FunctionID functionId) override { return S_OK; }
     STDMETHODIMP ExceptionSearchFunctionLeave() override { return S_OK; }
     STDMETHODIMP ExceptionSearchFilterEnter(FunctionID functionId) override { return S_OK; }
@@ -180,12 +187,12 @@ public:
     STDMETHODIMP ExceptionSearchCatcherFound(FunctionID functionId) override { return S_OK; }
     STDMETHODIMP ExceptionOSHandlerEnter(FunctionID functionId) override { return S_OK; }
     STDMETHODIMP ExceptionOSHandlerLeave(FunctionID functionId) override { return S_OK; }
-    STDMETHODIMP ExceptionUnwindFunctionEnter(FunctionID functionId) override { return S_OK; }
-    STDMETHODIMP ExceptionUnwindFunctionLeave() override { return S_OK; }
-    STDMETHODIMP ExceptionUnwindFinallyEnter(FunctionID functionId) override { return S_OK; }
-    STDMETHODIMP ExceptionUnwindFinallyLeave() override { return S_OK; }
-    STDMETHODIMP ExceptionCatcherEnter(FunctionID functionId, ObjectID objectId) override { return S_OK; }
-    STDMETHODIMP ExceptionCatcherLeave() override { return S_OK; }
+    STDMETHODIMP ExceptionUnwindFunctionEnter(FunctionID functionId) override;
+    STDMETHODIMP ExceptionUnwindFunctionLeave() override;
+    STDMETHODIMP ExceptionUnwindFinallyEnter(FunctionID functionId) override;
+    STDMETHODIMP ExceptionUnwindFinallyLeave() override;
+    STDMETHODIMP ExceptionCatcherEnter(FunctionID functionId, ObjectID objectId) override;
+    STDMETHODIMP ExceptionCatcherLeave() override;
     STDMETHODIMP COMClassicVTableCreated(ClassID wrappedClassId, REFGUID implementedIID, void* pVTable, ULONG cSlots) override { return S_OK; }
     STDMETHODIMP COMClassicVTableDestroyed(ClassID wrappedClassId, REFGUID implementedIID, void* pVTable) override { return S_OK; }
     STDMETHODIMP ExceptionCLRCatcherFound(void) override { return S_OK; }
@@ -226,6 +233,7 @@ public:
     std::shared_mutex m_ClassMutex;
 
     std::unordered_map<FunctionID, CSigMethodDef*> m_MethodInfoMap;
+    std::unordered_map<FunctionID, BYTE> m_HookedMethodMap;
     std::shared_mutex m_MethodMutex;
 
     std::unordered_map<ObjectID, BYTE> m_ObjectIdBlacklist;
@@ -234,6 +242,8 @@ public:
 private:
     CCommunication m_Communication;
     BCRYPT_HASH_HANDLE m_hHash;
+
+    CExceptionManager m_ExceptionManager;
 
     long m_RefCount;
 };

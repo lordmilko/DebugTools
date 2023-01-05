@@ -11,10 +11,8 @@ extern "C" void STDMETHODCALLTYPE TailcallStub(FunctionIDOrClientID functionId)
 
     LEAVE_FUNCTION(functionId);
 
-    ValidateETW(EventWriteTailcallEvent(functionId.functionID, g_Sequence, hr));
-
 ErrExit:
-    return;
+    ValidateETW(EventWriteTailcallEvent(functionId.functionID, g_Sequence, hr));
 }
 
 #ifdef _X86_

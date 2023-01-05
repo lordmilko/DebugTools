@@ -27,8 +27,7 @@
         if (hr != S_OK) \
         { \
             dprintf(L"###### %S failed with \n", #call, hr); \
-            if (IsDebuggerPresent()) \
-                DebugBreak(); \
+            DebugBreakSafe(); \
         }\
     } while(0)
 

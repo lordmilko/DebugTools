@@ -11,10 +11,8 @@ extern "C" void STDMETHODCALLTYPE LeaveStub(FunctionIDOrClientID functionId)
 
     LEAVE_FUNCTION(functionId);
 
-    ValidateETW(EventWriteCallLeaveEvent(functionId.functionID, g_Sequence, hr));
-
 ErrExit:
-    return;
+    ValidateETW(EventWriteCallLeaveEvent(functionId.functionID, g_Sequence, hr));
 }
 
 #ifdef _X86_

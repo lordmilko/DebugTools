@@ -15,14 +15,18 @@ namespace DebugTools.Tracing
             public const int CallExitDetailed = 5;
             public const int TailcallDetailed = 6;
 
-            public const int MethodInfo = 7;
-            public const int MethodInfoDetailed = 8;
+            public const int Exception = 7;
+            public const int ExceptionFrameUnwind = 8;
+            public const int ExceptionCompleted = 9;
 
-            public const int ThreadCreate = 9;
-            public const int ThreadDestroy = 10;
-            public const int ThreadName = 11;
+            public const int MethodInfo = 10;
+            public const int MethodInfoDetailed = 11;
 
-            public const int Shutdown = 12;
+            public const int ThreadCreate = 12;
+            public const int ThreadDestroy = 13;
+            public const int ThreadName = 14;
+
+            public const int Shutdown = 15;
         }
 
         /// <summary>
@@ -73,6 +77,24 @@ namespace DebugTools.Tracing
         {
             add => source.RegisterEventTemplate(TailcallDetailedTemplate(value));
             remove => source.UnregisterEventTemplate(value, EventId.TailcallDetailed, ProviderGuid);
+        }
+
+        public event Action<ExceptionArgs> Exception
+        {
+            add => source.RegisterEventTemplate(ExceptionTemplate(value));
+            remove => source.UnregisterEventTemplate(value, EventId.Exception, ProviderGuid);
+        }
+
+        public event Action<CallArgs> ExceptionFrameUnwind
+        {
+            add => source.RegisterEventTemplate(ExceptionFrameUnwindTemplate(value));
+            remove => source.UnregisterEventTemplate(value, EventId.ExceptionFrameUnwind, ProviderGuid);
+        }
+
+        public event Action<ExceptionCompletedArgs> ExceptionCompleted
+        {
+            add => source.RegisterEventTemplate(ExceptionCompletedTemplate(value));
+            remove => source.UnregisterEventTemplate(value, EventId.ExceptionCompleted, ProviderGuid);
         }
 
         public event Action<MethodInfoArgs> MethodInfo
@@ -132,14 +154,18 @@ namespace DebugTools.Tracing
                 arr[4] = CallLeaveDetailedTemplate(null);
                 arr[5] = TailcallDetailedTemplate(null);
 
-                arr[6] = MethodInfoTemplate(null);
-                arr[7] = MethodInfoDetailedTemplate(null);
+                arr[6] = ExceptionTemplate(null);
+                arr[7] = ExceptionFrameUnwindTemplate(null);
+                arr[8] = ExceptionCompletedTemplate(null);
 
-                arr[8] = ThreadCreateTemplate(null);
-                arr[9] = ThreadDestroyTemplate(null);
-                arr[10] = ThreadNameTemplate(null);
+                arr[9] = MethodInfoTemplate(null);
+                arr[10] = MethodInfoDetailedTemplate(null);
 
-                arr[11] = ShutdownTemplate(null);
+                arr[11] = ThreadCreateTemplate(null);
+                arr[12] = ThreadDestroyTemplate(null);
+                arr[13] = ThreadNameTemplate(null);
+
+                arr[14] = ShutdownTemplate(null);
                 events = arr;
             }
 
@@ -163,6 +189,12 @@ namespace DebugTools.Tracing
         private static CallDetailedArgs CallLeaveDetailedTemplate(Action<CallDetailedArgs> action) => new CallDetailedArgs(action, EventId.CallExitDetailed, 0, null, Guid.Empty, 0, null, ProviderGuid, ProviderName);
 
         private static CallDetailedArgs TailcallDetailedTemplate(Action<CallDetailedArgs> action) => new CallDetailedArgs(action, EventId.TailcallDetailed, 0, null, Guid.Empty, 0, null, ProviderGuid, ProviderName);
+
+        private static ExceptionArgs ExceptionTemplate(Action<ExceptionArgs> action) => new ExceptionArgs(action, EventId.Exception, 0, null, Guid.Empty, 0, null, ProviderGuid, ProviderName);
+
+        private static CallArgs ExceptionFrameUnwindTemplate(Action<CallArgs> action) => new CallArgs(action, EventId.ExceptionFrameUnwind, 0, null, Guid.Empty, 0, null, ProviderGuid, ProviderName);
+
+        private static ExceptionCompletedArgs ExceptionCompletedTemplate(Action<ExceptionCompletedArgs> action) => new ExceptionCompletedArgs(action, EventId.ExceptionCompleted, 0, null, Guid.Empty, 0, null, ProviderGuid, ProviderName);
 
         private static MethodInfoArgs MethodInfoTemplate(Action<MethodInfoArgs> action) => new MethodInfoArgs(action, EventId.MethodInfo, 0, null, Guid.Empty, 0, null, ProviderGuid, ProviderName);
 

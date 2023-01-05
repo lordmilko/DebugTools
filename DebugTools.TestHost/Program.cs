@@ -35,6 +35,10 @@ namespace DebugTools.TestHost
                     ProcessProfilerTest(args[1]);
                     break;
 
+                case TestType.Exception:
+                    ProcessExceptionTest(args[1]);
+                    break;
+
                 default:
                     Debug.WriteLine($"Don't know how to run test type '{testType}'");
                     Environment.Exit(1);
@@ -493,6 +497,69 @@ namespace DebugTools.TestHost
 
                 case ProfilerTestType.TwoChildren:
                     instance.TwoChildren();
+                    break;
+
+                default:
+                    Debug.WriteLine($"Don't know how to run profiler test '{test}'");
+                    Environment.Exit(2);
+                    break;
+            }
+        }
+
+        private static void ProcessExceptionTest(string subType)
+        {
+            var test = (ExceptionTestType)Enum.Parse(typeof(ExceptionTestType), subType);
+
+            Debug.WriteLine($"Running test '{test}'");
+
+            var instance = new ExceptionType();
+            switch (test)
+            {
+                case ExceptionTestType.CaughtWithinMethod:
+                    instance.CaughtWithinMethod();
+                    break;
+
+                case ExceptionTestType.UnwindOneFrame:
+                    instance.UnwindOneFrame1();
+                    break;
+
+                case ExceptionTestType.Nested_ThrownInCatchAndImmediatelyCaught:
+                    instance.Nested_ThrownInCatchAndImmediatelyCaught();
+                    break;
+
+                case ExceptionTestType.Nested_CaughtByOuterCatch:
+                    instance.Nested_CaughtByOuterCatch();
+                    break;
+
+                case ExceptionTestType.Nested_UnwindOneFrameFromThrowInCatch:
+                    instance.Nested_UnwindOneFrameFromThrowInCatch1();
+                    break;
+
+                case ExceptionTestType.Nested_UnwindTwoFramesFromThrowInCatch:
+                    instance.Nested_UnwindTwoFramesFromThrowInCatch1();
+                    break;
+
+                case ExceptionTestType.Nested_ThrownInFinallyAndImmediatelyCaught:
+                    instance.Nested_ThrownInFinallyAndImmediatelyCaught();
+                    break;
+
+                case ExceptionTestType.Nested_ThrownInFinallyAndUnwindOneFrame:
+                    instance.Nested_ThrownInFinallyAndUnwindOneFrame1();
+                    break;
+                case ExceptionTestType.NoCatchThrowWithFinallyUnwindOneFrame:
+                    instance.NoCatchThrowWithFinallyUnwindOneFrame1();
+                    break;
+
+                case ExceptionTestType.NoCatchThrowInFinallyUnwindOneFrame:
+                    instance.NoCatchThrowInFinallyUnwindOneFrame1();
+                    break;
+
+                case ExceptionTestType.UncaughtInNative:
+                    instance.UncaughtInNative();
+                    break;
+
+                case ExceptionTestType.CaughtInNative:
+                    instance.CaughtInNative();
                     break;
 
                 default:
