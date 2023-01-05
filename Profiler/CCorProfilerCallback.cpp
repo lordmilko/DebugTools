@@ -163,6 +163,7 @@ HRESULT CCorProfilerCallback::ModuleAttachedToAssembly(ModuleID moduleId, Assemb
     ASSEMBLYMETADATA asmMetaData;
     ZeroMemory(&asmMetaData, sizeof(ASSEMBLYMETADATA));
     const void* pbPublicKeyToken = nullptr;
+    ULONG cbPublicKeyToken = 0;
     LPWSTR assemblyName = nullptr;
 
     CLock assemblyLock(&m_AssemblyMutex, true);
@@ -193,13 +194,17 @@ HRESULT CCorProfilerCallback::ModuleAttachedToAssembly(ModuleID moduleId, Assemb
 
         shortAsmName = _wcsdup(g_szAssemblyName);
 
-        IfFailGo(GetPublicKeyToken(pbPublicKey, cbPublicKey, &pbPublicKeyToken));
+        if (cbPublicKey)
+        {
+            IfFailGo(GetPublicKeyToken(pbPublicKey, cbPublicKey, &pbPublicKeyToken));
+            cbPublicKeyToken = 8;
+        }
 
         IfFailGo(GetAssemblyName(
             chName,
             asmMetaData,
             (const BYTE*)pbPublicKeyToken,
-            8,
+            cbPublicKeyToken,
             FALSE,
             &assemblyName
         ));
@@ -1016,6 +1021,14 @@ HRESULT CCorProfilerCallback::GetAssemblyName(
                 pbPublicKeyOrToken[i]
             );
         }
+    }
+    else
+    {
+        chName += swprintf_s(
+            g_szAssemblyName + chName,
+            NAME_BUFFER_SIZE - chName,
+            L"null"
+        );
     }
 
     *szAssemblyName = _wcsdup(g_szAssemblyName);
