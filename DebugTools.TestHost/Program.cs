@@ -197,6 +197,7 @@ namespace DebugTools.TestHost
                         }
                     });
                     break;
+
                 #region MethodVar
 
                 case ValueTestType.Generic_MethodVar_ElementTypeClassArg:
@@ -338,6 +339,7 @@ namespace DebugTools.TestHost
                         }
                     });
                     break;
+
                 #endregion
                 #region TypeVar
 
@@ -513,6 +515,7 @@ namespace DebugTools.TestHost
             Debug.WriteLine($"Running test '{test}'");
 
             var instance = new ExceptionType();
+
             switch (test)
             {
                 case ExceptionTestType.CaughtWithinMethod:
@@ -525,6 +528,14 @@ namespace DebugTools.TestHost
 
                 case ExceptionTestType.Nested_ThrownInCatchAndImmediatelyCaught:
                     instance.Nested_ThrownInCatchAndImmediatelyCaught();
+                    break;
+
+                case ExceptionTestType.Nested_ThrownInCatchAndCaughtByOuterCatch:
+                    instance.Nested_ThrownInCatchAndCaughtByOuterCatch();
+                    break;
+
+                case ExceptionTestType.Nested_InnerException_UnwindToInnerHandler_InDeeperFrameThanOuterCatch:
+                    instance.Nested_InnerException_UnwindToInnerHandler_InDeeperFrameThanOuterCatch1();
                     break;
 
                 case ExceptionTestType.Nested_CaughtByOuterCatch:
@@ -546,6 +557,11 @@ namespace DebugTools.TestHost
                 case ExceptionTestType.Nested_ThrownInFinallyAndUnwindOneFrame:
                     instance.Nested_ThrownInFinallyAndUnwindOneFrame1();
                     break;
+
+                case ExceptionTestType.Nested_ThrownInFinallyAndUnwindTwoFrames:
+                    instance.Nested_ThrownInFinallyAndUnwindTwoFrames1();
+                    break;
+
                 case ExceptionTestType.NoCatchThrowWithFinallyUnwindOneFrame:
                     instance.NoCatchThrowWithFinallyUnwindOneFrame1();
                     break;
@@ -560,6 +576,26 @@ namespace DebugTools.TestHost
 
                 case ExceptionTestType.CaughtInNative:
                     instance.CaughtInNative();
+                    break;
+
+                case ExceptionTestType.Rethrow:
+                    instance.Rethrow();
+                    break;
+
+                case ExceptionTestType.CallFunctionInCatchAndThrow:
+                    instance.CallFunctionInCatchAndThrow1();
+                    break;
+
+                case ExceptionTestType.ThrownInFilterAndCaught:
+                    instance.ThrownInFilterAndCaught();
+                    break;
+
+                case ExceptionTestType.ThrownInFilterAndNotCaught:
+                    instance.ThrownInFilterAndNotCaught();
+                    break;
+
+                case ExceptionTestType.ThrownInFilterThatUnwindsOneFrameAndNotCaught:
+                    instance.ThrownInFilterThatUnwindsOneFrameAndNotCaught();
                     break;
 
                 default:

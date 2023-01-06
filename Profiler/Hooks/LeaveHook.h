@@ -10,6 +10,7 @@ extern "C" void STDMETHODCALLTYPE LeaveStub(FunctionIDOrClientID functionId)
     HRESULT hr = S_OK;
 
     LEAVE_FUNCTION(functionId);
+    CExceptionManager::ClearStaleExceptions();
 
 ErrExit:
     ValidateETW(EventWriteCallLeaveEvent(functionId.functionID, g_Sequence, hr));

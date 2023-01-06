@@ -9,6 +9,7 @@ extern "C" void STDMETHODCALLTYPE TailcallStubWithInfo(FunctionIDOrClientID func
 {
     CValueTracer tracer;
     tracer.TailcallWithInfo(functionId, eltInfo);
+    CExceptionManager::ClearStaleExceptions();
 }
 
 #ifdef _X86_

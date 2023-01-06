@@ -10,6 +10,7 @@ extern "C" void STDMETHODCALLTYPE TailcallStub(FunctionIDOrClientID functionId)
     HRESULT hr = S_OK;
 
     LEAVE_FUNCTION(functionId);
+    CExceptionManager::ClearStaleExceptions();
 
 ErrExit:
     ValidateETW(EventWriteTailcallEvent(functionId.functionID, g_Sequence, hr));

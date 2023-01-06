@@ -5,6 +5,7 @@
         Incomplete = 0,
         Caught,
         UnmanagedCaught,
-        Superseded
+        Superseded,
+        UnhandledInFilter
     }
 }

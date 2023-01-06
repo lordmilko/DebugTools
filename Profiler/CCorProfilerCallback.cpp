@@ -1,5 +1,6 @@
 #include "pch.h"
 #include "CCorProfilerCallback.h"
+#include "CExceptionInfo.h"
 #include "CSigReader.h"
 #include "Hooks\Hooks.h"
 #include <bcrypt.h>
@@ -319,49 +320,24 @@ HRESULT CCorProfilerCallback::ClassUnloadFinished(ClassID classId, HRESULT hrSta
 #pragma endregion
 #pragma region Exception Events
 
-HRESULT CCorProfilerCallback::ExceptionThrown(ObjectID thrownObjectId)
-{
-    return m_ExceptionManager.ExceptionThrown(thrownObjectId);
-}
+HRESULT CCorProfilerCallback::ExceptionThrown(ObjectID thrownObjectId)                        { return m_ExceptionManager.ExceptionThrown(thrownObjectId);    }
 
-#pragma region UnwindFunction
+//SearchFilter
+HRESULT CCorProfilerCallback::ExceptionSearchFilterEnter(FunctionID functionId)               { return m_ExceptionManager.SearchFilterEnter(functionId);      }
+HRESULT CCorProfilerCallback::ExceptionSearchFilterLeave()                                    { return m_ExceptionManager.SearchFilterLeave();                }
 
-HRESULT CCorProfilerCallback::ExceptionUnwindFunctionEnter(FunctionID functionId)
-{
-    return m_ExceptionManager.UnwindFunctionEnter(functionId);
-}
-HRESULT CCorProfilerCallback::ExceptionUnwindFunctionLeave()
-{
-    return m_ExceptionManager.UnwindFunctionLeave();
-}
+//UnwindFunction
+HRESULT CCorProfilerCallback::ExceptionUnwindFunctionEnter(FunctionID functionId)             { return m_ExceptionManager.UnwindFunctionEnter(functionId);    }
+HRESULT CCorProfilerCallback::ExceptionUnwindFunctionLeave()                                  { return m_ExceptionManager.UnwindFunctionLeave();              }
 
-#pragma endregion
-#pragma region UnwindFinally
+//CatcherEnter
+HRESULT CCorProfilerCallback::ExceptionCatcherEnter(FunctionID functionId, ObjectID objectId) { return m_ExceptionManager.CatcherEnter(functionId, objectId); }
+HRESULT CCorProfilerCallback::ExceptionCatcherLeave()                                         { return m_ExceptionManager.CatcherLeave();                     }
 
-HRESULT CCorProfilerCallback::ExceptionUnwindFinallyEnter(FunctionID functionId)
-{
-    return m_ExceptionManager.UnwindFinallyEnter(functionId);
-}
+//UnwindFinally
+HRESULT CCorProfilerCallback::ExceptionUnwindFinallyEnter(FunctionID functionId)              { return m_ExceptionManager.UnwindFinallyEnter(functionId);     }
+HRESULT CCorProfilerCallback::ExceptionUnwindFinallyLeave()                                   { return m_ExceptionManager.UnwindFinallyLeave();               }
 
-HRESULT CCorProfilerCallback::ExceptionUnwindFinallyLeave()
-{
-    return m_ExceptionManager.UnwindFinallyLeave();
-}
-
-#pragma endregion
-#pragma region Catcher
-
-HRESULT CCorProfilerCallback::ExceptionCatcherEnter(FunctionID functionId, ObjectID objectId)
-{
-    return m_ExceptionManager.CatcherEnter(functionId, objectId);
-}
-
-HRESULT CCorProfilerCallback::ExceptionCatcherLeave()
-{
-    return m_ExceptionManager.CatcherLeave();
-}
-
-#pragma endregion
 #pragma endregion
 
 /// <summary>
@@ -485,6 +461,44 @@ HRESULT CCorProfilerCallback::ThreadNameChanged(ThreadID threadId, ULONG cchName
 
 CCorProfilerCallback* g_pProfiler;
 HANDLE CCorProfilerCallback::g_hExitProcess;
+
+CCorProfilerCallback::~CCorProfilerCallback()
+{
+    for (auto const& kv : m_MethodInfoMap)
+        kv.second->Release();
+
+    for (auto const& kv : m_ClassInfoMap)
+        kv.second->Release();
+
+    for (auto const& kv : m_ModuleInfoMap)
+        kv.second->Release();
+
+    for (auto const& kv : m_AssemblyInfoMap)
+        kv.second->Release();
+
+    for (auto const& kv : m_StandardTypeMap)
+        kv.second->Release();
+
+    for (auto const& kv : m_ArrayTypeMap)
+        delete kv.second;
+
+    if (m_pInfo)
+        m_pInfo->Release();
+
+    if (m_hHash)
+        BCryptDestroyHash(m_hHash);
+
+#if _DEBUG
+    _ASSERTE(g_ExceptionQueue.empty());
+#endif
+
+    for (auto const& kv : g_ExceptionQueue)
+        delete kv;
+
+#if _DEBUG && DEBUG_UNKNOWN
+    _ASSERTE(g_UnknownMap->size() == 1); //+1 for CSigType Sentinel which is a static member
+#endif
+}
 
 /// <summary>
 /// A function that is called exactly once for each function that is JITted. Allows the profiler to report on the function,

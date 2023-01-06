@@ -28,6 +28,7 @@ packages/
 # User-specific files
 .vs/
 *.user
+launchSettings.json
 
 ####################
 # Windows detritus #

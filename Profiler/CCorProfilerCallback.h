@@ -41,40 +41,7 @@ public:
     {
     }
 
-    ~CCorProfilerCallback()
-    {
-        for (auto const& kv : m_MethodInfoMap)
-            kv.second->Release();
-
-        for (auto const& kv : m_ClassInfoMap)
-            kv.second->Release();
-
-        for (auto const& kv : m_ModuleInfoMap)
-            kv.second->Release();
-
-        for (auto const& kv : m_AssemblyInfoMap)
-            kv.second->Release();
-
-        for (auto const& kv : m_StandardTypeMap)
-            kv.second->Release();
-
-        for (auto const& kv : m_ArrayTypeMap)
-            delete kv.second;
-
-        if (m_pInfo)
-            m_pInfo->Release();
-
-        if (m_hHash)
-            BCryptDestroyHash(m_hHash);
-
-#if _DEBUG
-        _ASSERTE(g_ExceptionQueue.empty());
-#endif
-
-#if _DEBUG && DEBUG_UNKNOWN
-        _ASSERTE(g_UnknownMap->size() == 1); //+1 for CSigType Sentinel which is a static member
-#endif
-    }
+    ~CCorProfilerCallback();
 
     //Performs a one time registration function for each unique function that is JITted
     static UINT_PTR __stdcall RecordFunction(FunctionID funcId, void* clientData, BOOL* pbHookFunction);
@@ -182,8 +149,8 @@ public:
     STDMETHODIMP ExceptionThrown(ObjectID thrownObjectId) override;
     STDMETHODIMP ExceptionSearchFunctionEnter(FunctionID functionId) override { return S_OK; }
     STDMETHODIMP ExceptionSearchFunctionLeave() override { return S_OK; }
-    STDMETHODIMP ExceptionSearchFilterEnter(FunctionID functionId) override { return S_OK; }
-    STDMETHODIMP ExceptionSearchFilterLeave() override { return S_OK; }
+    STDMETHODIMP ExceptionSearchFilterEnter(FunctionID functionId) override;
+    STDMETHODIMP ExceptionSearchFilterLeave() override;
     STDMETHODIMP ExceptionSearchCatcherFound(FunctionID functionId) override { return S_OK; }
     STDMETHODIMP ExceptionOSHandlerEnter(FunctionID functionId) override { return S_OK; }
     STDMETHODIMP ExceptionOSHandlerLeave(FunctionID functionId) override { return S_OK; }

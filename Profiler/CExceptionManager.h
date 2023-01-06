@@ -10,7 +10,8 @@ enum class ExceptionCompletedReason
 {
     Caught = 1,
     UnmanagedCaught,
-    Superseded
+    Superseded,
+    UnhandledInFilter
 };
 
 class CExceptionManager
@@ -21,6 +22,9 @@ public:
 
     HRESULT ExceptionThrown(ObjectID thrownObjectId);
 
+    HRESULT SearchFilterEnter(FunctionID functionId);
+    HRESULT SearchFilterLeave();
+
     HRESULT UnwindFunctionEnter(FunctionID functionId);
     HRESULT UnwindFunctionLeave();
 
@@ -30,11 +34,15 @@ public:
     HRESULT CatcherEnter(FunctionID functionId, ObjectID objectId);
     HRESULT CatcherLeave();
 
+    static void ClearStaleExceptions();
+
 private:
+    static void ClearStaleException(CExceptionInfo* pExceptionInfo);
+    
     void EnterUnmanaged(CExceptionInfo* pExceptionInfo);
     void LeaveUnmanaged(CExceptionInfo* pExceptionInfo);
+
     void ClearLastException(CExceptionInfo* pExceptionInfo, ExceptionCompletedReason reason);
-    void ClearFirstException(CExceptionInfo* pExceptionInfo);
 
     CExceptionInfo* GetCurrentException()
     {

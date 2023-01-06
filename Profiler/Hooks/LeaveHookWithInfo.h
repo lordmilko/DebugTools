@@ -9,6 +9,7 @@ extern "C" void STDMETHODCALLTYPE LeaveStubWithInfo(FunctionIDOrClientID functio
 {
     CValueTracer tracer;
     tracer.LeaveWithInfo(functionId, eltInfo);
+    CExceptionManager::ClearStaleExceptions();
 }
 
 #ifdef _X86_

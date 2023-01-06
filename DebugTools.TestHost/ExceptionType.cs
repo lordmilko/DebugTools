@@ -78,6 +78,75 @@ namespace DebugTools.TestHost
             }
         }
 
+        public void Nested_ThrownInCatchAndCaughtByOuterCatch()
+        {
+            try
+            {
+                try
+                {
+                    /* This sequence of events is the same as Nested_ThrownInCatchAndImmediatelyCaught except we never get a notification
+                     * for the second ExceptionCatcherLeave, as it never runs. The CLR cleans up stale exceptions in ExceptionTracker::HandleNestedExceptionEscape(),
+                     * however the EstablisherFrame (called MemoryStackFp) on the PEXCEPTION_ROUTINE (ProcessCLRException) specified to the DISPATCHER_CONTEXT is never
+                     * passed to the profiler, so we can never determine whether the EstablisherFrame of the new exception supersedes the existing exception (it's not clear
+                     * how these "frames" that are reported relate to actual stack frames). As such, on Leave/Tailcall we check whether there are any exceptions outstanding
+                     * and complete them as superseded if we descend further than the frame depth their catch/finally was declared on. */
+
+                    /* ExceptionThrown                  - throw NotImplementedException
+                     * ExceptionUnwindFunctionEnter     - NotImplementedException
+                     * ExceptionCatcherEnter            - NotImplementedException
+                     *     ExceptionThrown              - throw InvalidOperationException
+                     *     ExceptionUnwindFunctionEnter - InvalidOperationException
+                     *     ExceptionCatcherEnter        - InvalidOperationException
+                     *     ExceptionCatcherLeave        - InvalidOperationException
+                     * Leave Nested_ThrownInCatchAndCaughtByOuterCatch
+                     */
+                    throw new NotImplementedException("Error Message 1");
+                }
+                catch (NotImplementedException)
+                {
+                    throw new InvalidOperationException("Error Message 2");
+                }
+            }
+            catch (InvalidOperationException)
+            {
+            }
+        }
+
+        #region Nested_InnerException_UnwindToInnerHandler_InDeeperFrameThanOuterCatch
+
+        public void Nested_InnerException_UnwindToInnerHandler_InDeeperFrameThanOuterCatch1()
+        {
+            //Just because we're unwinding the frames of the inner exception, does not mean that the
+            //outer exception has become unhandled.
+
+            try
+            {
+                throw new NotImplementedException();
+            }
+            catch (NotImplementedException)
+            {
+                Nested_InnerException_UnwindToInnerHandler_InDeeperFrameThanOuterCatch2();
+            }
+        }
+
+        private void Nested_InnerException_UnwindToInnerHandler_InDeeperFrameThanOuterCatch2()
+        {
+            try
+            {
+                Nested_InnerException_UnwindToInnerHandler_InDeeperFrameThanOuterCatch3();
+            }
+            catch (InvalidOperationException)
+            {
+            }
+        }
+
+        private void Nested_InnerException_UnwindToInnerHandler_InDeeperFrameThanOuterCatch3()
+        {
+            throw new InvalidOperationException();
+        }
+
+        #endregion
+
         public void Nested_CaughtByOuterCatch()
         {
             try
@@ -252,6 +321,43 @@ namespace DebugTools.TestHost
         }
 
         private void Nested_ThrownInFinallyAndUnwindOneFrame2()
+        {
+            try
+            {
+                throw new NotImplementedException("Error Message 1");
+            }
+            catch (NotImplementedException)
+            {
+            }
+            finally
+            {
+                //This generates unmanaged/managed transition events, so it should be commented out when verifying the events that occur
+                Debug.WriteLine($"In {nameof(Nested_ThrownInFinallyAndUnwindOneFrame2)} finally");
+
+                throw new InvalidOperationException("Error Message 2");
+            }
+        }
+
+        #endregion
+        #region Nested_ThrownInFinallyAndUnwindTwoFrames
+
+        public void Nested_ThrownInFinallyAndUnwindTwoFrames1()
+        {
+            try
+            {
+                Nested_ThrownInFinallyAndUnwindTwoFrames2();
+            }
+            catch (InvalidOperationException)
+            {
+            }
+        }
+
+        private void Nested_ThrownInFinallyAndUnwindTwoFrames2()
+        {
+            Nested_ThrownInFinallyAndUnwindTwoFrames3();
+        }
+
+        private void Nested_ThrownInFinallyAndUnwindTwoFrames3()
         {
             try
             {
@@ -449,6 +555,158 @@ namespace DebugTools.TestHost
             var clrDataCreateInstance = Marshal.GetDelegateForFunctionPointer<CLRDataCreateInstanceDelegate>(clrDataCreateInstancePtr);
 
             return clrDataCreateInstance;
+        }
+
+        #endregion
+
+        public void Rethrow()
+        {
+            try
+            {
+                try
+                {
+                    throw new NotImplementedException("Error Message 1");
+                }
+                catch (NotImplementedException)
+                {
+                    throw;
+                }
+            }
+            catch (NotImplementedException)
+            {
+            }
+        }
+
+        #region CallFunctionInCatchAndThrow
+
+        public void CallFunctionInCatchAndThrow1()
+        {
+            try
+            {
+                throw new NotImplementedException("Error Message 1");
+            }
+            catch (NotImplementedException)
+            {
+                try
+                {
+                    CallFunctionInCatchAndThrow2();
+                }
+                catch (InvalidOperationException)
+                {
+                }
+            }
+        }
+
+        private void CallFunctionInCatchAndThrow2()
+        {
+            throw new InvalidOperationException("Error Message 2");
+        }
+
+        #endregion
+
+        #region ThrownInFilterAndCaught
+
+        public void ThrownInFilterAndCaught()
+        {
+            try
+            {
+                throw new NotImplementedException("Error Message 1");
+            }
+            catch (NotImplementedException) when (FilterThatCatches())
+            {
+            }
+        }
+
+        private bool FilterThatCatches()
+        {
+            try
+            {
+                throw new InvalidOperationException("Error Message 2");
+            }
+            catch (InvalidOperationException)
+            {
+            }
+
+            return true;
+        }
+
+        #endregion
+        #region ThrownInFilterAndNotCaught
+
+        public void ThrownInFilterAndNotCaught()
+        {
+            //We should NOT have an InvalidOperationException. Instead, we should have a TimeoutException
+
+            try
+            {
+                try
+                {
+                    try
+                    {
+                        throw new NotImplementedException("Error Message 1");
+                    }
+                    catch (NotImplementedException) when (FilterThatThrows())
+                    {
+                        throw new InvalidOperationException("Error Message 2");
+                    }
+                }
+                catch (NotImplementedException)
+                {
+                    Debug.WriteLine("Throwing TimeoutException");
+                    throw new TimeoutException();
+                }
+            }
+            catch (TimeoutException)
+            {
+                Debug.WriteLine("Catch TimeoutException");
+            }
+        }
+
+        private bool FilterThatThrows()
+        {
+            throw new ArgumentException();
+        }
+
+        #endregion
+        #region ThrownInFilterThatUnwindsOneFrameAndNotCaught
+
+        public void ThrownInFilterThatUnwindsOneFrameAndNotCaught()
+        {
+            //We should NOT have an InvalidOperationException. Instead, we should have a TimeoutException
+
+            try
+            {
+                try
+                {
+                    try
+                    {
+                        throw new NotImplementedException("Error Message 1");
+                    }
+                    catch (NotImplementedException) when (FilterThatThrowsAndUnwinds1())
+                    {
+                        throw new InvalidOperationException("Error Message 2");
+                    }
+                }
+                catch (NotImplementedException)
+                {
+                    Debug.WriteLine("Throwing TimeoutException");
+                    throw new TimeoutException();
+                }
+            }
+            catch (TimeoutException)
+            {
+                Debug.WriteLine("Catch TimeoutException");
+            }
+        }
+
+        private bool FilterThatThrowsAndUnwinds1()
+        {
+            return FilterThatThrowsAndUnwinds2();
+        }
+
+        private bool FilterThatThrowsAndUnwinds2()
+        {
+            throw new ArgumentException();
         }
 
         #endregion

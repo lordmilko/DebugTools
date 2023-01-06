@@ -9,6 +9,8 @@ thread_local std::deque<CExceptionInfo*> g_ExceptionQueue;
 
 thread_local long g_ExceptionSequence;
 
+thread_local ULONG g_FilterCallDepth = 0;
+
 HRESULT CExceptionManager::UnmanagedToManagedTransition(FunctionID functionId, COR_PRF_TRANSITION_REASON reason)
 {
     if (g_ExceptionQueue.empty())
@@ -82,6 +84,9 @@ HRESULT CExceptionManager::ExceptionThrown(ObjectID thrownObjectId)
 
     pExceptionInfo = new CExceptionInfo(pClassInfo, g_ExceptionSequence);
 
+    if (g_FilterCallDepth > 0)
+        pExceptionInfo->m_IsInFilter = TRUE;
+
     LogException(L"ExceptionThrown %s\n", pClassInfo->m_szName);
 
     g_ExceptionQueue.push_back(pExceptionInfo);
@@ -92,11 +97,63 @@ ErrExit:
     return hr;
 }
 
+HRESULT CExceptionManager::SearchFilterEnter(FunctionID functionId)
+{
+    CExceptionInfo* pExceptionInfo = GetCurrentException();
+
+    //Set the function that will call the filter. This is NOT the FunctionID of the filter itself
+    pExceptionInfo->m_FilterInvokerFunctionId = functionId;
+
+    LogException(L"FilterEnter %s %llX\n", pExceptionInfo->m_pClassInfo->m_szName, functionId);
+
+    g_FilterCallDepth++;
+
+    return S_OK;
+}
+
+HRESULT CExceptionManager::SearchFilterLeave()
+{
+    CExceptionInfo* pExceptionInfo = GetCurrentException();
+
+    LogException(L"FilterLeave %s\n", pExceptionInfo->m_pClassInfo->m_szName);
+    g_FilterCallDepth--;
+
+    return S_OK;
+}
+
 HRESULT CExceptionManager::UnwindFunctionEnter(FunctionID functionId)
 {
     HRESULT hr = S_OK;
 
     CExceptionInfo* pExceptionInfo = GetCurrentException();
+
+    if (pExceptionInfo->m_IsInFilter && g_ExceptionQueue.size() > 1)
+    {
+        /* When an UnwindFunctionLeave event occurs, this indicates an unwind of an "exception handler scope".
+         * If an unhandled exception occurs in an exception filter, the exception will be swallowed and the filter
+         * will be considered to have returned false. However, an exception that occurs directly within a filter
+         * function will generate TWO pairs of UnwindFunctionEnter/Leave pairs. Once for the filter itself exiting,
+         * and another for the "exception handler scope" of "when (Filter())" ending. We do not want to treat this
+         * second unwind event as an unwind of an actual method frame - there was no Enter event associated with it
+         * that should be unwound; as such, we record the FunctionID of the function that invoked the filter initially.
+         * If an unhandled exception has occurred in a filter and we've rewound to the method that initially invoked
+         * that filter, the filter is over, and we can know not to actually unwind any additional frames.
+         * An issue that may be related is described at https://github.com/dotnet/runtime/issues/10871 */
+
+        //A queue's indexer is relative to the start like a normal list
+        CExceptionInfo* pPreviousException = g_ExceptionQueue[g_ExceptionQueue.size() - 2];
+
+        if (pPreviousException->m_FilterInvokerFunctionId == functionId)
+        {
+            //An exception occurred in a filter and the filter has now unwound to the "exception handler scope"
+            //of "when (Filter())". Flag the exception as being an unhandled filter exception so that it is properly
+            //disposed (and does not actually unwind any frames) in UnwindFrameLeave(). Another UnwindFunctionEnter
+            //event for the m_FilterInvokerFunctionId will occur after SearchFilterLeave
+            pExceptionInfo->m_UnhandledFilterExceptionComplete = TRUE;
+        }
+    }
+
+    LogException(L"UnwindFunctionEnter %s %llX\n", pExceptionInfo->m_pClassInfo->m_szName, functionId);
 
     pExceptionInfo->PushFrame(functionId);
 
@@ -110,41 +167,31 @@ HRESULT CExceptionManager::UnwindFunctionLeave()
 
     CExceptionInfo* pExceptionInfo = GetCurrentException();
 
-    if (g_ExceptionQueue.size() > 1)
-    {
-        while (true)
-        {
-            CExceptionInfo* pFirstException = g_ExceptionQueue.front();
-
-            if (pFirstException->m_ExceptionState == ExceptionState::EnterCatch || pFirstException->m_ExceptionState == ExceptionState::EnterFinally)
-            {
-                if (pFirstException->m_ExceptionState == ExceptionState::EnterCatch)
-                    LogException(L"UnwindFunctionLeave: Exception %s in queue is status EnterCatch and will never complete. Clearing exception\n", pFirstException->m_pClassInfo->m_szName);
-                else
-                    LogException(L"UnwindFunctionLeave: Exception %s in queue is status EnterFinally and will never complete. Clearing exception\n", pFirstException->m_pClassInfo->m_szName);
-
-                ClearFirstException(pFirstException);
-                pFirstException = nullptr;
-            }
-            else
-                break;
-        }
-    }
-
     FunctionIDOrClientID functionId = pExceptionInfo->PopFrame();
 
-    if (g_pProfiler->IsHookedFunction(functionId))
+    if (pExceptionInfo->m_UnhandledFilterExceptionComplete)
     {
-        unwindFrame = TRUE;
-        LogException(L"UnwindFunctionLeave %s: Unwinding shadow stack frame %llX\n", pExceptionInfo->m_pClassInfo->m_szName, functionId.functionID);
+        LogException(L"UnwindFunctionLeave: deleting unhandled filter exception %s", pExceptionInfo->m_pClassInfo->m_szName);
 
-        //This increments g_Sequence so our profiler controller will explode if we don't also provide an ETW notification
-        LEAVE_FUNCTION(functionId);
+        ClearLastException(pExceptionInfo, ExceptionCompletedReason::UnhandledInFilter);
     }
     else
     {
-        LogException(L"UnwindFunctionLeave %s: Not unwinding shadow stack frame %llX as it was not hooked\n", pExceptionInfo->m_pClassInfo->m_szName, functionId.functionID);
+        if (g_pProfiler->IsHookedFunction(functionId))
+        {
+            unwindFrame = TRUE;
+            LogException(L"UnwindFunctionLeave %s: Unwinding shadow stack frame %llX\n", pExceptionInfo->m_pClassInfo->m_szName, functionId.functionID);
+
+            //This increments g_Sequence so our profiler controller will explode if we don't also provide an ETW notification
+            LEAVE_FUNCTION(functionId);
+        }
+        else
+        {
+            LogException(L"UnwindFunctionLeave %s: Not unwinding shadow stack frame %llX as it was not hooked\n", pExceptionInfo->m_pClassInfo->m_szName, functionId.functionID);
+        }
     }
+
+    ClearStaleExceptions();
 
 ErrExit:
     if (unwindFrame)
@@ -155,14 +202,23 @@ ErrExit:
 
 HRESULT CExceptionManager::UnwindFinallyEnter(FunctionID functionId)
 {
+    HRESULT hr = S_OK;
+
     CExceptionInfo* pExceptionInfo = GetCurrentException();
+
+    COR_PRF_EX_CLAUSE_INFO clauseInfo;
+    IfFailGo(g_pProfiler->m_pInfo->GetNotifiedExceptionClauseInfo(&clauseInfo));
 
     _ASSERTE(pExceptionInfo->m_ExceptionState == ExceptionState::None);
 
     LogException(L"ExceptionUnwindFinallyEnter: %s None -> EnterFinally\n", pExceptionInfo->m_pClassInfo->m_szName);
 
     pExceptionInfo->m_ExceptionState = ExceptionState::EnterFinally;
+    pExceptionInfo->m_ClauseCallDepth = g_CallStack.size();
+    pExceptionInfo->m_ClauseFramePointer = clauseInfo.framePointer;
+    pExceptionInfo->m_ClauseProgramCounter = clauseInfo.programCounter;
 
+ErrExit:
     return S_OK;
 }
 
@@ -181,30 +237,57 @@ HRESULT CExceptionManager::UnwindFinallyLeave()
 
 HRESULT CExceptionManager::CatcherEnter(FunctionID functionId, ObjectID objectId)
 {
+    HRESULT hr = S_OK;
+
     CExceptionInfo* pExceptionInfo = GetCurrentException();
+
+    COR_PRF_EX_CLAUSE_INFO clauseInfo;
+    IfFailGo(g_pProfiler->m_pInfo->GetNotifiedExceptionClauseInfo(&clauseInfo));
 
     _ASSERTE(pExceptionInfo->m_ExceptionState == ExceptionState::None);
 
-    LogException(L"ExceptionCatcherEnter: %s None -> EnterCatch\n", pExceptionInfo->m_pClassInfo->m_szName);
+    LogException(
+        L"ExceptionCatcherEnter: %s None -> EnterCatch (EIP %llX, EBP %llX)\n",
+        pExceptionInfo->m_pClassInfo->m_szName,
+        clauseInfo.programCounter,
+        clauseInfo.framePointer
+    );
 
     pExceptionInfo->m_ExceptionState = ExceptionState::EnterCatch;
+    pExceptionInfo->m_ClauseCallDepth = g_CallStack.size();
+    pExceptionInfo->m_ClauseFramePointer = clauseInfo.framePointer;
+    pExceptionInfo->m_ClauseProgramCounter = clauseInfo.programCounter;
 
-    return S_OK;
+ErrExit:
+    return hr;
 }
 
 HRESULT CExceptionManager::CatcherLeave()
 {
+    HRESULT hr = S_OK;
+
     CExceptionInfo* pExceptionInfo = GetCurrentException();
+
+    COR_PRF_EX_CLAUSE_INFO clauseInfo;
+    IfFailGo(g_pProfiler->m_pInfo->GetNotifiedExceptionClauseInfo(&clauseInfo));
 
     _ASSERTE(pExceptionInfo->m_ExceptionState == ExceptionState::EnterCatch);
 
-    LogException(L"ExceptionCatcherLeave: %s EnterCatch -> None\n", pExceptionInfo->m_pClassInfo->m_szName);
+    LogException(
+        L"ExceptionCatcherLeave: %s EnterCatch -> None (EIP %llX, EBP %llX)\n",
+        pExceptionInfo->m_pClassInfo->m_szName,
+        clauseInfo.programCounter,
+        clauseInfo.framePointer
+    );
 
     pExceptionInfo->m_ExceptionState = ExceptionState::None;
 
     ClearLastException(pExceptionInfo, ExceptionCompletedReason::Caught);
 
-    return S_OK;
+    ClearStaleExceptions();
+
+ErrExit:
+    return hr;
 }
 
 void CExceptionManager::EnterUnmanaged(CExceptionInfo* pExceptionInfo)
@@ -220,6 +303,32 @@ void CExceptionManager::LeaveUnmanaged(CExceptionInfo* pExceptionInfo)
     {
         LogException(L"Exception %s handled by unmanaged code. Clearing exception\n", pExceptionInfo->m_pClassInfo->m_szName);
         ClearLastException(pExceptionInfo, ExceptionCompletedReason::UnmanagedCaught);
+
+        //We've just gracefully stepped out of unmanaged code. Any exceptions that were present have been handled
+        ClearStaleExceptions();
+    }
+}
+
+void CExceptionManager::ClearStaleExceptions()
+{
+    while (!g_ExceptionQueue.empty())
+    {
+        CExceptionInfo* pFirstException = g_ExceptionQueue.back();
+
+        if (pFirstException->m_ExceptionState == ExceptionState::EnterCatch || pFirstException->m_ExceptionState == ExceptionState::EnterFinally)
+        {
+            //If we've returned at least 1 frame from this previous exception, its EnterCatch or EnterFinally will never complete. The exception must have been
+            //interrupted by an exception that was thrown in its catch/finally clause.
+            if (pFirstException->m_ClauseCallDepth > g_CallStack.size())
+            {
+                ClearStaleException(pFirstException);
+                pFirstException = nullptr;
+            }
+            else
+                break;
+        }
+        else
+            break;
     }
 }
 
@@ -227,18 +336,28 @@ void CExceptionManager::ClearLastException(CExceptionInfo* pExceptionInfo, Excep
 {
     EventWriteExceptionCompletedEvent(pExceptionInfo->m_Sequence, (int) reason);
 
-    LogException(L"Exception %s has been handled. Clearing exception\n", pExceptionInfo->m_pClassInfo->m_szName);
+    if (reason != ExceptionCompletedReason::UnhandledInFilter)
+        LogException(L"Exception %s has been handled. Clearing exception\n", pExceptionInfo->m_pClassInfo->m_szName);
 
     _ASSERTE(g_ExceptionQueue.back() == pExceptionInfo);
     g_ExceptionQueue.pop_back();
     delete pExceptionInfo;
+
+    LogException(L"Exceptions remaining: %d\n", g_ExceptionQueue.size());
 }
 
-void CExceptionManager::ClearFirstException(CExceptionInfo* pExceptionInfo)
+void CExceptionManager::ClearStaleException(CExceptionInfo* pExceptionInfo)
 {
+    if (pExceptionInfo->m_ExceptionState == ExceptionState::EnterCatch)
+        LogException(L"UnwindFunctionLeave: Exception %s in queue is status EnterCatch and will never complete. Clearing exception\n", pExceptionInfo->m_pClassInfo->m_szName);
+    else
+        LogException(L"UnwindFunctionLeave: Exception %s in queue is status EnterFinally and will never complete. Clearing exception\n", pExceptionInfo->m_pClassInfo->m_szName);
+
     EventWriteExceptionCompletedEvent(pExceptionInfo->m_Sequence, (int) ExceptionCompletedReason::Superseded);
 
-    _ASSERTE(g_ExceptionQueue.front() == pExceptionInfo);
-    g_ExceptionQueue.pop_front();
+    _ASSERTE(g_ExceptionQueue.back() == pExceptionInfo);
+    g_ExceptionQueue.pop_back();
     delete pExceptionInfo;
+
+    LogException(L"Exceptions remaining: %d\n", g_ExceptionQueue.size());
 }
