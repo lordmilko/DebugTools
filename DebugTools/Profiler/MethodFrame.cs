@@ -6,11 +6,26 @@ namespace DebugTools.Profiler
     {
         public IFrame Parent { get; set; }
 
-        public MethodInfo MethodInfo { get; set; }
+        public MethodInfo MethodInfo { get; }
+
+        public long Sequence { get; }
 
         public List<MethodFrame> Children { get; set; } = new List<MethodFrame>();
 
         public int HashCode => GetHashCode();
+
+        public MethodFrame(MethodInfo methodInfo, long sequence)
+        {
+            MethodInfo = methodInfo;
+            Sequence = sequence;
+        }
+
+        public MethodFrame(IFrame newParent, MethodFrame originalFrame)
+        {
+            Parent = newParent;
+            MethodInfo = originalFrame.MethodInfo;
+            Sequence = originalFrame.Sequence;
+        }
 
         public RootFrame GetRoot()
         {

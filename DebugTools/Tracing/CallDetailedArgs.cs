@@ -2,6 +2,7 @@
 using System.Diagnostics;
 using System.Text;
 using ClrDebug;
+using DebugTools.Profiler;
 using Microsoft.Diagnostics.Tracing;
 
 namespace DebugTools.Tracing
@@ -16,6 +17,19 @@ namespace DebugTools.Tracing
         public long Sequence => GetInt64At(8);
 
         public HRESULT HRESULT => (HRESULT)GetInt32At(16);
+
+        internal PROFILER_HRESULT? PROFILER_HRESULT
+        {
+            get
+            {
+                var hr = HRESULT;
+
+                if ((uint) hr >= 0x80041001 && (uint) hr <= 0x80042000)
+                    return (PROFILER_HRESULT) hr;
+
+                return null;
+            }
+        }
 
         public int ValueLength => GetInt32At(20);
 

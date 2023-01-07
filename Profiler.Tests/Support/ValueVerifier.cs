@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using DebugTools.Profiler;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using ValueType = DebugTools.Profiler.ValueType;
 
 namespace Profiler.Tests
 {
@@ -33,7 +32,7 @@ namespace Profiler.Tests
 
         public ValueVerifier HasValueType(string name)
         {
-            var valueObj = (ValueType) v;
+            var valueObj = (StructType) v;
 
             Assert.AreEqual(name, valueObj.Name);
 
@@ -133,7 +132,7 @@ namespace Profiler.Tests
             if (v is ClassValue)
                 fields = ((ClassValue)v).FieldValues;
             else
-                fields = ((ValueType)v).FieldValues;
+                fields = ((StructType)v).FieldValues;
 
             return fields;
         }

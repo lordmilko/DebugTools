@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Management.Automation;
@@ -7,19 +8,22 @@ using DebugTools.Profiler;
 
 namespace DebugTools.PowerShell
 {
-    class MethodFrameConsoleWriter : IMethodFrameWriter
+    class MethodFrameColorWriter : IFormattedMethodFrameWriter
     {
         private MethodFrameFormatter formatter;
 
-        public HashSet<object> HighlightValues { get; set; }
+        public ConcurrentDictionary<object, byte> HighlightValues { get; set; }
 
-        public WildcardPattern[] HighlightMethods { get; set; }
+        public WildcardPattern[] HighlightMethodNames { get; set; }
 
         public List<IFrame> HighlightFrames { get; set; }
 
-        public MethodFrameConsoleWriter(MethodFrameFormatter formatter)
+        public IOutputSource Output { get; }
+
+        public MethodFrameColorWriter(MethodFrameFormatter formatter, IOutputSource output)
         {
             this.formatter = formatter;
+            Output = output;
         }
 
         private StringBuilder nameBuilder = new StringBuilder();
@@ -31,8 +35,8 @@ namespace DebugTools.PowerShell
 
             if (value is FormattedValue f)
             {
-                if (HighlightValues.Contains(f.Original))
-                    WriteColor(f.Formatted, ConsoleColor.Yellow);
+                if (HighlightValues?.ContainsKey(f.Original) == true)
+                    Output.WriteColor(f.Formatted, ConsoleColor.Yellow);
                 else
                     WriteMaybeHighlight(f.Formatted, highlightFrame);
             }
@@ -52,7 +56,7 @@ namespace DebugTools.PowerShell
                         nameBuilder.Clear();
 
                         if (ShouldHighlightMethod(str))
-                            WriteColor(str, ConsoleColor.Green);
+                            Output.WriteColor(str, ConsoleColor.Green);
                         else
                             WriteMaybeHighlight(str, highlightFrame);
 
@@ -60,8 +64,8 @@ namespace DebugTools.PowerShell
 
                     case FrameTokenKind.Parameter:
                     case FrameTokenKind.ReturnValue:
-                        if (HighlightValues.Contains(value))
-                            WriteColor(value, ConsoleColor.Yellow);
+                        if (HighlightValues?.ContainsKey(value) == true)
+                            Output.WriteColor(value, ConsoleColor.Yellow);
                         else
                             WriteMaybeHighlight(value, highlightFrame);
                         break;
@@ -78,30 +82,12 @@ namespace DebugTools.PowerShell
             return this;
         }
 
-        private void WriteColor(object message, ConsoleColor color)
-        {
-            ConsoleColor fg = Console.ForegroundColor;
-
-            Console.ForegroundColor = color;
-
-            try
-            {
-                Console.Write(message);
-            }
-            finally
-            {
-                Console.ForegroundColor = fg;
-            }
-        }
-
-        private void WriteNormal(object message) => Console.Write(message);
-
         private void WriteMaybeHighlight(object message, bool highlightFrame)
         {
             if (highlightFrame)
-                WriteColor(message, ConsoleColor.Green);
+                Output.WriteColor(message, ConsoleColor.Green);
             else
-                WriteNormal(message);
+                Output.Write(message);
         }
 
         public void Print(IFrame frame)
@@ -111,10 +97,10 @@ namespace DebugTools.PowerShell
 
         private bool ShouldHighlightMethod(string str)
         {
-            if (HighlightMethods == null)
+            if (HighlightMethodNames == null)
                 return false;
 
-            return HighlightMethods.Any(h => h.IsMatch(str));
+            return HighlightMethodNames.Any(h => h.IsMatch(str));
         }
     }
 }

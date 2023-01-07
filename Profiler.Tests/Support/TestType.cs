@@ -130,6 +130,8 @@ namespace Profiler.Tests
         UnwindOneFrame,
         UnwindTwoFrames,
         Nested_ThrownInCatchAndImmediatelyCaught,
+        Nested_ThrownInCatchAndCaughtByOuterCatch,
+        Nested_InnerException_UnwindToInnerHandler_InDeeperFrameThanOuterCatch,
 
         Nested_CaughtByOuterCatch,
 
@@ -141,11 +143,20 @@ namespace Profiler.Tests
 
         //If the nested exception occurred within a finally, and escapes the finally, the original exception's processing will never resume.
         Nested_ThrownInFinallyAndUnwindOneFrame,
+        Nested_ThrownInFinallyAndUnwindTwoFrames,
 
         NoCatchThrowWithFinallyUnwindOneFrame,
         NoCatchThrowInFinallyUnwindOneFrame,
 
         UncaughtInNative,
         CaughtInNative,
+
+        Rethrow,
+        CallFunctionInCatchAndThrow,
+        ThrownInFilterAndCaught,
+
+        //If the nested exception occurred within a filter, and escapes the filter, the filter will be considered to return "false" and the first pass will continue.
+        ThrownInFilterAndNotCaught,
+        ThrownInFilterThatUnwindsOneFrameAndNotCaught
     }
 }

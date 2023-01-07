@@ -3,7 +3,7 @@
     "DebugTools.PowerShell": {
       "commandName": "Executable",
       "executablePath": "C:\\Windows\\system32\\WindowsPowerShell\\v1.0\\powershell.exe",
-      "commandLineArgs": "-noexit -command \"&{ import-module .\\DebugTools.PowerShell.dll -verbose; cd \\; }\""
+      "commandLineArgs": "-noexit -command \"&{ import-module ..\\DebugTools -verbose; cd \\; }\""
     }
   }
 }

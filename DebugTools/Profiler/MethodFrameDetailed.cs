@@ -1,5 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Runtime.CompilerServices;
+using ClrDebug;
+using DebugTools.Tracing;
 
 namespace DebugTools.Profiler
 {
@@ -48,6 +50,17 @@ namespace DebugTools.Profiler
 
                 return result;
             }
+        }
+
+        public MethodFrameDetailed(MethodInfo methodInfo, CallDetailedArgs args) : base(methodInfo, args.Sequence)
+        {
+            EnterValue = args.HRESULT == HRESULT.S_OK ? args.Value : null;
+        }
+
+        public MethodFrameDetailed(IFrame newParent, MethodFrameDetailed originalFrame) : base(newParent, originalFrame)
+        {
+            EnterValue = originalFrame.EnterValue;
+            ExitValue = originalFrame.ExitValue;
         }
 
         public List<object> GetEnterParameters() => EnterParameters;

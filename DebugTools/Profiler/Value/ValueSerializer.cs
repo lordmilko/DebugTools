@@ -114,7 +114,7 @@ namespace DebugTools.Profiler
                     return new ArrayValue(reader, this);
 
                 case CorElementType.ValueType:
-                    return new ValueType(reader, this);
+                    return new StructType(reader, this);
 
                 //We reached the max trace depth. Any values after this are missing
                 case CorElementType.End:

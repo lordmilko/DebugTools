@@ -21,10 +21,7 @@ namespace DebugTools.Profiler
         {
             Validate(args);
 
-            var newFrame = new MethodFrame
-            {
-                MethodInfo = method
-            };
+            var newFrame = new MethodFrame(method, args.Sequence);
 
             if (Current == null)
                 Current = new RootFrame { ThreadId = args.ThreadID };
@@ -58,11 +55,7 @@ namespace DebugTools.Profiler
         {
             Validate(args);
 
-            var newFrame = new MethodFrameDetailed
-            {
-                MethodInfo = method,
-                EnterValue = args.HRESULT == HRESULT.S_OK ? args.Value : null
-            };
+            var newFrame = new MethodFrameDetailed(method, args);
 
             if (Current == null)
                 Current = new RootFrame { ThreadId = args.ThreadID };

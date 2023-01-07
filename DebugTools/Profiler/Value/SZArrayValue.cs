@@ -47,6 +47,12 @@ namespace DebugTools.Profiler
 
             for (var i = 0; i < Value.Length; i++)
             {
+                if (i > 5)
+                {
+                    builder.Append($"...({Value.Length} more item(s))");
+                    break;
+                }
+
                 builder.Append(Value[i]);
 
                 if (i < Value.Length - 1)

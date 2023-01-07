@@ -4,7 +4,7 @@ using System.Text;
 
 namespace DebugTools.Profiler
 {
-    public class ValueType : IValue<object>
+    public class StructType : IValue<object>
     {
         public string Name { get; }
 
@@ -12,7 +12,7 @@ namespace DebugTools.Profiler
 
         public List<object> FieldValues { get; }
 
-        public ValueType(BinaryReader reader, ValueSerializer serializer)
+        public StructType(BinaryReader reader, ValueSerializer serializer)
         {
             Value = this;
 

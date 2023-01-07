@@ -4,7 +4,6 @@ using System.Linq;
 using ClrDebug;
 using DebugTools.Profiler;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using ValueType = DebugTools.Profiler.ValueType;
 
 namespace Profiler.Tests
 {
@@ -83,7 +82,7 @@ namespace Profiler.Tests
 
             for (var i = 0; i < structNames.Length; i++)
             {
-                var valueObj = (ValueType)arrObj.Value[i];
+                var valueObj = (StructType)arrObj.Value[i];
 
                 Assert.AreEqual(structNames[i], valueObj.Name);
             }
@@ -133,7 +132,7 @@ namespace Profiler.Tests
             if (parameter is ClassValue)
                 fields = ((ClassValue)parameter).FieldValues;
             else
-                fields = ((ValueType)parameter).FieldValues;
+                fields = ((StructType)parameter).FieldValues;
 
             return fields;
         }

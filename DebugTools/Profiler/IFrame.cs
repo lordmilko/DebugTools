@@ -8,6 +8,8 @@ namespace DebugTools.Profiler
 
         List<MethodFrame> Children { get; set; }
 
+        long Sequence { get; }
+
         RootFrame GetRoot();
     }
 }

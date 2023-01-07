@@ -97,7 +97,7 @@ namespace DebugTools.Profiler
         {
             if (value is ClassValue c)
                 return new FormattedValue(value, GetTypeName(c.Name));
-            else if (value is ValueType v)
+            else if (value is StructType v)
                 return new FormattedValue(value, GetTypeName(v.Name));
 
             return value;

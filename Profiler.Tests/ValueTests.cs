@@ -3,7 +3,6 @@ using System.Linq;
 using ClrDebug;
 using DebugTools.Profiler;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using ValueType = DebugTools.Profiler.ValueType;
 
 namespace Profiler.Tests
 {
@@ -114,11 +113,11 @@ namespace Profiler.Tests
                 var dict = (ClassValue) v.GetParameter();
                 var entries = (SZArrayValue) dict.FieldValues[1];
 
-                var first = (ValueType) entries.Value[0];
+                var first = (StructType) entries.Value[0];
                 first.VerifyValue().HasFieldValue(2, "first");
                 first.VerifyValue().HasFieldValue(3, 1);
 
-                var second = (ValueType)entries.Value[1];
+                var second = (StructType)entries.Value[1];
                 second.VerifyValue().HasFieldValue(2, "second");
                 second.VerifyValue().HasFieldValue(3, 2);
             });

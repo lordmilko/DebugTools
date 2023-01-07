@@ -12,6 +12,8 @@ namespace DebugTools.Profiler
 
         public List<MethodFrame> Children { get; set; } = new List<MethodFrame>();
 
+        public long Sequence => -1;
+
         public RootFrame GetRoot() => this;
 
         public override string ToString()

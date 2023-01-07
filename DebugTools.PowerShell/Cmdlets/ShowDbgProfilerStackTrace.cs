@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Management.Automation;
+using System.Reflection;
 using DebugTools.Profiler;
 
 namespace DebugTools.PowerShell.Cmdlets
@@ -15,232 +16,100 @@ namespace DebugTools.PowerShell.Cmdlets
         [Parameter(Mandatory = false)]
         public SwitchParameter Unlimited { get; set; }
 
-        [Parameter(Mandatory = false)]
+        [Parameter(Mandatory = false, ParameterSetName = ParameterSet.Filter)]
         public SwitchParameter Unique { get; set; }
 
-        [Parameter(Mandatory = false, Position = 0)]
+        [Parameter(Mandatory = false, Position = 0, ParameterSetName = ParameterSet.Filter)]
         public string[] Include { get; set; }
 
-        [Parameter(Mandatory = false)]
+        [Parameter(Mandatory = false, ParameterSetName = ParameterSet.Filter)]
         public string[] Exclude { get; set; }
 
         [Parameter(Mandatory = false)]
         public string[] Highlight { get; set; }
 
-        [Parameter(Mandatory = false)]
-        public string StringValue { get; set; }
+        [Parameter(Mandatory = false, ParameterSetName = ParameterSet.Filter)]
+        public string[] StringValue { get; set; }
+
+        [Parameter(Mandatory = false, ParameterSetName = ParameterSet.Filter)]
+        public string[] TypeName { get; set; }
 
         [Parameter(Mandatory = false)]
         public SwitchParameter ExcludeNamespace { get; set; }
 
-        private WildcardPattern[] highlight;
+        private WildcardPattern[] highlightMethodNameWildcards;
         private List<IFrame> highlightFrames = new List<IFrame>();
 
         private List<IFrame> frames = new List<IFrame>();
 
-        private FindDbgProfilerStackFrame findDbgProfilerStackFrame;
+        private FrameFilterer filter;
 
-        private MethodFrameConsoleWriter methodFrameWriter;
+        private MethodFrameColorWriter methodFrameWriter;
+
+        private IOutputSource output = new ConsoleOutputSource();
 
         protected override void BeginProcessing()
         {
             if (Highlight != null)
-                highlight = Highlight.Select(h => new WildcardPattern(h, WildcardOptions.IgnoreCase)).ToArray();
+                highlightMethodNameWildcards = Highlight.Select(h => new WildcardPattern(h, WildcardOptions.IgnoreCase)).ToArray();
 
             var methodFrameFormatter = new MethodFrameFormatter(ExcludeNamespace);
-            methodFrameWriter = new MethodFrameConsoleWriter(methodFrameFormatter);
+            methodFrameWriter = new MethodFrameColorWriter(methodFrameFormatter, output);
 
-            if (Include != null)
+            if (ParameterSetName == ParameterSet.Filter)
             {
-                findDbgProfilerStackFrame = new FindDbgProfilerStackFrame
-                {
-                    Include = Include,
-                    Exclude = Exclude,
-                    Unique = Unique,
-                    StringValue = StringValue
-                };
-
-                findDbgProfilerStackFrame.Begin();
+                filter = new FrameFilterer(
+                    new FrameFilterOptions
+                    {
+                        Include = Include,
+                        Exclude = Exclude,
+                        Unique = Unique,
+                        StringValue = StringValue,
+                        TypeName = TypeName,
+                        HasFilterValue = ParameterSetName == ParameterSet.Filter
+                    }
+                );
             }
         }
 
         protected override void DoProcessRecordEx()
         {
-            if (findDbgProfilerStackFrame != null)
-            {
-                findDbgProfilerStackFrame.Frame = Frame;
-                findDbgProfilerStackFrame.Process();
-            }
+            if (filter != null)
+                filter.ProcessFrame(Frame);
             else
                 frames.Add(Frame);
         }
 
         protected override void EndProcessing()
         {
-            if (findDbgProfilerStackFrame != null)
-            {
-                frames = findDbgProfilerStackFrame.Frames;
-                methodFrameWriter.HighlightValues = findDbgProfilerStackFrame.MatchedValues;
-            }
+            var outputFrames = filter.GetSortedMaybeValueFilteredFrames();
 
-            methodFrameWriter.HighlightMethods = highlight;
-            methodFrameWriter.HighlightFrames = highlightFrames;
+            methodFrameWriter.HighlightValues = filter.MatchedValues;
+            methodFrameWriter.HighlightMethodNames = highlightMethodNameWildcards;
+            methodFrameWriter.HighlightFrames = filter.HighlightFrames;
 
-            if (frames.All(f => !(f is RootFrame)))
-            {
-                ProcessFilteredFrames();
-            }
-            else
-            {
-                foreach(var frame in frames)
-                    Print(frame, 0, string.Empty, false, true);
-            }
+            var stackWriter = new StackFrameWriter(
+                methodFrameWriter,
+                GetDepth(),
+                CancellationToken
+            );
+
+            stackWriter.Execute(outputFrames);
 
             base.EndProcessing();
         }
 
-        private void ProcessFilteredFrames()
+        private int? GetDepth()
         {
-            Unlimited = true;
+            if (Unlimited || ParameterSetName == ParameterSet.Filter)
+                return null;
 
-            var knownOriginalFrames = new Dictionary<IFrame, IFrame>();
-
-            var newRoots = new List<RootFrame>();
-
-            foreach (var frame in frames)
-            {
-                var originalFrames = GetOriginalFrames(frame);
-
-                var newRoot = GetNewFrames(originalFrames, knownOriginalFrames);
-
-                if (newRoot != null)
-                    newRoots.Add(newRoot);
-            }
-
-            foreach (var root in newRoots)
-                Print(root, 0, string.Empty, false, true);
-        }
-
-        private List<IFrame> GetOriginalFrames(IFrame frame)
-        {
-            var list = new List<IFrame> { frame };
-
-            var parent = frame;
-
-            while (!(parent is RootFrame))
-            {
-                parent = parent.Parent;
-                list.Add(parent);
-            }
-
-            list.Reverse();
-
-            return list;
-        }
-
-        private RootFrame GetNewFrames(List<IFrame> originalFrames, Dictionary<IFrame, IFrame> knownOriginalFrames)
-        {
-            IFrame newParent = null;
-            RootFrame newRoot = null;
-
-            foreach (var item in originalFrames)
-            {
-                if (!knownOriginalFrames.TryGetValue(item, out var newItem))
-                {
-                    if (item is RootFrame r)
-                    {
-                        newRoot = new RootFrame
-                        {
-                            ThreadId = r.ThreadId,
-                            ThreadName = r.ThreadName
-                        };
-
-                        newItem = newRoot;
-                        newParent = newRoot;
-                    }
-                    else if (item is MethodFrameDetailed d)
-                    {
-                        newItem = new MethodFrameDetailed
-                        {
-                            Parent = newParent,
-                            MethodInfo = d.MethodInfo,
-                            EnterValue = d.EnterValue,
-                            ExitValue = d.ExitValue
-                        };
-                        newParent.Children.Add((MethodFrame)newItem);
-
-                        if (MethodFrameDetailed.ParameterCache.TryGetValue(d, out var parameters))
-                            MethodFrameDetailed.ParameterCache.Add((MethodFrameDetailed) newItem, parameters);
-
-                        if (MethodFrameDetailed.ReturnCache.TryGetValue(d, out var returnValue))
-                            MethodFrameDetailed.ReturnCache.Add((MethodFrameDetailed) newItem, returnValue);
-
-                        newParent = newItem;
-                    }
-                    else if (item is MethodFrame m)
-                    {
-                        newItem = new MethodFrame
-                        {
-                            Parent = newParent,
-                            MethodInfo = m.MethodInfo
-                        };
-                        newParent.Children.Add((MethodFrame) newItem);
-                        newParent = newItem;
-                    }
-
-                    knownOriginalFrames[item] = newItem;
-                }
-                else
-                    newParent = newItem;
-
-                if (frames.Contains(item, FrameEqualityComparer.Instance))
-                    highlightFrames.Add(newItem);
-            }
-
-            return newRoot;
-        }
-
-        private void Print(IFrame item, int level, string indent, bool last, bool first = false)
-        {
-            CancellationToken.ThrowIfCancellationRequested();
-
-            Console.Write(indent);
-
-            if (!first)
-            {
-                if (last)
-                {
-                    Console.Write("└─");
-                    indent += "  ";
-                }
-                else
-                {
-                    Console.Write("├─");
-                    indent += "│ ";
-                }
-            }
-
-            methodFrameWriter.Print(item);
-
-            Console.WriteLine();
-
-            IList<MethodFrame> children = item.Children;
-
-            if (level < Depth || Unlimited || children.Count == 0)
-            {
-                for (var i = 0; i < children.Count; i++)
-                    Print(children[i], level + 1, indent, i == children.Count - 1);
-            }
-            else
-            {
-                Console.Write(indent);
-                Console.Write("└─...");
-            }
+            return Depth;
         }
 
         public void Dispose()
         {
-            findDbgProfilerStackFrame?.Dispose();
+            filter?.Dispose();
         }
     }
 }

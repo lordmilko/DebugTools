@@ -22,7 +22,20 @@ namespace DebugTools.PowerShell.Cmdlets
                 else if (sessions.Length > 1)
                     throw new InvalidOperationException($"Cannot execute cmdlet: more than one running global {nameof(ProfilerSession)} was found. Please specify a session explicitly to the -{nameof(Session)} parameter.");
                 else
-                    throw new InvalidOperationException($"Cannot execute cmdlet: no -{nameof(Session)} was specified and no global {nameof(Session)} could be found in the PowerShell session.");
+                {
+                    if (ProfilerSessionState.Sessions.Count == 1)
+                        Session = ProfilerSessionState.Sessions[0];
+                    {
+                        if (sessions.Length > 0)
+                            throw new InvalidOperationException($"Cannot execute cmdlet: no -{nameof(Session)} was specified and more than one {nameof(Session)} belonging to active processes was found in the PowerShell session.");
+                        
+                        if (ProfilerSessionState.Sessions.Count > 0)
+                            throw new InvalidOperationException($"Cannot execute cmdlet: no -{nameof(Session)} was specified, there are no sessions belonging to active processes, and more than one {nameof(Session)} belonging to terminated processes was found in the PowerShell session.");
+
+                        throw new InvalidOperationException($"Cannot execute cmdlet: no -{nameof(Session)} was specified and no global {nameof(Session)} could be found in the PowerShell session.");
+                    }
+                    
+                }
             }
 
             ProcessRecordEx();
