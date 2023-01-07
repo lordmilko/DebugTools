@@ -8,7 +8,7 @@ using DebugTools.Profiler;
 
 namespace DebugTools.PowerShell
 {
-    class MethodFrameColorWriter : IFormattedMethodFrameWriter
+    public class MethodFrameColorWriter : IFormattedMethodFrameWriter
     {
         private MethodFrameFormatter formatter;
 

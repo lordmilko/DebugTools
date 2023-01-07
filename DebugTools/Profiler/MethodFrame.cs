@@ -2,7 +2,7 @@
 
 namespace DebugTools.Profiler
 {
-    public class MethodFrame : IFrame
+    public class MethodFrame : IMethodFrame
     {
         public IFrame Parent { get; set; }
 
@@ -10,7 +10,7 @@ namespace DebugTools.Profiler
 
         public long Sequence { get; }
 
-        public List<MethodFrame> Children { get; set; } = new List<MethodFrame>();
+        public List<IMethodFrame> Children { get; set; } = new List<IMethodFrame>();
 
         public int HashCode => GetHashCode();
 
@@ -20,24 +20,29 @@ namespace DebugTools.Profiler
             Sequence = sequence;
         }
 
-        public MethodFrame(IFrame newParent, MethodFrame originalFrame)
+        protected MethodFrame(IFrame newParent, MethodFrame originalFrame)
         {
             Parent = newParent;
             MethodInfo = originalFrame.MethodInfo;
             Sequence = originalFrame.Sequence;
         }
 
-        public RootFrame GetRoot()
+        public IRootFrame GetRoot()
         {
             var parent = Parent;
 
             while (true)
             {
-                if (parent is RootFrame)
-                    return (RootFrame)parent;
+                if (parent is IRootFrame)
+                    return (IRootFrame)parent;
 
                 parent = parent.Parent;
             }
+        }
+
+        public virtual IMethodFrame CloneWithNewParent(IFrame newParent)
+        {
+            return new MethodFrame(newParent, this);
         }
 
         public override string ToString()

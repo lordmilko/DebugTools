@@ -85,7 +85,7 @@ namespace DebugTools.PowerShell.Cmdlets
             {
                 var item = stack.Pop();
 
-                if (item is MethodFrame m)
+                if (item is IMethodFrame m)
                     unique.Add(m.MethodInfo);
 
                 foreach (var child in item.Children)

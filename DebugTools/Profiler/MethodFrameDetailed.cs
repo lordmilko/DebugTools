@@ -5,16 +5,16 @@ using DebugTools.Tracing;
 
 namespace DebugTools.Profiler
 {
-    public class MethodFrameDetailed : MethodFrame
+    public class MethodFrameDetailed : MethodFrame, IMethodFrameDetailed
     {
         //Conditional weak table is thread safe
-        internal static ConditionalWeakTable<MethodFrameDetailed, List<object>> ParameterCache = new ConditionalWeakTable<MethodFrameDetailed, List<object>>();
-        internal static ConditionalWeakTable<MethodFrameDetailed, object> ReturnCache = new ConditionalWeakTable<MethodFrameDetailed, object>();
+        internal static ConditionalWeakTable<IMethodFrameDetailed, List<object>> ParameterCache = new ConditionalWeakTable<IMethodFrameDetailed, List<object>>();
+        internal static ConditionalWeakTable<IMethodFrameDetailed, object> ReturnCache = new ConditionalWeakTable<IMethodFrameDetailed, object>();
 
         public static void ClearCaches()
         {
-            ParameterCache = new ConditionalWeakTable<MethodFrameDetailed, List<object>>();
-            ReturnCache = new ConditionalWeakTable<MethodFrameDetailed, object>();
+            ParameterCache = new ConditionalWeakTable<IMethodFrameDetailed, List<object>>();
+            ReturnCache = new ConditionalWeakTable<IMethodFrameDetailed, object>();
         }
 
         internal byte[] EnterValue { get; set; }
@@ -57,7 +57,7 @@ namespace DebugTools.Profiler
             EnterValue = args.HRESULT == HRESULT.S_OK ? args.Value : null;
         }
 
-        public MethodFrameDetailed(IFrame newParent, MethodFrameDetailed originalFrame) : base(newParent, originalFrame)
+        protected MethodFrameDetailed(IFrame newParent, MethodFrameDetailed originalFrame) : base(newParent, originalFrame)
         {
             EnterValue = originalFrame.EnterValue;
             ExitValue = originalFrame.ExitValue;
@@ -66,6 +66,11 @@ namespace DebugTools.Profiler
         public List<object> GetEnterParameters() => EnterParameters;
 
         public object GetExitResult() => ExitResult;
+
+        public override IMethodFrame CloneWithNewParent(IFrame newParent)
+        {
+            return new MethodFrameDetailed(newParent, this);
+        }
 
         public override string ToString()
         {

@@ -9,7 +9,7 @@ namespace DebugTools.Profiler
     {
         public IFrame Current { get; set; }
 
-        public RootFrame Root => Current.GetRoot();
+        public IRootFrame Root => Current.GetRoot();
 
         public Dictionary<long, ExceptionInfo> Exceptions { get; } = new Dictionary<long, ExceptionInfo>();
 
@@ -114,7 +114,7 @@ namespace DebugTools.Profiler
 
         private void EndCallInternal()
         {
-            if (!(Current is RootFrame))
+            if (!(Current is IRootFrame))
                 Current = Current.Parent;
         }
 
@@ -132,7 +132,7 @@ namespace DebugTools.Profiler
         {
             Validate(args);
 
-            if (Current is MethodFrame f && method != null)
+            if (Current is IMethodFrame f && method != null)
             {
                 var expected = f.MethodInfo;
 

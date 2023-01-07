@@ -52,7 +52,7 @@ namespace DebugTools.PowerShell
 
             writer.Output.WriteLine();
 
-            IList<MethodFrame> children = item.Children;
+            IList<IMethodFrame> children = item.Children;
 
             if (depth == null || level < depth || children.Count == 0)
             {

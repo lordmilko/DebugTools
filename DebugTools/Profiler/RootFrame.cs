@@ -2,7 +2,7 @@
 
 namespace DebugTools.Profiler
 {
-    public class RootFrame : IFrame
+    public class RootFrame : IRootFrame
     {
         public int ThreadId { get; set; }
 
@@ -10,11 +10,11 @@ namespace DebugTools.Profiler
 
         public IFrame Parent { get; set; }
 
-        public List<MethodFrame> Children { get; set; } = new List<MethodFrame>();
+        public List<IMethodFrame> Children { get; set; } = new List<IMethodFrame>();
 
         public long Sequence => -1;
 
-        public RootFrame GetRoot() => this;
+        public IRootFrame GetRoot() => this;
 
         public override string ToString()
         {

@@ -26,7 +26,7 @@ namespace Profiler.Tests
             Assert.AreEqual("DebugTools.TestHost.exe", info.ModuleName);
         }
 
-        internal MethodFrame FindFrame(string name)
+        internal IMethodFrame FindFrame(string name)
         {
             var stack = new Stack<IFrame>();
 
@@ -37,7 +37,7 @@ namespace Profiler.Tests
             {
                 var item = stack.Pop();
 
-                if (item is MethodFrame m)
+                if (item is IMethodFrame m)
                 {
                     if (m.MethodInfo.MethodName == name)
                         return m;

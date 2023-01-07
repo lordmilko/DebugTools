@@ -59,19 +59,19 @@ namespace DebugTools.PowerShell
             {
                 DequeueAll(queue).AsParallel().ForAll(item =>
                 {
-                    if (item is RootFrame r)
+                    if (item is IRootFrame r)
                     {
                         if (r.ThreadName != null && ShouldInclude(i => i.IsMatch(r.ThreadName)) && !ShouldExclude(r) && !options.HasFilterValue)
                             includes[item] = 0;
                     }
-                    else if (item is MethodFrameDetailed d)
+                    else if (item is IMethodFrameDetailed d)
                     {
                         if (ShouldInclude(i => i.IsMatch(d.MethodInfo.MethodName) || i.IsMatch(d.MethodInfo.TypeName)) && HasValue(d) && !ShouldExclude(d))
                         {
                             includes[item] = 0;
                         }
                     }
-                    else if (item is MethodFrame m)
+                    else if (item is IMethodFrame m)
                     {
                         if (ShouldInclude(i => i.IsMatch(m.MethodInfo.MethodName) || i.IsMatch(m.MethodInfo.TypeName)) && !ShouldExclude(m))
                         {
@@ -119,7 +119,7 @@ namespace DebugTools.PowerShell
 
             var parent = frame;
 
-            while (!(parent is RootFrame))
+            while (!(parent is IRootFrame))
             {
                 parent = parent.Parent;
                 list.Add(parent);
@@ -130,19 +130,19 @@ namespace DebugTools.PowerShell
             return list;
         }
 
-        private RootFrame GetNewFrames(
+        private IRootFrame GetNewFrames(
             List<IFrame> originalStackTrace,
             List<IFrame> originalSortedFrames,
             Dictionary<IFrame, IFrame> knownOriginalFrames)
         {
             IFrame newParent = null;
-            RootFrame newRoot = null;
+            IRootFrame newRoot = null;
 
             foreach (var item in originalStackTrace)
             {
                 if (!knownOriginalFrames.TryGetValue(item, out var newItem))
                 {
-                    if (item is RootFrame r)
+                    if (item is IRootFrame r)
                     {
                         newRoot = new RootFrame
                         {
@@ -153,23 +153,23 @@ namespace DebugTools.PowerShell
                         newItem = newRoot;
                         newParent = newRoot;
                     }
-                    else if (item is MethodFrameDetailed d)
+                    else if (item is IMethodFrameDetailed d)
                     {
-                        newItem = new MethodFrameDetailed(newParent, d);
-                        newParent.Children.Add((MethodFrame)newItem);
+                        newItem = d.CloneWithNewParent(newParent);
+                        newParent.Children.Add((IMethodFrame)newItem);
 
                         if (MethodFrameDetailed.ParameterCache.TryGetValue(d, out var parameters))
-                            MethodFrameDetailed.ParameterCache.Add((MethodFrameDetailed)newItem, parameters);
+                            MethodFrameDetailed.ParameterCache.Add((IMethodFrameDetailed)newItem, parameters);
 
                         if (MethodFrameDetailed.ReturnCache.TryGetValue(d, out var returnValue))
-                            MethodFrameDetailed.ReturnCache.Add((MethodFrameDetailed)newItem, returnValue);
+                            MethodFrameDetailed.ReturnCache.Add((IMethodFrameDetailed)newItem, returnValue);
 
                         newParent = newItem;
                     }
-                    else if (item is MethodFrame m)
+                    else if (item is IMethodFrame m)
                     {
-                        newItem = new MethodFrame(newParent, m);
-                        newParent.Children.Add((MethodFrame)newItem);
+                        newItem = m.CloneWithNewParent(newParent);
+                        newParent.Children.Add((IMethodFrame)newItem);
                         newParent = newItem;
                     }
 
@@ -195,7 +195,7 @@ namespace DebugTools.PowerShell
             return includeWildcards.Any(match);
         }
 
-        private bool HasValue(MethodFrameDetailed d)
+        private bool HasValue(IMethodFrameDetailed d)
         {
             if (options.HasFilterValue)
             {
@@ -230,7 +230,7 @@ namespace DebugTools.PowerShell
             }
         }
 
-        private bool MatchString(MethodFrameDetailed d, object value, object methodComponent, Action onSuccess)
+        private bool MatchString(IMethodFrameDetailed d, object value, object methodComponent, Action onSuccess)
         {
             if (value is StringValue s && stringWildcards != null)
             {
@@ -252,7 +252,7 @@ namespace DebugTools.PowerShell
                 MatchedValues[methodComponent] = 0;
         }
 
-        private bool MatchAny(MethodFrameDetailed d, object value, object methodComponent, Action onSuccess)
+        private bool MatchAny(IMethodFrameDetailed d, object value, object methodComponent, Action onSuccess)
         {
             if (MatchString(d, value, methodComponent, onSuccess))
             {
@@ -275,7 +275,7 @@ namespace DebugTools.PowerShell
             return false;
         }
 
-        private bool MatchClassOrStructParameter(MethodFrameDetailed d, object value, object methodComponent, Action onSuccess)
+        private bool MatchClassOrStructParameter(IMethodFrameDetailed d, object value, object methodComponent, Action onSuccess)
         {
             if (value is ClassValue c && c.Value != null)
             {
@@ -328,7 +328,7 @@ namespace DebugTools.PowerShell
             return false;
         }
 
-        private bool MatchArray(MethodFrameDetailed d, object value, object methodComponent, Action onSuccess)
+        private bool MatchArray(IMethodFrameDetailed d, object value, object methodComponent, Action onSuccess)
         {
             if (value is SZArrayValue sz && sz.Value != null)
             {
@@ -357,7 +357,7 @@ namespace DebugTools.PowerShell
             return false;
         }
 
-        private bool ShouldExclude(RootFrame root)
+        private bool ShouldExclude(IRootFrame root)
         {
             if (excludeWildcards == null)
                 return false;
@@ -365,7 +365,7 @@ namespace DebugTools.PowerShell
             return excludeWildcards.Any(e => e.IsMatch(root.ThreadName));
         }
 
-        private bool ShouldExclude(MethodFrame frame)
+        private bool ShouldExclude(IMethodFrame frame)
         {
             if (excludeWildcards == null)
                 return false;

@@ -6,10 +6,10 @@ namespace DebugTools.Profiler
     {
         IFrame Parent { get; set; }
 
-        List<MethodFrame> Children { get; set; }
+        List<IMethodFrame> Children { get; set; }
 
         long Sequence { get; }
 
-        RootFrame GetRoot();
+        IRootFrame GetRoot();
     }
 }

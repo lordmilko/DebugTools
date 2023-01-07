@@ -109,7 +109,7 @@ namespace Profiler.Tests
 
         public List<object> GetParameters()
         {
-            var detailed = (MethodFrameDetailed)frame;
+            var detailed = (IMethodFrameDetailed)frame;
 
             var result = detailed.GetEnterParameters();
 

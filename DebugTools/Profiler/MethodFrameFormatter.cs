@@ -15,7 +15,7 @@ namespace DebugTools.Profiler
 
         public void Format(IFrame frame, IMethodFrameWriter writer)
         {
-            if (frame is RootFrame r)
+            if (frame is IRootFrame r)
             {
                 if (r.ThreadName == null)
                     writer.Write(r.ThreadId, frame, FrameTokenKind.ThreadId);
@@ -27,7 +27,7 @@ namespace DebugTools.Profiler
                         .Write(r.ThreadId, frame, FrameTokenKind.ThreadId);
                 }
             }
-            else if (frame is MethodFrameDetailed d)
+            else if (frame is IMethodFrameDetailed d)
             {
                 var exitResult = d.GetExitResult();
 
@@ -64,7 +64,7 @@ namespace DebugTools.Profiler
 
                 writer.Write(")", frame, FrameTokenKind.CloseParen);
             }
-            else if (frame is MethodFrame m)
+            else if (frame is IMethodFrame m)
             {
                 var info = m.MethodInfo;
 
