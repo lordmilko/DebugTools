@@ -13,4 +13,12 @@
     {
         public int Property1 { get; set; }
     }
+
+    unsafe struct ComplexPtrStruct
+    {
+        public char* CharPtr;
+        public char CharVal;
+        public Struct1WithField Struct;
+        public Struct1WithField* StructPtr;
+    }
 }

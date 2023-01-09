@@ -2,7 +2,7 @@
 
 namespace DebugTools.Profiler
 {
-    class ByteValue : IValue<byte>
+    public class ByteValue : IValue<byte>
     {
         public byte Value { get; }
 

@@ -1,6 +1,6 @@
 ﻿namespace DebugTools.Profiler
 {
-    interface IFormattedMethodFrameWriter : IMethodFrameWriter
+    public interface IFormattedMethodFrameWriter : IMethodFrameWriter
     {
         void Print(IFrame frame);
     }

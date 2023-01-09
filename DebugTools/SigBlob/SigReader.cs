@@ -71,6 +71,15 @@ namespace DebugTools
                 return new SigMethodRef(name, callingConvention, retType, methodParams.normal.ToArray(), methodParams.vararg.ToArray());
         }
 
+        public SigType ParseField()
+        {
+            var callingConvention = (CallingConvention)CorSigUncompressCallingConv();
+
+            var type = SigType.New(ref this);
+
+            return type;
+        }
+
         private (List<ISigParameter> normal, List<ISigParameter> vararg) ParseSigMethodParams(int sigParamCount, bool topLevel, CallingConvention callingConvention)
         {
             if (sigParamCount == 0)
@@ -111,7 +120,7 @@ namespace DebugTools
                 {
                     if (Token.Type == CorTokenType.mdtMethodDef)
                     {
-                        GetParamPropsResult metaDataParam = default;
+                        GetParamPropsResult metaDataParam = default(GetParamPropsResult);
 
                         if (i < metaDataParameters.Length)
                         {

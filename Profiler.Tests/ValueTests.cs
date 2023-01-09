@@ -68,6 +68,138 @@ namespace Profiler.Tests
             Test(ValueTestType.UIntPtrArg, v => v.HasValue(new UIntPtr(1)));
 
         #endregion
+        #region Ptr
+
+        [TestMethod]
+        public void Value_PtrArg() =>
+            Test(ValueTestType.PtrArg, v => v.HasPtrDisplay("int* (1001)").HasPtrValue(1001));
+
+        [TestMethod]
+        public void Value_PtrCharArg() =>
+            Test(ValueTestType.PtrCharArg, v => v.HasPtrDisplay("char* (\"String Value\")").HasPtrValue("String Value"));
+
+        [TestMethod]
+        public void Value_PtrVoidArg() =>
+            Test(ValueTestType.PtrVoidArg, v => v.HasPtrDisplay("void* (0x3E9)").HasPtrValue(new IntPtr(1001)));
+
+        [TestMethod]
+        public void Value_PtrStructArg() =>
+            Test(ValueTestType.PtrStructArg, v => v.HasPtrDisplay("Struct1WithField*").HasPtrValue(e => e.HasFieldValue(1001)));
+
+        [TestMethod]
+        public void Value_PtrComplexStruct() =>
+            Test(ValueTestType.PtrComplexStructArg, v => v.HasPtrDisplay("ComplexPtrStruct*").HasPtrValue(e1 =>
+            {
+                e1.HasFieldValue(0, f =>
+                {
+                    f.HasPtrDisplay("char* (\"String Value\")").HasPtrValue("String Value");
+                });
+
+                e1.HasFieldValue(1, 'X');
+
+                e1.HasFieldValue(2, f =>
+                {
+                    f.HasValueType("DebugTools.TestHost.Struct1WithField");
+
+                    f.HasFieldValue(1001);
+                });
+
+                e1.HasFieldValue(3, f =>
+                {
+                    f.HasPtrDisplay("Struct1WithField*").HasPtrValue(e2 =>
+                        e2.HasValueType("DebugTools.TestHost.Struct1WithField").HasFieldValue(1002)
+                    );
+                });
+            }));
+
+        #endregion
+        #region PtrPtr
+
+        [TestMethod]
+        public void Value_PtrPtrArg() =>
+            Test(ValueTestType.PtrPtrArg, v => v.HasPtrDisplay("int** (1001)").HasPtrValue(e1 => e1.HasPtrValue(1001)));
+
+        [TestMethod]
+        public void Value_PtrPtrCharArg() =>
+            Test(ValueTestType.PtrPtrCharArg, v => v.HasPtrDisplay("char** (\"String Value\")").HasPtrValue(e => e.HasPtrValue("String Value")));
+
+        [TestMethod]
+        public void Value_PtrPtrVoidArg() =>
+            Test(ValueTestType.PtrPtrVoidArg, v => v.HasPtrDisplay("void** (0x3E9)").HasPtrValue(e => e.HasPtrValue(new IntPtr(1001))));
+
+        [TestMethod]
+        public void Value_PtrPtrStructArg() =>
+            Test(ValueTestType.PtrPtrStructArg, v => v.HasPtrDisplay("Struct1WithField**").HasPtrValue(e1 => e1.HasPtrValue(e2 => e2.HasFieldValue(1001))));
+
+        [TestMethod]
+        public void Value_PtrPtrComplexStruct() =>
+            Test(ValueTestType.PtrPtrComplexStructArg, v => v.HasPtrDisplay("ComplexPtrStruct**").HasPtrValue(e1 =>
+            {
+                e1.HasPtrValue(e2 =>
+                {
+                    e2.HasFieldValue(0, f =>
+                    {
+                        f.HasPtrDisplay("char* (\"String Value\")").HasPtrValue("String Value");
+                    });
+
+                    e2.HasFieldValue(1, 'X');
+
+                    e2.HasFieldValue(2, f =>
+                    {
+                        f.HasValueType("DebugTools.TestHost.Struct1WithField");
+
+                        f.HasFieldValue(1001);
+                    });
+
+                    e2.HasFieldValue(3, f =>
+                    {
+                        f.HasPtrDisplay("Struct1WithField*").HasPtrValue(e3 =>
+                            e3.HasValueType("DebugTools.TestHost.Struct1WithField").HasFieldValue(1002)
+                        );
+                    });
+                });
+            }));
+
+        #endregion
+        #region Ptr Array
+
+        //CORPROF_E_CLASSID_IS_COMPOSITE
+
+        [TestMethod]
+        public void Value_PtrArrayArg() =>
+            Test(ValueTestType.PtrArrayArg, v => v.HasError());
+
+        [TestMethod]
+        public void Value_PtrCharArrayArg() =>
+            Test(ValueTestType.PtrCharArrayArg, v => v.HasError());
+
+        [TestMethod]
+        public void Value_PtrVoidArrayArg() =>
+            Test(ValueTestType.PtrVoidArrayArg, v => v.HasError());
+
+        [TestMethod]
+        public void Value_PtrStructArrayArg() =>
+            Test(ValueTestType.PtrStructArrayArg, v => v.HasError());
+
+        [TestMethod]
+        public void Value_PtrComplexStructArrayArg() =>
+            Test(ValueTestType.PtrComplexStructArrayArg, v => v.HasError());
+
+        #endregion
+
+        [TestMethod]
+        public void Value_DecimalArg()
+        {
+            Test(ValueTestType.DecimalArg, v =>
+            {
+                v.HasValueType("System.Decimal")
+                    .HasFieldValue(0, 0)
+                    .HasFieldValue(1, 0)
+                    .HasFieldValue(2, 1)
+                    .HasFieldValue(3, 0);
+            });
+        }
+
         #region String
 
         [TestMethod]
@@ -113,11 +245,11 @@ namespace Profiler.Tests
                 var dict = (ClassValue) v.GetParameter();
                 var entries = (SZArrayValue) dict.FieldValues[1];
 
-                var first = (StructType) entries.Value[0];
+                var first = (StructValue) entries.Value[0];
                 first.VerifyValue().HasFieldValue(2, "first");
                 first.VerifyValue().HasFieldValue(3, 1);
 
-                var second = (StructType)entries.Value[1];
+                var second = (StructValue)entries.Value[1];
                 second.VerifyValue().HasFieldValue(2, "second");
                 second.VerifyValue().HasFieldValue(3, 2);
             });
@@ -261,21 +393,18 @@ namespace Profiler.Tests
             Test(ValueTestType.Generic_MethodVar_ElementTypeGenericValueType_MultiArrayValueArg, v =>
             {
                 v.VerifyMultiArray(
-                    e1 => e1.VerifyRawArray(
-                        e2 => e2.HasValueType("DebugTools.TestHost.GenericValueTypeType`1").HasFieldValue(
-                            f1 => f1.HasValueType("DebugTools.TestHost.Struct1WithField").HasFieldValue(1)
-                        ),
-                        e2 => e2.HasValueType("DebugTools.TestHost.GenericValueTypeType`1").HasFieldValue(
-                            f1 => f1.HasValueType("DebugTools.TestHost.Struct1WithField").HasFieldValue(2)
-                        )
+                    e1 => e1.HasValueType("DebugTools.TestHost.GenericValueTypeType`1").HasFieldValue(
+                        f1 => f1.HasValueType("DebugTools.TestHost.Struct1WithField").HasFieldValue(1)
                     ),
-                    e1 => e1.VerifyRawArray(
-                        e2 => e2.HasValueType("DebugTools.TestHost.GenericValueTypeType`1").HasFieldValue(
-                            f1 => f1.HasValueType("DebugTools.TestHost.Struct1WithField").HasFieldValue(3)
-                        ),
-                        e2 => e2.HasValueType("DebugTools.TestHost.GenericValueTypeType`1").HasFieldValue(
-                            f1 => f1.HasValueType("DebugTools.TestHost.Struct1WithField").HasFieldValue(4)
-                        )
+                    e1 => e1.HasValueType("DebugTools.TestHost.GenericValueTypeType`1").HasFieldValue(
+                        f1 => f1.HasValueType("DebugTools.TestHost.Struct1WithField").HasFieldValue(2)
+                    ),
+
+                    e1 => e1.HasValueType("DebugTools.TestHost.GenericValueTypeType`1").HasFieldValue(
+                        f1 => f1.HasValueType("DebugTools.TestHost.Struct1WithField").HasFieldValue(3)
+                    ),
+                    e1 => e1.HasValueType("DebugTools.TestHost.GenericValueTypeType`1").HasFieldValue(
+                        f1 => f1.HasValueType("DebugTools.TestHost.Struct1WithField").HasFieldValue(4)
                     )
                 );
             });
@@ -287,17 +416,14 @@ namespace Profiler.Tests
                 v.HasValueType("DebugTools.TestHost.GenericValueTypeType`1");
                 v.HasFieldValue(
                     f1 => f1.VerifyMultiArray(
-                        e1 => e1.VerifyRawArray(
-                            e2 => e2.HasValueType("DebugTools.TestHost.Struct1WithField").HasFieldValue(1),
-                            e2 => e2.HasValueType("DebugTools.TestHost.Struct1WithField").HasFieldValue(2)
-                        ),
-                        e1 => e1.VerifyRawArray(
-                            e2 => e2.HasValueType("DebugTools.TestHost.Struct1WithField").HasFieldValue(3),
-                            e2 => e2.HasValueType("DebugTools.TestHost.Struct1WithField").HasFieldValue(4)
-                        )
+                        e1 => e1.HasValueType("DebugTools.TestHost.Struct1WithField").HasFieldValue(1),
+                        e1 => e1.HasValueType("DebugTools.TestHost.Struct1WithField").HasFieldValue(2),
+
+                        e1 => e1.HasValueType("DebugTools.TestHost.Struct1WithField").HasFieldValue(3),
+                        e1 => e1.HasValueType("DebugTools.TestHost.Struct1WithField").HasFieldValue(4)
                     )
                 );
-            });
+            }, ProfilerSetting.WaitForDebugger);
 
         #endregion
         #region TypeVar

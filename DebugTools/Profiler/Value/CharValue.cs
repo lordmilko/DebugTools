@@ -2,7 +2,7 @@
 
 namespace DebugTools.Profiler
 {
-    class CharValue : IValue<char>
+    public class CharValue : IValue<char>
     {
         public char Value { get; }
 

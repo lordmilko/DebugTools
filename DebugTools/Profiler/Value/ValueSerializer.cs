@@ -8,7 +8,7 @@ namespace DebugTools.Profiler
 {
     public class ValueSerializer : IDisposable
     {
-        private BinaryReader reader;
+        public BinaryReader Reader { get; }
 
         private byte[] data;
 
@@ -16,7 +16,7 @@ namespace DebugTools.Profiler
         {
             var serializer = new ValueSerializer(data);
 
-            var numParameters = serializer.reader.ReadUInt32();
+            var numParameters = serializer.Reader.ReadUInt32();
 
             var parameters = new List<object>();
 
@@ -46,12 +46,12 @@ namespace DebugTools.Profiler
         {
             this.data = data;
 
-            reader = new BinaryReader(new MemoryStream(data), Encoding.Unicode);
+            Reader = new BinaryReader(new MemoryStream(data), Encoding.Unicode);
         }
 
-        internal object ReadValue()
+        public object ReadValue()
         {
-            var type = (CorElementType) reader.ReadByte();
+            var type = (CorElementType) Reader.ReadByte();
 
             switch (type)
             {
@@ -59,67 +59,73 @@ namespace DebugTools.Profiler
                     return VoidValue.Instance;
 
                 case CorElementType.Boolean:
-                    return new BoolValue(reader);
+                    return new BoolValue(Reader);
 
                 case CorElementType.Char:
-                    return new CharValue(reader);
+                    return new CharValue(Reader);
 
                 case CorElementType.I1:
-                    return new SByteValue(reader);
+                    return new SByteValue(Reader);
 
                 case CorElementType.U1:
-                    return new ByteValue(reader);
+                    return new ByteValue(Reader);
 
                 case CorElementType.I2:
-                    return new Int16Value(reader);
+                    return new Int16Value(Reader);
 
                 case CorElementType.U2:
-                    return new UInt16Value(reader);
+                    return new UInt16Value(Reader);
 
                 case CorElementType.I4:
-                    return new Int32Value(reader);
+                    return new Int32Value(Reader);
 
                 case CorElementType.U4:
-                    return new UInt32Value(reader);
+                    return new UInt32Value(Reader);
 
                 case CorElementType.I8:
-                    return new Int64Value(reader);
+                    return new Int64Value(Reader);
 
                 case CorElementType.U8:
-                    return new UInt64Value(reader);
+                    return new UInt64Value(Reader);
 
                 case CorElementType.R4:
-                    return new FloatValue(reader);
+                    return new FloatValue(Reader);
 
                 case CorElementType.R8:
-                    return new DoubleValue(reader);
+                    return new DoubleValue(Reader);
 
                 case CorElementType.I:
-                    return new IntPtrValue(reader);
+                    return new IntPtrValue(Reader);
 
                 case CorElementType.U:
-                    return new UIntPtrValue(reader);
+                    return new UIntPtrValue(Reader);
 
                 case CorElementType.String:
-                    return new StringValue(reader);
+                    return new StringValue(Reader);
 
                 case CorElementType.Class:
                 case CorElementType.Object:
-                    return new ClassValue(reader, this);
+                    return new ClassValue(Reader, this);
 
                 case CorElementType.SZArray:
-                    return new SZArrayValue(reader, this);
+                    return new SZArrayValue(Reader, this);
 
                 case CorElementType.Array:
-                    return new ArrayValue(reader, this);
+                    return new ArrayValue(Reader, this);
 
                 case CorElementType.ValueType:
-                    return new StructType(reader, this);
+                    return new StructValue(Reader, this);
+
+                case CorElementType.Ptr:
+                    return new PtrValue(Reader, this);
+
+                case CorElementType.FnPtr:
+                    return new FnPtrValue(Reader, this);
 
                 //We reached the max trace depth. Any values after this are missing
                 case CorElementType.End:
                 {
-                    var reason = (CorElementType)reader.ReadByte();
+                    var reason = (CorElementType)Reader.ReadByte();
 
                     switch (reason)
                     {
@@ -144,7 +150,7 @@ namespace DebugTools.Profiler
 
         public void Dispose()
         {
-            reader?.Dispose();
+            Reader?.Dispose();
         }
     }
 }

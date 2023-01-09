@@ -1,6 +1,6 @@
 ﻿namespace DebugTools.Profiler
 {
-    class MaxTraceDepth
+    public class MaxTraceDepth
     {
         public static MaxTraceDepth Instance = new MaxTraceDepth();
 

@@ -838,6 +838,18 @@ HRESULT CCorProfilerCallback::GetClassInfo(
     {
         //It's not an array
 
+        /* A ClassID is a TypeHandle, which can point to either
+         * A MethodTable or a TypeDesc.
+         * At the present time a TypeHandle can point at two possible things
+         * 
+         *     1) A MethodTable    (Arrays, Intrinsics, Classes, Value Types and their instantiations)
+         *     2) A TypeDesc       (all other cases: byrefs, pointer types, function pointers, generic type variables)
+         * 
+         * GetClassIDInfo2 will return CORPROF_E_CLASSID_IS_COMPOSITE
+         * if the ClassID points to a TypeDesc, and GetClassIDInfo will simply
+         * do _nothing_ if given the ClassID of a TypeDesc. An example type that
+         * will generate CORPROF_E_CLASSID_IS_COMPOSITE is a pointer array (i.e. int*[])
+         */
         IfFailGo(m_pInfo->GetClassIDInfo2(
             classId,
             &moduleId,

@@ -2,7 +2,7 @@
 
 namespace DebugTools.Profiler
 {
-    class UInt16Value : IValue<ushort>
+    public class UInt16Value : IValue<ushort>
     {
         public ushort Value { get; }
 

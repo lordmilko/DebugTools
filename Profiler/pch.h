@@ -15,7 +15,7 @@
 
 #include "ErrorHandling.h"
 
-#define IfFailGoto(EXPR, LABEL) do { hr = (EXPR); if(FAILED(hr)) { LogError(EXPR); goto LABEL;  } } while (0)
+#define IfFailGoto(EXPR, LABEL) do { hr = (EXPR); if(FAILED(hr)) { LogError(EXPR); goto LABEL; } } while (0)
 #define IfFailWin32Goto(EXPR, LABEL) do { hr = (EXPR); if(hr != ERROR_SUCCESS) { hr = HRESULT_FROM_WIN32(hr); goto LABEL; } } while (0)
 #define IfFailRet(EXPR)         do { hr = (EXPR); if(FAILED(hr)) { return (hr); } } while (0)
 

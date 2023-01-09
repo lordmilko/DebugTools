@@ -2,7 +2,7 @@
 
 namespace DebugTools.Profiler
 {
-    class MethodFrameStringWriter : IMethodFrameWriter
+    public class MethodFrameStringWriter : IMethodFrameWriter
     {
         public static MethodFrameStringWriter Default => new MethodFrameStringWriter(MethodFrameFormatter.Default);
 
@@ -27,7 +27,7 @@ namespace DebugTools.Profiler
         {
             formatter.Format(frame, this);
 
-            return Output.ToString();
+            return ((StringOutputSource) Output).ToStringAndClear();
         }
     }
 }

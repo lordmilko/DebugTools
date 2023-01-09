@@ -2,7 +2,7 @@
 
 void dprintf(LPCWSTR format, ...);
 
-//#define LOG_HRESULT 1
+//#define LOG_HRESULT 1 //And break on error
 //#define LOG_EXCEPTION 1
 //#define LOG_SHOULDHOOK 1
 //#define LOG_HOOK 1

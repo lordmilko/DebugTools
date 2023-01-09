@@ -1,11 +1,12 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Text;
 using ClrDebug;
 
 namespace DebugTools.Profiler
 {
-    public class ArrayValue : IValue<object[][]> //It's actually a matrix, not a jagged array, but we don't know what the rank will be
+    public class ArrayValue : IValue<Array> //It's actually a matrix, not a jagged array, but we don't know what the rank will be
     {
         public CorElementType ElementType { get; }
 
@@ -13,7 +14,7 @@ namespace DebugTools.Profiler
 
         public int[] Lengths { get; }
 
-        public object[][] Value { get; } //temp
+        public Array Value { get; } //temp
 
         public ArrayValue(BinaryReader reader, ValueSerializer serializer)
         {
@@ -47,8 +48,18 @@ namespace DebugTools.Profiler
                     values.Add(value);
                 }
 
+                var array = Array.CreateInstance(typeof(object), lengths.ToArray());
+
+                for (var i = 0; i < Rank; i++)
+                {
+                    for (var j = 0; j < lengths[i]; j++)
+                    {
+                        array.SetValue(values[i][j], i, j);
+                    }
+                }
+
                 Lengths = lengths.ToArray();
-                Value = values.ToArray();
+                Value = array;
             }
         }
 
@@ -61,21 +72,25 @@ namespace DebugTools.Profiler
 
             builder.Append("{");
 
-            for (var i = 0; i < Value.Length; i++)
+            for (var i = 0; i < Value.Rank; i++)
             {
+                var length = Value.GetLength(i);
+
                 builder.Append("{");
 
-                for (var j = 0; j < Value[j].Length; j++)
+                for (var j = 0; j < length; j++)
                 {
-                    builder.Append(Value[j]);
+                    var elm = Value.GetValue(i, j);
 
-                    if (j < Value[j].Length)
+                    builder.Append(elm);
+
+                    if (j < length)
                         builder.Append(", ");
                 }
 
                 builder.Append("}");
 
-                if (i < Value.Length)
+                if (i < Value.Rank)
                     builder.Append(", ");
             }
 

@@ -2,7 +2,7 @@
 
 namespace DebugTools.Profiler
 {
-    class SByteValue : IValue<sbyte>
+    public class SByteValue : IValue<sbyte>
     {
         public sbyte Value { get; }
 

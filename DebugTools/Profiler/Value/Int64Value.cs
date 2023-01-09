@@ -2,7 +2,7 @@
 
 namespace DebugTools.Profiler
 {
-    class Int64Value : IValue<long>
+    public class Int64Value : IValue<long>
     {
         public long Value { get; }
 

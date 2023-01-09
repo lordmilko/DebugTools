@@ -2,7 +2,7 @@
 
 namespace DebugTools.Profiler
 {
-    class UInt32Value : IValue<uint>
+    public class UInt32Value : IValue<uint>
     {
         public uint Value { get; }
 

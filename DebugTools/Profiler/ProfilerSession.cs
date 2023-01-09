@@ -23,7 +23,7 @@ namespace DebugTools.Profiler
 
         public Thread Thread { get; }
 
-        public ConcurrentDictionary<long, MethodInfo> Methods { get; } = new ConcurrentDictionary<long, MethodInfo>();
+        public ConcurrentDictionary<long, IMethodInfo> Methods { get; } = new ConcurrentDictionary<long, IMethodInfo>();
 
         public bool HasExited => Process?.HasExited ?? true;
 
@@ -135,7 +135,7 @@ namespace DebugTools.Profiler
             }
         }
 
-        private void CallEnterCommon<T>(T args, Action<ThreadStack, T, MethodInfo> addMethod) where T : ICallArgs
+        private void CallEnterCommon<T>(T args, Action<ThreadStack, T, IMethodInfo> addMethod) where T : ICallArgs
         {
             ProcessStopping(args.TimeStamp);
 
@@ -208,6 +208,12 @@ namespace DebugTools.Profiler
                 //throw new ProfilerException((PROFILER_HRESULT)(uint)args.HRESULT);
             }
 
+            switch (args.HRESULT)
+            {
+                case HRESULT.CORPROF_E_CLASSID_IS_COMPOSITE:
+                    return;
+            }
+
             args.HRESULT.ThrowOnNotOK();
         }
 
@@ -262,7 +268,7 @@ namespace DebugTools.Profiler
             }
         }
 
-        private MethodInfo GetMethodSafe(long functionId)
+        private IMethodInfo GetMethodSafe(long functionId)
         {
             if (Methods.TryGetValue(functionId, out var value))
                 return value;

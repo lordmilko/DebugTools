@@ -95,10 +95,8 @@ namespace DebugTools.Profiler
 
         private object StringifyValue(object value)
         {
-            if (value is ClassValue c)
+            if (value is ComplexTypeValue c)
                 return new FormattedValue(value, GetTypeName(c.Name));
-            else if (value is StructType v)
-                return new FormattedValue(value, GetTypeName(v.Name));
 
             return value;
         }

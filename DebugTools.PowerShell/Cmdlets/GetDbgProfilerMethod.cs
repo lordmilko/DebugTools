@@ -19,7 +19,7 @@ namespace DebugTools.PowerShell.Cmdlets
 
         protected override void ProcessRecordEx()
         {
-            IEnumerable<MethodInfo> methods;
+            IEnumerable<IMethodInfo> methods;
 
             if (LastTrace)
                 methods = GetLastTraceMethods();
@@ -67,12 +67,12 @@ namespace DebugTools.PowerShell.Cmdlets
             WriteObject(methods, true);
         }
 
-        private IEnumerable<MethodInfo> GetLastTraceMethods()
+        private IEnumerable<IMethodInfo> GetLastTraceMethods()
         {
-            var unique = new HashSet<MethodInfo>();
+            var unique = new HashSet<IMethodInfo>();
 
             if (Session.LastTrace == null)
-                return Enumerable.Empty<MethodInfo>();
+                return Enumerable.Empty<IMethodInfo>();
 
             var stack = new Stack<IFrame>();
 

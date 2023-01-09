@@ -4,7 +4,7 @@ using System.Text;
 
 namespace DebugTools.Profiler
 {
-    public class StructType : IValue<object>
+    public abstract class ComplexTypeValue : IValue<object>
     {
         public string Name { get; }
 
@@ -12,11 +12,19 @@ namespace DebugTools.Profiler
 
         public List<object> FieldValues { get; }
 
-        public StructType(BinaryReader reader, ValueSerializer serializer)
+        protected ComplexTypeValue(BinaryReader reader, ValueSerializer serializer)
         {
             Value = this;
 
             var length = reader.ReadInt32();
+
+            if (length == 0)
+            {
+                //It's null
+                Value = null;
+                return;
+            }
+
             var nameBytes = reader.ReadBytes(length * 2);
             Name = Encoding.Unicode.GetString(nameBytes, 0, (length - 1) * 2);
 
@@ -27,7 +35,11 @@ namespace DebugTools.Profiler
                 FieldValues = new List<object>();
 
                 for (var i = 0; i < numFields; i++)
-                    FieldValues.Add(serializer.ReadValue());
+                {
+                    var value = serializer.ReadValue();
+
+                    FieldValues.Add(value);
+                }
             }
         }
 

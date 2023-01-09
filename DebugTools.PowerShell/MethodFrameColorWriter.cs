@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Management.Automation;
 using System.Text;
+using ClrDebug;
 using DebugTools.Profiler;
 
 namespace DebugTools.PowerShell
@@ -31,12 +32,12 @@ namespace DebugTools.PowerShell
 
         public IMethodFrameWriter Write(object value, IFrame frame, FrameTokenKind kind)
         {
-            bool highlightFrame = HighlightFrames.Contains(frame);
+            bool highlightFrame = HighlightFrames?.Contains(frame) == true;
 
             if (value is FormattedValue f)
             {
                 if (HighlightValues?.ContainsKey(f.Original) == true)
-                    Output.WriteColor(f.Formatted, ConsoleColor.Yellow);
+                    HighlightValue(f, GetMDI(frame), GetSigType(value, frame, kind));
                 else
                     WriteMaybeHighlight(f.Formatted, highlightFrame);
             }
@@ -65,7 +66,7 @@ namespace DebugTools.PowerShell
                     case FrameTokenKind.Parameter:
                     case FrameTokenKind.ReturnValue:
                         if (HighlightValues?.ContainsKey(value) == true)
-                            Output.WriteColor(value, ConsoleColor.Yellow);
+                            HighlightValue(value, GetMDI(frame), GetSigType(value, frame, kind));
                         else
                             WriteMaybeHighlight(value, highlightFrame);
                         break;
@@ -80,6 +81,103 @@ namespace DebugTools.PowerShell
             }
 
             return this;
+        }
+
+        private SigType GetSigType(object value, IFrame frame, FrameTokenKind kind)
+        {
+            if (value is FormattedValue f)
+                value = f.Original;
+
+            if (frame is IMethodFrameDetailed d)
+            {
+                var parameters = d.GetEnterParameters();
+
+                var info = (IMethodInfoDetailed) d.MethodInfo;
+                var sigMethod = info.SigMethod;
+
+                if (sigMethod == null)
+                    return null;
+
+                switch (kind)
+                {
+                    case FrameTokenKind.Parameter:
+                        var index = parameters.IndexOf(value);
+                        return sigMethod.Parameters[index].Type;
+
+                    case FrameTokenKind.ReturnValue:
+                        return sigMethod.RetType;
+
+                    default:
+                        throw new NotImplementedException($"Don't know how to handle {nameof(FrameTokenKind)} '{kind}'.");
+                }
+            }
+
+            return null;
+        }
+
+        private MetaDataImport GetMDI(IFrame frame)
+        {
+            if (frame is IMethodFrameDetailed d)
+                return ((IMethodInfoDetailed) d.MethodInfo).GetMDI();
+
+            return null;
+        }
+
+        private void HighlightValue(object value, MetaDataImport import, SigType sigType)
+        {
+            string str;
+            object obj;
+
+            if (value is FormattedValue f)
+            {
+                str = f.Formatted;
+                obj = f.Original;
+            }
+            else
+            {
+                str = value.ToString();
+                obj = value;
+            }
+
+            var builder = new StringBuilder();
+            builder.Append(str);
+
+            BuildHighlightValue(obj, builder, import, sigType, true);
+
+            Output.WriteColor(builder.ToString(), ConsoleColor.Yellow);
+        }
+
+        private void BuildHighlightValue(object obj, StringBuilder builder, MetaDataImport import, SigType sigType, bool root)
+        {
+            if (obj is ComplexTypeValue c)
+            {
+                var sigClass = (SigClassType)sigType;
+
+                var fields = import.EnumFields((mdTypeDef)sigClass.Token).ToArray();
+
+                if (fields.Length != c.FieldValues.Count)
+                    throw new InvalidOperationException($"{sigClass} had {c.FieldValues.Count} serialized fields however had {fields.Length} metadata fields.");
+
+                for(var i = 0; i < c.FieldValues.Count; i++)
+                {
+                    if (HighlightValues.ContainsKey(c.FieldValues[i]))
+                    {
+                        var props = import.GetFieldProps(fields[i]);
+                        builder.Append(".").Append(props.szField);
+
+                        var reader = new SigReader(props.ppvSigBlob, props.pcbSigBlob, fields[i], import);
+
+                        var fieldSigType = reader.ParseField();
+                        BuildHighlightValue(c.FieldValues[i], builder, import, fieldSigType, false);
+                        break;
+                    }
+                }
+            }
+            else
+            {
+                if (!root && HighlightValues.ContainsKey(obj))
+                    builder.Append("=").Append(obj);
+            }
         }
 
         private void WriteMaybeHighlight(object message, bool highlightFrame)

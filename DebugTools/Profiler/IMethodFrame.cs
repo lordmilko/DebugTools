@@ -2,7 +2,7 @@
 {
     public interface IMethodFrame : IFrame
     {
-        MethodInfo MethodInfo { get; }
+        IMethodInfo MethodInfo { get; }
 
         IMethodFrame CloneWithNewParent(IFrame newParent);
     }

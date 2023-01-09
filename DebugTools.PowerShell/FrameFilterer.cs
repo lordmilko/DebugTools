@@ -7,7 +7,7 @@ using DebugTools.Profiler;
 
 namespace DebugTools.PowerShell
 {
-    class FrameFilterer : IDisposable
+    public class FrameFilterer : IDisposable
     {
         private FrameFilterOptions options;
 
@@ -230,22 +230,6 @@ namespace DebugTools.PowerShell
             }
         }
 
-        private bool MatchString(IMethodFrameDetailed d, object value, object methodComponent, Action onSuccess)
-        {
-            if (value is StringValue s && stringWildcards != null)
-            {
-                if (stringWildcards.Any(w => w.IsMatch(s.Value)))
-                {
-                    AddMatchedValue(value, methodComponent);
-                    onSuccess();
-
-                    return true;
-                }
-            }
-
-            return false;
-        }
-
         private void AddMatchedValue(object value, object methodComponent)
         {
             if (ReferenceEquals(value, methodComponent))
@@ -254,11 +238,57 @@ namespace DebugTools.PowerShell
 
         private bool MatchAny(IMethodFrameDetailed d, object value, object methodComponent, Action onSuccess)
         {
-            if (MatchString(d, value, methodComponent, onSuccess))
-            {
-                AddMatchedValue(value, methodComponent);
+            if (MatchVoid(d, value, methodComponent, onSuccess))
                 return true;
-            }
+
+            #region Primitive
+
+            if (MatchBool(d, value, methodComponent, onSuccess))
+                return true;
+
+            if (MatchChar(d, value, methodComponent, onSuccess))
+                return true;
+
+            if (MatchSByte(d, value, methodComponent, onSuccess))
+                return true;
+
+            if (MatchByte(d, value, methodComponent, onSuccess))
+                return true;
+
+            if (MatchInt16(d, value, methodComponent, onSuccess))
+                return true;
+
+            if (MatchUInt16(d, value, methodComponent, onSuccess))
+                return true;
+
+            if (MatchInt32(d, value, methodComponent, onSuccess))
+                return true;
+
+            if (MatchUInt32(d, value, methodComponent, onSuccess))
+                return true;
+
+            if (MatchInt64(d, value, methodComponent, onSuccess))
+                return true;
+
+            if (MatchUInt64(d, value, methodComponent, onSuccess))
+                return true;
+
+            if (MatchFloat(d, value, methodComponent, onSuccess))
+                return true;
+
+            if (MatchDouble(d, value, methodComponent, onSuccess))
+                return true;
+
+            if (MatchIntPtr(d, value, methodComponent, onSuccess))
+                return true;
+
+            if (MatchUIntPtr(d, value, methodComponent, onSuccess))
+                return true;
+
+            #endregion
+
+            if (MatchString(d, value, methodComponent, onSuccess))
+                return true;
 
             if (MatchClassOrStructParameter(d, value, methodComponent, onSuccess))
             {
@@ -275,9 +305,266 @@ namespace DebugTools.PowerShell
             return false;
         }
 
+        private bool MatchVoid(IMethodFrameDetailed d, object value, object methodComponent, Action onSuccess)
+        {
+            if (value is VoidValue && options.VoidValue)
+            {
+                AddMatchedValue(value, methodComponent);
+                onSuccess();
+
+                return true;
+            }
+
+            return false;
+        }
+
+        #region Primitive
+
+        private bool MatchBool(IMethodFrameDetailed d, object value, object methodComponent, Action onSuccess)
+        {
+            if (value is BoolValue v && options.BoolValue != null)
+            {
+                if (options.BoolValue.Contains(v.Value))
+                {
+                    AddMatchedValue(value, methodComponent);
+                    onSuccess();
+
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        private bool MatchChar(IMethodFrameDetailed d, object value, object methodComponent, Action onSuccess)
+        {
+            if (value is CharValue v && options.CharValue != null)
+            {
+                if (options.CharValue.Contains(v.Value))
+                {
+                    AddMatchedValue(value, methodComponent);
+                    onSuccess();
+
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        private bool MatchSByte(IMethodFrameDetailed d, object value, object methodComponent, Action onSuccess)
+        {
+            if (value is SByteValue v && options.SByteValue != null)
+            {
+                if (options.SByteValue.Contains(v.Value))
+                {
+                    AddMatchedValue(value, methodComponent);
+                    onSuccess();
+
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        private bool MatchByte(IMethodFrameDetailed d, object value, object methodComponent, Action onSuccess)
+        {
+            if (value is ByteValue v && options.ByteValue != null)
+            {
+                if (options.ByteValue.Contains(v.Value))
+                {
+                    AddMatchedValue(value, methodComponent);
+                    onSuccess();
+
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        private bool MatchInt16(IMethodFrameDetailed d, object value, object methodComponent, Action onSuccess)
+        {
+            if (value is Int16Value v && options.Int16Value != null)
+            {
+                if (options.Int16Value.Contains(v.Value))
+                {
+                    AddMatchedValue(value, methodComponent);
+                    onSuccess();
+
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        private bool MatchUInt16(IMethodFrameDetailed d, object value, object methodComponent, Action onSuccess)
+        {
+            if (value is UInt16Value v && options.UInt16Value != null)
+            {
+                if (options.UInt16Value.Contains(v.Value))
+                {
+                    AddMatchedValue(value, methodComponent);
+                    onSuccess();
+
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        private bool MatchInt32(IMethodFrameDetailed d, object value, object methodComponent, Action onSuccess)
+        {
+            if (value is Int32Value v && options.Int32Value != null)
+            {
+                if (options.Int32Value.Contains(v.Value))
+                {
+                    AddMatchedValue(value, methodComponent);
+                    onSuccess();
+
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        private bool MatchUInt32(IMethodFrameDetailed d, object value, object methodComponent, Action onSuccess)
+        {
+            if (value is UInt32Value v && options.UInt32Value != null)
+            {
+                if (options.UInt32Value.Contains(v.Value))
+                {
+                    AddMatchedValue(value, methodComponent);
+                    onSuccess();
+
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        private bool MatchInt64(IMethodFrameDetailed d, object value, object methodComponent, Action onSuccess)
+        {
+            if (value is Int64Value v && options.Int64Value != null)
+            {
+                if (options.Int64Value.Contains(v.Value))
+                {
+                    AddMatchedValue(value, methodComponent);
+                    onSuccess();
+
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        private bool MatchUInt64(IMethodFrameDetailed d, object value, object methodComponent, Action onSuccess)
+        {
+            if (value is UInt64Value v && options.UInt64Value != null)
+            {
+                if (options.UInt64Value.Contains(v.Value))
+                {
+                    AddMatchedValue(value, methodComponent);
+                    onSuccess();
+
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        private bool MatchFloat(IMethodFrameDetailed d, object value, object methodComponent, Action onSuccess)
+        {
+            if (value is FloatValue v && options.FloatValue != null)
+            {
+                if (options.FloatValue.Contains(v.Value))
+                {
+                    AddMatchedValue(value, methodComponent);
+                    onSuccess();
+
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        private bool MatchDouble(IMethodFrameDetailed d, object value, object methodComponent, Action onSuccess)
+        {
+            if (value is DoubleValue v && options.DoubleValue != null)
+            {
+                if (options.DoubleValue.Contains(v.Value))
+                {
+                    AddMatchedValue(value, methodComponent);
+                    onSuccess();
+
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        private bool MatchIntPtr(IMethodFrameDetailed d, object value, object methodComponent, Action onSuccess)
+        {
+            if (value is IntPtrValue v && options.IntPtrValue != null)
+            {
+                if (options.IntPtrValue.Contains(v.Value))
+                {
+                    AddMatchedValue(value, methodComponent);
+                    onSuccess();
+
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        private bool MatchUIntPtr(IMethodFrameDetailed d, object value, object methodComponent, Action onSuccess)
+        {
+            if (value is UIntPtrValue v && options.UIntPtrValue != null)
+            {
+                if (options.UIntPtrValue.Contains(v.Value))
+                {
+                    AddMatchedValue(value, methodComponent);
+                    onSuccess();
+
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        #endregion
+
+        private bool MatchString(IMethodFrameDetailed d, object value, object methodComponent, Action onSuccess)
+        {
+            if (value is StringValue s && stringWildcards != null)
+            {
+                if (stringWildcards.Any(w => w.IsMatch(s.Value)))
+                {
+                    AddMatchedValue(value, methodComponent);
+                    onSuccess();
+
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
         private bool MatchClassOrStructParameter(IMethodFrameDetailed d, object value, object methodComponent, Action onSuccess)
         {
-            if (value is ClassValue c && c.Value != null)
+            if (value is ComplexTypeValue c && c.Value != null)
             {
                 if (typeWildcards != null)
                 {
@@ -291,30 +578,6 @@ namespace DebugTools.PowerShell
                 if (c.FieldValues != null)
                 {
                     foreach (var field in c.FieldValues)
-                    {
-                        if (MatchAny(d, field, methodComponent, onSuccess))
-                        {
-                            AddMatchedValue(field, methodComponent);
-                            return true;
-                        }
-                    }
-                }
-            }
-
-            if (value is StructType v)
-            {
-                if (typeWildcards != null)
-                {
-                    if (typeWildcards.Any(t => t.IsMatch(v.Name)))
-                    {
-                        AddMatchedValue(value, methodComponent);
-                        return true;
-                    }
-                }
-
-                if (v.FieldValues != null)
-                {
-                    foreach (var field in v.FieldValues)
                     {
                         if (MatchAny(d, field, methodComponent, onSuccess))
                         {

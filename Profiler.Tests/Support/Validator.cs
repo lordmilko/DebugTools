@@ -8,9 +8,9 @@ namespace Profiler.Tests
     {
         public ThreadStack[] ThreadStacks { get; }
 
-        public MethodInfo[] Methods { get; }
+        public IMethodInfo[] Methods { get; }
 
-        public Validator(ThreadStack[] threadStacks, MethodInfo[] methods)
+        public Validator(ThreadStack[] threadStacks, IMethodInfo[] methods)
         {
             ThreadStacks = threadStacks;
             Methods = methods;

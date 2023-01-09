@@ -3,7 +3,7 @@ using System.IO;
 
 namespace DebugTools.Profiler
 {
-    class DoubleValue : IValue<double>
+    public class DoubleValue : IValue<double>
     {
         public double Value { get; }
 

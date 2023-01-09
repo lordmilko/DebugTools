@@ -4,6 +4,7 @@
     <TargetFramework>net472</TargetFramework>
     <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
     <OutputPath>$(SolutionDir)artifacts\bin\$(Configuration)</OutputPath>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
 
     <IsPackable>false</IsPackable>
   </PropertyGroup>
@@ -16,6 +17,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\DebugTools.PowerShell\DebugTools.PowerShell.csproj" />
     <ProjectReference Include="..\DebugTools\DebugTools.csproj" />
   </ItemGroup>
 

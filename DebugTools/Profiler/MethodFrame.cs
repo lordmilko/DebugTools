@@ -6,7 +6,7 @@ namespace DebugTools.Profiler
     {
         public IFrame Parent { get; set; }
 
-        public MethodInfo MethodInfo { get; }
+        public IMethodInfo MethodInfo { get; }
 
         public long Sequence { get; }
 
@@ -14,7 +14,7 @@ namespace DebugTools.Profiler
 
         public int HashCode => GetHashCode();
 
-        public MethodFrame(MethodInfo methodInfo, long sequence)
+        public MethodFrame(IMethodInfo methodInfo, long sequence)
         {
             MethodInfo = methodInfo;
             Sequence = sequence;

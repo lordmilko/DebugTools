@@ -28,6 +28,57 @@ namespace DebugTools.PowerShell.Cmdlets
         [Parameter(Mandatory = false)]
         public string[] Highlight { get; set; }
 
+
+
+        [Parameter(Mandatory = false, ParameterSetName = ParameterSet.Filter)]
+        public SwitchParameter VoidValue { get; set; }
+
+        #region Primitive
+
+        [Parameter(Mandatory = false, ParameterSetName = ParameterSet.Filter)]
+        public bool[] BoolValue { get; set; }
+
+        [Parameter(Mandatory = false, ParameterSetName = ParameterSet.Filter)]
+        public char[] CharValue { get; set; }
+
+        [Parameter(Mandatory = false, ParameterSetName = ParameterSet.Filter)]
+        public sbyte[] SByteValue { get; set; }
+
+        [Parameter(Mandatory = false, ParameterSetName = ParameterSet.Filter)]
+        public byte[] ByteValue { get; set; }
+
+        [Parameter(Mandatory = false, ParameterSetName = ParameterSet.Filter)]
+        public short[] Int16Value { get; set; }
+
+        [Parameter(Mandatory = false, ParameterSetName = ParameterSet.Filter)]
+        public ushort[] UInt16Value { get; set; }
+
+        [Parameter(Mandatory = false, ParameterSetName = ParameterSet.Filter)]
+        public int[] Int32Value { get; set; }
+
+        [Parameter(Mandatory = false, ParameterSetName = ParameterSet.Filter)]
+        public uint[] UInt32Value { get; set; }
+
+        [Parameter(Mandatory = false, ParameterSetName = ParameterSet.Filter)]
+        public long[] Int64Value { get; set; }
+
+        [Parameter(Mandatory = false, ParameterSetName = ParameterSet.Filter)]
+        public ulong[] UInt64Value { get; set; }
+
+        [Parameter(Mandatory = false, ParameterSetName = ParameterSet.Filter)]
+        public float[] FloatValue { get; set; }
+
+        [Parameter(Mandatory = false, ParameterSetName = ParameterSet.Filter)]
+        public double[] DoubleValue { get; set; }
+
+        [Parameter(Mandatory = false, ParameterSetName = ParameterSet.Filter)]
+        public IntPtr[] IntPtrValue { get; set; }
+
+        [Parameter(Mandatory = false, ParameterSetName = ParameterSet.Filter)]
+        public UIntPtr[] UIntPtrValue { get; set; }
+
+        #endregion
+
         [Parameter(Mandatory = false, ParameterSetName = ParameterSet.Filter)]
         public string[] StringValue { get; set; }
 
@@ -38,13 +89,10 @@ namespace DebugTools.PowerShell.Cmdlets
         public SwitchParameter ExcludeNamespace { get; set; }
 
         private WildcardPattern[] highlightMethodNameWildcards;
-        private List<IFrame> highlightFrames = new List<IFrame>();
 
         private List<IFrame> frames = new List<IFrame>();
 
         private FrameFilterer filter;
-
-        private MethodFrameColorWriter methodFrameWriter;
 
         private IOutputSource output = new ConsoleOutputSource();
 
@@ -52,9 +100,6 @@ namespace DebugTools.PowerShell.Cmdlets
         {
             if (Highlight != null)
                 highlightMethodNameWildcards = Highlight.Select(h => new WildcardPattern(h, WildcardOptions.IgnoreCase)).ToArray();
-
-            var methodFrameFormatter = new MethodFrameFormatter(ExcludeNamespace);
-            methodFrameWriter = new MethodFrameColorWriter(methodFrameFormatter, output);
 
             if (ParameterSetName == ParameterSet.Filter)
             {
@@ -64,6 +109,21 @@ namespace DebugTools.PowerShell.Cmdlets
                         Include = Include,
                         Exclude = Exclude,
                         Unique = Unique,
+                        VoidValue = VoidValue,
+                        BoolValue = BoolValue,
+                        CharValue = CharValue,
+                        SByteValue = SByteValue,
+                        ByteValue = ByteValue,
+                        Int16Value = Int16Value,
+                        UInt16Value = UInt16Value,
+                        Int32Value = Int32Value,
+                        UInt32Value = UInt32Value,
+                        Int64Value = Int64Value,
+                        UInt64Value = UInt64Value,
+                        FloatValue = FloatValue,
+                        DoubleValue = DoubleValue,
+                        IntPtrValue = IntPtrValue,
+                        UIntPtrValue = UIntPtrValue,
                         StringValue = StringValue,
                         TypeName = TypeName,
                         HasFilterValue = ParameterSetName == ParameterSet.Filter
@@ -84,9 +144,13 @@ namespace DebugTools.PowerShell.Cmdlets
         {
             var outputFrames = filter.GetSortedMaybeValueFilteredFrames();
 
-            methodFrameWriter.HighlightValues = filter.MatchedValues;
-            methodFrameWriter.HighlightMethodNames = highlightMethodNameWildcards;
-            methodFrameWriter.HighlightFrames = filter.HighlightFrames;
+            var methodFrameFormatter = new MethodFrameFormatter(ExcludeNamespace);
+            var methodFrameWriter = new MethodFrameColorWriter(methodFrameFormatter, output)
+            {
+                HighlightValues = filter.MatchedValues,
+                HighlightMethodNames = highlightMethodNameWildcards,
+                HighlightFrames = filter.HighlightFrames
+            };
 
             var stackWriter = new StackFrameWriter(
                 methodFrameWriter,

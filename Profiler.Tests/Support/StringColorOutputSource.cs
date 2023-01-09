@@ -1,9 +1,10 @@
 ﻿using System;
 using System.Text;
+using DebugTools;
 
-namespace DebugTools
+namespace Profiler.Tests
 {
-    class StringOutputSource : IOutputSource
+    class StringColorOutputSource : IOutputSource
     {
         private StringBuilder builder = new StringBuilder();
 
@@ -19,7 +20,7 @@ namespace DebugTools
 
         public void WriteColor(object value, ConsoleColor color)
         {
-            builder.Append(value);
+            builder.Append($"<{color}>{value}</{color}>");
         }
 
         public string ToStringAndClear()

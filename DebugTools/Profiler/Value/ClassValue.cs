@@ -4,47 +4,10 @@ using System.Text;
 
 namespace DebugTools.Profiler
 {
-    public class ClassValue : IValue<object>
+    public class ClassValue : ComplexTypeValue
     {
-        public string Name { get; }
-
-        public object Value { get; }
-
-        public List<object> FieldValues { get; }
-
-        public ClassValue(BinaryReader reader, ValueSerializer serializer)
+        public ClassValue(BinaryReader reader, ValueSerializer serializer) : base(reader, serializer)
         {
-            Value = this;
-
-            var length = reader.ReadInt32();
-
-            if (length == 0)
-            {
-                //It's null
-                Value = null;
-                return;
-            }
-
-            var nameBytes = reader.ReadBytes(length * 2);
-            Name = Encoding.Unicode.GetString(nameBytes, 0, (length - 1) * 2);
-
-            var numFields = reader.ReadInt32();
-
-            if (numFields > 0)
-            {
-                FieldValues = new List<object>();
-
-                for (var i = 0; i < numFields; i++)
-                {
-                    var value = serializer.ReadValue();
-
-                    FieldValues.Add(value);
-            }
-        }
-
-        public override string ToString()
-        {
-            return Name;
-        }
+        }        
     }
 }

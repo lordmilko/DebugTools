@@ -52,7 +52,7 @@ namespace DebugTools.Profiler
             }
         }
 
-        public MethodFrameDetailed(MethodInfo methodInfo, CallDetailedArgs args) : base(methodInfo, args.Sequence)
+        public MethodFrameDetailed(IMethodInfo methodInfo, CallDetailedArgs args) : base(methodInfo, args.Sequence)
         {
             EnterValue = args.HRESULT == HRESULT.S_OK ? args.Value : null;
         }

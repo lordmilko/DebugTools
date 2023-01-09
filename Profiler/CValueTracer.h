@@ -11,6 +11,7 @@ class CClassInfo;
 class CArrayInfo;
 class CModuleInfo;
 class CSigGenericType;
+class CSigPtrType;
 class ISigArrayType;
 
 #undef GetClassInfo
@@ -99,16 +100,27 @@ typedef struct _GenericInstContext {
     CSigGenericType* GenericType;
 } GenericInstContext;
 
+typedef struct _PtrTypeContext {
+    CSigPtrType* PtrType;
+} PtrTypeContext;
+
 typedef struct _TraceValueContext {
     ValueTypeContext ValueType;
     GenericArgContext GenericArg;
-    GenericInstContext GenericInst;
+
+    union {
+        CSigType* SigType;
+        GenericInstContext GenericInst;
+        PtrTypeContext Ptr;
+    };
+    CSigType* ParentType;
 } TraceValueContext;
 
-#define MakeTraceValueContext(typeToken, moduleOfTypeToken, genericIndex, classInfo, genericType) { \
+#define MakeTraceValueContext(typeToken, moduleOfTypeToken, genericIndex, classInfo, pType, pParentType) { \
     {typeToken, moduleOfTypeToken}, \
     {genericIndex, (CClassInfo*)classInfo}, \
-    {genericType} \
+    {pType}, \
+    pParentType \
 }
 
 class CValueTracer
@@ -162,7 +174,12 @@ private:
         _Out_opt_ ULONG& bytesRead);
 
     HRESULT TraceBool(_In_ UINT_PTR startAddress, _Out_opt_ ULONG& bytesRead);
-    HRESULT TraceChar(_In_ UINT_PTR startAddress, _Out_opt_ ULONG& bytesRead);
+    
+    HRESULT TraceChar(
+        _In_ UINT_PTR startAddress,
+        _In_ TraceValueContext* pContext,
+        _Out_opt_ ULONG& bytesRead);
+
     HRESULT TraceSByte(_In_ UINT_PTR startAddress, _Out_opt_ ULONG& bytesRead);
     HRESULT TraceByte(_In_ UINT_PTR startAddress, _Out_opt_ ULONG& bytesRead);
     HRESULT TraceShort(_In_ UINT_PTR startAddress, _Out_opt_ ULONG& bytesRead);
@@ -237,7 +254,7 @@ private:
         _In_ IClassInfo* info,
         _Out_opt_ ULONG& bytesRead);
 
-    HRESULT TracePtrType(_In_ UINT_PTR startAddress, _Out_opt_ ULONG& bytesRead);
+    HRESULT TracePtrType(_In_ UINT_PTR startAddress, _In_ TraceValueContext* pContext, _Out_opt_ ULONG& bytesRead);
     HRESULT TraceFnPtr(_In_ UINT_PTR startAddress, _Out_opt_ ULONG& bytesRead);
 
     HRESULT TraceClassOrStruct(CClassInfo* pClassInfo, ObjectID objectId, CorElementType elementType, ULONG& bytesRead);

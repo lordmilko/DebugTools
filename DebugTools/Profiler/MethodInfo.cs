@@ -7,7 +7,7 @@ namespace DebugTools.Profiler
     /// Describes a method that is known to the profiler.
     /// </summary>
     [DebuggerDisplay("{ModuleName,nq} {TypeName,nq}.{MethodName,nq}")]
-    public class MethodInfo
+    public class MethodInfo : IMethodInfo
     {
         public long FunctionID { get; }
 

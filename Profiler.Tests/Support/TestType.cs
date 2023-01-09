@@ -26,6 +26,24 @@ namespace Profiler.Tests
         IntPtrArg,
         UIntPtrArg,
 
+        PtrArg,
+        PtrCharArg,
+        PtrVoidArg,
+        PtrStructArg,
+        PtrComplexStructArg,
+
+        PtrPtrArg,
+        PtrPtrCharArg,
+        PtrPtrVoidArg,
+        PtrPtrStructArg,
+        PtrPtrComplexStructArg,
+
+        PtrArrayArg,
+        PtrCharArrayArg,
+        PtrVoidArrayArg,
+        PtrStructArrayArg,
+        PtrComplexStructArrayArg,
+
         DecimalArg,
 
         StringArg,

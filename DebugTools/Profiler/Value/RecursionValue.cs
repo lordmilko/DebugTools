@@ -2,7 +2,7 @@
 
 namespace DebugTools.Profiler
 {
-    class RecursionValue
+    public class RecursionValue
     {
         public static readonly RecursionValue ClassInstance = new RecursionValue(CorElementType.Class);
 

@@ -31,6 +31,13 @@ namespace DebugTools.Profiler
             Profilerx86 = Path.Combine(InstallationRoot, "x86", string.Format(profilerName, "x86"));
             Profilerx64 = Path.Combine(InstallationRoot, "x64", string.Format(profilerName, "x64"));
 
+            if (!File.Exists(Profilerx86) || !File.Exists(Profilerx64))
+            {
+                //Maybe it's a unit test; look inside the DebugTools folder instead
+                Profilerx86 = Path.Combine(InstallationRoot, "DebugTools", "x86", string.Format(profilerName, "x86"));
+                Profilerx64 = Path.Combine(InstallationRoot, "DebugTools", "x64", string.Format(profilerName, "x64"));
+            }
+
             TestHost = Path.Combine(InstallationRoot, "DebugTools.TestHost.exe");
         }
 

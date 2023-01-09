@@ -3,7 +3,7 @@ using System.IO;
 
 namespace DebugTools.Profiler
 {
-    class FloatValue : IValue<float>
+    public class FloatValue : IValue<float>
     {
         public float Value { get; }
 

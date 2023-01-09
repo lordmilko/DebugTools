@@ -32,7 +32,7 @@ namespace Profiler.Tests
 
         public ValueVerifier HasValueType(string name)
         {
-            var valueObj = (StructType) v;
+            var valueObj = (StructValue) v;
 
             Assert.AreEqual(name, valueObj.Name);
 
@@ -93,22 +93,52 @@ namespace Profiler.Tests
 
             Assert.AreEqual(actions.Length, array.Value.Length);
 
-            for (var i = 0; i < actions.Length; i++)
+            var k = 0;
+
+            for (var i = 0; i < array.Rank; i++)
             {
-                actions[i](array.Value[i].VerifyValue());
+                var length = array.Value.GetLength(i);
+
+                for (var j = 0; j < length; j++)
+                {
+                    var elm = array.Value.GetValue(i, j);
+
+                    actions[i].VerifyValue();
+
+                    k++;
+                }
             }
         }
 
-        public void VerifyRawArray(params Action<ValueVerifier>[] actions)
+        public ValueVerifier HasPtrDisplay(string expected)
         {
-            var array = (object[])v;
+            Assert.IsInstanceOfType(v, typeof(PtrValue));
 
-            Assert.AreEqual(actions.Length, array.Length);
+            var str = v.ToString();
 
-            for (var i = 0; i < actions.Length; i++)
-            {
-                actions[i](array[i].VerifyValue());
-            }
+            Assert.AreEqual(expected, str);
+
+            return this;
+        }
+
+        public ValueVerifier HasPtrValue<T>(T value)
+        {
+            var ptr = (PtrValue)v;
+
+            var valueObj = (IValue<T>) ptr.Value;
+
+            Assert.AreEqual(value, valueObj.Value);
+
+            return this;
+        }
+
+        public ValueVerifier HasPtrValue(Action<ValueVerifier> verifyElm)
+        {
+            var ptr = (PtrValue) v;
+
+            verifyElm(ptr.Value.VerifyValue());
+
+            return this;
         }
 
         public ValueVerifier HasFieldValue(int index, Action<ValueVerifier> action)
@@ -127,14 +157,7 @@ namespace Profiler.Tests
 
         private List<object> GetFields()
         {
-            List<object> fields;
-
-            if (v is ClassValue)
-                fields = ((ClassValue)v).FieldValues;
-            else
-                fields = ((StructType)v).FieldValues;
-
-            return fields;
+            return ((ComplexTypeValue)v).FieldValues;
         }
     }
 }

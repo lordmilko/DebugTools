@@ -17,7 +17,7 @@ namespace DebugTools.Profiler
 
         #region CallArgs
 
-        public void Enter(CallArgs args, MethodInfo method)
+        public void Enter(CallArgs args, IMethodInfo method)
         {
             Validate(args);
 
@@ -32,14 +32,14 @@ namespace DebugTools.Profiler
             Current = newFrame;
         }
 
-        public void Leave(CallArgs args, MethodInfo method)
+        public void Leave(CallArgs args, IMethodInfo method)
         {
             ValidateEnd(args, method);
 
             EndCallInternal();
         }
 
-        public void Tailcall(CallArgs args, MethodInfo method)
+        public void Tailcall(CallArgs args, IMethodInfo method)
         {
             ValidateEnd(args, method);
 
@@ -51,7 +51,7 @@ namespace DebugTools.Profiler
         #endregion
         #region CallArgsDetailed
 
-        public void EnterDetailed(CallDetailedArgs args, MethodInfo method)
+        public void EnterDetailed(CallDetailedArgs args, IMethodInfo method)
         {
             Validate(args);
 
@@ -66,7 +66,7 @@ namespace DebugTools.Profiler
             Current = newFrame;
         }
 
-        public void LeaveDetailed(CallDetailedArgs args, MethodInfo method)
+        public void LeaveDetailed(CallDetailedArgs args, IMethodInfo method)
         {
             ValidateEnd(args, method);
 
@@ -83,7 +83,7 @@ namespace DebugTools.Profiler
             EndCallInternal();
         }
 
-        public void TailcallDetailed(CallDetailedArgs args, MethodInfo method)
+        public void TailcallDetailed(CallDetailedArgs args, IMethodInfo method)
         {
             ValidateEnd(args, method);
 
@@ -98,7 +98,7 @@ namespace DebugTools.Profiler
             Exceptions[args.Sequence] = new ExceptionInfo(args);
         }
 
-        public void ExceptionFrameUnwind(CallArgs args, MethodInfo method)
+        public void ExceptionFrameUnwind(CallArgs args, IMethodInfo method)
         {
             ValidateEnd(args, method);
 
@@ -128,7 +128,7 @@ namespace DebugTools.Profiler
             lastSequence = args.Sequence;
         }
 
-        private void ValidateEnd(ICallArgs args, MethodInfo method)
+        private void ValidateEnd(ICallArgs args, IMethodInfo method)
         {
             Validate(args);
 

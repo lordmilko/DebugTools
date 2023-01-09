@@ -4,7 +4,7 @@ using ClrDebug;
 
 namespace DebugTools.Profiler
 {
-    public class MethodInfoDetailed : MethodInfo
+    public class MethodInfoDetailed : MethodInfo, IMethodInfoDetailed
     {
         private static ConcurrentDictionary<string, MetaDataImport> mdiCache = new ConcurrentDictionary<string, MetaDataImport>();
 
@@ -39,11 +39,9 @@ namespace DebugTools.Profiler
             Token = token;
             SigBlob = sigBlob;
             SigBlobLength = sigBlobLength;
-
-            var a = SigMethod;
         }
 
-        private MetaDataImport GetMDI()
+        public MetaDataImport GetMDI()
         {
             if (!mdiCache.TryGetValue(ModulePath, out var mdi))
             {

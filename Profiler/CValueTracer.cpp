@@ -163,7 +163,7 @@ HRESULT CValueTracer::LeaveWithInfo(FunctionIDOrClientID functionId, COR_PRF_ELT
 
     IfFailGo(GetMethodTypeArgsAndContainingClass(functionId, pMethod, frameInfo, &pMethodClassInfo));
 
-    ctx = MakeTraceValueContext(typeToken, pMethod->m_ModuleID, genericIndex, pMethodClassInfo, (CSigGenericType*)pType);
+    ctx = MakeTraceValueContext(typeToken, pMethod->m_ModuleID, genericIndex, pMethodClassInfo, pType, nullptr);
 
     IfFailGo(TraceValue(
         retvalRange.startAddress,
@@ -363,7 +363,7 @@ HRESULT CValueTracer::TraceParameter(
     long genericIndex = -1;
     GetGenericInfo(pType, &genericIndex);
 
-    TraceValueContext ctx = MakeTraceValueContext(typeToken, typeTokenModule, genericIndex, pClassInfo, (CSigGenericType*)pType);
+    TraceValueContext ctx = MakeTraceValueContext(typeToken, typeTokenModule, genericIndex, pClassInfo, pType, nullptr);
 
     IfFailGo(TraceValue(
         pAddress,
@@ -426,7 +426,7 @@ HRESULT CValueTracer::TraceValue(
         break;
 
     case ELEMENT_TYPE_CHAR:
-        IfFailGo(TraceChar(startAddress, bytesRead));
+        IfFailGo(TraceChar(startAddress, pContext, bytesRead));
         break;
 
     case ELEMENT_TYPE_I1:
@@ -513,7 +513,7 @@ HRESULT CValueTracer::TraceValue(
         break;
 
     case ELEMENT_TYPE_PTR:
-        IfFailGo(TracePtrType(startAddress, bytesRead));
+        IfFailGo(TracePtrType(startAddress, pContext, bytesRead));
         break;
 
     case ELEMENT_TYPE_FNPTR:
@@ -560,15 +560,35 @@ ErrExit:
     return hr;
 }
 
-HRESULT CValueTracer::TraceChar(_In_ UINT_PTR startAddress, _Out_opt_ ULONG& bytesRead)
+HRESULT CValueTracer::TraceChar(
+    _In_ UINT_PTR startAddress,
+    _In_ TraceValueContext* pContext,
+    _Out_opt_ ULONG& bytesRead)
 {
     HRESULT hr = S_OK;
 
     WCHAR* pChar = (WCHAR*)startAddress;
 
-    DebugBlob(L"Char");
-    Write(pChar, ELEMENT_TYPE_CHAR, 2);
-    bytesRead += sizeof(WCHAR);
+    if (pContext->ParentType != nullptr && pContext->ParentType->m_Type == ELEMENT_TYPE_PTR)
+    {
+        //Any reference to an ELEMENT_TYPE_CHAR could now be
+        //a string.
+        ULONG strLen = (ULONG) wcslen(pChar) + 1;
+
+        DebugBlob(L"Char*");
+        WriteType(ELEMENT_TYPE_CHAR);
+        WriteValue(&strLen, 4);
+        WriteValue(pChar, (strLen - 1) * sizeof(WCHAR));
+        WriteValue(L"\0", sizeof(WCHAR));
+
+        bytesRead += sizeof(WCHAR*);
+    }
+    else
+    {
+        DebugBlob(L"Char");
+        Write(pChar, ELEMENT_TYPE_CHAR, 2);
+        bytesRead += sizeof(WCHAR);
+    }
 
 ErrExit:
     return hr;
@@ -1002,7 +1022,7 @@ HRESULT CValueTracer::TraceArrayInternal(
                 }
                 else
                 {
-                    TraceValueContext ctx = MakeTraceValueContext(pElementType->m_TypeDef, pElementType->m_ModuleID, -1, pElementType, nullptr);
+                    TraceValueContext ctx = MakeTraceValueContext(pElementType->m_TypeDef, pElementType->m_ModuleID, -1, pElementType, nullptr, nullptr);
 
                     IfFailGo(TraceValue(
                         elmAddress,
@@ -1530,12 +1550,48 @@ ErrExit:
     return hr;
 }
 
-HRESULT CValueTracer::TracePtrType(_In_ UINT_PTR startAddress, _Out_opt_ ULONG& bytesRead)
+HRESULT CValueTracer::TracePtrType(
+    _In_ UINT_PTR startAddress,
+    _In_ TraceValueContext* pContext,
+    _Out_opt_ ULONG& bytesRead)
 {
     HRESULT hr = S_OK;
+    UINT_PTR innerAddress = *(PUINT_PTR)startAddress;
+    ULONG innerBytesRead = 0;
+
+    CSigType* elm = pContext->Ptr.PtrType->m_pPtrType;
+    CorElementType elmType = elm->m_Type;
+
+    mdToken typeToken = GetTypeToken(elm);
+
+    TraceValueContext ctx = MakeTraceValueContext(
+        typeToken,
+        pContext->ValueType.ModuleOfTypeToken,
+        -1,
+        pContext->GenericArg.ClassInfo,
+        elm,
+        pContext->Ptr.PtrType
+    );
 
     DebugBlob("Ptr");
     WriteType(ELEMENT_TYPE_PTR);
+    WriteType(elmType);
+
+    if (elmType == ELEMENT_TYPE_VOID)
+    {
+        IfFailGo(TraceIntPtr(startAddress, innerBytesRead));
+    }
+    else
+    {
+        IfFailGo(TraceValue(
+            innerAddress,
+            elmType,
+            &ctx,
+            innerBytesRead
+        ));
+    }
+
+    bytesRead += sizeof(void*);
 
 ErrExit:
     return hr;
@@ -1589,7 +1645,8 @@ HRESULT CValueTracer::TraceClassOrStruct(CClassInfo* pClassInfo, ObjectID object
             pClassInfo->m_ModuleID,
             genericIndex,
             pClassInfo,
-            (CSigGenericType*)field->m_pType
+            field->m_pType,
+            nullptr
         );
 
         IfFailGo(TraceValue(

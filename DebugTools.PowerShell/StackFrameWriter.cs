@@ -4,7 +4,7 @@ using DebugTools.Profiler;
 
 namespace DebugTools.PowerShell
 {
-    class StackFrameWriter
+    public class StackFrameWriter
     {
         private IFormattedMethodFrameWriter writer;
 

@@ -82,7 +82,7 @@ namespace Profiler.Tests
 
             for (var i = 0; i < structNames.Length; i++)
             {
-                var valueObj = (StructType)arrObj.Value[i];
+                var valueObj = (StructValue)arrObj.Value[i];
 
                 Assert.AreEqual(structNames[i], valueObj.Name);
             }
@@ -107,6 +107,16 @@ namespace Profiler.Tests
         public void VerifyMultiArray(params Action<ValueVerifier>[] actions) =>
             GetParameter().VerifyValue().VerifyMultiArray(actions);
 
+        public ValueVerifier HasPtrDisplay(string expected) =>
+            GetParameter().VerifyValue().HasPtrDisplay(expected);
+
+        public void HasError()
+        {
+            var parameters = GetParameters();
+
+            Assert.IsNull(parameters);
+        }
+
         public List<object> GetParameters()
         {
             var detailed = (IMethodFrameDetailed)frame;
@@ -127,14 +137,7 @@ namespace Profiler.Tests
 
         private List<object> GetFields(object parameter)
         {
-            List<object> fields;
-
-            if (parameter is ClassValue)
-                fields = ((ClassValue)parameter).FieldValues;
-            else
-                fields = ((StructType)parameter).FieldValues;
-
-            return fields;
+            return ((ComplexTypeValue)parameter).FieldValues;
         }
     }
 }

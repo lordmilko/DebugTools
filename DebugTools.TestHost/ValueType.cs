@@ -96,6 +96,66 @@ namespace DebugTools.TestHost
         {
         }
 
+        public unsafe void PtrArg(int* a)
+        {
+        }
+
+        public unsafe void PtrCharArg(char* value)
+        {
+        }
+
+        public unsafe void PtrVoidArg(void* value)
+        {
+        }
+
+        public unsafe void PtrStructArg(Struct1WithField* a)
+        {
+        }
+
+        public unsafe void PtrComplexStructArg(ComplexPtrStruct* a)
+        {
+        }
+
+        public unsafe void PtrPtrArg(int** a)
+        {
+        }
+
+        public unsafe void PtrPtrCharArg(char** value)
+        {
+        }
+
+        public unsafe void PtrPtrVoidArg(void** value)
+        {
+        }
+
+        public unsafe void PtrPtrStructArg(Struct1WithField** a)
+        {
+        }
+
+        public unsafe void PtrPtrComplexStructArg(ComplexPtrStruct** a)
+        {
+        }
+
+        public unsafe void PtrArrayArg(int*[] a)
+        {
+        }
+
+        public unsafe void PtrCharArrayArg(char*[] a)
+        {
+        }
+
+        public unsafe void PtrVoidArrayArg(void*[] value)
+        {
+        }
+
+        public unsafe void PtrStructArrayArg(Struct1WithField*[] a)
+        {
+        }
+
+        public unsafe void PtrComplexStructArrayArg(ComplexPtrStruct*[] a)
+        {
+        }
+
         public void DecimalArg(decimal a)
         {
         }

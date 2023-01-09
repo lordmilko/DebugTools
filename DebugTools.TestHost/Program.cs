@@ -48,7 +48,7 @@ namespace DebugTools.TestHost
             Console.WriteLine("Done");
         }
 
-        private static void ProcessValueTest(string subType)
+        private static unsafe void ProcessValueTest(string subType)
         {
             var test = (ValueTestType)Enum.Parse(typeof(ValueTestType), subType);
 
@@ -123,6 +123,170 @@ namespace DebugTools.TestHost
                 case ValueTestType.UIntPtrArg:
                     instance.UIntPtrArg(new UIntPtr(1));
                     break;
+
+                #endregion
+                #region Ptr
+
+                case ValueTestType.PtrArg:
+                    fixed (int* ptr = &new[] { 1001 }[0])
+                        instance.PtrArg(ptr);
+                    break;
+
+                case ValueTestType.PtrCharArg:
+                    fixed (char* ptr = "String Value")
+                        instance.PtrCharArg(ptr);
+                    break;
+
+                case ValueTestType.PtrVoidArg:
+                        instance.PtrVoidArg((void*)1001);
+                    break;
+
+                case ValueTestType.PtrStructArg:
+                    fixed (Struct1WithField* ptr = &new[] { new Struct1WithField { field1 = 1001 } }[0])
+                        instance.PtrStructArg(ptr);
+                    break;
+
+                case ValueTestType.PtrComplexStructArg:
+                {
+                    fixed (char* charPtr = "String Value")
+                    fixed (Struct1WithField* structPtr = new[] { new Struct1WithField { field1 = 1002 } })
+                    fixed (ComplexPtrStruct* complexPtr = new[] {new ComplexPtrStruct
+                    {
+                        CharPtr = charPtr,
+                        CharVal = 'X',
+                        Struct = new Struct1WithField { field1 = 1001 },
+                        StructPtr = structPtr
+                    }})
+                    {
+                        instance.PtrComplexStructArg(complexPtr);
+                    }
+                    break;
+                }
+
+                #endregion
+                #region PtrPtr
+
+                case ValueTestType.PtrPtrArg:
+                    fixed (int* ptr = &new[] { 1001 }[0])
+                        instance.PtrPtrArg(&ptr);
+                    break;
+
+                case ValueTestType.PtrPtrCharArg:
+                    fixed (char* ptr = "String Value")
+                        instance.PtrPtrCharArg(&ptr);
+                    break;
+
+                case ValueTestType.PtrPtrVoidArg:
+                {
+                    void* ptr = (void*)1001;
+                    instance.PtrPtrVoidArg(&ptr);
+                    break;
+                }
+
+                case ValueTestType.PtrPtrStructArg:
+                    fixed (Struct1WithField* ptr = &new[] { new Struct1WithField { field1 = 1001 } }[0])
+                        instance.PtrPtrStructArg(&ptr);
+                    break;
+
+                case ValueTestType.PtrPtrComplexStructArg:
+                {
+                    fixed (char* charPtr = "String Value")
+                    fixed (Struct1WithField* structPtr = new[] { new Struct1WithField { field1 = 1002 } })
+                    fixed (ComplexPtrStruct* complexPtr = new[] {new ComplexPtrStruct
+                    {
+                        CharPtr = charPtr,
+                        CharVal = 'X',
+                        Struct = new Struct1WithField { field1 = 1001 },
+                        StructPtr = structPtr
+                    }})
+                    {
+                        instance.PtrPtrComplexStructArg(&complexPtr);
+                    }
+                    break;
+                }
+
+                #endregion
+                #region Ptr Array
+
+                case ValueTestType.PtrArrayArg:
+                {
+                    var arr = new[] {1001,1002};
+
+                    fixed (int* ptr1 = &arr[0])
+                    fixed (int* ptr2 = &arr[1])
+                    {
+                        instance.PtrArrayArg(new[]{ptr1, ptr2});
+                    }
+
+                    break;
+                }
+
+                case ValueTestType.PtrCharArrayArg:
+                {
+                    fixed (char* ptr1 = "First")
+                    fixed (char* ptr2 = "Second")
+                    {
+                        instance.PtrCharArrayArg(new[] { ptr1, ptr2 });
+                    }
+
+                    break;
+                }
+
+                case ValueTestType.PtrVoidArrayArg:
+                    instance.PtrVoidArrayArg(new[]{(void*) 1001, (void*) 1002});
+                    break;
+
+                case ValueTestType.PtrStructArrayArg:
+                {
+                    var arr = new[]
+                    {
+                        new Struct1WithField {field1 = 1001},
+                        new Struct1WithField {field1 = 1002}
+                    };
+
+                    fixed (Struct1WithField* ptr1 = &arr[0])
+                    fixed (Struct1WithField* ptr2 = &arr[1])
+                    {
+                        instance.PtrStructArrayArg(new[]{ptr1, ptr2});
+                    }
+
+                    break;
+                }
+
+                case ValueTestType.PtrComplexStructArrayArg:
+                {
+                    fixed (char* charPtr1 = "First")
+                    fixed (char* charPtr2 = "Second")
+                    fixed (Struct1WithField* structPtr1 = new[] { new Struct1WithField { field1 = 2001 } })
+                    fixed (Struct1WithField* structPtr2 = new[] { new Struct1WithField { field1 = 2002 } })
+                    {
+                        var arr = new[]
+                        {
+                            new ComplexPtrStruct
+                            {
+                                CharPtr = charPtr1,
+                                CharVal = 'X',
+                                Struct = new Struct1WithField {field1 = 1001},
+                                StructPtr = structPtr1
+                            },
+                            new ComplexPtrStruct
+                            {
+                                CharPtr = charPtr2,
+                                CharVal = 'Y',
+                                Struct = new Struct1WithField {field1 = 1002},
+                                StructPtr = structPtr2
+                            }
+                        };
+
+                        fixed (ComplexPtrStruct* complex1 = &arr[0])
+                        fixed (ComplexPtrStruct* complex2 = &arr[1])
+                        {
+                            instance.PtrComplexStructArrayArg(new[] {complex1, complex2});
+                        }
+                    }
+
+                    break;
+                }
 
                 #endregion
 
