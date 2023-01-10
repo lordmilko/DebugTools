@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using DebugTools.Profiler;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -93,20 +94,11 @@ namespace Profiler.Tests
 
             Assert.AreEqual(actions.Length, array.Value.Length);
 
-            var k = 0;
+            var items = array.Value.Cast<object>().ToArray();
 
-            for (var i = 0; i < array.Rank; i++)
+            for (var i = 0; i < items.Length; i++)
             {
-                var length = array.Value.GetLength(i);
-
-                for (var j = 0; j < length; j++)
-                {
-                    var elm = array.Value.GetValue(i, j);
-
-                    actions[i].VerifyValue();
-
-                    k++;
-                }
+                actions[i].Invoke(items[i].VerifyValue());
             }
         }
 

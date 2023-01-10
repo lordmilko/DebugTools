@@ -478,6 +478,13 @@ namespace Profiler.Tests
             Test(ValueTestType.ObjectArrayContainingStringArg, v => v.HasArrayValues(CorElementType.Class, "a"));
 
         #endregion
+
+        [TestMethod]
+        public void Value_MultiArrayThreeDimensionsArg() =>
+            Test(ValueTestType.MultiArrayThreeDimensionsArg, v => v.VerifyMultiArray(
+                Enumerable.Range(1, 24).Select<int, Action<ValueVerifier>>(i => e => e.HasValue(i)).ToArray()
+            ));
+
         #region Class
 
         [TestMethod]

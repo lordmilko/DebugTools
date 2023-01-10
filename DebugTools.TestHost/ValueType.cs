@@ -288,6 +288,10 @@ namespace DebugTools.TestHost
         {
         }
 
+        public void MultiArrayThreeDimensionsArg(int[,,] a)
+        {
+        }
+
         public void ClassArg(Class1 a)
         {
         }

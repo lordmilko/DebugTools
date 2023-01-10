@@ -250,20 +250,32 @@ namespace Profiler.Tests
                     writer.Write(elements.Rank);
                     writer.Write((byte) elementType);
 
+                    var dimensionSizes = new int[elements.Rank];
+
                     for (var i = 0; i < elements.Rank; i++)
                     {
-                        var length = elements.GetLength(i);
+                        var dimensionLength = elements.GetLength(i);
+                        writer.Write(dimensionLength);
+                        dimensionSizes[i] = dimensionLength;
+                    }
 
-                        writer.Write(length);
+                    var totalLength = elements.Length;
 
-                        for (var j = 0; j < length; j++)
-                        {
-                            var elm = (IMockValue) elements.GetValue(i, j);
+                    var indices = new int[elements.Rank];
 
-                            writer.Write((byte)elm.ElementType);
-                            elm.Stream.Seek(0, SeekOrigin.Begin);
-                            elm.Stream.CopyTo(writer.BaseStream);
-                        }
+                    var currentDimension = elements.Rank - 1;
+
+                    for (var i = 0; i < totalLength; i++)
+                    {
+                        var current = (IMockValue) elements.GetValue(indices);
+
+                        writer.Write((byte) current.ElementType);
+                        current.Stream.Seek(0, SeekOrigin.Begin);
+                        current.Stream.CopyTo(writer.BaseStream);
+
+                        ArrayValue.UpdateArrayIndices(indices, ref currentDimension, dimensionSizes, elements.Rank);
+
+                        currentDimension = elements.Rank - 1;
                     }
                 }
             });
@@ -338,7 +350,101 @@ namespace Profiler.Tests
                 case TypeCode.String:
                     return String((string) value);
                 default:
-                    return Class(value.GetType().Name, value.GetType().GetFields().Select(f => FromRaw(f.GetValue(value))).ToArray());
+                    Type type = value.GetType();
+
+                    if (type.IsArray)
+                    {
+                        if (type.GetArrayRank() == 1)
+                        {
+                            return SZArray(
+                                GetElementType(type.GetElementType()),
+                                ((object[])value).Select(FromRaw).ToArray()
+                            );
+                        }
+                        else
+                        {
+                            var newArray = BuildNewArray((Array) value);
+
+                            return Array(
+                                GetElementType(type.GetElementType()),
+                                newArray
+                            );
+                        }
+                    }
+
+                    return Class(type.Name, type.GetFields().Select(f => FromRaw(f.GetValue(value))).ToArray());
+            }
+        }
+
+        private static Array BuildNewArray(Array original)
+        {
+            var dimensionSizes = new int[original.Rank];
+
+            for (var i = 0; i < original.Rank; i++)
+            {
+                var dimensionLength = original.GetLength(i);
+                dimensionSizes[i] = dimensionLength;
+            }
+
+            var newArray = System.Array.CreateInstance(typeof(object), dimensionSizes);
+
+            var totalLength = original.Length;
+
+            var indices = new int[original.Rank];
+
+            var currentDimension = original.Rank - 1;
+
+            for (var i = 0; i < totalLength; i++)
+            {
+                var current = original.GetValue(indices);
+
+                var val = FromRaw(current);
+
+                newArray.SetValue(val, indices);
+
+                ArrayValue.UpdateArrayIndices(indices, ref currentDimension, dimensionSizes, original.Rank);
+
+                currentDimension = original.Rank - 1;
+            }
+
+            return newArray;
+        }
+
+        private static CorElementType GetElementType(Type type)
+        {
+            switch (Type.GetTypeCode(type))
+            {
+                case TypeCode.Boolean:
+                    return CorElementType.Boolean;
+                case TypeCode.Char:
+                    return CorElementType.Char;
+                case TypeCode.SByte:
+                    return CorElementType.I1;
+                case TypeCode.Byte:
+                    return CorElementType.U1;
+                case TypeCode.Int16:
+                    return CorElementType.I2;
+                case TypeCode.UInt16:
+                    return CorElementType.U2;
+                case TypeCode.Int32:
+                    return CorElementType.I4;
+                case TypeCode.UInt32:
+                    return CorElementType.U4;
+                case TypeCode.Int64:
+                    return CorElementType.I8;
+                case TypeCode.UInt64:
+                    return CorElementType.U8;
+                case TypeCode.Single:
+                    return CorElementType.R4;
+                case TypeCode.Double:
+                    return CorElementType.R8;
+                case TypeCode.String:
+                    return CorElementType.String;
+                default:
+                    if (type == typeof(object))
+                        return CorElementType.Object;
+
+                    throw new NotImplementedException($"Don't know how to handle value of type '{type.GetType().Name}'.");
             }
         }
 

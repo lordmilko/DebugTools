@@ -109,6 +109,8 @@ namespace Profiler.Tests
         EmptyStringArrayArg,
         ObjectArrayContainingStringArg,
 
+        MultiArrayThreeDimensionsArg,
+
         ClassArg,
         ClassWithFieldArg,
         ClassWithPropertyArg,

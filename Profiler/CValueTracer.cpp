@@ -965,7 +965,8 @@ HRESULT CValueTracer::TraceArrayInternal(
     int* dimensionLowerBounds = new int[pArrayInfo->m_Rank];
     BYTE* pData;
 
-    ULONG arrayLength;
+    ULONG totalLength = 0;
+    ULONG dimensionLength;
     ULONG arrBytesRead = 0;
 
     IfFailGo(g_pProfiler->m_pInfo->GetArrayObjectInfo(objectId, pArrayInfo->m_Rank, dimensionSizes, dimensionLowerBounds, &pData));
@@ -982,55 +983,60 @@ HRESULT CValueTracer::TraceArrayInternal(
     DebugBlob(L"Array Elm Type");
     WriteType(pArrayInfo->m_CorElementType);
 
-    for(ULONG i = 0; i < pArrayInfo->m_Rank; i++)
+    for (ULONG i = 0; i < pArrayInfo->m_Rank; i++)
     {
-        arrayLength = dimensionSizes[i];
+        dimensionLength = dimensionSizes[i];
 
-        DebugBlob(L"Array Length");
-        WriteValue(&arrayLength, 4);
+        DebugBlob(L"Dimension Length");
+        WriteValue(&dimensionLength, 4);
+    }
 
-        if (pArrayInfo->m_pElementType->m_InfoType == ClassInfoType::StandardType)
+    totalLength = dimensionSizes[0];
+
+    for (ULONG i = 1; i < pArrayInfo->m_Rank; i++)
+        totalLength *= dimensionSizes[i];
+
+    if (pArrayInfo->m_pElementType->m_InfoType == ClassInfoType::StandardType)
+    {
+        CStandardTypeInfo* pStandardTypeInfo = (CStandardTypeInfo*)pArrayInfo->m_pElementType;
+
+        for (ULONG i = 0; i < totalLength; i++)
         {
-            CStandardTypeInfo* pStandardTypeInfo = (CStandardTypeInfo*)pArrayInfo->m_pElementType;
+            IfFailGo(TraceSimpleValue(
+                (UINT_PTR)(pData + arrBytesRead),
+                pStandardTypeInfo->m_ElementType,
+                arrBytesRead
+            ));
+        }
+    }
+    else
+    {
+        //We're assuming we can't have a CArrayInfo inside another CArrayInfo
+        CClassInfo* pElementType = (CClassInfo*)pArrayInfo->m_pElementType;
 
-            for (ULONG i = 0; i < arrayLength; i++)
+        for (ULONG i = 0; i < totalLength; i++)
+        {
+            UINT_PTR elmAddress = (UINT_PTR)(pData + arrBytesRead);
+
+            if (pArrayInfo->m_CorElementType == ELEMENT_TYPE_VALUETYPE)
             {
-                IfFailGo(TraceSimpleValue(
-                    (UINT_PTR)(pData + arrBytesRead),
-                    pStandardTypeInfo->m_ElementType,
+                IfFailGo(TraceClassOrStruct(
+                    pElementType,
+                    elmAddress,
+                    pArrayInfo->m_CorElementType,
                     arrBytesRead
                 ));
             }
-        }
-        else
-        {
-            //We're assuming we can't have a CArrayInfo inside another CArrayInfo
-            CClassInfo* pElementType = (CClassInfo*)pArrayInfo->m_pElementType;
-
-            for (ULONG i = 0; i < arrayLength; i++)
+            else
             {
-                UINT_PTR elmAddress = (UINT_PTR)(pData + arrBytesRead);
+                TraceValueContext ctx = MakeTraceValueContext(pElementType->m_TypeDef, pElementType->m_ModuleID, -1, pElementType, nullptr, nullptr);
 
-                if (pArrayInfo->m_CorElementType == ELEMENT_TYPE_VALUETYPE)
-                {
-                    IfFailGo(TraceClassOrStruct(
-                        pElementType,
-                        elmAddress,
-                        pArrayInfo->m_CorElementType,
-                        arrBytesRead
-                    ));
-                }
-                else
-                {
-                    TraceValueContext ctx = MakeTraceValueContext(pElementType->m_TypeDef, pElementType->m_ModuleID, -1, pElementType, nullptr, nullptr);
-
-                    IfFailGo(TraceValue(
-                        elmAddress,
-                        pArrayInfo->m_CorElementType,
-                        &ctx,
-                        arrBytesRead
-                    ));
-                }
+                IfFailGo(TraceValue(
+                    elmAddress,
+                    pArrayInfo->m_CorElementType,
+                    &ctx,
+                    arrBytesRead
+                ));
             }
         }
     }

@@ -556,6 +556,25 @@ namespace DebugTools.TestHost
                     instance.ObjectArrayContainingStringArg(new object[] { "a" });
                     break;
 
+                case ValueTestType.MultiArrayThreeDimensionsArg:
+                    instance.MultiArrayThreeDimensionsArg(new int[2,3,4]
+                    {
+                        //Two outer arrays
+                        {
+                            //Containing 3 inner arrays
+                            //Each containing 4 elements
+                            {1,2,3,4},
+                            {5,6,7,8},
+                            {9,10,11,12}
+                        },
+                        {
+                            {13,14,15,16},
+                            {17,18,19,20},
+                            {21,22,23,24}
+                        }
+                    });
+                    break;
+
                 case ValueTestType.ClassArg:
                     instance.ClassArg(new Class1());
                     break;

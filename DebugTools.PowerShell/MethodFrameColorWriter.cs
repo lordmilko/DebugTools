@@ -173,6 +173,68 @@ namespace DebugTools.PowerShell
                     }
                 }
             }
+            else if (obj is SZArrayValue sz && !root)
+            {
+                var sig = (SigSZArrayType) sigType;
+
+                for (var i = 0; i < sz.Value.Length; i++)
+                {
+                    if (HighlightValues.ContainsKey(sz.Value[i]))
+                    {
+                        builder.Append("[").Append(i).Append("]");
+
+                        BuildHighlightValue(sz.Value[i], builder, import, sig.ElementType, false);
+
+                        break;
+                    }
+                }
+            }
+            else if (obj is ArrayValue arr && !root)
+            {
+                var sig = (SigArrayType) sigType;
+
+                var dimensionSizes = new int[arr.Value.Rank];
+
+                for (var i = 0; i < arr.Rank; i++)
+                {
+                    var dimensionLength = arr.Value.GetLength(i);
+                    dimensionSizes[i] = dimensionLength;
+                }
+
+                var totalLength = arr.Value.Length;
+
+                var indices = new int[arr.Rank];
+
+                var currentDimension = arr.Value.Rank - 1;
+
+                for (var i = 0; i < totalLength; i++)
+                {
+                    var current = arr.Value.GetValue(indices);
+
+                    if (HighlightValues.ContainsKey(current))
+                    {
+                        builder.Append("[");
+
+                        for(var j = 0; j < indices.Length; j++)
+                        {
+                            builder.Append(indices[j]);
+
+                            if (j < indices.Length - 1)
+                                builder.Append(",");
+                        }
+
+                        builder.Append("]");
+
+                        BuildHighlightValue(current, builder, import, sig.ElementType, false);
+
+                        break;
+                    }
+
+                    ArrayValue.UpdateArrayIndices(indices, ref currentDimension, dimensionSizes, arr.Value.Rank);
+
+                    currentDimension = arr.Value.Rank - 1;
+                }
+            }
             else
             {
                 if (!root && HighlightValues.ContainsKey(obj))
