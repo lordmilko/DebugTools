@@ -52,7 +52,10 @@ namespace DebugTools.Profiler
 
             TryCloseSession(sessionName);
 
-            TraceEventSession = new TraceEventSession(sessionName);
+            //Events MUST be received in the order they are dispatched, otherwise our shadow stack will completely be broken. It's unclear whether
+            //the number of ELT events are generate exceeds the threshold specified by NoPerProcessorBuffering (it probably does) but the reliability
+            //of receiving ETW events in the correct order is most important. If events get dropped because of this setting, we will end up throwing
+            TraceEventSession = new TraceEventSession(sessionName, TraceEventSessionOptions.Create | TraceEventSessionOptions.NoPerProcessorBuffering);
 
             var parser = new ProfilerTraceEventParser(TraceEventSession.Source);
 
@@ -333,7 +336,8 @@ namespace DebugTools.Profiler
             //This will wait for the pipe to be created if it doesn't exist yet
             try
             {
-                pipe.ConnectAsync(10000, pipeCTS.Token).GetAwaiter().GetResult();
+                if (!settings?.Any(s => s == ProfilerSetting.DisablePipe) == true)
+                    pipe.ConnectAsync(10000, pipeCTS.Token).GetAwaiter().GetResult();
             }
             catch (OperationCanceledException)
             {

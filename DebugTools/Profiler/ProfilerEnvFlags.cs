@@ -5,6 +5,8 @@
         WaitForDebugger,
         Detailed,
         TraceValueDepth,
-        TargetProcess
+        TargetProcess,
+
+        DisablePipe
     }
 }

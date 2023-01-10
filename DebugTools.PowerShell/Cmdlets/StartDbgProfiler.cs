@@ -27,6 +27,9 @@ namespace DebugTools.PowerShell.Cmdlets
         [Parameter(Mandatory = false)]
         public string TargetProcess { get; set; }
 
+        [Parameter(Mandatory = false)]
+        public SwitchParameter DisablePipe { get; set; }
+
         protected override void ProcessRecord()
         {
             var session = new ProfilerSession();
@@ -45,6 +48,9 @@ namespace DebugTools.PowerShell.Cmdlets
 
             if (MyInvocation.BoundParameters.ContainsKey(nameof(TargetProcess)))
                 settings.Add(new ProfilerSetting(ProfilerEnvFlags.TargetProcess, TargetProcess));
+
+            if (DisablePipe)
+                settings.Add(ProfilerSetting.DisablePipe);
 
             session.Start(CancellationToken, ProcessName, settings.ToArray(), TraceStart);
 
