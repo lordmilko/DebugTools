@@ -652,9 +652,12 @@ LPCWSTR blacklist[] = {
 
 BOOL CCorProfilerCallback::ShouldHook()
 {
-    if (wcsstr(g_szModuleName, L"dotnet\\shared\\Microsoft.NETCore.App") != NULL ||
-        wcsstr(g_szModuleName, L"dotnet\\sdk\\") != NULL ||
-        wcsstr(g_szModuleName, L"coreclr\\windows.x64.Debug") != NULL)
+    if (wcsstr(g_szModuleName, L"dotnet\\shared\\Microsoft.NETCore.App") != NULL 
+     || wcsstr(g_szModuleName, L"dotnet\\sdk\\") != NULL
+#ifdef _DEBUG
+     || wcsstr(g_szModuleName, L"coreclr\\windows.x64.Debug") != NULL
+#endif
+        )
         return FALSE;
 
     WCHAR* ptr = wcsrchr(g_szModuleName, '\\');

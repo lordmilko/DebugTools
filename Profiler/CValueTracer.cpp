@@ -571,15 +571,25 @@ HRESULT CValueTracer::TraceChar(
 
     if (pContext && pContext->ParentType && pContext->ParentType->m_Type == ELEMENT_TYPE_PTR)
     {
-        //Any reference to an ELEMENT_TYPE_CHAR could now be
-        //a string.
-        ULONG strLen = (ULONG) wcslen(pChar) + 1;
-
         DebugBlob(L"Char*");
         WriteType(ELEMENT_TYPE_CHAR);
-        WriteValue(&strLen, 4);
-        WriteValue(pChar, (strLen - 1) * sizeof(WCHAR));
-        WriteValue(L"\0", sizeof(WCHAR));
+
+        //Any reference to an ELEMENT_TYPE_CHAR could now be
+        //a string. However you could just as easily pass (char*)1 so we need to validate the pointer
+
+        if (IsInvalidObject(startAddress))
+        {
+            ULONG strLen = 0;
+            WriteValue(&strLen, 4);
+        }
+        else
+        {
+            ULONG strLen = (ULONG)wcslen(pChar) + 1;
+
+            WriteValue(&strLen, 4);
+            WriteValue(pChar, (strLen - 1) * sizeof(WCHAR));
+            WriteValue(L"\0", sizeof(WCHAR));
+        }
 
         bytesRead += sizeof(WCHAR*);
     }

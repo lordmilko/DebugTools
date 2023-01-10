@@ -101,11 +101,15 @@ namespace DebugTools.TestHost
         {
         }
 
-        public unsafe void PtrCharArg(char* value)
+        public unsafe void PtrCharArg(char* a)
         {
         }
 
-        public unsafe void PtrVoidArg(void* value)
+        public unsafe void Value_PtrCharRandomValueArg(char* a)
+        {
+        }
+
+        public unsafe void PtrVoidArg(void* a)
         {
         }
 
@@ -158,6 +162,11 @@ namespace DebugTools.TestHost
         }
 
         public unsafe void FnPtr(delegate*<void> a)
+        {
+            Debug.WriteLine(((IntPtr)a).ToInt64().ToString("X"));
+        }
+
+        public unsafe void FnPtrNull(delegate*<void> a)
         {
             Debug.WriteLine(((IntPtr)a).ToInt64().ToString("X"));
         }

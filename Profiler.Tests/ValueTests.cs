@@ -79,6 +79,10 @@ namespace Profiler.Tests
             Test(ValueTestType.PtrCharArg, v => v.HasPtrDisplay("char* (\"String Value\")").HasPtrValue("String Value"));
 
         [TestMethod]
+        public void Value_PtrCharRandomValueArg() =>
+            Test(ValueTestType.Value_PtrCharRandomValueArg, v => v.GetParameter().VerifyValue().HasPtrValue((string) null));
+
+        [TestMethod]
         public void Value_PtrVoidArg() =>
             Test(ValueTestType.PtrVoidArg, v => v.HasPtrDisplay("void* (0x3E9)").HasPtrValue(new IntPtr(1001)));
 
@@ -195,7 +199,22 @@ namespace Profiler.Tests
                 var parameter = v.GetParameter();
 
                 Assert.IsInstanceOfType(parameter, typeof(FnPtrValue));
-            }, ProfilerSetting.WaitForDebugger);
+            });
+        }
+
+        [TestMethod]
+        public void Value_FnPtrNull()
+        {
+            Test(ValueTestType.FnPtrNull, v =>
+            {
+                var parameter = v.GetParameter();
+
+                Assert.IsInstanceOfType(parameter, typeof(FnPtrValue));
+
+                var fnPtr = (FnPtrValue) parameter;
+
+                Assert.AreEqual((ulong) 0, fnPtr.Value);
+            });
         }
 
         [TestMethod]
@@ -434,7 +453,7 @@ namespace Profiler.Tests
                         e1 => e1.HasValueType("DebugTools.TestHost.Struct1WithField").HasFieldValue(4)
                     )
                 );
-            }, ProfilerSetting.WaitForDebugger);
+            });
 
         #endregion
         #region TypeVar

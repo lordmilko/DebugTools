@@ -137,6 +137,10 @@ namespace DebugTools.TestHost
                         instance.PtrCharArg(ptr);
                     break;
 
+                case ValueTestType.Value_PtrCharRandomValueArg:
+                    instance.Value_PtrCharRandomValueArg((char*)1);
+                    break;
+
                 case ValueTestType.PtrVoidArg:
                         instance.PtrVoidArg((void*)1001);
                     break;
@@ -294,6 +298,10 @@ namespace DebugTools.TestHost
                     static void localFn() { }
 
                     instance.FnPtr(&localFn);
+                    break;
+
+                case ValueTestType.FnPtrNull:
+                    instance.FnPtrNull((delegate*<void>)new IntPtr(0));
                     break;
 
                 case ValueTestType.DecimalArg:
