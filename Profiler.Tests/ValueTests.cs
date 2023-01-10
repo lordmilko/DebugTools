@@ -188,6 +188,17 @@ namespace Profiler.Tests
         #endregion
 
         [TestMethod]
+        public void Value_FnPtr()
+        {
+            Test(ValueTestType.FnPtr, v =>
+            {
+                var parameter = v.GetParameter();
+
+                Assert.IsInstanceOfType(parameter, typeof(FnPtrValue));
+            }, ProfilerSetting.WaitForDebugger);
+        }
+
+        [TestMethod]
         public void Value_DecimalArg()
         {
             Test(ValueTestType.DecimalArg, v =>

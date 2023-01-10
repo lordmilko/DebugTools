@@ -569,7 +569,7 @@ HRESULT CValueTracer::TraceChar(
 
     WCHAR* pChar = (WCHAR*)startAddress;
 
-    if (pContext->ParentType != nullptr && pContext->ParentType->m_Type == ELEMENT_TYPE_PTR)
+    if (pContext && pContext->ParentType && pContext->ParentType->m_Type == ELEMENT_TYPE_PTR)
     {
         //Any reference to an ELEMENT_TYPE_CHAR could now be
         //a string.
@@ -1607,8 +1607,10 @@ HRESULT CValueTracer::TraceFnPtr(_In_ UINT_PTR startAddress, _Out_opt_ ULONG& by
 {
     HRESULT hr = S_OK;
 
-    DebugBlob("FnPtr");
-    WriteType(ELEMENT_TYPE_FNPTR);
+    DebugBlob(L"FnPtr");
+    __int64 addr = (__int64)*(UINT_PTR*)startAddress;
+
+    Write(&addr, ELEMENT_TYPE_FNPTR, 8);
 
 ErrExit:
     return hr;

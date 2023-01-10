@@ -44,6 +44,8 @@ namespace Profiler.Tests
         PtrStructArrayArg,
         PtrComplexStructArrayArg,
 
+        FnPtr,
+
         DecimalArg,
 
         StringArg,

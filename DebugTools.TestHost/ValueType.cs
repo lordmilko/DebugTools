@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 
 namespace DebugTools.TestHost
 {
@@ -154,6 +155,11 @@ namespace DebugTools.TestHost
 
         public unsafe void PtrComplexStructArrayArg(ComplexPtrStruct*[] a)
         {
+        }
+
+        public unsafe void FnPtr(delegate*<void> a)
+        {
+            Debug.WriteLine(((IntPtr)a).ToInt64().ToString("X"));
         }
 
         public void DecimalArg(decimal a)

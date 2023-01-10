@@ -120,7 +120,7 @@ namespace DebugTools.Profiler
                     return new PtrValue(Reader, this);
 
                 case CorElementType.FnPtr:
-                    return new FnPtrValue(Reader, this);
+                    return new FnPtrValue(Reader);
 
                 //We reached the max trace depth. Any values after this are missing
                 case CorElementType.End:

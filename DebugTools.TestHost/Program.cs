@@ -290,6 +290,12 @@ namespace DebugTools.TestHost
 
                 #endregion
 
+                case ValueTestType.FnPtr:
+                    static void localFn() { }
+
+                    instance.FnPtr(&localFn);
+                    break;
+
                 case ValueTestType.DecimalArg:
                     instance.DecimalArg(1m);
                     break;
