@@ -358,6 +358,7 @@ HRESULT CCorProfilerCallback::Initialize(IUnknown* pICorProfilerInfoUnk)
 #endif
 
     m_Detailed = GetBoolEnv("DEBUGTOOLS_DETAILED");
+    g_TracingEnabled = GetBoolEnv("DEBUGTOOLS_TRACESTART");
 
     HRESULT hr = S_OK;
 

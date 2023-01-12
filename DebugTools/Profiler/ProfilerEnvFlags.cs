@@ -4,6 +4,7 @@
     {
         WaitForDebugger,
         Detailed,
+        TraceStart,
         TraceValueDepth,
         TargetProcess,
 

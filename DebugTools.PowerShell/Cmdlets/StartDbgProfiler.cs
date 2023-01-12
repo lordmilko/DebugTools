@@ -49,10 +49,13 @@ namespace DebugTools.PowerShell.Cmdlets
             if (MyInvocation.BoundParameters.ContainsKey(nameof(TargetProcess)))
                 settings.Add(new ProfilerSetting(ProfilerEnvFlags.TargetProcess, TargetProcess));
 
+            if (TraceStart)
+                settings.Add(ProfilerSetting.TraceStart);
+
             if (DisablePipe)
                 settings.Add(ProfilerSetting.DisablePipe);
 
-            session.Start(CancellationToken, ProcessName, settings.ToArray(), TraceStart);
+            session.Start(CancellationToken, ProcessName, settings.ToArray());
 
             if (TraceStart)
             {

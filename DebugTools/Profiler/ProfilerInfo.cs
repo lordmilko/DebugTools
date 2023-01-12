@@ -80,6 +80,10 @@ namespace DebugTools.Profiler
                             envVariables.Add("DEBUGTOOLS_DETAILED", "1");
                             break;
 
+                        case ProfilerEnvFlags.TraceStart:
+                            envVariables.Add("DEBUGTOOLS_TRACESTART", "1");
+                            break;
+
                         case ProfilerEnvFlags.TraceValueDepth:
                             envVariables.Add("DEBUGTOOLS_TRACEVALUEDEPTH", setting.Value);
                             break;

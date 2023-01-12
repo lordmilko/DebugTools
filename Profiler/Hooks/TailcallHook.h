@@ -7,6 +7,9 @@
 // ReSharper disable once CppNonInlineFunctionDefinitionInHeaderFile
 extern "C" void STDMETHODCALLTYPE TailcallStub(FunctionIDOrClientID functionId)
 {
+    if (!g_TracingEnabled)
+        return;
+
     HRESULT hr = S_OK;
 
     LEAVE_FUNCTION(functionId);

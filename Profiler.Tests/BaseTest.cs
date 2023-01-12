@@ -9,13 +9,16 @@ namespace Profiler.Tests
     {
         internal void TestInternal(TestType type, string subType, Action<Validator> validate, params ProfilerSetting[] settings)
         {
+            var settingsList = settings.ToList();
+            settingsList.Add(ProfilerSetting.TraceStart);
+
             using (var session = new ProfilerSession())
             {
                 var wait = new AutoResetEvent(false);
 
                 session.TraceEventSession.Source.Completed += () => wait.Set();
 
-                session.Start(CancellationToken.None, $"{ProfilerInfo.TestHost} {type} {subType}", settings, true);
+                session.Start(CancellationToken.None, $"{ProfilerInfo.TestHost} {type} {subType}", settingsList.ToArray());
 
                 session.Process.WaitForExit();
 

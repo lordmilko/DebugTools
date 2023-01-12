@@ -1,12 +1,14 @@
 #include "pch.h"
 #include "CCommunication.h"
-#include <stdio.h>
 
 #define MESSAGE_DATA_SIZE 1000
+
+bool g_TracingEnabled = FALSE;
 
 //Keep in sync with MessageType.cs
 enum class MessageType
 {
+    EnableTracing
 };
 
 typedef struct _Message {
@@ -42,12 +44,16 @@ DWORD WINAPI PipeThreadProc(LPVOID lpParameter)
         {
             Message* message = (Message*)buffer;
 
-            /*switch (message->Type)
+            switch (message->Type)
             {
+            case MessageType::EnableTracing:
+                g_TracingEnabled = *(bool*)message->Data;
+                break;
+
             default:
                 dprintf(L"Don't know how to handle MessageType %d\n", message->Type);
                 break;
-            }*/
+            }
         }
     }
 

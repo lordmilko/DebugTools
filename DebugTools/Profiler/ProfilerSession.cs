@@ -281,9 +281,9 @@ namespace DebugTools.Profiler
             return value;
         }
 
-        public void Start(CancellationToken cancellationToken, string processName, ProfilerSetting[] settings, bool traceStart)
+        public void Start(CancellationToken cancellationToken, string processName, ProfilerSetting[] settings)
         {
-            collectStackTrace = traceStart;
+            collectStackTrace = settings?.Any(s => s == ProfilerSetting.TraceStart) == true;
 
             var pipeCTS = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
             traceCTS = new CancellationTokenSource();
@@ -408,6 +408,9 @@ namespace DebugTools.Profiler
         {
             this.userCTS = userCTS;
 
+            if (!Process.HasExited)
+                ExecuteCommand(MessageType.EnableTracing, true);
+
             collectStackTrace = true;
 
             userCTS.Token.Register(() =>
@@ -423,6 +426,9 @@ namespace DebugTools.Profiler
             userCTS.Token.WaitHandle.WaitOne();
 
             traceCTS.Token.WaitHandle.WaitOne();
+
+            if (!Process.HasExited)
+                ExecuteCommand(MessageType.EnableTracing, false);
 
             ThrowOnError();
 
@@ -454,6 +460,10 @@ namespace DebugTools.Profiler
             {
                 case long l:
                     bytes = BitConverter.GetBytes(l);
+                    break;
+
+                case bool b:
+                    bytes = BitConverter.GetBytes(b);
                     break;
 
                 default:

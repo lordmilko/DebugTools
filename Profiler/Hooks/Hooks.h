@@ -7,6 +7,8 @@
 #include "DebugToolsProfiler.h"
 #include "CValueTracer.h"
 
+extern bool g_TracingEnabled;
+
 #include "EnterHook.h"
 #include "LeaveHook.h"
 #include "TailcallHook.h"
