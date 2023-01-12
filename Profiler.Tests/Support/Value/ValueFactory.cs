@@ -289,7 +289,7 @@ namespace Profiler.Tests
 
         public static IMockValue<Array> ArrayNull() => Array(CorElementType.End, null);
 
-        public static IMockValue<object> ValueType(string type, params IMockValue[] fieldValues)
+        public static IMockValue<object> Struct(string type, params IMockValue[] fieldValues)
         {
             var stream = MakeStream(writer =>
             {
@@ -316,6 +316,34 @@ namespace Profiler.Tests
                 CorElementType.ValueType,
                 stream,
                 (r, s) => new StructValue(r, s)
+            );
+        }
+
+        public static IMockValue<object> Ptr(IMockValue value)
+        {
+            var stream = MakeStream(writer =>
+            {
+                if (value.ElementType == CorElementType.String)
+                {
+                    //Write the type twice
+                    writer.Write((byte) CorElementType.Char);
+                    writer.Write((byte)CorElementType.Char);
+                }
+                else
+                {
+                    //Write the type twice
+                    writer.Write((byte)value.ElementType);
+                    writer.Write((byte)value.ElementType);
+                }
+
+                value.Stream.Seek(0, SeekOrigin.Begin);
+                value.Stream.CopyTo(writer.BaseStream);
+            });
+
+            return new MockValue<PtrValue, object>(
+                CorElementType.Ptr,
+                stream,
+                (r, s) => new PtrValue(r, s)
             );
         }
 

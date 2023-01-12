@@ -1,9 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Threading;
+using ClrDebug;
 using DebugTools.PowerShell;
 using DebugTools.Profiler;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using static Profiler.Tests.ValueFactory;
 
 namespace Profiler.Tests
 {
@@ -20,9 +22,9 @@ namespace Profiler.Tests
             };
 
             var tree = MakeRoot(
-                MakeFrame("first", ValueFactory.String("aaa"),
-                    MakeFrame("second", ValueFactory.Boolean(true)),
-                    MakeFrame("second", ValueFactory.Boolean(false))
+                MakeFrame("first", String("aaa"),
+                    MakeFrame("second", Boolean(true)),
+                    MakeFrame("second", Boolean(false))
                 )
             );
 
@@ -43,9 +45,9 @@ namespace Profiler.Tests
             };
 
             var tree = MakeRoot(
-                MakeFrame("first", ValueFactory.String("aaa"),
-                    MakeFrame("second", ValueFactory.Char('b')),
-                    MakeFrame("second", ValueFactory.Char('c'))
+                MakeFrame("first", String("aaa"),
+                    MakeFrame("second", Char('b')),
+                    MakeFrame("second", Char('c'))
                 )
             );
 
@@ -66,9 +68,9 @@ namespace Profiler.Tests
             };
 
             var tree = MakeRoot(
-                MakeFrame("first", ValueFactory.String("aaa"),
-                    MakeFrame("second", ValueFactory.SByte(0x0A)),
-                    MakeFrame("second", ValueFactory.SByte(0x0B))
+                MakeFrame("first", String("aaa"),
+                    MakeFrame("second", SByte(0x0A)),
+                    MakeFrame("second", SByte(0x0B))
                 )
             );
 
@@ -89,9 +91,9 @@ namespace Profiler.Tests
             };
 
             var tree = MakeRoot(
-                MakeFrame("first", ValueFactory.String("aaa"),
-                    MakeFrame("second", ValueFactory.Byte(0x0A)),
-                    MakeFrame("second", ValueFactory.Byte(0x0B))
+                MakeFrame("first", String("aaa"),
+                    MakeFrame("second", Byte(0x0A)),
+                    MakeFrame("second", Byte(0x0B))
                 )
             );
 
@@ -112,9 +114,9 @@ namespace Profiler.Tests
             };
 
             var tree = MakeRoot(
-                MakeFrame("first", ValueFactory.String("aaa"),
-                    MakeFrame("second", ValueFactory.Int16(100)),
-                    MakeFrame("second", ValueFactory.Int16(101))
+                MakeFrame("first", String("aaa"),
+                    MakeFrame("second", Int16(100)),
+                    MakeFrame("second", Int16(101))
                 )
             );
 
@@ -135,9 +137,9 @@ namespace Profiler.Tests
             };
 
             var tree = MakeRoot(
-                MakeFrame("first", ValueFactory.String("aaa"),
-                    MakeFrame("second", ValueFactory.UInt16(100)),
-                    MakeFrame("second", ValueFactory.UInt16(101))
+                MakeFrame("first", String("aaa"),
+                    MakeFrame("second", UInt16(100)),
+                    MakeFrame("second", UInt16(101))
                 )
             );
 
@@ -158,9 +160,9 @@ namespace Profiler.Tests
             };
 
             var tree = MakeRoot(
-                MakeFrame("first", ValueFactory.String("aaa"),
-                    MakeFrame("second", ValueFactory.Int32(1000)),
-                    MakeFrame("second", ValueFactory.Int32(1001))
+                MakeFrame("first", String("aaa"),
+                    MakeFrame("second", Int32(1000)),
+                    MakeFrame("second", Int32(1001))
                 )
             );
 
@@ -181,9 +183,9 @@ namespace Profiler.Tests
             };
 
             var tree = MakeRoot(
-                MakeFrame("first", ValueFactory.String("aaa"),
-                    MakeFrame("second", ValueFactory.UInt32(1000)),
-                    MakeFrame("second", ValueFactory.UInt32(1001))
+                MakeFrame("first", String("aaa"),
+                    MakeFrame("second", UInt32(1000)),
+                    MakeFrame("second", UInt32(1001))
                 )
             );
 
@@ -204,9 +206,9 @@ namespace Profiler.Tests
             };
 
             var tree = MakeRoot(
-                MakeFrame("first", ValueFactory.String("aaa"),
-                    MakeFrame("second", ValueFactory.Int64(1000)),
-                    MakeFrame("second", ValueFactory.Int64(1001))
+                MakeFrame("first", String("aaa"),
+                    MakeFrame("second", Int64(1000)),
+                    MakeFrame("second", Int64(1001))
                 )
             );
 
@@ -227,9 +229,9 @@ namespace Profiler.Tests
             };
 
             var tree = MakeRoot(
-                MakeFrame("first", ValueFactory.String("aaa"),
-                    MakeFrame("second", ValueFactory.UInt64(1000)),
-                    MakeFrame("second", ValueFactory.UInt64(1001))
+                MakeFrame("first", String("aaa"),
+                    MakeFrame("second", UInt64(1000)),
+                    MakeFrame("second", UInt64(1001))
                 )
             );
 
@@ -250,9 +252,9 @@ namespace Profiler.Tests
             };
 
             var tree = MakeRoot(
-                MakeFrame("first", ValueFactory.String("aaa"),
-                    MakeFrame("second", ValueFactory.Float(1.1f)),
-                    MakeFrame("second", ValueFactory.Float(1.2f))
+                MakeFrame("first", String("aaa"),
+                    MakeFrame("second", Float(1.1f)),
+                    MakeFrame("second", Float(1.2f))
                 )
             );
 
@@ -273,9 +275,9 @@ namespace Profiler.Tests
             };
 
             var tree = MakeRoot(
-                MakeFrame("first", ValueFactory.String("aaa"),
-                    MakeFrame("second", ValueFactory.Double(1.1)),
-                    MakeFrame("second", ValueFactory.Double(1.2))
+                MakeFrame("first", String("aaa"),
+                    MakeFrame("second", Double(1.1)),
+                    MakeFrame("second", Double(1.2))
                 )
             );
 
@@ -296,9 +298,9 @@ namespace Profiler.Tests
             };
 
             var tree = MakeRoot(
-                MakeFrame("first", ValueFactory.String("aaa"),
-                    MakeFrame("second", ValueFactory.IntPtr(new IntPtr(1000))),
-                    MakeFrame("second", ValueFactory.IntPtr(new IntPtr(2000)))
+                MakeFrame("first", String("aaa"),
+                    MakeFrame("second", IntPtr(new IntPtr(1000))),
+                    MakeFrame("second", IntPtr(new IntPtr(2000)))
                 )
             );
 
@@ -319,9 +321,9 @@ namespace Profiler.Tests
             };
 
             var tree = MakeRoot(
-                MakeFrame("first", ValueFactory.String("aaa"),
-                    MakeFrame("second", ValueFactory.UIntPtr(new UIntPtr(1000))),
-                    MakeFrame("second", ValueFactory.UIntPtr(new UIntPtr(2000)))
+                MakeFrame("first", String("aaa"),
+                    MakeFrame("second", UIntPtr(new UIntPtr(1000))),
+                    MakeFrame("second", UIntPtr(new UIntPtr(2000)))
                 )
             );
 
@@ -342,9 +344,9 @@ namespace Profiler.Tests
             };
 
             var tree = MakeRoot(
-                MakeFrame("first", ValueFactory.String("aaa"),
-                    MakeFrame("second", ValueFactory.String("bbb")),
-                    MakeFrame("second", ValueFactory.String("ccc"))
+                MakeFrame("first", String("aaa"),
+                    MakeFrame("second", String("bbb")),
+                    MakeFrame("second", String("ccc"))
                 )
             );
 
@@ -352,6 +354,135 @@ namespace Profiler.Tests
 1000
 └─void Methods.first(""aaa"")
   └─void Methods.second(<Yellow>""bbb""</Yellow>)
+");
+        }
+
+        [TestMethod]
+        public void FrameFilterer_FilterClassField()
+        {
+            var options = new FrameFilterOptions
+            {
+                StringValue = new[] { "bbb" },
+                HasFilterValue = true
+            };
+
+            var tree = MakeRoot(
+                MakeFrame("first", String("aaa"),
+                    MakeFrame("second", Class("foo", String("bbb"))),
+                    MakeFrame("second", Class("foo", String("ccc")))
+                )
+            );
+
+            TestStack(options, tree, @"
+1000
+└─void Methods.first(""aaa"")
+  └─void Methods.second(<Yellow>foo</Yellow>)
+");
+        }
+
+        [TestMethod]
+        public void FrameFilterer_FilterStructField()
+        {
+            var options = new FrameFilterOptions
+            {
+                StringValue = new[] { "bbb" },
+                HasFilterValue = true
+            };
+
+            var tree = MakeRoot(
+                MakeFrame("first", String("aaa"),
+                    MakeFrame("second", Struct("foo", String("bbb"))),
+                    MakeFrame("second", Struct("foo", String("ccc")))
+                )
+            );
+
+            TestStack(options, tree, @"
+1000
+└─void Methods.first(""aaa"")
+  └─void Methods.second(<Yellow>foo</Yellow>)
+");
+        }
+
+        [TestMethod]
+        public void FrameFilterer_FilterSZArrayElement()
+        {
+            var options = new FrameFilterOptions
+            {
+                StringValue = new[] { "bbb" },
+                HasFilterValue = true
+            };
+
+            var tree = MakeRoot(
+                MakeFrame("first", String("aaa"),
+                    MakeFrame("second", SZArray(
+                        CorElementType.String,
+                        String("bbb"),
+                        String("ccc")
+                    )),
+                    MakeFrame("second", SZArray(
+                        CorElementType.String,
+                        String("ddd"),
+                        String("eee")
+                    ))
+                )
+            );
+
+            TestStack(options, tree, @"
+1000
+└─void Methods.first(""aaa"")
+  └─void Methods.second(<Yellow>new[]{""bbb"", ""ccc""}</Yellow>)
+");
+        }
+
+        [TestMethod]
+        public void FrameFilterer_FilterArrayElement()
+        {
+            var options = new FrameFilterOptions
+            {
+                StringValue = new[] { "bbb" },
+                HasFilterValue = true
+            };
+
+            var tree = MakeRoot(
+                MakeFrame("first", String("aaa"),
+                    MakeFrame("second", Array(
+                        CorElementType.String,
+                        new[,] { { String("bbb"), String("ccc") }, { String("ddd"), String("eee") } }
+                    )),
+                    MakeFrame("second", Array(
+                        CorElementType.String,
+                        new[,] { { String("fff"), String("ggg") }, { String("hhh"), String("iii") } }
+                    ))
+                )
+            );
+
+            TestStack(options, tree, @"
+1000
+└─void Methods.first(""aaa"")
+  └─void Methods.second(<Yellow>new[,]{{""bbb"",""ccc""},{""ddd"",""eee""}}</Yellow>)
+");
+        }
+
+        [TestMethod]
+        public void FrameFilterer_FilterPointerValue()
+        {
+            var options = new FrameFilterOptions
+            {
+                StringValue = new[] { "bbb" },
+                HasFilterValue = true
+            };
+
+            var tree = MakeRoot(
+                MakeFrame("first", String("aaa"),
+                    MakeFrame("second", Ptr(String("bbb"))),
+                    MakeFrame("second", Ptr(String("ccc")))
+                )
+            );
+
+            TestStack(options, tree, @"
+1000
+└─void Methods.first(""aaa"")
+  └─void Methods.second(<Yellow>char* (""bbb"")</Yellow>)
 ");
         }
 

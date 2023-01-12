@@ -13,5 +13,10 @@ namespace DebugTools.Profiler
         {
             Value = reader.ReadUInt64();
         }
+
+        public override string ToString()
+        {
+            return $"0x{Value:X}";
+        }
     }
 }

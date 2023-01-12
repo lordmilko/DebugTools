@@ -575,21 +575,14 @@ HRESULT CValueTracer::TraceChar(
         WriteType(ELEMENT_TYPE_CHAR);
 
         //Any reference to an ELEMENT_TYPE_CHAR could now be
-        //a string. However you could just as easily pass (char*)1 so we need to validate the pointer
+        //a string. However you could just as easily pass (char*)1.
+        //An invalid pointer would have been validated in TracePtrType()
 
-        if (IsInvalidObject(startAddress))
-        {
-            ULONG strLen = 0;
-            WriteValue(&strLen, 4);
-        }
-        else
-        {
-            ULONG strLen = (ULONG)wcslen(pChar) + 1;
+        ULONG strLen = (ULONG)wcslen(pChar) + 1;
 
-            WriteValue(&strLen, 4);
-            WriteValue(pChar, (strLen - 1) * sizeof(WCHAR));
-            WriteValue(L"\0", sizeof(WCHAR));
-        }
+        WriteValue(&strLen, 4);
+        WriteValue(pChar, (strLen - 1) * sizeof(WCHAR));
+        WriteValue(L"\0", sizeof(WCHAR));
 
         bytesRead += sizeof(WCHAR*);
     }
@@ -1591,20 +1584,31 @@ HRESULT CValueTracer::TracePtrType(
 
     DebugBlob("Ptr");
     WriteType(ELEMENT_TYPE_PTR);
-    WriteType(elmType);
 
-    if (elmType == ELEMENT_TYPE_VOID)
+    if (IsInvalidObject(innerAddress))
     {
+        WriteType(ELEMENT_TYPE_END);
+        WriteType(elmType);
+
         IfFailGo(TraceIntPtr(startAddress, innerBytesRead));
     }
     else
     {
-        IfFailGo(TraceValue(
-            innerAddress,
-            elmType,
-            &ctx,
-            innerBytesRead
-        ));
+        WriteType(elmType);
+
+        if (elmType == ELEMENT_TYPE_VOID)
+        {
+            IfFailGo(TraceIntPtr(startAddress, innerBytesRead));
+        }
+        else
+        {
+            IfFailGo(TraceValue(
+                innerAddress,
+                elmType,
+                &ctx,
+                innerBytesRead
+            ));
+        }
     }
 
     bytesRead += sizeof(void*);

@@ -10,12 +10,20 @@ namespace DebugTools.Profiler
 
         public object Value { get; }
 
+        public bool Invalid { get; }
+
         public PtrValue(BinaryReader reader, ValueSerializer serializer)
         {
             ElementType = (CorElementType) reader.ReadByte();
 
             switch (ElementType)
             {
+                case CorElementType.End:
+                    Invalid = true;
+                    ElementType = (CorElementType)reader.ReadByte();
+                    Value = serializer.ReadValue();
+                    break;
+
                 case CorElementType.Char:
                     reader.ReadByte(); //ELEMENT_TYPE_CHAR again
                     Value = new StringValue(reader);

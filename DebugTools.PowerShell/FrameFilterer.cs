@@ -302,6 +302,12 @@ namespace DebugTools.PowerShell
                 return true;
             }
 
+            if (MatchPointer(d, value, methodComponent, onSuccess))
+            {
+                AddMatchedValue(value, methodComponent);
+                return true;
+            }
+
             return false;
         }
 
@@ -614,6 +620,20 @@ namespace DebugTools.PowerShell
                         AddMatchedValue(item, methodComponent);
                         return true;
                     }
+                }
+            }
+
+            return false;
+        }
+
+        private bool MatchPointer(IMethodFrameDetailed d, object value, object methodComponent, Action onSuccess)
+        {
+            if (value is PtrValue ptr)
+            {
+                if (MatchAny(d, ptr.Value, methodComponent, onSuccess))
+                {
+                    AddMatchedValue(ptr.Value, methodComponent);
+                    return true;
                 }
             }
 

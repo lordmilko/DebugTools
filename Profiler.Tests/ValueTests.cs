@@ -80,7 +80,7 @@ namespace Profiler.Tests
 
         [TestMethod]
         public void Value_PtrCharRandomValueArg() =>
-            Test(ValueTestType.Value_PtrCharRandomValueArg, v => v.GetParameter().VerifyValue().HasPtrValue((string) null));
+            Test(ValueTestType.Value_PtrCharRandomValueArg, v => v.GetParameter().VerifyValue().HasPtrValue(new IntPtr(1)));
 
         [TestMethod]
         public void Value_PtrVoidArg() =>

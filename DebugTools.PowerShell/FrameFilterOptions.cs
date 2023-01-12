@@ -2,6 +2,9 @@
 
 namespace DebugTools.PowerShell
 {
+    //Filtering by pointers and function pointers is not currently supported. A function pointer just returns an address, and in the case of pointers,
+    //we either record a void* or read the raw value (which can then be filtered using the other filter options)
+
     public class FrameFilterOptions
     {
         public bool Unique { get; set; }

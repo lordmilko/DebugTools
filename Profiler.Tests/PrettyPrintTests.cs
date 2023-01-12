@@ -65,6 +65,15 @@ namespace Profiler.Tests
         }
 
         [TestMethod]
+        public void MethodFrameFormat_PointerArg()
+        {
+            TestArg(
+                Ptr(String("first")),
+                "void Methods.first(char* (\"first\"))"
+            );
+        }
+
+        [TestMethod]
         public void MethodFrameFormat_HighlightStringArg()
         {
             TestArg(
@@ -123,6 +132,25 @@ namespace Profiler.Tests
         }
 
         [TestMethod]
+        public void MethodFrameFormat_HighlightSZArrayField()
+        {
+            TestArg(
+                () => Methods.SZArrayField(new TestClassWithSZArrayField { Field1 = new[] { "first", "second" } }),
+                "void Methods.SZArrayField(<Yellow>TestClassWithSZArrayField.Field1[1]=\"second\"</Yellow>)",
+                (w, p, r) =>
+                {
+                    var classObj = (ClassValue)p[0];
+                    var arrObj = (SZArrayValue)classObj.FieldValues[0];
+                    var elm = arrObj.Value[1];
+
+                    w.HighlightValues[classObj] = 0;
+                    w.HighlightValues[arrObj] = 0;
+                    w.HighlightValues[elm] = 0;
+                }
+            );
+        }
+
+        [TestMethod]
         public void MethodFrameFormat_HighlightArrayArg()
         {
             var arr = new object[,]
@@ -140,25 +168,6 @@ namespace Profiler.Tests
 
                     w.HighlightValues[arrObj] = 0;
                     w.HighlightValues[arrObj.Value.GetValue(0, 0)] = 0;
-                }
-            );
-        }
-
-        [TestMethod]
-        public void MethodFrameFormat_HighlightSZArrayField()
-        {
-            TestArg(
-                () => Methods.SZArrayField(new TestClassWithSZArrayField{Field1 = new[]{"first", "second"}}),
-                "void Methods.SZArrayField(<Yellow>TestClassWithSZArrayField.Field1[1]=\"second\"</Yellow>)",
-                (w, p, r) =>
-                {
-                    var classObj = (ClassValue)p[0];
-                    var arrObj = (SZArrayValue) classObj.FieldValues[0];
-                    var elm = arrObj.Value[1];
-
-                    w.HighlightValues[classObj] = 0;
-                    w.HighlightValues[arrObj] = 0;
-                    w.HighlightValues[elm] = 0;
                 }
             );
         }
@@ -185,6 +194,169 @@ namespace Profiler.Tests
                     w.HighlightValues[arrObj] = 0;
                     w.HighlightValues[elm] = 0;
                 }
+            );
+        }
+
+        [TestMethod]
+        public void MethodFrameFormat_HighlightPointerSimpleArg()
+        {
+            TestArg(
+                Ptr(String("foo")),
+                "void Methods.PointerSimpleArg(<Yellow>char* (\"foo\")</Yellow>)",
+                (w, p, r) =>
+                {
+                    var ptr = (PtrValue)p[0];
+
+                    w.HighlightValues[ptr] = 0;
+                    w.HighlightValues[ptr.Value] = 0;
+                },
+                "PointerSimpleArg"
+            );
+        }
+
+        [TestMethod]
+        public void MethodFrameFormat_HighlightPointerStructArg()
+        {
+            TestArg(
+                Ptr(
+                    Struct("TestStructWithSimpleField",
+                        Int32(5)
+                    )
+                ),
+                "void Methods.PointerStructArg(<Yellow>TestStructWithSimpleField*</Yellow>)",
+                (w, p, r) =>
+                {
+                    var ptr = (PtrValue)p[0];
+
+                    w.HighlightValues[ptr] = 0;
+                    w.HighlightValues[ptr.Value] = 0;
+                },
+                "PointerStructArg"
+            );
+        }
+
+        [TestMethod]
+        public void MethodFrameFormat_HighlightPointerStructWithFieldArg()
+        {
+            TestArg(
+                Ptr(
+                    Struct("TestStructWithSimpleField",
+                        Int32(5)
+                    )
+                ),
+                "void Methods.PointerStructArg(<Yellow>TestStructWithSimpleField*->Field2=5</Yellow>)",
+                (w, p, r) =>
+                {
+                    var ptr = (PtrValue)p[0];
+                    var @struct = (StructValue) ptr.Value;
+
+                    w.HighlightValues[ptr] = 0;
+                    w.HighlightValues[@struct] = 0;
+                    w.HighlightValues[@struct.FieldValues[0]] = 0;
+                },
+                "PointerStructArg"
+            );
+        }
+
+        [TestMethod]
+        public void MethodFrameFormat_HighlightPointerSimpleField()
+        {
+            TestArg(
+                Class("TestClassWithPointerSimpleField",
+                    Ptr(String("foo"))
+                ),
+                "void Methods.PointerSimpleField(<Yellow>TestClassWithPointerSimpleField.Field1=\"foo\"</Yellow>)",
+                (w, p, r) =>
+                {
+                    var classObj = (ClassValue) p[0];
+
+                    var ptr = (PtrValue)classObj.FieldValues[0];
+
+                    w.HighlightValues[classObj] = 0;
+                    w.HighlightValues[ptr] = 0;
+                    w.HighlightValues[ptr.Value] = 0;
+                },
+                "PointerSimpleField"
+            );
+        }
+
+        [TestMethod]
+        public void MethodFrameFormat_HighlightPointerPointerSimpleField()
+        {
+            TestArg(
+                Class("TestClassWithPointerPointerSimpleField",
+                    Ptr(Ptr(String("foo")))
+                ),
+                "void Methods.PointerPointerSimpleField(<Yellow>TestClassWithPointerPointerSimpleField.Field1=\"foo\"</Yellow>)",
+                (w, p, r) =>
+                {
+                    var classObj = (ClassValue)p[0];
+
+                    var ptrPtr = (PtrValue)classObj.FieldValues[0];
+                    var ptr = (PtrValue)ptrPtr.Value;
+
+                    w.HighlightValues[classObj] = 0;
+                    w.HighlightValues[ptrPtr] = 0;
+                    w.HighlightValues[ptr] = 0;
+                    w.HighlightValues[ptr.Value] = 0;
+                },
+                "PointerPointerSimpleField"
+            );
+        }
+
+        [TestMethod]
+        public void MethodFrameFormat_HighlightPointerStructField()
+        {
+            //We matched the typename of a struct inside a pointer
+
+            TestArg(
+                Class("TestClassWithPointerStructField",
+                    Ptr(
+                        Struct("TestStructWithSimpleField",
+                            Int32(5)
+                        )
+                    )
+                ),
+                "void Methods.PointerStructField(<Yellow>TestClassWithPointerStructField.Field1</Yellow>)",
+                (w, p, r) =>
+                {
+                    var classObj = (ClassValue)p[0];
+
+                    var ptr = (PtrValue)classObj.FieldValues[0];
+
+                    w.HighlightValues[classObj] = 0;
+                    w.HighlightValues[ptr] = 0;
+                    w.HighlightValues[ptr.Value] = 0;
+                },
+                "PointerStructField"
+            );
+        }
+
+        [TestMethod]
+        public void MethodFrameFormat_HighlightPointerStructWithSimpleField()
+        {
+            TestArg(
+                Class("TestClassWithPointerStructField",
+                    Ptr(
+                        Struct("TestStructWithSimpleField",
+                            Int32(5)
+                        )
+                    )
+                ),
+                "void Methods.PointerStructField(<Yellow>TestClassWithPointerStructField.Field1->Field2=5</Yellow>)",
+                (w, p, r) =>
+                {
+                    var classObj = (ClassValue)p[0];
+
+                    var ptr = (PtrValue)classObj.FieldValues[0];
+                    var @struct = (StructValue) ptr.Value;
+
+                    w.HighlightValues[classObj] = 0;
+                    w.HighlightValues[ptr] = 0;
+                    w.HighlightValues[@struct] = 0;
+                    w.HighlightValues[@struct.FieldValues[0]] = 0;
+                },
+                "PointerStructField"
             );
         }
 
@@ -228,12 +400,12 @@ namespace Profiler.Tests
             Assert.AreEqual(expected, output.ToString());
         }
 
-        private void TestArg(IMockValue parameter, string expected, SetHighlightsDelegate setHighlights = null)
+        private void TestArg(IMockValue parameter, string expected, SetHighlightsDelegate setHighlights = null, string methodName = "first")
         {
-            Test(new List<IMockValue> {parameter}, Void, expected, setHighlights);
+            Test(new List<IMockValue> {parameter}, Void, expected, setHighlights, methodName);
         }
 
-        private void Test(List<IMockValue> parameters, object returnValue, string expected, SetHighlightsDelegate setHighlights = null)
+        private void Test(List<IMockValue> parameters, object returnValue, string expected, SetHighlightsDelegate setHighlights = null, string methodName = "first")
         {
             var output = new StringColorOutputSource();
 
@@ -253,7 +425,7 @@ namespace Profiler.Tests
                 setHighlights.Invoke(writer, trueParameters, returnValue);
             }
 
-            var info = new MockMethodInfoDetailed(typeof(Methods).GetMethod("first"));
+            var info = new MockMethodInfoDetailed(typeof(Methods).GetMethod(methodName));
 
             var frame = new MockMethodFrameDetailed(info, trueParameters, returnValue);
 

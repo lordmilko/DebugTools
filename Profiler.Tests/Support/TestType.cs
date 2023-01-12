@@ -28,6 +28,7 @@ namespace Profiler.Tests
 
         PtrArg,
         PtrCharArg,
+        Value_PtrCharRandomValueArg,
         PtrVoidArg,
         PtrStructArg,
         PtrComplexStructArg,
