@@ -8,10 +8,9 @@
   </PropertyGroup>
 
   <ItemGroup>
+      <PackageReference Include="ClrDebug" Version="0.1.0" />
       <PackageReference Include="envdte80" Version="8.0.3" />
-        <PackageReference Include="Microsoft.Diagnostics.Tracing.TraceEvent" Version="3.0.6" />
-
-      <ProjectReference Include="..\..\ClrDebug\ClrDebug\ClrDebug.csproj" />
+      <PackageReference Include="Microsoft.Diagnostics.Tracing.TraceEvent" Version="3.0.6" />
   </ItemGroup>
 
 </Project>
