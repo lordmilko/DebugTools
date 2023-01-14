@@ -21,7 +21,7 @@ namespace DebugTools.PowerShell.Cmdlets
         public SwitchParameter TraceStart { get; set; }
 
         [Parameter(Mandatory = false)]
-        public int ValueDepth { get; set; }
+        public int ValueDepth { get; set; } = 1;
 
         [Alias("ChildProcess")]
         [Parameter(Mandatory = false)]
@@ -54,8 +54,7 @@ namespace DebugTools.PowerShell.Cmdlets
             if (Detailed)
                 settings.Add(ProfilerSetting.Detailed);
 
-            if (MyInvocation.BoundParameters.ContainsKey(nameof(ValueDepth)))
-                settings.Add(new ProfilerSetting(ProfilerEnvFlags.TraceValueDepth, ValueDepth));
+            settings.Add(new ProfilerSetting(ProfilerEnvFlags.TraceValueDepth, ValueDepth));
 
             if (MyInvocation.BoundParameters.ContainsKey(nameof(TargetProcess)))
                 settings.Add(new ProfilerSetting(ProfilerEnvFlags.TargetProcess, TargetProcess));

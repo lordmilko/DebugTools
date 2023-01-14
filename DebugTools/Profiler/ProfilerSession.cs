@@ -7,6 +7,7 @@ using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading;
 using ClrDebug;
+using DebugTools.SOS;
 using DebugTools.Tracing;
 using Microsoft.Diagnostics.Tracing.Session;
 
@@ -27,6 +28,7 @@ namespace DebugTools.Profiler
 
         public bool HasExited => Process?.HasExited ?? true;
 
+        public DataTarget DataTarget { get; set; }
         public SOSDacInterface SOS { get; set; }
 
         private NamedPipeClientStream pipe;

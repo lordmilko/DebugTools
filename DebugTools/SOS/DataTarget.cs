@@ -13,22 +13,55 @@ namespace DebugTools.SOS
     public class DataTarget : ICLRDataTarget
     {
         private Process process;
+        private bool isWow64;
+
+        //IXCLRDataProcess::Flush does not use DAC_ENTER, which can lead to heap corruption if the process is flushed while it is running. To work around this,
+        //ReadVirtual is tricked to call IXCLRDataProcess::Flush upon attempting to execute another method (which DOES call DAC_ENTER), thereby giving us a safe flush.
+        //Taken from RuntimeBuilder.FlushDac() in ClrMD.
+        private Action doFlush;
+        private volatile int flushContext;
+        private ulong MagicFlushAddress = 0x43; //A random (invalid) address constant to signal we're doing a flush, not reading an address
 
         public DataTarget(Process process)
         {
             this.process = process;
+
+            if (!NativeMethods.IsWow64Process(process.Handle, out isWow64))
+                throw new SOSException($"Failed to query {nameof(NativeMethods.IsWow64Process)}: {(HRESULT)Marshal.GetHRForLastWin32Error()}");
+
+            if (isWow64 && IntPtr.Size == 8)
+                throw new InvalidOperationException("Cannot attach to a 32-bit target from a 64-bit process.");
+        }
+
+        public void SetFlushCallback(Action action)
+        {
+            doFlush = action;
+        }
+
+        public void Flush(SOSDacInterface sos)
+        {
+            Interlocked.Increment(ref flushContext);
+
+            try
+            {
+                sos.TryGetWorkRequestData(MagicFlushAddress, out _);
+            }
+            finally
+            {
+                Interlocked.Decrement(ref flushContext);
+            }
         }
 
         public HRESULT GetMachineType(out IMAGE_FILE_MACHINE machineType)
         {
             //This sample assumes Windows
-            machineType = IntPtr.Size == 4 ? IMAGE_FILE_MACHINE.I386 : IMAGE_FILE_MACHINE.AMD64;
+            machineType = isWow64 ? IMAGE_FILE_MACHINE.I386 : IMAGE_FILE_MACHINE.AMD64;
             return HRESULT.S_OK;
         }
 
         public HRESULT GetPointerSize(out int pointerSize)
         {
-            pointerSize = IntPtr.Size;
+            pointerSize = isWow64 ? 4 : 8;
             return HRESULT.S_OK;
         }
 
@@ -63,6 +96,13 @@ namespace DebugTools.SOS
 
         public HRESULT ReadVirtual(CLRDATA_ADDRESS address, IntPtr buffer, int bytesRequested, out int bytesRead)
         {
+            if (address == MagicFlushAddress && flushContext > 0)
+            {
+                doFlush?.Invoke();
+                bytesRead = 0;
+                return HRESULT.E_FAIL;
+            }
+
             //ReadProcessMemory will fail if any part of the region to read does not have read access, which can commonly occur
             //when attempting to read across a page boundary. As such, memory requests must be "chunked" to be within each page,
             //which we do by gradually shifting the pointer of our buffer along until we've read everything we're after

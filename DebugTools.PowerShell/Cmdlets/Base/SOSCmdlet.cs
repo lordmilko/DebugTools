@@ -11,7 +11,24 @@ namespace DebugTools.PowerShell.Cmdlets
             get
             {
                 if (Session.SOS == null)
-                    Session.SOS = CLRDataCreateInstance(new DataTarget(Session.Process)).SOSDacInterface;
+                {
+                    try
+                    {
+                        Session.DataTarget = new DataTarget(Session.Process);
+                        Session.SOS = CLRDataCreateInstance(Session.DataTarget).SOSDacInterface;
+
+                        var xclrProcess = new XCLRDataProcess((IXCLRDataProcess) Session.SOS.Raw);
+
+                        Session.DataTarget.SetFlushCallback(() => xclrProcess.Flush());
+                    }
+                    catch
+                    {
+                        Session.DataTarget = null;
+                        Session.SOS = null;
+
+                        throw;
+                    }
+                }
 
                 return Session.SOS;
             }
