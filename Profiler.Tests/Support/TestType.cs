@@ -5,7 +5,8 @@ namespace Profiler.Tests
         Value,
         Profiler,
         Exception,
-        Blacklist
+        Blacklist,
+        SOS
     }
 
     enum ValueTestType

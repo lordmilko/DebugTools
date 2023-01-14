@@ -27,6 +27,8 @@ namespace DebugTools.Profiler
 
         public bool HasExited => Process?.HasExited ?? true;
 
+        public SOSDacInterface SOS { get; set; }
+
         private NamedPipeClientStream pipe;
 
         public Dictionary<int, ThreadStack> ThreadCache { get; } = new Dictionary<int, ThreadStack>();

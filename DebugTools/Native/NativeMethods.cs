@@ -30,6 +30,14 @@ namespace DebugTools
             out PROCESS_INFORMATION lpProcessInformation);
 
         [DllImport(Kernel32, SetLastError = true)]
+        public static extern bool ReadProcessMemory(
+            IntPtr hProcess,
+            IntPtr lpBaseAddress,
+            [Out] IntPtr lpBuffer,
+            int dwSize,
+            out int lpNumberOfBytesRead);
+
+        [DllImport(Kernel32, SetLastError = true)]
         internal static extern int ResumeThread(IntPtr hThread);
 
         [DllImport(Kernel32, SetLastError = true)]

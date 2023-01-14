@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Threading;
 using Profiler.Tests;
 
 namespace DebugTools.TestHost
@@ -43,6 +44,14 @@ namespace DebugTools.TestHost
                     ProcessBlacklistTest(args[1]);
                     break;
 
+                case TestType.SOS:
+                    var parentProcess = Process.GetProcessById(Convert.ToInt32(args[1]));
+                    parentProcess.EnableRaisingEvents = true;
+                    parentProcess.Exited += (s, e) => Process.GetCurrentProcess().Kill();
+                    Console.WriteLine("Waiting for parent process exit...");
+
+                    while (true)
+                        Thread.Sleep(1);
                 default:
                     Debug.WriteLine($"Don't know how to run test type '{testType}'");
                     Environment.Exit(1);
