@@ -13,12 +13,34 @@ namespace Profiler.Tests
     public class FrameFiltererTests
     {
         [TestMethod]
+        public void FrameFilterer_Include()
+        {
+            var options = new FrameFilterOptions
+            {
+                Include = new[] {"*"}
+            };
+
+            var tree = MakeRoot(
+                MakeFrame("first", String("aaa"),
+                    MakeFrame("second", Boolean(true)),
+                    MakeFrame("second", Boolean(false))
+                )
+            );
+
+            TestStack(options, tree, @"
+1000
+└─void Methods.first(""aaa"")
+  ├─void Methods.second(true)
+  └─void Methods.second(false)
+");
+        }
+
+        [TestMethod]
         public void FrameFilterer_FilterBoolValue()
         {
             var options = new FrameFilterOptions
             {
-                BoolValue = new[] {true},
-                HasFilterValue = true
+                BoolValue = new[] {true}
             };
 
             var tree = MakeRoot(
@@ -40,8 +62,7 @@ namespace Profiler.Tests
         {
             var options = new FrameFilterOptions
             {
-                CharValue = new[] { 'b' },
-                HasFilterValue = true
+                CharValue = new[] { 'b' }
             };
 
             var tree = MakeRoot(
@@ -63,8 +84,7 @@ namespace Profiler.Tests
         {
             var options = new FrameFilterOptions
             {
-                SByteValue = new sbyte[] { 0x0A },
-                HasFilterValue = true
+                SByteValue = new sbyte[] { 0x0A }
             };
 
             var tree = MakeRoot(
@@ -86,8 +106,7 @@ namespace Profiler.Tests
         {
             var options = new FrameFilterOptions
             {
-                ByteValue = new byte[] { 0x0A },
-                HasFilterValue = true
+                ByteValue = new byte[] { 0x0A }
             };
 
             var tree = MakeRoot(
@@ -109,8 +128,7 @@ namespace Profiler.Tests
         {
             var options = new FrameFilterOptions
             {
-                Int16Value = new short[] { 100 },
-                HasFilterValue = true
+                Int16Value = new short[] { 100 }
             };
 
             var tree = MakeRoot(
@@ -132,8 +150,7 @@ namespace Profiler.Tests
         {
             var options = new FrameFilterOptions
             {
-                UInt16Value = new ushort[] { 100 },
-                HasFilterValue = true
+                UInt16Value = new ushort[] { 100 }
             };
 
             var tree = MakeRoot(
@@ -155,8 +172,7 @@ namespace Profiler.Tests
         {
             var options = new FrameFilterOptions
             {
-                Int32Value = new[] { 1000 },
-                HasFilterValue = true
+                Int32Value = new[] { 1000 }
             };
 
             var tree = MakeRoot(
@@ -178,8 +194,7 @@ namespace Profiler.Tests
         {
             var options = new FrameFilterOptions
             {
-                UInt32Value = new uint[] { 1000 },
-                HasFilterValue = true
+                UInt32Value = new uint[] { 1000 }
             };
 
             var tree = MakeRoot(
@@ -201,8 +216,7 @@ namespace Profiler.Tests
         {
             var options = new FrameFilterOptions
             {
-                Int64Value = new long[] { 1000 },
-                HasFilterValue = true
+                Int64Value = new long[] { 1000 }
             };
 
             var tree = MakeRoot(
@@ -224,8 +238,7 @@ namespace Profiler.Tests
         {
             var options = new FrameFilterOptions
             {
-                UInt64Value = new ulong[] { 1000 },
-                HasFilterValue = true
+                UInt64Value = new ulong[] { 1000 }
             };
 
             var tree = MakeRoot(
@@ -247,8 +260,7 @@ namespace Profiler.Tests
         {
             var options = new FrameFilterOptions
             {
-                FloatValue = new[] { 1.1f },
-                HasFilterValue = true
+                FloatValue = new[] { 1.1f }
             };
 
             var tree = MakeRoot(
@@ -270,8 +282,7 @@ namespace Profiler.Tests
         {
             var options = new FrameFilterOptions
             {
-                DoubleValue = new[] { 1.1 },
-                HasFilterValue = true
+                DoubleValue = new[] { 1.1 }
             };
 
             var tree = MakeRoot(
@@ -293,8 +304,7 @@ namespace Profiler.Tests
         {
             var options = new FrameFilterOptions
             {
-                IntPtrValue = new[] { new IntPtr(1000) },
-                HasFilterValue = true
+                IntPtrValue = new[] { new IntPtr(1000) }
             };
 
             var tree = MakeRoot(
@@ -316,8 +326,7 @@ namespace Profiler.Tests
         {
             var options = new FrameFilterOptions
             {
-                UIntPtrValue = new[] { new UIntPtr(1000) },
-                HasFilterValue = true
+                UIntPtrValue = new[] { new UIntPtr(1000) }
             };
 
             var tree = MakeRoot(
@@ -339,8 +348,7 @@ namespace Profiler.Tests
         {
             var options = new FrameFilterOptions
             {
-                StringValue = new[] {"bbb"},
-                HasFilterValue = true
+                StringValue = new[] {"bbb"}
             };
 
             var tree = MakeRoot(
@@ -362,8 +370,7 @@ namespace Profiler.Tests
         {
             var options = new FrameFilterOptions
             {
-                StringValue = new[] { "bbb" },
-                HasFilterValue = true
+                StringValue = new[] { "bbb" }
             };
 
             var tree = MakeRoot(
@@ -385,8 +392,7 @@ namespace Profiler.Tests
         {
             var options = new FrameFilterOptions
             {
-                StringValue = new[] { "bbb" },
-                HasFilterValue = true
+                StringValue = new[] { "bbb" }
             };
 
             var tree = MakeRoot(
@@ -408,8 +414,7 @@ namespace Profiler.Tests
         {
             var options = new FrameFilterOptions
             {
-                StringValue = new[] { "bbb" },
-                HasFilterValue = true
+                StringValue = new[] { "bbb" }
             };
 
             var tree = MakeRoot(
@@ -439,8 +444,7 @@ namespace Profiler.Tests
         {
             var options = new FrameFilterOptions
             {
-                StringValue = new[] { "bbb" },
-                HasFilterValue = true
+                StringValue = new[] { "bbb" }
             };
 
             var tree = MakeRoot(
@@ -468,8 +472,7 @@ namespace Profiler.Tests
         {
             var options = new FrameFilterOptions
             {
-                StringValue = new[] { "bbb" },
-                HasFilterValue = true
+                StringValue = new[] { "bbb" }
             };
 
             var tree = MakeRoot(
@@ -534,7 +537,7 @@ namespace Profiler.Tests
 
             filter.ProcessFrame(tree);
 
-            var frames = filter.GetSortedMaybeValueFilteredFrames();
+            var frames = filter.GetSortedFilteredFrames();
 
             var methodFrameFormatter = new MethodFrameFormatter(true);
             var methodFrameWriter = new MethodFrameColorWriter(methodFrameFormatter, output)

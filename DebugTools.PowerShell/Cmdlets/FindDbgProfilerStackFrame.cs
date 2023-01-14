@@ -95,8 +95,7 @@ namespace DebugTools.PowerShell.Cmdlets
                 IntPtrValue = IntPtrValue,
                 UIntPtrValue = UIntPtrValue,
                 StringValue = StringValue,
-                TypeName = TypeName,
-                HasFilterValue = ParameterSetName == ParameterSet.Filter
+                TypeName = TypeName
             };
 
             filter = new FrameFilterer(options);

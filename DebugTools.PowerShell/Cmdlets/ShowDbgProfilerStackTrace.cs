@@ -26,9 +26,7 @@ namespace DebugTools.PowerShell.Cmdlets
         public string[] Exclude { get; set; }
 
         [Parameter(Mandatory = false)]
-        public string[] Highlight { get; set; }
-
-
+        public string[] HighlightMethod { get; set; }
 
         [Parameter(Mandatory = false, ParameterSetName = ParameterSet.Filter)]
         public SwitchParameter VoidValue { get; set; }
@@ -98,8 +96,8 @@ namespace DebugTools.PowerShell.Cmdlets
 
         protected override void BeginProcessing()
         {
-            if (Highlight != null)
-                highlightMethodNameWildcards = Highlight.Select(h => new WildcardPattern(h, WildcardOptions.IgnoreCase)).ToArray();
+            if (HighlightMethod != null)
+                highlightMethodNameWildcards = HighlightMethod.Select(h => new WildcardPattern(h, WildcardOptions.IgnoreCase)).ToArray();
 
             if (ParameterSetName == ParameterSet.Filter)
             {
@@ -126,7 +124,6 @@ namespace DebugTools.PowerShell.Cmdlets
                         UIntPtrValue = UIntPtrValue,
                         StringValue = StringValue,
                         TypeName = TypeName,
-                        HasFilterValue = ParameterSetName == ParameterSet.Filter
                     }
                 );
             }
@@ -142,14 +139,19 @@ namespace DebugTools.PowerShell.Cmdlets
 
         protected override void EndProcessing()
         {
-            var outputFrames = filter.GetSortedMaybeValueFilteredFrames();
+            List<IFrame> outputFrames;
+
+            if (filter != null)
+                outputFrames = filter.GetSortedFilteredFrames();
+            else
+                outputFrames = frames;
 
             var methodFrameFormatter = new MethodFrameFormatter(ExcludeNamespace);
             var methodFrameWriter = new MethodFrameColorWriter(methodFrameFormatter, output)
             {
-                HighlightValues = filter.MatchedValues,
+                HighlightValues = filter?.MatchedValues,
                 HighlightMethodNames = highlightMethodNameWildcards,
-                HighlightFrames = filter.HighlightFrames
+                HighlightFrames = filter?.HighlightFrames
             };
 
             var stackWriter = new StackFrameWriter(

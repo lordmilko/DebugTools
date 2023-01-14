@@ -28,6 +28,9 @@ namespace DebugTools.PowerShell.Cmdlets
         public string TargetProcess { get; set; }
 
         [Parameter(Mandatory = false)]
+        public SwitchParameter IgnoreDefaultBlacklist { get; set; }
+
+        [Parameter(Mandatory = false)]
         public string[] ModuleWhitelist { get; set; }
 
         [Parameter(Mandatory = false)]
@@ -62,6 +65,9 @@ namespace DebugTools.PowerShell.Cmdlets
 
             if (DisablePipe)
                 settings.Add(ProfilerSetting.DisablePipe);
+
+            if (IgnoreDefaultBlacklist)
+                settings.Add(ProfilerSetting.IgnoreDefaultBlacklist);
 
             if (ModuleBlacklist != null)
                 settings.Add(ProfilerSetting.ModuleBlacklist(matcher.Execute(ModuleBlacklist)));

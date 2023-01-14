@@ -9,8 +9,13 @@ namespace DebugTools.Profiler
 
         public IntPtrValue(BinaryReader reader)
         {
+            var raw = reader.ReadInt64();
+
+            if (IntPtr.Size == 4)
+                raw &= 0x00000000ffffffff;
+
             //long will be casted to int on x86
-            Value = new IntPtr(reader.ReadInt64());
+            Value = new IntPtr(raw);
         }
 
         public override string ToString()

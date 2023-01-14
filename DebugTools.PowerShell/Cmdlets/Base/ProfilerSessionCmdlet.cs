@@ -25,14 +25,15 @@ namespace DebugTools.PowerShell.Cmdlets
                 {
                     if (ProfilerSessionState.Sessions.Count == 1)
                         Session = ProfilerSessionState.Sessions[0];
+                    else
                     {
                         if (sessions.Length > 0)
                             throw new InvalidOperationException($"Cannot execute cmdlet: no -{nameof(Session)} was specified and more than one {nameof(Session)} belonging to active processes was found in the PowerShell session.");
-                        
-                        if (ProfilerSessionState.Sessions.Count > 0)
-                            throw new InvalidOperationException($"Cannot execute cmdlet: no -{nameof(Session)} was specified, there are no sessions belonging to active processes, and more than one {nameof(Session)} belonging to terminated processes was found in the PowerShell session.");
 
-                        throw new InvalidOperationException($"Cannot execute cmdlet: no -{nameof(Session)} was specified and no global {nameof(Session)} could be found in the PowerShell session.");
+                        if (ProfilerSessionState.Sessions.Count > 0)
+                            Session = ProfilerSessionState.Sessions.Last(); //All of the sessions have ended, so take the last one
+                        else
+                            throw new InvalidOperationException($"Cannot execute cmdlet: no -{nameof(Session)} was specified and no global {nameof(Session)} could be found in the PowerShell session.");
                     }
                     
                 }

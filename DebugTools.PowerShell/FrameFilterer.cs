@@ -87,30 +87,28 @@ namespace DebugTools.PowerShell
 
         #region Update Frames
 
-        public List<IFrame> GetSortedMaybeValueFilteredFrames()
+        public List<IFrame> GetSortedFilteredFrames()
         {
-            if (options.HasFilterValue)
+            var knownOriginalFrames = new Dictionary<IFrame, IFrame>();
+
+            var newRoots = new List<IFrame>();
+
+            var sortedFrames = SortedFrames;
+
+            foreach (var frame in sortedFrames)
             {
-                var knownOriginalFrames = new Dictionary<IFrame, IFrame>();
+                var originalStackTrace = GetOriginalStackTrace(frame);
 
-                var newRoots = new List<IFrame>();
+                var newRoot = GetNewFrames(originalStackTrace, sortedFrames, knownOriginalFrames);
 
-                var sortedFrames = SortedFrames;
-
-                foreach (var frame in sortedFrames)
-                {
-                    var originalStackTrace = GetOriginalStackTrace(frame);
-
-                    var newRoot = GetNewFrames(originalStackTrace, sortedFrames, knownOriginalFrames);
-
-                    if (newRoot != null)
-                        newRoots.Add(newRoot);
-                }
-
-                return newRoots;
+                if (newRoot != null)
+                    newRoots.Add(newRoot);
             }
-            else
-                return SortedFrames;
+
+            if (!options.HasFilterValue)
+                HighlightFrames.Clear();
+
+            return newRoots;
         }
 
         private List<IFrame> GetOriginalStackTrace(IFrame frame)

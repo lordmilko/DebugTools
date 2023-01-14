@@ -17,40 +17,128 @@ namespace DebugTools.PowerShell
 
         #region Primitive
 
-        public bool[] BoolValue { get; set; }
+        private bool[] boolValue;
+        public bool[] BoolValue
+        {
+            get => boolValue;
+            set => boolValue = SetHasValue(value);
+        }
 
-        public char[] CharValue { get; set; }
+        private char[] charValue;
+        public char[] CharValue
+        {
+            get => charValue;
+            set => charValue = SetHasValue(value);
+        }
 
-        public sbyte[] SByteValue { get; set; }
+        private sbyte[] sbyteValue;
+        public sbyte[] SByteValue
+        {
+            get => sbyteValue;
+            set => sbyteValue = SetHasValue(value);
+        }
 
-        public byte[] ByteValue { get; set; }
+        private byte[] byteValue;
+        public byte[] ByteValue
+        {
+            get => byteValue;
+            set => byteValue = SetHasValue(value);
+        }
 
-        public short[] Int16Value { get; set; }
+        private short[] int16Value;
+        public short[] Int16Value
+        {
+            get => int16Value;
+            set => int16Value = SetHasValue(value);
+        }
 
-        public ushort[] UInt16Value { get; set; }
+        private ushort[] uint16Value;
+        public ushort[] UInt16Value
+        {
+            get => uint16Value;
+            set => uint16Value = SetHasValue(value);
+        }
 
-        public int[] Int32Value { get; set; }
+        private int[] int32Value;
+        public int[] Int32Value
+        {
+            get => int32Value;
+            set => int32Value = SetHasValue(value);
+        }
 
-        public uint[] UInt32Value { get; set; }
+        private uint[] uint32Value;
+        public uint[] UInt32Value
+        {
+            get => uint32Value;
+            set => uint32Value = SetHasValue(value);
+        }
 
-        public long[] Int64Value { get; set; }
+        private long[] int64Value;
+        public long[] Int64Value
+        {
+            get => int64Value;
+            set => int64Value = SetHasValue(value);
+        }
 
-        public ulong[] UInt64Value { get; set; }
+        private ulong[] uint64Value;
+        public ulong[] UInt64Value
+        {
+            get => uint64Value;
+            set => uint64Value = SetHasValue(value);
+        }
 
-        public float[] FloatValue { get; set; }
+        private float[] floatValue;
+        public float[] FloatValue
+        {
+            get => floatValue;
+            set => floatValue = SetHasValue(value);
+        }
 
-        public double[] DoubleValue { get; set; }
+        private double[] doubleValue;
+        public double[] DoubleValue
+        {
+            get => doubleValue;
+            set => doubleValue = SetHasValue(value);
+        }
 
-        public IntPtr[] IntPtrValue { get; set; }
+        private IntPtr[] intPtrValue;
+        public IntPtr[] IntPtrValue
+        {
+            get => intPtrValue;
+            set => intPtrValue = SetHasValue(value);
+        }
 
-        public UIntPtr[] UIntPtrValue { get; set; }
+        private UIntPtr[] uintPtrValue;
+        public UIntPtr[] UIntPtrValue
+        {
+            get => uintPtrValue;
+            set => uintPtrValue = SetHasValue(value);
+        }
 
         #endregion
 
-        public string[] StringValue { get; set; }
+        private string[] stringValue;
+        public string[] StringValue
+        {
+            get => stringValue;
+            set => stringValue = SetHasValue(value);
+        }
 
-        public string[] TypeName { get; set; }
+        private string[] typeName;
+        public string[] TypeName
+        {
+            get => typeName;
+            set => typeName = SetHasValue(value);
+        }
 
-        public bool HasFilterValue { get; set; }
+        public bool HasFilterValue { get; private set; }
+
+        private T[] SetHasValue<T>(T[] arr)
+        {
+            if (arr != null && arr.Length > 0)
+                HasFilterValue = true;
+
+            return arr;
+        }
     }
 }
