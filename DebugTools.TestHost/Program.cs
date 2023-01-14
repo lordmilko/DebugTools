@@ -39,6 +39,10 @@ namespace DebugTools.TestHost
                     ProcessExceptionTest(args[1]);
                     break;
 
+                case TestType.Blacklist:
+                    ProcessBlacklistTest(args[1]);
+                    break;
+
                 default:
                     Debug.WriteLine($"Don't know how to run test type '{testType}'");
                     Environment.Exit(1);
@@ -793,6 +797,24 @@ namespace DebugTools.TestHost
 
                 case ExceptionTestType.ThrownInFilterThatUnwindsOneFrameAndNotCaught:
                     instance.ThrownInFilterThatUnwindsOneFrameAndNotCaught();
+                    break;
+
+                default:
+                    Debug.WriteLine($"Don't know how to run profiler test '{test}'");
+                    Environment.Exit(2);
+                    break;
+            }
+        }
+
+        private static void ProcessBlacklistTest(string subType)
+        {
+            var test = (BlacklistTestType)Enum.Parse(typeof(BlacklistTestType), subType);
+
+            Debug.WriteLine($"Running test '{test}'");
+
+            switch (test)
+            {
+                case BlacklistTestType.Simple:
                     break;
 
                 default:

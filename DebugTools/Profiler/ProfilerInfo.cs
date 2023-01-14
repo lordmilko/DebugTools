@@ -59,6 +59,7 @@ namespace DebugTools.Profiler
             };
 
             bool needDebug = false;
+            bool ignoreDefaultBlacklist = false;
 
             if (settings != null)
             {
@@ -85,11 +86,26 @@ namespace DebugTools.Profiler
                             break;
 
                         case ProfilerEnvFlags.TraceValueDepth:
-                            envVariables.Add("DEBUGTOOLS_TRACEVALUEDEPTH", setting.Value);
+                            envVariables.Add("DEBUGTOOLS_TRACEVALUEDEPTH", setting.StringValue);
                             break;
 
                         case ProfilerEnvFlags.TargetProcess:
-                            envVariables.Add("DEBUGTOOLS_TARGET_PROCESS", setting.Value);
+                            envVariables.Add("DEBUGTOOLS_TARGET_PROCESS", setting.StringValue);
+                            break;
+
+                        case ProfilerEnvFlags.ModuleBlacklist:
+                            envVariables.Add("DEBUGTOOLS_MODULEBLACKLIST", setting.StringValue);
+                            break;
+
+                        case ProfilerEnvFlags.ModuleWhitelist:
+                            envVariables.Add("DEBUGTOOLS_MODULEWHITELIST", setting.StringValue);
+                            break;
+
+                        case ProfilerEnvFlags.IgnoreDefaultBlacklist:
+                            ignoreDefaultBlacklist = true;
+                            break;
+
+                        case ProfilerEnvFlags.DisablePipe:
                             break;
 
                         default:
@@ -97,6 +113,9 @@ namespace DebugTools.Profiler
                     }
                 }
             }
+
+            if (ignoreDefaultBlacklist)
+                envVariables.Add("DEBUGTOOLS_IGNORE_DEFAULT_BLACKLIST", "1");
 
             SECURITY_ATTRIBUTES processAttribs = new SECURITY_ATTRIBUTES();
             SECURITY_ATTRIBUTES threadAttribs = new SECURITY_ATTRIBUTES();

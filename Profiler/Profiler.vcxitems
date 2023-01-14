@@ -24,6 +24,7 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)CCorProfilerCallback.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)CExceptionInfo.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)CExceptionManager.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)CMatchItem.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)CModuleInfo.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)CSigField.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)CSigMethod.h" />

@@ -10,6 +10,7 @@
 #include <shared_mutex>
 #include "CUnknownArray.h"
 #include "CExceptionManager.h"
+#include "CMatchItem.h"
 
 #undef GetClassInfo
 
@@ -46,7 +47,15 @@ public:
     //Performs a one time registration function for each unique function that is JITted
     static UINT_PTR __stdcall RecordFunction(FunctionID funcId, void* clientData, BOOL* pbHookFunction);
     static BOOL ShouldHook();
+    static BOOL IsWhitelistedModule(LPWSTR moduleName);
     static void NTAPI ExitProcessCallback(_In_ PVOID   lpParameter, _In_ BOOLEAN TimerOrWaitFired);
+
+    void GetMatchItems(
+        _In_ LPCWSTR envVar,
+        _In_ std::vector<CMatchItem>& items);
+
+    void GetDefaultBlacklistItems(
+        _In_ std::vector<CMatchItem>& items);
 
     HRESULT SetEventMask();
     HRESULT InstallHooks();
@@ -205,6 +214,9 @@ public:
 
     std::unordered_map<ObjectID, BYTE> m_ObjectIdBlacklist;
     std::shared_mutex m_ObjectIdBlacklistMutex;
+
+    std::vector<CMatchItem> m_ModuleBlacklist;
+    std::vector<CMatchItem> m_ModuleWhitelist;
 
 private:
     CCommunication m_Communication;

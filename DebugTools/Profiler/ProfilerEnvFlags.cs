@@ -7,6 +7,9 @@
         TraceStart,
         TraceValueDepth,
         TargetProcess,
+        ModuleBlacklist,
+        ModuleWhitelist,
+        IgnoreDefaultBlacklist,
 
         DisablePipe
     }

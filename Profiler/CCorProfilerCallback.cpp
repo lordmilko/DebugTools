@@ -360,6 +360,11 @@ HRESULT CCorProfilerCallback::Initialize(IUnknown* pICorProfilerInfoUnk)
     m_Detailed = GetBoolEnv("DEBUGTOOLS_DETAILED");
     g_TracingEnabled = GetBoolEnv("DEBUGTOOLS_TRACESTART");
 
+    GetMatchItems(L"DEBUGTOOLS_MODULEBLACKLIST", m_ModuleBlacklist);
+    GetMatchItems(L"DEBUGTOOLS_MODULEWHITELIST", m_ModuleWhitelist);
+
+    GetDefaultBlacklistItems(m_ModuleBlacklist);
+
     HRESULT hr = S_OK;
 
     BindLifetimeToParentProcess();
@@ -501,6 +506,106 @@ CCorProfilerCallback::~CCorProfilerCallback()
 #endif
 }
 
+void CCorProfilerCallback::GetMatchItems(
+    _In_ LPCWSTR envVar,
+    _In_ std::vector<CMatchItem>& items)
+{
+
+#define MATCH_BUFFER_SIZE 4000
+
+#define READBUFFER do { ptr++; \
+    if ((ptr - szBuffer) > length) \
+        return; } while(0)
+
+    WCHAR szBuffer[MATCH_BUFFER_SIZE];
+    int length = GetEnvironmentVariable(envVar, szBuffer, MATCH_BUFFER_SIZE);
+
+    if (length == 0 || length >= MATCH_BUFFER_SIZE)
+        return;
+
+    WCHAR* ptr = szBuffer;
+
+    while (true)
+    {
+        MatchKind matchKind = (MatchKind)*(WCHAR*)ptr;
+
+        READBUFFER;
+
+        WCHAR* strStart = ptr;
+
+        while (*ptr != '\t')
+            READBUFFER;
+
+        *ptr = '\0';
+
+        LPWSTR str = _wcsdup(strStart);
+
+        items.emplace_back(CMatchItem());
+        CMatchItem& item = items[items.size() - 1];
+        item.m_MatchKind = matchKind;
+        item.m_szValue = str;
+
+        READBUFFER;
+
+        //Two \t's in a row. It's the last one!
+        if (*ptr == '\t')
+            break;
+    }
+}
+
+LPCWSTR blacklistModules[] = {
+    //.NET Framework
+    L"mscorlib.dll",
+    L"System.dll",
+    L"System.Core.dll",
+    L"System.Configuration.dll",
+    L"System.Xml.dll",
+    L"Microsoft.VisualStudio.Telemetry.dll",
+    L"Newtonsoft.Json.dll",
+    L"PresentationFramework.dll",
+    L"PresentationCore.dll",
+    L"WindowsBase.dll",
+
+    //.NET Core
+    L"System.Private.CoreLib.dll"
+};
+
+LPCWSTR blacklistPaths[] = {
+    L"dotnet\\shared\\Microsoft.NETCore.App",
+    L"dotnet\\sdk\\",
+
+#ifdef _DEBUG
+    L"coreclr\\windows.x64.Debug"
+#endif
+};
+
+void CCorProfilerCallback::GetDefaultBlacklistItems(
+    _In_ std::vector<CMatchItem>& items)
+{
+    BOOL value = GetBoolEnv("DEBUGTOOLS_IGNORE_DEFAULT_BLACKLIST");
+
+    if (value)
+        return;
+
+    for (LPCWSTR& str : blacklistPaths)
+    {
+        items.emplace_back(CMatchItem());
+
+        CMatchItem& item = items[items.size() - 1];
+        item.m_MatchKind = MatchKind::Contains;
+        item.m_szValue = _wcsdup(str);
+    }
+
+    for (LPCWSTR& str : blacklistModules)
+    {
+        items.emplace_back(CMatchItem());
+
+        CMatchItem& item = items[items.size() - 1];
+        item.m_MatchKind = MatchKind::ModuleName;
+        item.m_szValue = _wcsdup(str);
+    }
+}
+
 /// <summary>
 /// A function that is called exactly once for each function that is JITted. Allows the profiler to report on the function,
 /// and decide whether the function should be hooked or not.
@@ -634,33 +739,8 @@ ErrExit:
     return funcId;
 }
 
-LPCWSTR blacklist[] = {
-    //.NET Framework
-    L"mscorlib.dll",
-    L"System.dll",
-    L"System.Core.dll",
-    L"System.Configuration.dll",
-    L"System.Xml.dll",
-    L"Microsoft.VisualStudio.Telemetry.dll",
-    L"Newtonsoft.Json.dll",
-    L"PresentationFramework.dll",
-    L"PresentationCore.dll",
-    L"WindowsBase.dll",
-
-    //.NET Core
-    L"System.Private.CoreLib.dll"
-};
-
 BOOL CCorProfilerCallback::ShouldHook()
 {
-    if (wcsstr(g_szModuleName, L"dotnet\\shared\\Microsoft.NETCore.App") != NULL 
-     || wcsstr(g_szModuleName, L"dotnet\\sdk\\") != NULL
-#ifdef _DEBUG
-     || wcsstr(g_szModuleName, L"coreclr\\windows.x64.Debug") != NULL
-#endif
-        )
-        return FALSE;
-
     WCHAR* ptr = wcsrchr(g_szModuleName, '\\');
 
     //Path doesn't contain a slash; assume we should hook it
@@ -669,13 +749,33 @@ BOOL CCorProfilerCallback::ShouldHook()
 
     ptr++;
 
-    for (LPCWSTR &item : blacklist)
+    for(size_t i = 0; i < g_pProfiler->m_ModuleBlacklist.size(); i++)
     {
-        if (!lstrcmpiW(item, ptr))
+        CMatchItem& item = g_pProfiler->m_ModuleBlacklist[i];
+
+        if (item.IsMatch(item.m_MatchKind == MatchKind::ModuleName ? ptr : g_szModuleName))
+        {
+            if (IsWhitelistedModule(ptr))
+                return TRUE;
+
             return FALSE;
+        }
     }
 
     return TRUE;
+}
+
+BOOL CCorProfilerCallback::IsWhitelistedModule(LPWSTR moduleName)
+{
+    for (size_t i = 0; i < g_pProfiler->m_ModuleWhitelist.size(); i++)
+    {
+        CMatchItem& item = g_pProfiler->m_ModuleWhitelist[i];
+
+        if (item.IsMatch(item.m_MatchKind == MatchKind::ModuleName ? moduleName : g_szModuleName))
+            return TRUE;
+    }
+
+    return FALSE;
 }
 
 HRESULT CCorProfilerCallback::SetEventMask()

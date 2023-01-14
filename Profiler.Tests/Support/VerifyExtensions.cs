@@ -19,5 +19,10 @@ namespace Profiler.Tests
         {
             return new SigMethodVerifier(method);
         }
+
+        public static BlacklistVerifier Verify(this string[] moduleNames)
+        {
+            return new BlacklistVerifier(moduleNames);
+        }
     }
 }

@@ -28,6 +28,12 @@ namespace DebugTools.PowerShell.Cmdlets
         public string TargetProcess { get; set; }
 
         [Parameter(Mandatory = false)]
+        public string[] ModuleWhitelist { get; set; }
+
+        [Parameter(Mandatory = false)]
+        public string[] ModuleBlacklist { get; set; }
+
+        [Parameter(Mandatory = false)]
         public SwitchParameter DisablePipe { get; set; }
 
         protected override void ProcessRecord()
@@ -36,6 +42,8 @@ namespace DebugTools.PowerShell.Cmdlets
             ProfilerSessionState.Sessions.Add(session);
 
             var settings = new List<ProfilerSetting>();
+
+            var matcher = new ModuleWildcardMatcher();
 
             if (Dbg)
                 settings.Add(ProfilerSetting.WaitForDebugger);
@@ -54,6 +62,12 @@ namespace DebugTools.PowerShell.Cmdlets
 
             if (DisablePipe)
                 settings.Add(ProfilerSetting.DisablePipe);
+
+            if (ModuleBlacklist != null)
+                settings.Add(ProfilerSetting.ModuleBlacklist(matcher.Execute(ModuleBlacklist)));
+
+            if (ModuleWhitelist != null)
+                settings.Add(ProfilerSetting.ModuleWhitelist(matcher.Execute(ModuleWhitelist)));
 
             session.Start(CancellationToken, ProcessName, settings.ToArray());
 

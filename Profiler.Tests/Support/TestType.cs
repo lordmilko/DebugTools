@@ -4,7 +4,8 @@ namespace Profiler.Tests
     {
         Value,
         Profiler,
-        Exception
+        Exception,
+        Blacklist
     }
 
     enum ValueTestType
@@ -182,5 +183,10 @@ namespace Profiler.Tests
         //If the nested exception occurred within a filter, and escapes the filter, the filter will be considered to return "false" and the first pass will continue.
         ThrownInFilterAndNotCaught,
         ThrownInFilterThatUnwindsOneFrameAndNotCaught
+    }
+
+    enum BlacklistTestType
+    {
+        Simple
     }
 }
