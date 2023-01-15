@@ -3,13 +3,14 @@
 #include "CCorProfilerCallback.h"
 #include "DebugToolsProfiler.h"
 #include "CTypeRefResolver.h"
+#include <unordered_set>
 
 #define VALUE_BUFFER_SIZE 62000 //ETW is limited to 64KB
 
 thread_local ULONG g_Sequence = 0;
 thread_local std::stack<FunctionID> g_CallStack;
 
-thread_local std::unordered_map<UINT_PTR, int> g_SeenMap;
+thread_local std::unordered_set<UINT_PTR> g_SeenMap;
 thread_local BYTE g_ValueBuffer[VALUE_BUFFER_SIZE];
 
 //If a value is passed that is longer than VALUE_BUFFER_SIZE, the calculated remaining length will be negative,
@@ -43,12 +44,6 @@ ErrExit:
 
 HRESULT CValueTracer::EnterWithInfo(FunctionIDOrClientID functionId, COR_PRF_ELT_INFO eltInfo)
 {
-#ifdef DEBUG_BLOB
-    g_DebugBlob = FALSE;
-#endif
-
-    ENTER_FUNCTION(functionId);
-
     HRESULT hr = S_OK;
 
     g_SeenMap.clear();
@@ -114,10 +109,6 @@ HRESULT CValueTracer::LeaveWithInfo(FunctionIDOrClientID functionId, COR_PRF_ELT
 {
     HRESULT hr = S_OK;
 
-#ifdef DEBUG_BLOB
-    g_DebugBlob = FALSE;
-#endif
-
     g_SeenMap.clear();
     g_ValueBufferPosition = 0;
 
@@ -134,8 +125,6 @@ HRESULT CValueTracer::LeaveWithInfo(FunctionIDOrClientID functionId, COR_PRF_ELT
     CSigType* pType;
 
     CLock methodLock(&g_pProfiler->m_MethodMutex);
-
-    LEAVE_FUNCTION(functionId);
 
     IfFailRet(GetMethodInfoNoLock(functionId, &pMethod));
 
@@ -188,13 +177,10 @@ HRESULT CValueTracer::TailcallWithInfo(FunctionIDOrClientID functionId, COR_PRF_
 
     CLock methodLock(&g_pProfiler->m_MethodMutex);
 
-    LEAVE_FUNCTION(functionId);
-
     IfFailRet(GetMethodInfoNoLock(functionId, &pMethod));
 
     ValidateETW(EventWriteTailcallDetailedEvent(functionId.functionID, g_Sequence, hr, 0, NULL));
 
-ErrExit:
     return hr;
 }
 
@@ -398,7 +384,9 @@ HRESULT CValueTracer::TraceValue(
     if (startAddress == 0)
         return E_FAIL;
 
-    if (g_SeenMap[startAddress] && (elementType == ELEMENT_TYPE_CLASS || elementType == ELEMENT_TYPE_GENERICINST))
+    BOOL needSeenMap = elementType == ELEMENT_TYPE_CLASS || elementType == ELEMENT_TYPE_GENERICINST || elementType == ELEMENT_TYPE_SZARRAY || elementType == ELEMENT_TYPE_ARRAY;
+
+    if (needSeenMap && g_SeenMap.find(startAddress) != g_SeenMap.end())
     {
         DebugBlob(L"Recursion");
         WriteRecursion(elementType);
@@ -415,7 +403,8 @@ HRESULT CValueTracer::TraceValue(
     needDecrease = TRUE;
     m_TraceDepth++;
 
-    g_SeenMap[startAddress] = 1;
+    if (needSeenMap)
+        g_SeenMap.insert(startAddress);
 
     switch (elementType)
     {
@@ -1567,6 +1556,7 @@ HRESULT CValueTracer::TracePtrType(
     HRESULT hr = S_OK;
     UINT_PTR innerAddress = *(PUINT_PTR)startAddress;
     ULONG innerBytesRead = 0;
+    BOOL revertDepth = FALSE;
 
     CSigType* elm = pContext->Ptr.PtrType->m_pPtrType;
     CorElementType elmType = elm->m_Type;
@@ -1582,7 +1572,7 @@ HRESULT CValueTracer::TracePtrType(
         pContext->Ptr.PtrType
     );
 
-    DebugBlob("Ptr");
+    DebugBlob(L"Ptr");
     WriteType(ELEMENT_TYPE_PTR);
 
     if (IsInvalidObject(innerAddress))
@@ -1602,6 +1592,9 @@ HRESULT CValueTracer::TracePtrType(
         }
         else
         {
+            //If we can't read what this pointer points to, it's a useless value
+            m_TraceDepth--;
+            revertDepth = TRUE;
             IfFailGo(TraceValue(
                 innerAddress,
                 elmType,
@@ -1614,6 +1607,9 @@ HRESULT CValueTracer::TracePtrType(
     bytesRead += sizeof(void*);
 
 ErrExit:
+    if (revertDepth)
+        m_TraceDepth++;
+
     return hr;
 }
 

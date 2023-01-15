@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
 using System.Text;
 using ClrDebug;
 
@@ -18,15 +19,32 @@ namespace DebugTools.Profiler
 
             switch (ElementType)
             {
-                case CorElementType.End:
+                case CorElementType.End: //InvalidObject
                     Invalid = true;
                     ElementType = (CorElementType)reader.ReadByte();
                     Value = serializer.ReadValue();
                     break;
 
                 case CorElementType.Char:
-                    reader.ReadByte(); //ELEMENT_TYPE_CHAR again
-                    Value = new StringValue(reader);
+                    var type = (CorElementType) reader.ReadByte();
+                    switch (type)
+                    {
+                        case CorElementType.Char:
+                            Value = new StringValue(reader);
+                            break;
+
+                        case CorElementType.End: //MaxTraceDepth
+                            type = (CorElementType) reader.ReadByte();
+                            if (type != CorElementType.End)
+                                throw new NotImplementedException($"Don't know what value Ptr -> End -> {type} should be.");
+
+                            Value = MaxTraceDepth.Instance;
+                            break;
+
+                        default:
+                            throw new NotImplementedException($"Don't know what value Ptr -> Char -> {type} should be.");
+                    }
+                    
                     break;
 
                 default:

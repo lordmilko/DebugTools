@@ -13,7 +13,12 @@ void dprintf(LPCWSTR format, ...);
 #ifdef _DEBUG
 
 #ifdef LOG_HRESULT
-#define LogError(EXPR) dprintf(L"Error 0x%X occurred calling %S at %S(%d)\n", hr, #EXPR, __FILE__, __LINE__); if ((hr < 0x80041001 || hr > 0x80042000)) DebugBreakSafe()
+//#define BreakCondition hr == E_FAIL
+#ifndef BreakCondition
+#define BreakCondition (hr < 0x80041001 || hr > 0x80042000)
+#endif
+
+#define LogError(EXPR) dprintf(L"Error 0x%X occurred calling %S at %S(%d)\n", hr, #EXPR, __FILE__, __LINE__); if (BreakCondition) DebugBreakSafe()
 #endif //LOG_HRESULT
 
 #ifdef LOG_EXCEPTION
@@ -34,14 +39,15 @@ void dprintf(LPCWSTR format, ...);
 extern thread_local BOOL g_DebugBlob;
 
 #define DebugBlob(str) if(g_DebugBlob) dprintf(L"%s %d\n", str, g_ValueBufferPosition)
-#define DebugBlobCtx(str, ctx) if(g_DebugBlob) dprintf(L"%s %s %d\n", str, ctx, g_ValueBufferPosition
+#define DebugBlobCtx(str, ctx) if(g_DebugBlob) dprintf(L"%s %s %d\n", str, ctx, g_ValueBufferPosition)
 
 #define DebugBlobHeader(HEADER) \
-    DebugBlob(L"**************************************************************");
-    DebugBlob(HEADER);
+    DebugBlob(L"**************************************************************"); \
+    DebugBlob(HEADER); \
     DebugBlob(L"**************************************************************")
 
 #define BeginDebugBlob(METHOD, TYPE) \
+    g_DebugBlob = FALSE; \
     if (wcscmp(pMethod->m_szName, METHOD) == 0 && wcscmp(((CClassInfo*)pMethodClassInfo)->m_szName, TYPE) == 0) \
     { \
         g_DebugBlob = TRUE; \

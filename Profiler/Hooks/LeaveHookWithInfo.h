@@ -7,12 +7,21 @@
 // ReSharper disable once CppNonInlineFunctionDefinitionInHeaderFile
 extern "C" void STDMETHODCALLTYPE LeaveStubWithInfo(FunctionIDOrClientID functionId, COR_PRF_ELT_INFO eltInfo)
 {
+    HRESULT hr = S_OK;
+
+    LEAVE_FUNCTION(functionId);
+    CExceptionManager::ClearStaleExceptions();
+
     if (!g_TracingEnabled)
         return;
 
-    CValueTracer tracer;
-    tracer.LeaveWithInfo(functionId, eltInfo);
-    CExceptionManager::ClearStaleExceptions();
+    {
+        CValueTracer tracer;
+        tracer.LeaveWithInfo(functionId, eltInfo);
+    }
+
+ErrExit:
+    return;
 }
 
 #ifdef _X86_

@@ -8,6 +8,10 @@ namespace DebugTools.Profiler
 
         public static readonly RecursionValue GenericInstInstance = new RecursionValue(CorElementType.GenericInst);
 
+        public static readonly RecursionValue Array = new RecursionValue(CorElementType.Array);
+
+        public static readonly RecursionValue SZArray = new RecursionValue(CorElementType.SZArray);
+
         public CorElementType Type { get; }
 
         private RecursionValue(CorElementType type)

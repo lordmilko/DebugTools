@@ -7,6 +7,8 @@
 // ReSharper disable once CppNonInlineFunctionDefinitionInHeaderFile
 extern "C" void STDMETHODCALLTYPE EnterStubWithInfo(FunctionIDOrClientID functionId, COR_PRF_ELT_INFO eltInfo)
 {
+    ENTER_FUNCTION(functionId);
+
     if (!g_TracingEnabled)
         return;
 

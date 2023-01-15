@@ -138,6 +138,12 @@ namespace DebugTools.Profiler
                         case CorElementType.GenericInst:
                             return RecursionValue.GenericInstInstance;
 
+                        case CorElementType.Array:
+                            return RecursionValue.Array;
+
+                        case CorElementType.SZArray:
+                            return RecursionValue.SZArray;
+
                         default:
                             throw new NotImplementedException($"Don't know how to handle end reason of type '{reason}'.");
                     }

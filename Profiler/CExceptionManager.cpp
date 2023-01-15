@@ -271,14 +271,43 @@ HRESULT CExceptionManager::CatcherLeave()
     COR_PRF_EX_CLAUSE_INFO clauseInfo;
     IfFailGo(g_pProfiler->m_pInfo->GetNotifiedExceptionClauseInfo(&clauseInfo));
 
-    _ASSERTE(pExceptionInfo->m_ExceptionState == ExceptionState::EnterCatch);
+    /* Ostensibly, any time an exception is thrown, it should hit CatcherEnter before CatcherLeave. However, a case was observed in Visual Studio during startup wherein msenv!VsCoCreateAggregatedManagedObject tries to create a COM object,
+     * Activator.CreateInstance() is called to create it, a FileNotFoundException is thrown, and yet CatcherEnter never occurred. It appears this may have something to do with the fact that the exception is processed on a helper frame, with
+     * UnwindAndContinueRethrowHelperAfterCatch() being called to dispatch the exception. This function is used in the INSTALL_UNWIND_AND_CONTINUE_HANDLER_FOR_HMF macro, which in turn appears to exclusively be used in a variety of HELPER_METHOD_FRAME_BEGIN_* fcall macros.
+     * After unwinding has finished, execution jumps straight to the catch block in a DomainNeutralILStubClass.IL_STUB_COMtoCLR, which calls JIT_EndCatch with no "start catch" event
+     * 
+     * Observe that the address KERNELBASE!RaiseException jumps is to is *22b, which is the same address as the start of the EHHandler Handler (catch) clause. Setting a breakpoint at the start of the try clause (bp 049dc15a) and rewinding, we can see that AppDomain.CreateInstance() was called
+     * for some component of ReSharper.
+     * 
+     *     0:048> r eip
+     *     eip=049dc22b
+     * 
+     *     0:048> !EHInfo 0x49dc22b
+     *     Method Name:  DomainNeutralILStubClass.IL_STUB_COMtoCLR(IntPtr, IntPtr, IntPtr)
+     *
+     *     EHHandler 0: FINALLY 
+     *     Clause:  [049dc15f, 049dc1ed] [17, a5]
+     *     Handler: [049dc1ed, 049dc222] [a5, da]
+     *
+     *     EHHandler 1: TYPED catch(System.Threading.ExecutionContext.Run(System.Threading.ExecutionContext, System.Threading.ContextCallback, System.Object)) 
+     *     Clause:  [049dc15a, 049dc22b] [12, e3]
+     *     Handler: [049dc22b, 049dc23a] [e3, f2]
+     */
+    if (pExceptionInfo->m_ExceptionState == ExceptionState::None)
+    {
+        LogException(L"ExceptionCatcherLeave: CatcherLeave called without previous CatcherEnter. Possible direct JIT_EndCatch in IL_STUB_COMtoCLR\n");
+    }
+    else
+    {
+        _ASSERTE(pExceptionInfo->m_ExceptionState == ExceptionState::EnterCatch);
 
-    LogException(
-        L"ExceptionCatcherLeave: %s EnterCatch -> None (EIP %llX, EBP %llX)\n",
-        pExceptionInfo->m_pClassInfo->m_szName,
-        clauseInfo.programCounter,
-        clauseInfo.framePointer
-    );
+        LogException(
+            L"ExceptionCatcherLeave: %s EnterCatch -> None (EIP %llX, EBP %llX)\n",
+            pExceptionInfo->m_pClassInfo->m_szName,
+            clauseInfo.programCounter,
+            clauseInfo.framePointer
+        );
+    }
 
     pExceptionInfo->m_ExceptionState = ExceptionState::None;
 

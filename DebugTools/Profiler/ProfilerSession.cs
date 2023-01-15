@@ -222,6 +222,7 @@ namespace DebugTools.Profiler
             switch (args.HRESULT)
             {
                 case HRESULT.CORPROF_E_CLASSID_IS_COMPOSITE:
+                case HRESULT.COR_E_TYPELOAD:
                     return;
             }
 
@@ -339,13 +340,15 @@ namespace DebugTools.Profiler
                 };
             }, settings);
 
-            pipe = new NamedPipeClientStream(".", $"DebugToolsProfilerPipe_{Process.Id}", PipeDirection.Out);
-
             //This will wait for the pipe to be created if it doesn't exist yet
             try
             {
                 if (!settings?.Any(s => s == ProfilerSetting.DisablePipe) == true)
+                {
+                    pipe = new NamedPipeClientStream(".", $"DebugToolsProfilerPipe_{Process.Id}", PipeDirection.Out);
+
                     pipe.ConnectAsync(10000, pipeCTS.Token).GetAwaiter().GetResult();
+                }
             }
             catch (OperationCanceledException)
             {
@@ -416,28 +419,33 @@ namespace DebugTools.Profiler
         {
             this.userCTS = userCTS;
 
-            WithTracing(() =>
+            try
             {
-                userCTS.Token.Register(() =>
+                WithTracing(() =>
                 {
-                    stopTime = DateTime.Now;
-                    stopping = true;
-                    Console.WriteLine("Stopping...");
+                    userCTS.Token.Register(() =>
+                    {
+                        stopTime = DateTime.Now;
+                        stopping = true;
+                        Console.WriteLine("Stopping...");
+                    });
+
+                    if (traceCTS.IsCancellationRequested)
+                        userCTS.Cancel();
+
+                    userCTS.Token.WaitHandle.WaitOne();
+
+                    traceCTS.Token.WaitHandle.WaitOne();
                 });
 
-                if (traceCTS.IsCancellationRequested)
-                    userCTS.Cancel();
+                ThrowOnError();
 
-                userCTS.Token.WaitHandle.WaitOne();
-
-                traceCTS.Token.WaitHandle.WaitOne();
-            });
-
-            ThrowOnError();
-
-            LastTrace = ThreadCache.Values.ToArray();
-
-            ThreadCache.Clear();
+                LastTrace = ThreadCache.Values.ToArray();
+            }
+            finally
+            {
+                ThreadCache.Clear();
+            }
 
             return LastTrace;
         }
@@ -455,18 +463,7 @@ namespace DebugTools.Profiler
 
             watchQueue = new BlockingCollection<IFrame>();
 
-            try
-            {
-                return WithTracing(() => WatchInternal(predicate));
-            }
-            catch (OperationCanceledException)
-            {
-                return Enumerable.Empty<IFrame>();
-            }
-            finally
-            {
-                ThreadCache.Clear();
-            }
+            return WithTracing(() => WatchInternal(predicate));
         }
 
         private IEnumerable<IFrame> WatchInternal(Func<IFrame, bool> predicate)
@@ -486,6 +483,11 @@ namespace DebugTools.Profiler
             finally
             {
                 watchQueue = null;
+
+                LastTrace = ThreadCache.Values.ToArray();
+                ThreadCache.Clear();
+
+                ThrowOnError();
             }
         }
 
@@ -541,6 +543,9 @@ namespace DebugTools.Profiler
 
         public void ExecuteCommand(MessageType messageType, object value)
         {
+            if (pipe == null)
+                return;
+
             var buffer = new byte[1004];
 
             var bytes = BitConverter.GetBytes((int) messageType);

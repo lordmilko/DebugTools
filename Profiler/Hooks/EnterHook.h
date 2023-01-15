@@ -7,12 +7,12 @@
 // ReSharper disable once CppNonInlineFunctionDefinitionInHeaderFile
 extern "C" void STDMETHODCALLTYPE EnterStub(FunctionIDOrClientID functionId)
 {
+    ENTER_FUNCTION(functionId);
+
     if (!g_TracingEnabled)
         return;
 
     HRESULT hr = S_OK;
-
-    ENTER_FUNCTION(functionId);
 
 ErrExit:
     ValidateETW(EventWriteCallEnterEvent(functionId.functionID, g_Sequence, hr));

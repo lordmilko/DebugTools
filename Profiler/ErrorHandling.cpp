@@ -2,7 +2,7 @@
 #include "ErrorHandling.h"
 
 #ifdef DEBUG_BLOB
-thread_local BOOL g_DebugBlob;
+thread_local BOOL g_DebugBlob = TRUE;
 #endif
 
 thread_local WCHAR debugBuffer[2000];

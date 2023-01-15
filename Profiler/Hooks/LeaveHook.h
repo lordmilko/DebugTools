@@ -7,15 +7,15 @@
 // ReSharper disable once CppNonInlineFunctionDefinitionInHeaderFile
 extern "C" void STDMETHODCALLTYPE LeaveStub(FunctionIDOrClientID functionId)
 {
-    if (!g_TracingEnabled)
-        return;
-
     HRESULT hr = S_OK;
 
     LEAVE_FUNCTION(functionId);
     CExceptionManager::ClearStaleExceptions();
 
 ErrExit:
+    if (!g_TracingEnabled)
+        return;
+
     ValidateETW(EventWriteCallLeaveEvent(functionId.functionID, g_Sequence, hr));
 }
 
