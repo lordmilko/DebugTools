@@ -33,14 +33,18 @@ extern thread_local std::stack<FunctionID> g_CallStack;
     g_Sequence++; \
     do { \
         LogSequence(L"Sequence is now %d %S(%d) (Leave)\n", g_Sequence, __FILE__, __LINE__); \
-        FunctionID old = g_CallStack.top(); \
-        g_CallStack.pop(); \
-        if (old != functionId.functionID) \
+        /* If we started tracing after process start, we may see a series of leaves for enters that we never recorded */ \
+        if (!g_CallStack.empty()) \
         { \
-            dprintf(L"Stack Error: Expected %llX but got %llX\n", old, functionId.functionID); \
-            DebugBreakSafe(); \
-            hr = PROFILER_E_UNKNOWN_FRAME; \
-            goto ErrExit; \
+            FunctionID old = g_CallStack.top(); \
+            g_CallStack.pop(); \
+            if (old != functionId.functionID) \
+            { \
+                dprintf(L"Stack Error: Expected %llX but got %llX\n", old, functionId.functionID); \
+                DebugBreakSafe(); \
+                hr = PROFILER_E_UNKNOWN_FRAME; \
+                goto ErrExit; \
+            } \
         } \
     } while(0)
 

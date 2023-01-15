@@ -17,7 +17,7 @@ namespace DebugTools.Profiler
 
         #region CallArgs
 
-        public void Enter(CallArgs args, IMethodInfo method)
+        public IFrame Enter(CallArgs args, IMethodInfo method)
         {
             Validate(args);
 
@@ -30,6 +30,7 @@ namespace DebugTools.Profiler
             Current.Children.Add(newFrame);
 
             Current = newFrame;
+            return newFrame;
         }
 
         public void Leave(CallArgs args, IMethodInfo method)
@@ -51,7 +52,7 @@ namespace DebugTools.Profiler
         #endregion
         #region CallArgsDetailed
 
-        public void EnterDetailed(CallDetailedArgs args, IMethodInfo method)
+        public IFrame EnterDetailed(CallDetailedArgs args, IMethodInfo method)
         {
             Validate(args);
 
@@ -64,6 +65,7 @@ namespace DebugTools.Profiler
             Current.Children.Add(newFrame);
 
             Current = newFrame;
+            return newFrame;
         }
 
         public void LeaveDetailed(CallDetailedArgs args, IMethodInfo method)

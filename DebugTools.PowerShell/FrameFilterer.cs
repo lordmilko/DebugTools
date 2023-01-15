@@ -59,30 +59,34 @@ namespace DebugTools.PowerShell
             {
                 DequeueAll(queue).AsParallel().ForAll(item =>
                 {
-                    if (item is IRootFrame r)
-                    {
-                        if (r.ThreadName != null && ShouldInclude(i => i.IsMatch(r.ThreadName)) && !ShouldExclude(r) && !options.HasFilterValue)
-                            includes[item] = 0;
-                    }
-                    else if (item is IMethodFrameDetailed d)
-                    {
-                        if (ShouldInclude(i => i.IsMatch(d.MethodInfo.MethodName) || i.IsMatch(d.MethodInfo.TypeName)) && HasValue(d) && !ShouldExclude(d))
-                        {
-                            includes[item] = 0;
-                        }
-                    }
-                    else if (item is IMethodFrame m)
-                    {
-                        if (ShouldInclude(i => i.IsMatch(m.MethodInfo.MethodName) || i.IsMatch(m.MethodInfo.TypeName)) && !ShouldExclude(m))
-                        {
-                            includes[item] = 0;
-                        }
-                    }
+                    if (CheckFrame(item))
+                        includes[item] = 0;
 
                     foreach (var child in item.Children)
                         queue.Enqueue(child);
                 });
             }
+        }
+
+        private bool CheckFrame(IFrame item)
+        {
+            if (item is IRootFrame r)
+            {
+                if (r.ThreadName != null && ShouldInclude(i => i.IsMatch(r.ThreadName)) && !ShouldExclude(r) && !options.HasFilterValue)
+                    return true;
+            }
+            else if (item is IMethodFrameDetailed d)
+            {
+                if (ShouldInclude(i => i.IsMatch(d.MethodInfo.MethodName) || i.IsMatch(d.MethodInfo.TypeName)) && HasValue(d) && !ShouldExclude(d))
+                    return true;
+            }
+            else if (item is IMethodFrame m)
+            {
+                if (ShouldInclude(i => i.IsMatch(m.MethodInfo.MethodName) || i.IsMatch(m.MethodInfo.TypeName)) && !ShouldExclude(m))
+                    return true;
+            }
+
+            return false;
         }
 
         #region Update Frames
@@ -109,6 +113,21 @@ namespace DebugTools.PowerShell
                 HighlightFrames.Clear();
 
             return newRoots;
+        }
+
+        public bool CheckFrameAndClear(IFrame frame)
+        {
+            if (includes.ContainsKey(frame))
+                return false;
+
+            var result = CheckFrame(frame);
+
+            if (result)
+                includes[frame] = 0;
+
+            MatchedValues?.Clear();
+
+            return result;
         }
 
         private List<IFrame> GetOriginalStackTrace(IFrame frame)

@@ -1,6 +1,4 @@
-﻿using System;
-using System.Management.Automation;
-using System.Threading;
+﻿using System.Management.Automation;
 using DebugTools.Profiler;
 
 namespace DebugTools.PowerShell.Cmdlets
@@ -8,8 +6,6 @@ namespace DebugTools.PowerShell.Cmdlets
     [Cmdlet(VerbsDiagnostic.Trace, "DbgProfilerStack")]
     public class TraceDbgProfilerStack : ProfilerSessionCmdlet
     {
-        private CancellationTokenSource traceCTS = new CancellationTokenSource();
-
         protected override void ProcessRecordEx()
         {
             using (CtrlCHandler())
@@ -32,12 +28,6 @@ namespace DebugTools.PowerShell.Cmdlets
                 foreach (var item in threadStack)
                     WriteObject(item.Root);
             }
-        }
-
-        private void Console_CancelKeyPress(object sender, ConsoleCancelEventArgs e)
-        {
-            e.Cancel = true;
-            traceCTS.Cancel();
         }
     }
 }

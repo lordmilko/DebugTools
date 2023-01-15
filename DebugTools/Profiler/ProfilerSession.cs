@@ -47,6 +47,7 @@ namespace DebugTools.Profiler
         private Thread cancelThread;
 
         private Exception threadProcException;
+        private BlockingCollection<IFrame> watchQueue;
 
         public ThreadStack[] LastTrace { get; private set; }
 
@@ -142,7 +143,7 @@ namespace DebugTools.Profiler
             }
         }
 
-        private void CallEnterCommon<T>(T args, Action<ThreadStack, T, IMethodInfo> addMethod) where T : ICallArgs
+        private void CallEnterCommon<T>(T args, Func<ThreadStack, T, IMethodInfo, IFrame> addMethod) where T : ICallArgs
         {
             ProcessStopping(args.TimeStamp);
 
@@ -161,7 +162,10 @@ namespace DebugTools.Profiler
                 }
 
                 var method = GetMethodSafe(args.FunctionID);
-                addMethod(threadStack, args, method);
+                var frame = addMethod(threadStack, args, method);
+
+                var local = watchQueue;
+                local?.Add(frame);
 
                 if (setName && threadNames.TryGetValue(args.ThreadID, out var name))
                     threadStack.Root.ThreadName = name;
@@ -175,7 +179,7 @@ namespace DebugTools.Profiler
         {
             Validate(v);
 
-            t.EnterDetailed(v, m);
+            return t.EnterDetailed(v, m);
         });
 
         private void Parser_CallLeaveDetailed(CallDetailedArgs args)
@@ -412,27 +416,22 @@ namespace DebugTools.Profiler
         {
             this.userCTS = userCTS;
 
-            if (!Process.HasExited)
-                ExecuteCommand(MessageType.EnableTracing, true);
-
-            collectStackTrace = true;
-
-            userCTS.Token.Register(() =>
+            WithTracing(() =>
             {
-                stopTime = DateTime.Now;
-                stopping = true;
-                Console.WriteLine("Stopping...");
+                userCTS.Token.Register(() =>
+                {
+                    stopTime = DateTime.Now;
+                    stopping = true;
+                    Console.WriteLine("Stopping...");
+                });
+
+                if (traceCTS.IsCancellationRequested)
+                    userCTS.Cancel();
+
+                userCTS.Token.WaitHandle.WaitOne();
+
+                traceCTS.Token.WaitHandle.WaitOne();
             });
-
-            if (traceCTS.IsCancellationRequested)
-                userCTS.Cancel();
-
-            userCTS.Token.WaitHandle.WaitOne();
-
-            traceCTS.Token.WaitHandle.WaitOne();
-
-            if (!Process.HasExited)
-                ExecuteCommand(MessageType.EnableTracing, false);
 
             ThrowOnError();
 
@@ -441,6 +440,97 @@ namespace DebugTools.Profiler
             ThreadCache.Clear();
 
             return LastTrace;
+        }
+
+        public IEnumerable<IFrame> Watch(CancellationTokenSource userCTS, Func<IFrame, bool> predicate)
+        {
+            this.userCTS = userCTS;
+
+            userCTS.Token.Register(() =>
+            {
+                stopTime = DateTime.Now;
+                stopping = true;
+                Console.WriteLine("Stopping...");
+            });
+
+            watchQueue = new BlockingCollection<IFrame>();
+
+            try
+            {
+                return WithTracing(() => WatchInternal(predicate));
+            }
+            catch (OperationCanceledException)
+            {
+                return Enumerable.Empty<IFrame>();
+            }
+            finally
+            {
+                ThreadCache.Clear();
+            }
+        }
+
+        private IEnumerable<IFrame> WatchInternal(Func<IFrame, bool> predicate)
+        {
+            try
+            {
+                while (true)
+                {
+                    userCTS.Token.ThrowIfCancellationRequested();
+
+                    var frame = watchQueue.Take(userCTS.Token);
+
+                    if (predicate(frame))
+                        yield return frame;
+                }
+            }
+            finally
+            {
+                watchQueue = null;
+            }
+        }
+
+        private void WithTracing(Action action)
+        {
+            if (Process.HasExited)
+                return;
+
+            ExecuteCommand(MessageType.EnableTracing, true);
+
+            collectStackTrace = true;
+
+            try
+            {
+                action();
+            }
+            catch (OperationCanceledException)
+            {
+            }
+            finally
+            {
+                if (!Process.HasExited)
+                    ExecuteCommand(MessageType.EnableTracing, false);
+            }
+        }
+
+        private IEnumerable<IFrame> WithTracing(Func<IEnumerable<IFrame>> action)
+        {
+            if (Process.HasExited)
+                yield break;
+
+            ExecuteCommand(MessageType.EnableTracing, true);
+
+            collectStackTrace = true;
+
+            try
+            {
+                foreach (var item in action())
+                    yield return item;
+            }
+            finally
+            {
+                if (!Process.HasExited)
+                    ExecuteCommand(MessageType.EnableTracing, false);
+            }
         }
 
         public void ThrowOnError()
