@@ -41,6 +41,8 @@ namespace DebugTools.TestHost
         {
         }
 
+        #region Primitive
+
         public void BoolArg(bool a)
         {
         }
@@ -97,6 +99,9 @@ namespace DebugTools.TestHost
         {
         }
 
+        #endregion
+        #region Ptr
+
         public unsafe void PtrArg(int* a)
         {
         }
@@ -105,7 +110,7 @@ namespace DebugTools.TestHost
         {
         }
 
-        public unsafe void Value_PtrCharRandomValueArg(char* a)
+        public unsafe void PtrCharRandomValueArg(char* a)
         {
         }
 
@@ -120,6 +125,9 @@ namespace DebugTools.TestHost
         public unsafe void PtrComplexStructArg(ComplexPtrStruct* a)
         {
         }
+
+        #endregion
+        #region PtrPtr
 
         public unsafe void PtrPtrArg(int** a)
         {
@@ -141,6 +149,9 @@ namespace DebugTools.TestHost
         {
         }
 
+        #endregion
+        #region Ptr Array
+
         public unsafe void PtrArrayArg(int*[] a)
         {
         }
@@ -161,12 +172,120 @@ namespace DebugTools.TestHost
         {
         }
 
-        public unsafe void FnPtr(delegate*<void> a)
+        #endregion
+        #region ByRef
+
+        public void ByRef_Ref_BoxedValue(ref object a)
+        {
+        }
+
+        #region Null
+
+        public void ByRef_Ref_InNull_OutNull(ref string a)
+        {
+            a = null;
+        }
+
+        public void ByRef_Ref_InNull_OutValue(ref string a)
+        {
+            a = "value";
+        }
+
+        public void ByRef_Ref_InNonNullValue_OutValue(ref string a)
+        {
+            a = "newValue";
+        }
+
+        public void ByRef_Out_Nullable_WithNull(out string a)
+        {
+            a = null;
+        }
+
+        public void ByRef_Out_Nullable_WithNonNull(out string a)
+        {
+            a = "value";
+        }
+
+        public void ByRef_Out_NonNullNullable_WithNull(out string a)
+        {
+            a = "newValue";
+        }
+
+        #endregion
+        #region Number
+
+        public void ByRef_Ref_InZero_OutZero(ref int a)
+        {
+            a = 0;
+        }
+
+        public void ByRef_Ref_InZero_OutValue(ref int a)
+        {
+            a = 1;
+        }
+
+        public void ByRef_Ref_InNonZero_OutValue(ref int a)
+        {
+            a = 2;
+        }
+
+        public void ByRef_Out_Number_WithZero(out int a)
+        {
+            a = 0;
+        }
+
+        public void ByRef_Out_Number_WithNonZero(out int a)
+        {
+            a = 1;
+        }
+
+        public void ByRef_Out_NonZeroNumber_WithNonZero(out int a)
+        {
+            a = 2;
+        }
+
+        #endregion
+        #region Ptr
+
+        public unsafe void ByRef_Ref_InPtrZero_OutZero(ref int* a)
+        {
+            a = (int*) 0;
+        }
+
+        public unsafe void ByRef_Ref_InPtrZero_OutValue(ref int* a)
+        {
+            a = (int*) 1;
+        }
+
+        public unsafe void ByRef_Ref_InPtrNonZero_OutValue(ref int* a)
+        {
+            a = (int*) 2;
+        }
+
+        public unsafe void ByRef_Out_Ptr_WithZero(out int* a)
+        {
+            a = (int*) 0;
+        }
+
+        public unsafe void ByRef_Out_Ptr_NonWithZero(out int* a)
+        {
+            a = (int*) 1;
+        }
+
+        public unsafe void ByRef_Out_NonZeroPtr_NonWithZero(out int* a)
+        {
+            a = (int*) 2;
+        }
+
+        #endregion
+        #endregion
+
+        public unsafe void FnPtrArg(delegate*<void> a)
         {
             Debug.WriteLine(((IntPtr)a).ToInt64().ToString("X"));
         }
 
-        public unsafe void FnPtrNull(delegate*<void> a)
+        public unsafe void FnPtrNullArg(delegate*<void> a)
         {
             Debug.WriteLine(((IntPtr)a).ToInt64().ToString("X"));
         }

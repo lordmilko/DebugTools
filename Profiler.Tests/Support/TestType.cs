@@ -30,7 +30,7 @@ namespace Profiler.Tests
 
         PtrArg,
         PtrCharArg,
-        Value_PtrCharRandomValueArg,
+        PtrCharRandomValueArg,
         PtrVoidArg,
         PtrStructArg,
         PtrComplexStructArg,
@@ -47,8 +47,31 @@ namespace Profiler.Tests
         PtrStructArrayArg,
         PtrComplexStructArrayArg,
 
-        FnPtr,
-        FnPtrNull,
+        ByRef_Ref_BoxedValue,
+
+        ByRef_Ref_InNull_OutNull,
+        ByRef_Ref_InNull_OutValue,
+        ByRef_Ref_InNonNullValue_OutValue,
+        ByRef_Out_Nullable_WithNull,
+        ByRef_Out_Nullable_WithNonNull,
+        ByRef_Out_NonNullNullable_WithNull,
+
+        ByRef_Ref_InZero_OutZero,
+        ByRef_Ref_InZero_OutValue,
+        ByRef_Ref_InNonZero_OutValue,
+        ByRef_Out_Number_WithZero,
+        ByRef_Out_Number_WithNonZero,
+        ByRef_Out_NonZeroNumber_WithNonZero,
+
+        ByRef_Ref_InPtrZero_OutZero,
+        ByRef_Ref_InPtrZero_OutValue,
+        ByRef_Ref_InPtrNonZero_OutValue,
+        ByRef_Out_Ptr_WithZero,
+        ByRef_Out_Ptr_NonWithZero,
+        ByRef_Out_NonZeroPtr_NonWithZero,
+
+        FnPtrArg,
+        FnPtrNullArg,
 
         DecimalArg,
 

@@ -80,7 +80,7 @@ namespace Profiler.Tests
 
         [TestMethod]
         public void Value_PtrCharRandomValueArg() =>
-            Test(ValueTestType.Value_PtrCharRandomValueArg, v => v.GetParameter().VerifyValue().HasPtrValue(new IntPtr(1)));
+            Test(ValueTestType.PtrCharRandomValueArg, v => v.GetParameter().VerifyValue().HasPtrValue(new IntPtr(1)));
 
         [TestMethod]
         public void Value_PtrVoidArg() =>
@@ -190,11 +190,99 @@ namespace Profiler.Tests
             Test(ValueTestType.PtrComplexStructArrayArg, v => v.HasError());
 
         #endregion
+        #region ByRef
 
         [TestMethod]
-        public void Value_FnPtr()
+        public void Value_ByRef_Ref_BoxedValue() =>
+            Test(ValueTestType.ByRef_Ref_BoxedValue, v => v.HasValue(1));
+
+        #region Null
+
+        [TestMethod]
+        public void Value_ByRef_Ref_InNull_OutNull() =>
+            Test(ValueTestType.ByRef_Ref_InNull_OutNull, v => v.HasValue<string>(null));
+
+        [TestMethod]
+        public void Value_ByRef_Ref_InNull_OutValue() =>
+            Test(ValueTestType.ByRef_Ref_InNull_OutValue, v => v.HasValue<string>(null));
+
+        [TestMethod]
+        public void Value_ByRef_Ref_InNonNullValue_OutValue() =>
+            Test(ValueTestType.ByRef_Ref_InNonNullValue_OutValue, v => v.HasValue("oldValue"));
+
+        [TestMethod]
+        public void Value_ByRef_Out_Nullable_WithNull() =>
+            Test(ValueTestType.ByRef_Out_Nullable_WithNull, v => v.HasValue<string>(null));
+
+        [TestMethod]
+        public void Value_ByRef_Out_Nullable_WithNonNull() =>
+            Test(ValueTestType.ByRef_Out_Nullable_WithNonNull, v => v.HasValue<string>(null));
+
+        [TestMethod]
+        public void Value_ByRef_Out_NonNullNullable_WithNull() =>
+            Test(ValueTestType.ByRef_Out_NonNullNullable_WithNull, v => v.HasValue("value"));
+
+        #endregion
+        #region Number
+
+        [TestMethod]
+        public void Value_ByRef_Ref_InZero_OutZero() =>
+            Test(ValueTestType.ByRef_Ref_InZero_OutZero, v => v.HasValue(0));
+
+        [TestMethod]
+        public void Value_ByRef_Ref_InZero_OutValue() =>
+            Test(ValueTestType.ByRef_Ref_InZero_OutValue, v => v.HasValue(0));
+
+        [TestMethod]
+        public void Value_ByRef_Ref_InNonZero_OutValue() =>
+            Test(ValueTestType.ByRef_Ref_InNonZero_OutValue, v => v.HasValue(1));
+
+        [TestMethod]
+        public void Value_ByRef_Out_Number_WithZero() =>
+            Test(ValueTestType.ByRef_Out_Number_WithZero, v => v.HasValue(0));
+
+        [TestMethod]
+        public void Value_ByRef_Out_Number_WithNonZero() =>
+            Test(ValueTestType.ByRef_Out_Number_WithNonZero, v => v.HasValue(0));
+
+        [TestMethod]
+        public void Value_ByRef_Out_NonZeroNumber_WithNonZero() =>
+            Test(ValueTestType.ByRef_Out_NonZeroNumber_WithNonZero, v => v.HasValue(1));
+
+        #endregion
+        #region Ptr
+
+        [TestMethod]
+        public void Value_ByRef_Ref_InPtrZero_OutZero() =>
+            Test(ValueTestType.ByRef_Ref_InPtrZero_OutZero, v => v.HasPtrValue(new IntPtr(0)));
+
+        [TestMethod]
+        public void Value_ByRef_Ref_InPtrZero_OutValue() =>
+            Test(ValueTestType.ByRef_Ref_InPtrZero_OutZero, v => v.HasPtrValue(new IntPtr(0)));
+
+        [TestMethod]
+        public void Value_ByRef_Ref_InPtrNonZero_OutValue() =>
+            Test(ValueTestType.ByRef_Ref_InPtrNonZero_OutValue, v => v.HasPtrValue(new IntPtr(1)));
+
+        [TestMethod]
+        public void Value_ByRef_Out_Ptr_WithZero() =>
+            Test(ValueTestType.ByRef_Out_Ptr_WithZero, v => v.HasPtrValue(new IntPtr(0)));
+
+        [TestMethod]
+        public void Value_ByRef_Out_Ptr_NonWithZero() =>
+            Test(ValueTestType.ByRef_Out_Ptr_NonWithZero, v => v.HasPtrValue(new IntPtr(0)));
+
+        [TestMethod]
+        public void Value_ByRef_Out_NonZeroPtr_NonWithZero() =>
+            Test(ValueTestType.ByRef_Out_NonZeroPtr_NonWithZero, v => v.HasPtrValue(new IntPtr(1)));
+
+        #endregion
+        #endregion
+
+        [TestMethod]
+        public void Value_FnPtrArg()
         {
-            Test(ValueTestType.FnPtr, v =>
+            Test(ValueTestType.FnPtrArg, v =>
             {
                 var parameter = v.GetParameter();
 
@@ -203,9 +291,9 @@ namespace Profiler.Tests
         }
 
         [TestMethod]
-        public void Value_FnPtrNull()
+        public void Value_FnPtrNullArg()
         {
-            Test(ValueTestType.FnPtrNull, v =>
+            Test(ValueTestType.FnPtrNullArg, v =>
             {
                 var parameter = v.GetParameter();
 

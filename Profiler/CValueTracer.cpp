@@ -107,6 +107,19 @@ ErrExit:
 
 HRESULT CValueTracer::LeaveWithInfo(FunctionIDOrClientID functionId, COR_PRF_ELT_INFO eltInfo)
 {
+    /* As far as the runtime is concerned, there is no difference between ref and out parameters: both of these are represented as being byref parameters
+     * in the method's sigblob. When a parameter is a byref, the parameter's startAddress is not a UINT_PTR, but a UINT_PTR* pointing to a location on the stack
+     * or heap that the value should be read from. Given that the address of a byref parameter is only available on function enter, it would appear that in order
+     * to trace the value written to the parameter inside the function on function leave, you ostensibly would need to record the startAddress during the enter call
+     * so that you may check what value was written (if any) to it during the leave call. For values stored on the stack this seems safe enough; for values on the heap,
+     * it's hard to say. If a GC occurred and the containing object was moved, would the startAddress now point to invalid memory? There don't seem to be any examples of
+     * reading byref parameters on leave anywhere on the internet that I can find. As there's a little bit of complexity here, and this would hurt performance a ittle bit,
+     * we do not currently support reading byref values on leave. Only the value recorded on enter will be logged.
+     *
+     * Note that when it comes to distinguishing ref/out parameters, this can be done by checking whether the parameter metadata contains CorParamAttr.pdOut (which can be done
+     * in C++ using the IsPdOut macro). As mentioned above however, knowing whether a value IsPdOut or not makes no difference to how the value is traced. 
+     */
+
     HRESULT hr = S_OK;
 
     g_SeenMap.clear();
@@ -240,7 +253,7 @@ HRESULT CValueTracer::GetMethodTypeArgsAndContainingClass(
             typeArgs
         ));
 
-        m_GenericTypeArgs = new IClassInfo * [pMethod->m_NumGenericTypeArgNames];
+        m_GenericTypeArgs = new IClassInfo*[pMethod->m_NumGenericTypeArgNames];
 
         for (ULONG i = 0; i < pMethod->m_NumGenericTypeArgNames; i++)
         {

@@ -34,6 +34,8 @@ namespace Profiler.Tests
 
         public void HasValue<T>(T value) => GetParameter().VerifyValue().HasValue(value);
 
+        public void HasPtrValue<T>(T value) => GetParameter().VerifyValue().HasPtrValue(value);
+
         public void HasArrayValues<T>(CorElementType type, params T[] values)
         {
             var parameter = GetParameter();

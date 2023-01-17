@@ -83,7 +83,7 @@ void CAssemblyInfo::RemoveModule(CModuleInfo* pModuleInfo)
         }
         else
         {
-            CModuleInfo** newModules = new CModuleInfo * [m_NumModules - 1];
+            CModuleInfo** newModules = new CModuleInfo*[m_NumModules - 1];
 
             ULONG j = 0;
 

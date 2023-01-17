@@ -69,6 +69,11 @@ namespace DebugTools.TestHost
 
             var instance = new ValueType();
 
+            object objRef;
+            string strRef;
+            int intRef;
+            int* ptrRef;
+
             switch (test)
             {
                 case ValueTestType.NoArgs_ReturnVoid:
@@ -150,8 +155,8 @@ namespace DebugTools.TestHost
                         instance.PtrCharArg(ptr);
                     break;
 
-                case ValueTestType.Value_PtrCharRandomValueArg:
-                    instance.Value_PtrCharRandomValueArg((char*)1);
+                case ValueTestType.PtrCharRandomValueArg:
+                    instance.PtrCharRandomValueArg((char*)1);
                     break;
 
                 case ValueTestType.PtrVoidArg:
@@ -306,15 +311,122 @@ namespace DebugTools.TestHost
                 }
 
                 #endregion
+                #region ByRef
 
-                case ValueTestType.FnPtr:
-                    static void localFn() { }
-
-                    instance.FnPtr(&localFn);
+                case ValueTestType.ByRef_Ref_BoxedValue:
+                    objRef = 1;
+                    instance.ByRef_Ref_BoxedValue(ref objRef);
                     break;
 
-                case ValueTestType.FnPtrNull:
-                    instance.FnPtrNull((delegate*<void>)new IntPtr(0));
+                #region Null
+
+                case ValueTestType.ByRef_Ref_InNull_OutNull:
+                    strRef = null;
+                    instance.ByRef_Ref_InNull_OutNull(ref strRef);
+                    break;
+
+                case ValueTestType.ByRef_Ref_InNull_OutValue:
+                    strRef = null;
+                    instance.ByRef_Ref_InNull_OutValue(ref strRef);
+                    break;
+
+                case ValueTestType.ByRef_Ref_InNonNullValue_OutValue:
+                    strRef = "oldValue";
+                    instance.ByRef_Ref_InNonNullValue_OutValue(ref strRef);
+                    break;
+
+                case ValueTestType.ByRef_Out_Nullable_WithNull:
+                    strRef = null;
+                    instance.ByRef_Out_Nullable_WithNull(out strRef);
+                    break;
+
+                case ValueTestType.ByRef_Out_Nullable_WithNonNull:
+                    strRef = null;
+                    instance.ByRef_Out_Nullable_WithNonNull(out strRef);
+                    break;
+
+                case ValueTestType.ByRef_Out_NonNullNullable_WithNull:
+                    strRef = "value";
+                    instance.ByRef_Out_NonNullNullable_WithNull(out strRef);
+                    break;
+
+                #endregion
+                #region Zero
+
+                case ValueTestType.ByRef_Ref_InZero_OutZero:
+                    intRef = 0;
+                    instance.ByRef_Ref_InZero_OutZero(ref intRef);
+                    break;
+
+                case ValueTestType.ByRef_Ref_InZero_OutValue:
+                    intRef = 0;
+                    instance.ByRef_Ref_InZero_OutValue(ref intRef);
+                    break;
+
+                case ValueTestType.ByRef_Ref_InNonZero_OutValue:
+                    intRef = 1;
+                    instance.ByRef_Ref_InNonZero_OutValue(ref intRef);
+                    break;
+
+                case ValueTestType.ByRef_Out_Number_WithZero:
+                    intRef = 0;
+                    instance.ByRef_Out_Number_WithZero(out intRef);
+                    break;
+
+                case ValueTestType.ByRef_Out_Number_WithNonZero:
+                    intRef = 0;
+                    instance.ByRef_Out_Number_WithNonZero(out intRef);
+                    break;
+
+                case ValueTestType.ByRef_Out_NonZeroNumber_WithNonZero:
+                    intRef = 1;
+                    instance.ByRef_Out_NonZeroNumber_WithNonZero(out intRef);
+                    break;
+
+                #endregion
+                #region Ptr
+
+                case ValueTestType.ByRef_Ref_InPtrZero_OutZero:
+                    ptrRef = (int*) 0;
+                    instance.ByRef_Ref_InPtrZero_OutZero(ref ptrRef);
+                    break;
+
+                case ValueTestType.ByRef_Ref_InPtrZero_OutValue:
+                    ptrRef = (int*) 0;
+                    instance.ByRef_Ref_InPtrZero_OutValue(ref ptrRef);
+                    break;
+
+                case ValueTestType.ByRef_Ref_InPtrNonZero_OutValue:
+                    ptrRef = (int*) 1;
+                    instance.ByRef_Ref_InPtrNonZero_OutValue(ref ptrRef);
+                    break;
+
+                case ValueTestType.ByRef_Out_Ptr_WithZero:
+                    ptrRef = (int*) 0;
+                    instance.ByRef_Out_Ptr_WithZero(out ptrRef);
+                    break;
+
+                case ValueTestType.ByRef_Out_Ptr_NonWithZero:
+                    ptrRef = (int*) 0;
+                    instance.ByRef_Out_Ptr_NonWithZero(out ptrRef);
+                    break;
+
+                case ValueTestType.ByRef_Out_NonZeroPtr_NonWithZero:
+                    ptrRef = (int*) 1;
+                    instance.ByRef_Out_NonZeroPtr_NonWithZero(out ptrRef);
+                    break;
+
+                #endregion
+                #endregion
+
+                case ValueTestType.FnPtrArg:
+                    static void localFn() { }
+
+                    instance.FnPtrArg(&localFn);
+                    break;
+
+                case ValueTestType.FnPtrNullArg:
+                    instance.FnPtrNullArg((delegate*<void>)new IntPtr(0));
                     break;
 
                 case ValueTestType.DecimalArg:

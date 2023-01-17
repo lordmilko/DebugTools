@@ -162,7 +162,7 @@ HRESULT CSigReader::ParseSigMethodParams(
             delete ppParameters;
             ppParameters = newParameters;
 
-            ppVarArgParameters = new ISigParameter * [sigParamCount - i];
+            ppVarArgParameters = new ISigParameter*[sigParamCount - i];
             haveSentinel = TRUE;
         }
 
@@ -205,7 +205,7 @@ ErrExit:
         }
     }
 
-    return S_OK;
+    return hr;
 }
 
 HRESULT CSigReader::GetMethodGenericArgNames(ULONG genericArgsLength, LPWSTR** szNames)
