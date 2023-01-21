@@ -3,6 +3,7 @@
     static class ParameterSet
     {
         public const string Default = "DefaultSet";
+        public const string Manual = "ManualSet";
 
         public const string Filter = "FilterSet";
 

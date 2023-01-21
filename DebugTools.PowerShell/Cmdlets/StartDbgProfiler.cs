@@ -42,7 +42,7 @@ namespace DebugTools.PowerShell.Cmdlets
         protected override void ProcessRecord()
         {
             var session = new ProfilerSession();
-            ProfilerSessionState.Sessions.Add(session);
+            DebugToolsSessionState.ProfilerSessions.Add(session);
 
             var settings = new List<ProfilerSetting>();
 

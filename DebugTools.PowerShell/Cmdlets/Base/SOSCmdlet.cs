@@ -1,37 +1,29 @@
-﻿using ClrDebug;
+﻿using System.Management.Automation;
+using ClrDebug;
 using DebugTools.SOS;
-using static ClrDebug.Extensions;
 
 namespace DebugTools.PowerShell.Cmdlets
 {
-    public abstract class SOSCmdlet : ProfilerSessionCmdlet
+    public abstract class SOSCmdlet : PSCmdlet
     {
-        protected SOSDacInterface SOS
+        [Parameter(Mandatory = false, ValueFromPipeline = true)]
+        public SOSProcess Process { get; set; }
+
+        public SOSDacInterface SOS => Process.SOS;
+
+        protected sealed override void ProcessRecord()
         {
-            get
+            if (Process == null)
             {
-                if (Session.SOS == null)
-                {
-                    try
-                    {
-                        Session.DataTarget = new DataTarget(Session.Process);
-                        Session.SOS = CLRDataCreateInstance(Session.DataTarget).SOSDacInterface;
-
-                        var xclrProcess = new XCLRDataProcess((IXCLRDataProcess) Session.SOS.Raw);
-
-                        Session.DataTarget.SetFlushCallback(() => xclrProcess.Flush());
-                    }
-                    catch
-                    {
-                        Session.DataTarget = null;
-                        Session.SOS = null;
-
-                        throw;
-                    }
-                }
-
-                return Session.SOS;
+                if (DebugToolsSessionState.SOSProcesses.Count == 0 && DebugToolsSessionState.ProfilerSessions.Count > 0)
+                    Process = new SOSProcess(DebugToolsSessionState.GetImplicitProfilerSession().Process);
+                else
+                    Process = DebugToolsSessionState.GetImplicitSOSProcess();
             }
+
+            ProcessRecordEx();
         }
+
+        protected abstract void ProcessRecordEx();
     }
 }

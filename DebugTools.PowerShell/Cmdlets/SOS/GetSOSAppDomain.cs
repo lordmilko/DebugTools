@@ -6,7 +6,7 @@ using DebugTools.SOS;
 
 namespace DebugTools.PowerShell.Cmdlets
 {
-    [Cmdlet(VerbsCommon.Get, "SOSAppDomain", DefaultParameterSetName = ParameterSet.Address)]
+    [Cmdlet(VerbsCommon.Get, "SOSAppDomain", DefaultParameterSetName = ParameterSet.Default)]
     public class GetSOSAppDomain : SOSCmdlet
     {
         [Parameter(Mandatory = false, ParameterSetName = ParameterSet.Default)]

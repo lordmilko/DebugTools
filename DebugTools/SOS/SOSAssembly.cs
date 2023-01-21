@@ -44,10 +44,10 @@ namespace DebugTools.SOS
         public CLRDATA_ADDRESS ParentDomain => data.ParentDomain;
         public CLRDATA_ADDRESS BaseDomainPtr => data.BaseDomainPtr;
         public CLRDATA_ADDRESS AssemblySecDesc => data.AssemblySecDesc;
-        public int isDynamic => data.isDynamic;
+        public bool isDynamic => data.isDynamic;
         public int ModuleCount => data.ModuleCount;
         public int LoadContext => data.LoadContext;
-        public int isDomainNeutral => data.isDomainNeutral;
+        public bool isDomainNeutral => data.isDomainNeutral;
         public int dwLocationFlags => data.dwLocationFlags;
 
         private readonly DacpAssemblyData data;
@@ -57,7 +57,7 @@ namespace DebugTools.SOS
             AppDomain = appDomain;
             this.data = data;
 
-            if (data.isDynamic == 1)
+            if (data.isDynamic)
                 Name = "Dynamic";
             else
                 Name = sos.GetAssemblyName(data.AssemblyPtr);

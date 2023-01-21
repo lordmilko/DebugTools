@@ -14,30 +14,7 @@ namespace DebugTools.PowerShell.Cmdlets
         protected sealed override void ProcessRecord()
         {
             if (Session == null)
-            {
-                var sessions = ProfilerSessionState.Sessions.Where(i => !i.Process.HasExited).ToArray();
-
-                if (sessions.Length == 1)
-                    Session = sessions[0];
-                else if (sessions.Length > 1)
-                    throw new InvalidOperationException($"Cannot execute cmdlet: more than one running global {nameof(ProfilerSession)} was found. Please specify a session explicitly to the -{nameof(Session)} parameter.");
-                else
-                {
-                    if (ProfilerSessionState.Sessions.Count == 1)
-                        Session = ProfilerSessionState.Sessions[0];
-                    else
-                    {
-                        if (sessions.Length > 0)
-                            throw new InvalidOperationException($"Cannot execute cmdlet: no -{nameof(Session)} was specified and more than one {nameof(Session)} belonging to active processes was found in the PowerShell session.");
-
-                        if (ProfilerSessionState.Sessions.Count > 0)
-                            Session = ProfilerSessionState.Sessions.Last(); //All of the sessions have ended, so take the last one
-                        else
-                            throw new InvalidOperationException($"Cannot execute cmdlet: no -{nameof(Session)} was specified and no global {nameof(Session)} could be found in the PowerShell session.");
-                    }
-                    
-                }
-            }
+                Session = DebugToolsSessionState.GetImplicitProfilerSession();
 
             ProcessRecordEx();
         }

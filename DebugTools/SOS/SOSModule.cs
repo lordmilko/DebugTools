@@ -42,7 +42,7 @@ namespace DebugTools.SOS
         public bool bIsPEFile => data.bIsPEFile;
         public long dwBaseClassIndex => data.dwBaseClassIndex;
         public long dwModuleID => data.dwModuleID;
-        public int dwTransientFlags => data.dwTransientFlags;
+        public DacpModuleDataTransientFlags dwTransientFlags => data.dwTransientFlags;
         public CLRDATA_ADDRESS TypeDefToMethodTableMap => data.TypeDefToMethodTableMap;
         public CLRDATA_ADDRESS TypeRefToMethodTableMap => data.TypeRefToMethodTableMap;
         public CLRDATA_ADDRESS MethodDefToDescMap => data.MethodDefToDescMap;
@@ -76,7 +76,7 @@ namespace DebugTools.SOS
 
             var module = sos.GetModule(address);
 
-            if (assembly.isDynamic == 1)
+            if (assembly.isDynamic)
                 FileName = assembly.Name;
             else
                 FileName = module.FileName;

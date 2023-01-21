@@ -177,9 +177,24 @@ namespace DebugTools.SOS
             throw new NotImplementedException();
         }
 
-        public HRESULT GetThreadContext(int threadID, ContextFlags contextFlags, int contextSize, IntPtr context)
+        public unsafe HRESULT GetThreadContext(int threadID, ContextFlags contextFlags, int contextSize, IntPtr context)
         {
-            throw new NotImplementedException();
+            NativeMethods.ZeroMemory(context, contextSize);
+
+            if (IntPtr.Size == 4)
+                ((X86_CONTEXT*) context)->ContextFlags = contextFlags;
+            else
+                ((AMD64_CONTEXT*) context)->ContextFlags = contextFlags;
+
+            var hThread = NativeMethods.OpenThread(ThreadAccess.GET_CONTEXT, false, threadID);
+
+            if (hThread == IntPtr.Zero)
+                return (HRESULT) Marshal.GetHRForLastWin32Error();
+
+            if (!NativeMethods.GetThreadContext(hThread, context))
+                return (HRESULT)Marshal.GetHRForLastWin32Error();
+
+            return HRESULT.S_OK;
         }
 
         public HRESULT SetThreadContext(int threadID, int contextSize, IntPtr context)

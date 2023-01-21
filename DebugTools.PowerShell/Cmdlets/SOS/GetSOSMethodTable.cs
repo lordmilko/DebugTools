@@ -53,7 +53,7 @@ namespace DebugTools.PowerShell.Cmdlets
                     return SOSModule.GetModules(Assembly, SOS);
 
                 default:
-                    throw new NotImplementedException($"Don't know how to parameter set '{ParameterSetName}'.");
+                    throw new NotImplementedException($"Don't know how to handle parameter set '{ParameterSetName}'.");
             }
         }
     }

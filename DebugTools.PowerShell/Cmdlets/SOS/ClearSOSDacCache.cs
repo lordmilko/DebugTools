@@ -7,7 +7,7 @@ namespace DebugTools.PowerShell.Cmdlets
     {
         protected override void ProcessRecordEx()
         {
-            Session.DataTarget.Flush(SOS);
+            Process.DataTarget.Flush(SOS);
         }
     }
 }

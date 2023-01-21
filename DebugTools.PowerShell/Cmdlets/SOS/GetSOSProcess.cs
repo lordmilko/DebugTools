@@ -2,12 +2,12 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Management.Automation;
-using DebugTools.Profiler;
+using DebugTools.SOS;
 
 namespace DebugTools.PowerShell.Cmdlets
 {
-    [Cmdlet(VerbsCommon.Get, "DbgProfiler")]
-    public class GetDbgProfiler : PSCmdlet
+    [Cmdlet(VerbsCommon.Get, "SOSProcess")]
+    public class GetSOSProcess : PSCmdlet
     {
         [Parameter(Mandatory = false, Position = 0)]
         public string[] Name { get; set; }
@@ -21,18 +21,18 @@ namespace DebugTools.PowerShell.Cmdlets
 
         protected override void ProcessRecord()
         {
-            IEnumerable<ProfilerSession> sessions = DebugToolsSessionState.ProfilerSessions;
+            IEnumerable<SOSProcess> processes = DebugToolsSessionState.SOSProcesses;
 
             if (!Force)
-                sessions = sessions.Where(i => !i.Process.HasExited);
+                processes = processes.Where(i => !i.Process.HasExited);
 
             if (Id != null && Id.Length > 0)
-                sessions = sessions.Where(i => Id.Any(id => id == i.Process.Id));
+                processes = processes.Where(i => Id.Any(id => id == i.Process.Id));
 
             if (Name != null && Name.Length > 0)
-                sessions = FilterByWildcardArray(Name, sessions, v => v.Process.ProcessName);
+                processes = FilterByWildcardArray(Name, processes, v => v.Process.ProcessName);
 
-            foreach (var instance in sessions)
+            foreach (var instance in processes)
                 WriteObject(instance);
         }
 

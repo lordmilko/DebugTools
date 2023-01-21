@@ -18,7 +18,7 @@ namespace DebugTools.Profiler
         private static int maxId;
         private const string SessionPrefix = "DebugTools_Profiler_";
 
-        public Process Process { get; private set; }
+        public Process Process { get; set; }
 
         public TraceEventSession TraceEventSession { get; }
 
@@ -27,9 +27,6 @@ namespace DebugTools.Profiler
         public ConcurrentDictionary<long, IMethodInfo> Methods { get; } = new ConcurrentDictionary<long, IMethodInfo>();
 
         public bool HasExited => Process?.HasExited ?? true;
-
-        public DataTarget DataTarget { get; set; }
-        public SOSDacInterface SOS { get; set; }
 
         private NamedPipeClientStream pipe;
 

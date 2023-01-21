@@ -30,9 +30,15 @@ namespace DebugTools
             out PROCESS_INFORMATION lpProcessInformation);
 
         [DllImport(kernel32, SetLastError = true)]
+        internal static extern bool GetThreadContext(IntPtr hThread, IntPtr lpContext);
+
+        [DllImport(kernel32, SetLastError = true)]
         public static extern bool IsWow64Process(
             [In] IntPtr hProcess,
             [Out, MarshalAs(UnmanagedType.Bool)] out bool Wow64Process);
+
+        [DllImport(kernel32, SetLastError = true)]
+        public static extern IntPtr OpenThread(ThreadAccess dwDesiredAccess, bool bInheritHandle, int dwThreadId);
 
         [DllImport(kernel32, SetLastError = true)]
         public static extern bool ReadProcessMemory(
@@ -47,6 +53,12 @@ namespace DebugTools
 
         [DllImport(kernel32, SetLastError = true)]
         public static extern bool SetConsoleCtrlHandler(ConsoleCtrlHandlerRoutine HandlerRoutine, bool Add);
+
+        [DllImport(kernel32, SetLastError = true)]
+        internal static extern int SuspendThread(IntPtr hThread);
+
+        [DllImport(kernel32, EntryPoint = "RtlZeroMemory", SetLastError = false)]
+        internal static extern void ZeroMemory(IntPtr dest, int size);
 
         #region ole32.dll
 
