@@ -243,6 +243,13 @@ private:
         _In_ ULONG curGenericArg,
         _Out_ ClassID* classId);
 
+    BOOL GetCachedGenericType(
+        _In_ ModuleID moduleId,
+        _In_ mdTypeDef typeDef,
+        _In_ ULONG numGenericArgs,
+        _In_ ClassID* typeArgs,
+        _Out_ ClassID* pClassId);
+
     BOOL IsArrayMatch(ISigArrayType* arr, CArrayInfo* info);
 
     HRESULT TraceTypeGenericType(_In_ UINT_PTR startAddress, _In_ TraceValueContext* pContext, _Out_opt_ ULONG& bytesRead);

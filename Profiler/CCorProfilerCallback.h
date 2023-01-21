@@ -12,6 +12,7 @@
 #include "CUnknownArray.h"
 #include "CExceptionManager.h"
 #include "CMatchItem.h"
+#include "CTypeIdentifier.h"
 
 #undef GetClassInfo
 
@@ -219,6 +220,9 @@ public:
 
     std::unordered_map<ObjectID, BYTE> m_ObjectIdBlacklist;
     std::shared_mutex m_ObjectIdBlacklistMutex;
+
+    std::shared_mutex m_TypeIdMutex;
+    std::unordered_map<CTypeIdentifier, ClassID> m_TypeIdMap;
 
     std::vector<CMatchItem> m_ModuleBlacklist;
     std::vector<CMatchItem> m_ModuleWhitelist;

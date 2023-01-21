@@ -31,6 +31,7 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)CSigMethod.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)CSigReader.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)CSigType.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)CTypeIdentifier.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)CTypeRefResolver.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)CUnknown.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)CUnknownArray.h" />
