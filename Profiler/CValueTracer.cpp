@@ -335,6 +335,29 @@ HRESULT CValueTracer::TraceValue(
         return hr;
     }
 
+    if (startAddress == 0)
+    {
+        /* There are some scenarios where the location of a ByRef value is null.For example, Unsafe.IsNullRef(), as well as some COM interfaces called by Visual Studio.
+         * A ByRef parameter should always point to a valid stack or heap location, so it seems impossible that an address of 0 would be returned. There isn't any error occurring
+         * while retrieving the args for the profiler - the address really is 0.
+         * Per https://github.com/dotnet/runtime/issues/31170, in IL it is perfectly valid for a "ref" to point to null. That is, the "ref" itself is null,
+         * not the value pointed to by the ref. As such, in the following code
+         *
+         *    object val = null;
+         *    Unsafe.IsNullRef(ref val)
+         *
+         * IsNullRef would return FALSE: the ref points to the stack variable "val", which contains null. A null ref can be created in C# as follows
+         *
+         *    ref int nullRef = ref Unsafe.NullRef<int>();
+         */
+        WriteType(ELEMENT_TYPE_PTR);
+        WriteType(ELEMENT_TYPE_END);
+        WriteType(elementType);
+        IfFailGo(TraceIntPtr((UINT_PTR)&startAddress, bytesRead));
+
+        return S_OK;
+    }
+
     needDecrease = TRUE;
     m_TraceDepth++;
 
