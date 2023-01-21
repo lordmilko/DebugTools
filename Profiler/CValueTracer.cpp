@@ -87,11 +87,11 @@ HRESULT CValueTracer::EnterWithInfo(FunctionIDOrClientID functionId, COR_PRF_ELT
             argumentInfo
         ));
 
-        IfFailGo(GetMethodTypeArgsAndContainingClass(functionId, pMethod, frameInfo, &pMethodClassInfo));
+        CClassInfoResolver resolver(functionId, pMethod, frameInfo, this);
 
         DebugBlobHeader(L"Enter Start");
 
-        IfFailGo(TraceParameters(argumentInfo, pMethod, pMethodClassInfo));
+        IfFailGo(TraceParameters(argumentInfo, pMethod, &resolver));
     }
 
 ErrExit:
@@ -163,16 +163,19 @@ HRESULT CValueTracer::LeaveWithInfo(FunctionIDOrClientID functionId, COR_PRF_ELT
         &retvalRange
     ));
 
-    IfFailGo(GetMethodTypeArgsAndContainingClass(functionId, pMethod, frameInfo, &pMethodClassInfo));
+    {
+        //Don't resolve the method's CClassInfo unless we actually need it (because we're tracing an ELEMENT_TYPE_VAR)
+        CClassInfoResolver resolver(functionId, pMethod, frameInfo, this);
 
-    ctx = MakeTraceValueContext(typeToken, pMethod->m_ModuleID, genericIndex, pMethodClassInfo, pType, nullptr);
+        ctx = MakeTraceValueContext(typeToken, pMethod->m_ModuleID, genericIndex, &resolver, pType, nullptr);
 
-    IfFailGo(TraceValue(
-        retvalRange.startAddress,
-        pMethod->m_pRetType->m_Type,
-        &ctx,
-        bytesRead
-    ));
+        IfFailGo(TraceValue(
+            retvalRange.startAddress,
+            pMethod->m_pRetType->m_Type,
+            &ctx,
+            bytesRead
+        ));
+    }
 
 ErrExit:
     DebugBlobHeader(L"Return End");
@@ -223,91 +226,10 @@ HRESULT CValueTracer::GetMethodInfoNoLock(FunctionIDOrClientID functionId, _Out_
     return S_OK;
 }
 
-HRESULT CValueTracer::GetMethodTypeArgsAndContainingClass(
-    _In_ FunctionIDOrClientID functionId,
-    _In_ CSigMethodDef* pMethod,
-    _In_ COR_PRF_FRAME_INFO frameInfo,
-    _Out_ IClassInfo** ppMethodClassInfo)
-{
-    HRESULT hr = S_OK;
-
-    ClassID classId;
-    ClassID* typeArgs = nullptr;
-    IClassInfo* pMethodClassInfo = nullptr;
-    ModuleID moduleId = 0;
-    mdToken funcToken = 0;
-
-    if (pMethod->m_NumGenericTypeArgNames)
-    {
-        typeArgs = new ClassID[pMethod->m_NumGenericTypeArgNames];
-        ULONG32 cTypeArgs;
-
-        IfFailGo(g_pProfiler->m_pInfo->GetFunctionInfo2(
-            functionId.functionID,
-            frameInfo,
-            &classId,
-            &moduleId,
-            &funcToken,
-            pMethod->m_NumGenericTypeArgNames,
-            &cTypeArgs,
-            typeArgs
-        ));
-
-        m_GenericTypeArgs = new IClassInfo*[pMethod->m_NumGenericTypeArgNames];
-
-        for (ULONG i = 0; i < pMethod->m_NumGenericTypeArgNames; i++)
-        {
-            IClassInfo* info;
-            IfFailGo(GetClassInfoFromClassId(typeArgs[i], &info));
-
-            m_GenericTypeArgs[i] = info;
-        }
-    }
-    else
-    {
-        IfFailGo(g_pProfiler->m_pInfo->GetFunctionInfo2(
-            functionId.functionID,
-            frameInfo,
-            &classId,
-            &moduleId,
-            &funcToken,
-            0,
-            NULL,
-            NULL
-        ));
-    }
-
-    if (classId == 0)
-    {
-        //GetFunctionInfo2() can set the classId to 0 if no class information is available. In this case, lets get the function's mdTypeDef
-        //and resolve the classId using a ModuleID + mdTypeDef. Ostensibly we could give it a go trying to load the class
-        //using the ModuleID + mdTypeDef via GetClassFromToken, however this scenario has been seen to occur with generic types,
-        //meaning we need to call GetClassFromTokenAndTypeArgs, but we don't have a way to get the typearg class IDs. We could
-        //simply forgo getting an IClassInfo at all (it only affects ELEMENT_TYPE_VAR) however this has been seen to affect
-        //a GenericInst with typeargs including ELEMENT_TYPE_VAR
-
-        hr = PROFILER_E_NO_CLASSID;
-        goto ErrExit;
-    }
-    else
-    {
-        //Get the class info of the class the method being invoked is defined in
-        IfFailGo(GetClassInfoFromClassId(classId, &pMethodClassInfo));
-    }
-
-    *ppMethodClassInfo = pMethodClassInfo;
-
-ErrExit:
-    if (typeArgs)
-        delete typeArgs;
-
-    return hr;
-}
-
 HRESULT CValueTracer::TraceParameters(
     _In_ COR_PRF_FUNCTION_ARGUMENT_INFO* argumentInfo,
     _In_ CSigMethodDef* pMethod,
-    _In_ IClassInfo* pMethodClassInfo)
+    _In_ CClassInfoResolver* resolver)
 {
     HRESULT hr = S_OK;
 
@@ -336,7 +258,7 @@ HRESULT CValueTracer::TraceParameters(
 
         DebugBlob(L"\n*** TRACE PARAMETER ***");
 
-        IfFailGo(TraceParameter(&range, pParameter, pMethodClassInfo, pMethod->m_ModuleID));
+        IfFailGo(TraceParameter(&range, pParameter, resolver, pMethod->m_ModuleID));
     }
 
 ErrExit:
@@ -346,7 +268,7 @@ ErrExit:
 HRESULT CValueTracer::TraceParameter(
     _In_ COR_PRF_FUNCTION_ARGUMENT_RANGE* range,
     _In_ ISigParameter* pParameter,
-    _In_ IClassInfo* pClassInfo,
+    _In_ CClassInfoResolver* resolver,
     _In_ ModuleID typeTokenModule)
 {
     HRESULT hr = S_OK;
@@ -362,7 +284,7 @@ HRESULT CValueTracer::TraceParameter(
     long genericIndex = -1;
     GetGenericInfo(pType, &genericIndex);
 
-    TraceValueContext ctx = MakeTraceValueContext(typeToken, typeTokenModule, genericIndex, pClassInfo, pType, nullptr);
+    TraceValueContext ctx = MakeTraceValueContext(typeToken, typeTokenModule, genericIndex, resolver, pType, nullptr);
 
     IfFailGo(TraceValue(
         pAddress,
@@ -897,9 +819,12 @@ HRESULT CValueTracer::TraceGenericType(_In_ UINT_PTR startAddress, _In_ TraceVal
         ClassID classId;
 
         CClassInfo* pClassInfo;
+        CClassInfo* genericType;
+
+        IfFailGo(pContext->GenericArg.ClassInfoResolver->Resolve(&genericType));
 
         IfFailGo(GetClassId(
-            pContext->GenericArg.ClassInfo,
+            genericType,
             pContext->GenericInst.GenericType,
             pContext->ValueType.ModuleOfTypeToken,
             pContext->ValueType.TypeToken,
@@ -1034,7 +959,9 @@ HRESULT CValueTracer::TraceArrayInternal(
             }
             else
             {
-                TraceValueContext ctx = MakeTraceValueContext(pElementType->m_TypeDef, pElementType->m_ModuleID, -1, pElementType, nullptr, nullptr);
+                CClassInfoResolver resolver(pElementType);
+
+                TraceValueContext ctx = MakeTraceValueContext(pElementType->m_TypeDef, pElementType->m_ModuleID, -1, &resolver, nullptr, nullptr);
 
                 IfFailGo(TraceValue(
                     elmAddress,
@@ -1442,10 +1369,13 @@ HRESULT CValueTracer::TraceTypeGenericType(
     _Out_opt_ ULONG& bytesRead)
 {
     HRESULT hr = S_OK;
+    ClassID classId;
 
     IClassInfo* genericInfo;
+    CClassInfo* genericType;
+    IfFailGo(pContext->GenericArg.ClassInfoResolver->Resolve(&genericType));
 
-    ClassID classId = pContext->GenericArg.ClassInfo->m_GenericTypeArgs[pContext->GenericArg.GenericIndex];
+    classId = genericType->m_GenericTypeArgs[pContext->GenericArg.GenericIndex];
 
     IfFailGo(GetClassInfoFromClassId(classId, &genericInfo));
 
@@ -1458,8 +1388,14 @@ ErrExit:
 HRESULT CValueTracer::TraceMethodGenericType(_In_ UINT_PTR startAddress, _In_ TraceValueContext* pContext, _Out_opt_ ULONG& bytesRead)
 {
     HRESULT hr = S_OK;
+    CClassInfo* genericType;
+    IClassInfo* info;
 
-    IClassInfo* info = m_GenericTypeArgs[pContext->GenericArg.GenericIndex];
+    //Both MVAR and VAR args are resolved in the resolver
+    
+    IfFailGo(pContext->GenericArg.ClassInfoResolver->Resolve(&genericType));
+
+    info = m_GenericTypeArgs[pContext->GenericArg.GenericIndex];
 
     IfFailGo(TraceGenericTypeInternal(startAddress, info, bytesRead));
 
@@ -1580,7 +1516,7 @@ HRESULT CValueTracer::TracePtrType(
         typeToken,
         pContext->ValueType.ModuleOfTypeToken,
         -1,
-        pContext->GenericArg.ClassInfo,
+        pContext->GenericArg.ClassInfoResolver,
         elm,
         pContext->Ptr.PtrType
     );
@@ -1671,11 +1607,13 @@ HRESULT CValueTracer::TraceClassOrStruct(CClassInfo* pClassInfo, ObjectID object
 
         GetGenericInfo(field->m_pType, &genericIndex);
 
+        CClassInfoResolver resolver(pClassInfo);
+
         TraceValueContext ctx = MakeTraceValueContext(
             GetTypeToken(field->m_pType),
             pClassInfo->m_ModuleID,
             genericIndex,
-            pClassInfo,
+            &resolver,
             field->m_pType,
             nullptr
         );

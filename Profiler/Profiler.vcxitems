@@ -20,6 +20,7 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)CAssemblyInfo.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)CClassFactory.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)CClassInfo.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)CClassInfoResolver.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)CCommunication.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)CCorProfilerCallback.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)CExceptionInfo.h" />
@@ -49,6 +50,7 @@
   <ItemGroup>
     <ClCompile Include="$(MSBuildThisFileDirectory)CAssemblyInfo.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)CClassFactory.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)CClassInfoResolver.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)CCommunication.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)CCorProfilerCallback.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)CExceptionManager.cpp" />

@@ -2,6 +2,7 @@
 
 #include <stack>
 #include <unordered_map>
+#include "CClassInfoResolver.h"
 
 class CSigMethodDef;
 class CSigType;
@@ -97,7 +98,7 @@ typedef struct _ValueTypeContext {
 
 typedef struct _GenericArgContext {
     long GenericIndex;
-    CClassInfo* ClassInfo; //Used by ELEMENT_TYPE_VAR only
+    CClassInfoResolver* ClassInfoResolver; //Used by ELEMENT_TYPE_VAR only
 } GenericArgContext;
 
 typedef struct _GenericInstContext {
@@ -122,7 +123,7 @@ typedef struct _TraceValueContext {
 
 #define MakeTraceValueContext(typeToken, moduleOfTypeToken, genericIndex, classInfo, pType, pParentType) { \
     {typeToken, moduleOfTypeToken}, \
-    {genericIndex, (CClassInfo*)classInfo}, \
+    {genericIndex, classInfo}, \
     {pType}, \
     pParentType \
 }
@@ -150,25 +151,21 @@ public:
     HRESULT LeaveWithInfo(FunctionIDOrClientID functionId, COR_PRF_ELT_INFO eltInfo);
     HRESULT TailcallWithInfo(FunctionIDOrClientID functionId, COR_PRF_ELT_INFO eltInfo);
 
+    HRESULT GetClassInfoFromClassId(ClassID classId, IClassInfo** ppClassInfo, bool lock = true);
+
 private:
 
     HRESULT GetMethodInfoNoLock(_In_ FunctionIDOrClientID functionId, _Out_ CSigMethodDef** ppMethod);
 
-    HRESULT GetMethodTypeArgsAndContainingClass(
-        _In_ FunctionIDOrClientID functionId,
-        _In_ CSigMethodDef* pMethod,
-        _In_ COR_PRF_FRAME_INFO frameInfo,
-        _Out_ IClassInfo** ppMethodClassInfo);
-
     HRESULT TraceParameters(
         _In_ COR_PRF_FUNCTION_ARGUMENT_INFO* argumentInfo,
         _In_ CSigMethodDef* pMethod,
-        _In_ IClassInfo* pMethodClassInfo);
+        _In_ CClassInfoResolver* resolver);
 
     HRESULT TraceParameter(
         _In_ COR_PRF_FUNCTION_ARGUMENT_RANGE* range,
         _In_ ISigParameter* pParameter,
-        _In_ IClassInfo* pMethodClassInfo,
+        _In_ CClassInfoResolver* resolver,
         _In_ ModuleID typeTokenModule);
 
     HRESULT TraceValue(
@@ -265,7 +262,6 @@ private:
 
     HRESULT GetClassInfoFromTypeDef(CModuleInfo* pModuleInfo, mdTypeDef typeDef, IClassInfo** ppClassInfo);
 
-    HRESULT GetClassInfoFromClassId(ClassID classId, IClassInfo** ppClassInfo, bool lock = true);
     mdToken GetTypeToken(CSigType* pType);
     void GetGenericInfo(CSigType* pType, long* genericIndex);
 
@@ -274,6 +270,8 @@ private:
     static ULONG s_MaxTraceDepth;
 
     ULONG m_NumGenericTypeArgs;
-    IClassInfo** m_GenericTypeArgs;
     ULONG m_TraceDepth;
+
+public:
+    IClassInfo** m_GenericTypeArgs;
 };
