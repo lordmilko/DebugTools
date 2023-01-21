@@ -755,7 +755,7 @@ HRESULT CValueTracer::TraceClass(_In_ UINT_PTR startAddress, _In_ CorElementType
     }
 
     IfFailGo(g_pProfiler->m_pInfo->GetClassFromObject(objectId, &classId));
-    IfFailGo(GetClassInfoFromClassId(classId, &info));
+    IfFailGo(g_pProfiler->GetClassInfoFromClassId(classId, &info));
 
     if (info->m_InfoType == ClassInfoType::Array)
     {
@@ -833,7 +833,7 @@ HRESULT CValueTracer::TraceGenericType(_In_ UINT_PTR startAddress, _In_ TraceVal
             &classId
         ));
 
-        IfFailGo(GetClassInfoFromClassId(classId, (IClassInfo**)&pClassInfo));
+        IfFailGo(g_pProfiler->GetClassInfoFromClassId(classId, (IClassInfo**)&pClassInfo));
 
         IfFailGo(TraceClassOrStruct(pClassInfo, startAddress, ELEMENT_TYPE_VALUETYPE, bytesRead));
     }
@@ -876,7 +876,7 @@ HRESULT CValueTracer::TraceArray(_In_ UINT_PTR startAddress, _In_ CorElementType
     }
 
     IfFailGo(g_pProfiler->m_pInfo->GetClassFromObject(objectId, &classId));
-    IfFailGo(GetClassInfoFromClassId(classId, (IClassInfo**)&pArrayInfo));
+    IfFailGo(g_pProfiler->GetClassInfoFromClassId(classId, (IClassInfo**)&pArrayInfo));
 
     IfFailGo(TraceArrayInternal(pArrayInfo, objectId, bytesRead));
 
@@ -1296,7 +1296,7 @@ HRESULT CValueTracer::GetArrayClassIdSlow(
     //For debugging which class we're working with here
     IClassInfo* elmClassInfo;
 
-    GetClassInfoFromClassId(elmClassId, &elmClassInfo, false);
+    g_pProfiler->GetClassInfoFromClassId(elmClassId, &elmClassInfo, false);
 #endif
 
     for (auto& v : g_pProfiler->m_ClassInfoMap)
@@ -1310,7 +1310,7 @@ HRESULT CValueTracer::GetArrayClassIdSlow(
                 //Even if there's multiple generic types that define this array at a given generic type arg index, this doesn't matter;
                 //the definition of the array is still the same. We'll get the true class ID of the generic type via GetClassFromTokenAndTypeArgs()
                 IClassInfo* genericTypeArg;
-                IfFailGo(GetClassInfoFromClassId(info->m_GenericTypeArgs[curGenericArg], &genericTypeArg, false));
+                IfFailGo(g_pProfiler->GetClassInfoFromClassId(info->m_GenericTypeArgs[curGenericArg], &genericTypeArg, false));
 
                 if (genericTypeArg->m_InfoType == ClassInfoType::Array)
                 {
@@ -1355,7 +1355,7 @@ HRESULT CValueTracer::GetClassInfoFromTypeDef(
 
     IfFailGo(g_pProfiler->m_pInfo->GetClassFromToken(pModuleInfo->m_ModuleID, typeDef, &classId));
 
-    IfFailGo(GetClassInfoFromClassId(classId, &pClassInfo));
+    IfFailGo(g_pProfiler->GetClassInfoFromClassId(classId, &pClassInfo));
 
     *ppClassInfo = pClassInfo;
 
@@ -1377,7 +1377,7 @@ HRESULT CValueTracer::TraceTypeGenericType(
 
     classId = genericType->m_GenericTypeArgs[pContext->GenericArg.GenericIndex];
 
-    IfFailGo(GetClassInfoFromClassId(classId, &genericInfo));
+    IfFailGo(g_pProfiler->GetClassInfoFromClassId(classId, &genericInfo));
 
     IfFailGo(TraceGenericTypeInternal(startAddress, genericInfo, bytesRead));
 
@@ -1662,40 +1662,6 @@ HRESULT CValueTracer::TraceClassOrStruct(CClassInfo* pClassInfo, ObjectID object
     bytesRead += innerBytesRead;
 
 ErrExit:
-    return hr;
-}
-
-HRESULT CValueTracer::GetClassInfoFromClassId(ClassID classId, IClassInfo** ppClassInfo, bool lock)
-{
-    HRESULT hr = S_OK;
-    IClassInfo* pClassInfo = nullptr;
-
-    CLock* classLock = nullptr;
-
-    if (lock)
-        classLock = new CLock(&g_pProfiler->m_ClassMutex, true);
-
-    auto match = g_pProfiler->m_ClassInfoMap.find(classId);
-
-    if (match == g_pProfiler->m_ClassInfoMap.end())
-    {
-        //Array types don't seem to hit ClassLoadFinished, so if we got an unknown type it's probably because it's an array
-
-        IfFailGo(CCorProfilerCallback::g_pProfiler->GetClassInfo(classId, &pClassInfo));
-
-        //We already hold the class lock (see above)
-        g_pProfiler->AddClassNoLock(pClassInfo);
-    }
-    else
-        pClassInfo = match->second;
-
-ErrExit:
-    if (classLock)
-        delete classLock;
-
-    if (SUCCEEDED(hr))
-        *ppClassInfo = pClassInfo;
-
     return hr;
 }
 

@@ -151,8 +151,6 @@ public:
     HRESULT LeaveWithInfo(FunctionIDOrClientID functionId, COR_PRF_ELT_INFO eltInfo);
     HRESULT TailcallWithInfo(FunctionIDOrClientID functionId, COR_PRF_ELT_INFO eltInfo);
 
-    HRESULT GetClassInfoFromClassId(ClassID classId, IClassInfo** ppClassInfo, bool lock = true);
-
 private:
 
     HRESULT GetMethodInfoNoLock(_In_ FunctionIDOrClientID functionId, _Out_ CSigMethodDef** ppMethod);

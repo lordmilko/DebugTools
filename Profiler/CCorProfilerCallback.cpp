@@ -273,13 +273,50 @@ HRESULT CCorProfilerCallback::ClassLoadFinished(ClassID classId, HRESULT hrStatu
 
     HRESULT hr = S_OK;
 
+    //We may have force loaded this type prior to ClassLoadFinished being called; in this case, there's nothing to do
+
+    {
+        CLock classLock(&m_ClassMutex);
+
+        if (m_ClassInfoMap.find(classId) != m_ClassInfoMap.end())
+            goto ErrExit;
+    }
+
     IClassInfo* pClassInfo;
-    IfFailGo(GetClassInfo(classId, &pClassInfo));
+    IfFailGo(CreateClassInfo(classId, &pClassInfo));
 
     //Lock scope. We need this scope because IfFailGo above will skip initialization of the classLock which we want to
     //declare after we've got the class info
     {
         CLock classLock(&m_ClassMutex, true);
+
+        if (pClassInfo->m_InfoType == ClassInfoType::Class)
+        {
+            CClassInfo* info = (CClassInfo*)pClassInfo;
+
+            if (wcscmp(L"System.__Canon", info->m_szName) == 0)
+                m_CanonTypes.insert(classId);
+
+            if (info->m_NumGenericTypeArgs > 0)
+            {
+                BOOL all = TRUE;
+
+                for (ULONG i = 0; i < info->m_NumGenericTypeArgs; i++)
+                {
+                    if (m_CanonTypes.find(info->m_GenericTypeArgs[i]) != m_CanonTypes.end())
+                    {
+                        all = FALSE;
+                        break;
+                    }
+                }
+
+                if (all)
+                {
+                    info->AddRef();
+                    m_CanonicalGenericTypes.insert(info);
+                }
+            }
+        }
 
         AddClassNoLock(pClassInfo);
     }
@@ -311,6 +348,15 @@ HRESULT CCorProfilerCallback::ClassUnloadFinished(ClassID classId, HRESULT hrSta
 
             m_StandardTypeMap.erase(std->m_ElementType);
             std->Release();
+        }
+
+        if (m_CanonTypes.find(classId) != m_CanonTypes.end())
+            m_CanonTypes.erase(classId);
+
+        if (m_CanonicalGenericTypes.find((CClassInfo*) match->second) != m_CanonicalGenericTypes.end())
+        {
+            match->second->Release();
+            m_CanonicalGenericTypes.erase((CClassInfo*)match->second);
         }
     }
 
@@ -484,6 +530,9 @@ CCorProfilerCallback::~CCorProfilerCallback()
 
     for (auto const& kv : m_StandardTypeMap)
         kv.second->Release();
+
+    for (auto const& item : m_CanonicalGenericTypes)
+        item->Release();
 
     for (auto const& kv : m_ArrayTypeMap)
         delete kv.second;
@@ -897,7 +946,7 @@ void CCorProfilerCallback::AddClassNoLock(IClassInfo* pClassInfo)
     }
 }
 
-HRESULT CCorProfilerCallback::GetClassInfo(
+HRESULT CCorProfilerCallback::CreateClassInfo(
     _In_ ClassID classId,
     _Out_ IClassInfo** ppClassInfo)
 {
@@ -936,7 +985,7 @@ HRESULT CCorProfilerCallback::GetClassInfo(
     {
         //It's an array
 
-        IfFailGo(GetClassInfo(baseClassId, &pElementType));
+        IfFailGo(CreateClassInfo(baseClassId, &pElementType));
 
         pClassInfo = new CArrayInfo(classId, pElementType, baseElemType, cRank);
     }
@@ -1076,6 +1125,40 @@ ErrExit:
 
     if (pMDI)
         pMDI->Release();
+
+    return hr;
+}
+
+HRESULT CCorProfilerCallback::GetClassInfoFromClassId(ClassID classId, IClassInfo** ppClassInfo, bool lock)
+{
+    HRESULT hr = S_OK;
+    IClassInfo* pClassInfo = nullptr;
+
+    CLock* classLock = nullptr;
+
+    if (lock)
+        classLock = new CLock(&m_ClassMutex, true);
+
+    auto match = m_ClassInfoMap.find(classId);
+
+    if (match == m_ClassInfoMap.end())
+    {
+        //Array types don't seem to hit ClassLoadFinished, so if we got an unknown type it's probably because it's an array
+
+        IfFailGo(CreateClassInfo(classId, &pClassInfo));
+
+        //We already hold the class lock (see above)
+        AddClassNoLock(pClassInfo);
+    }
+    else
+        pClassInfo = match->second;
+
+ErrExit:
+    if (classLock)
+        delete classLock;
+
+    if (SUCCEEDED(hr))
+        *ppClassInfo = pClassInfo;
 
     return hr;
 }

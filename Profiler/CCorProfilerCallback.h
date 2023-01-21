@@ -7,6 +7,7 @@
 #include "CSigMethod.h"
 #include <bcrypt.h>
 #include <unordered_map>
+#include <unordered_set>
 #include <shared_mutex>
 #include "CUnknownArray.h"
 #include "CExceptionManager.h"
@@ -64,9 +65,11 @@ public:
 
     void AddClassNoLock(IClassInfo* pClassInfo);
 
-    HRESULT GetClassInfo(
+    HRESULT CreateClassInfo(
         _In_ ClassID classId,
         _Out_ IClassInfo** ppClassInfo);
+
+    HRESULT GetClassInfoFromClassId(ClassID classId, IClassInfo** ppClassInfo, bool lock = true);
 
     HRESULT GetModuleInfo(
         _In_ ModuleID moduleId,
@@ -204,6 +207,8 @@ public:
     std::shared_mutex m_ModuleMutex;
 
     std::unordered_map<ClassID, IClassInfo*> m_ClassInfoMap;
+    std::unordered_set<ClassID> m_CanonTypes;
+    std::unordered_set<CClassInfo*> m_CanonicalGenericTypes;
     std::unordered_map<CorElementType, CStandardTypeInfo*> m_StandardTypeMap;
     std::unordered_map<ClassID, CUnknownArray<CArrayInfo>*> m_ArrayTypeMap;
     std::shared_mutex m_ClassMutex;

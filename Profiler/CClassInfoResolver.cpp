@@ -54,7 +54,7 @@ HRESULT CClassInfoResolver::GetMethodTypeArgsAndContainingClass(
         for (ULONG i = 0; i < m_pMethod->m_NumGenericTypeArgNames; i++)
         {
             IClassInfo* info;
-            IfFailGo(m_pTracer->GetClassInfoFromClassId(typeArgs[i], &info));
+            IfFailGo(g_pProfiler->GetClassInfoFromClassId(typeArgs[i], &info));
 
             m_pTracer->m_GenericTypeArgs[i] = info;
         }
@@ -88,7 +88,7 @@ HRESULT CClassInfoResolver::GetMethodTypeArgsAndContainingClass(
     else
     {
         //Get the class info of the class the method being invoked is defined in
-        IfFailGo(m_pTracer->GetClassInfoFromClassId(classId, &pMethodClassInfo));
+        IfFailGo(g_pProfiler->GetClassInfoFromClassId(classId, &pMethodClassInfo));
     }
 
     *ppMethodClassInfo = pMethodClassInfo;

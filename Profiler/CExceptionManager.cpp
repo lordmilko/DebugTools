@@ -78,7 +78,7 @@ HRESULT CExceptionManager::ExceptionThrown(ObjectID thrownObjectId)
 
     IfFailGo(g_pProfiler->m_pInfo->GetClassFromObject(thrownObjectId, &classId));
 
-    IfFailGo(g_pProfiler->GetClassInfo(classId, (IClassInfo**)&pClassInfo));
+    IfFailGo(g_pProfiler->GetClassInfoFromClassId(classId, (IClassInfo**)&pClassInfo));
 
     g_ExceptionSequence++;
 
