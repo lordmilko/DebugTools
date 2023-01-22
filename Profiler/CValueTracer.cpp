@@ -43,6 +43,8 @@ ErrExit:
     return hr;
 }
 
+#pragma region ELT
+
 HRESULT CValueTracer::EnterWithInfo(FunctionIDOrClientID functionId, COR_PRF_ELT_INFO eltInfo)
 {
     HRESULT hr = S_OK;
@@ -201,31 +203,8 @@ HRESULT CValueTracer::TailcallWithInfo(FunctionIDOrClientID functionId, COR_PRF_
     return hr;
 }
 
-HRESULT CValueTracer::GetMethodInfoNoLock(FunctionIDOrClientID functionId, _Out_ CSigMethodDef** ppMethod)
-{
-    auto match = g_pProfiler->m_MethodInfoMap.find(functionId.functionID);
-
-    if (match == g_pProfiler->m_MethodInfoMap.end())
-    {
-        DebugBreakSafe();
-
-        dprintf(L"Unknown func %llX called\n", functionId.functionID);
-        return E_FAIL;
-    }
-
-    CSigMethodDef* pMethod = match->second;
-
-    if (!pMethod)
-    {
-        DebugBreakSafe();
-
-        dprintf(L"Unknown func %llX called\n", functionId.functionID);
-        return E_FAIL;
-    }
-
-    *ppMethod = pMethod;
-    return S_OK;
-}
+#pragma endregion
+#pragma region Parameters
 
 HRESULT CValueTracer::TraceParameters(
     _In_ COR_PRF_FUNCTION_ARGUMENT_INFO* argumentInfo,
@@ -298,6 +277,8 @@ ErrExit:
     return hr;
 }
 
+#pragma endregion
+
 #define TraceSimpleValue(STARTADDRESS, ELEMENTTYPE, BYTESREAD) \
     TraceValue( \
         (STARTADDRESS), /* startAddress */ \
@@ -316,9 +297,6 @@ HRESULT CValueTracer::TraceValue(
     HRESULT hr = S_OK;
     BOOL needDecrease = FALSE;
 
-    //Unsafe.IsNullRef can pass an address of 0
-    if (startAddress == 0)
-        return E_FAIL;
 
     BOOL needSeenMap = elementType == ELEMENT_TYPE_CLASS || elementType == ELEMENT_TYPE_GENERICINST || elementType == ELEMENT_TYPE_SZARRAY || elementType == ELEMENT_TYPE_ARRAY;
 
@@ -1220,7 +1198,7 @@ HRESULT CValueTracer::GetClassId(
 
         case ELEMENT_TYPE_MVAR:
         {
-            IClassInfo* info = m_GenericTypeArgs[((CSigMethodGenericArgType*)pType)->m_Index];
+            IClassInfo* info = m_MethodGenericTypeArgs[((CSigMethodGenericArgType*)pType)->m_Index];
 
             *classId = info->m_ClassID;
             break;
@@ -1461,15 +1439,14 @@ HRESULT CValueTracer::TraceTypeGenericType(
     HRESULT hr = S_OK;
     ClassID classId;
 
-    IClassInfo* genericInfo;
-    CClassInfo* genericType;
-    IfFailGo(pContext->GenericArg.ClassInfoResolver->Resolve(&genericType));
+    CClassInfo* parentType;
+    IClassInfo* genericArgInfo;
+    IfFailGo(pContext->GenericArg.ClassInfoResolver->Resolve(&parentType));
 
-    classId = genericType->m_GenericTypeArgs[pContext->GenericArg.GenericIndex];
+    classId = parentType->m_GenericTypeArgs[pContext->GenericArg.GenericIndex];
 
-    IfFailGo(g_pProfiler->GetClassInfoFromClassId(classId, &genericInfo));
-
-    IfFailGo(TraceGenericTypeInternal(startAddress, genericInfo, bytesRead));
+    IfFailGo(g_pProfiler->GetClassInfoFromClassId(classId, &genericArgInfo));
+    IfFailGo(TraceGenericTypeInternal(startAddress, genericArgInfo, bytesRead));
 
 ErrExit:
     return hr;
@@ -1482,10 +1459,10 @@ HRESULT CValueTracer::TraceMethodGenericType(_In_ UINT_PTR startAddress, _In_ Tr
     IClassInfo* info;
 
     //Both MVAR and VAR args are resolved in the resolver
-    
+
     IfFailGo(pContext->GenericArg.ClassInfoResolver->Resolve(&genericType));
 
-    info = m_GenericTypeArgs[pContext->GenericArg.GenericIndex];
+    info = m_MethodGenericTypeArgs[pContext->GenericArg.GenericIndex];
 
     IfFailGo(TraceGenericTypeInternal(startAddress, info, bytesRead));
 
@@ -1838,4 +1815,30 @@ Exit:
     g_pProfiler->m_ObjectIdBlacklistMutex.unlock();
 
     return invalid;
+}
+
+HRESULT CValueTracer::GetMethodInfoNoLock(FunctionIDOrClientID functionId, _Out_ CSigMethodDef** ppMethod)
+{
+    auto match = g_pProfiler->m_MethodInfoMap.find(functionId.functionID);
+
+    if (match == g_pProfiler->m_MethodInfoMap.end())
+    {
+        DebugBreakSafe();
+
+        dprintf(L"Unknown func %llX called\n", functionId.functionID);
+        return E_FAIL;
+    }
+
+    CSigMethodDef* pMethod = match->second;
+
+    if (!pMethod)
+    {
+        DebugBreakSafe();
+
+        dprintf(L"Unknown func %llX called\n", functionId.functionID);
+        return E_FAIL;
+    }
+
+    *ppMethod = pMethod;
+    return S_OK;
 }

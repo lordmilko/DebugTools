@@ -44,6 +44,8 @@ public:
         m_FieldOffsets = fieldOffsets;
         m_NumGenericTypeArgs = numGenericTypeArgs;
         m_GenericTypeArgs = genericTypeArgs;
+
+        m_IsCanonical = FALSE;
     }
 
     ~CClassInfo()
@@ -74,6 +76,8 @@ public:
     COR_FIELD_OFFSET* m_FieldOffsets;
     ULONG32 m_NumGenericTypeArgs;
     ClassID* m_GenericTypeArgs;
+
+    bool m_IsCanonical;
 };
 
 class CArrayInfo : public IClassInfo

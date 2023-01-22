@@ -56,6 +56,7 @@
     <ClCompile Include="$(MSBuildThisFileDirectory)CCorProfilerCallback.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)CExceptionManager.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)CModuleInfo.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)CSigMethod.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)CSigReader.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)CSigType.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)CTypeRefResolver.cpp" />

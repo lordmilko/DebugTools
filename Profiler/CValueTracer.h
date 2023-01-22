@@ -133,15 +133,15 @@ class CValueTracer
 public:
     CValueTracer() :
         m_NumGenericTypeArgs(0),
-        m_GenericTypeArgs(nullptr),
-        m_TraceDepth(0)
+        m_TraceDepth(0),
+        m_MethodGenericTypeArgs(nullptr)
     {
     }
 
     ~CValueTracer()
     {
-        if (m_GenericTypeArgs)
-            delete m_GenericTypeArgs;
+        if (m_MethodGenericTypeArgs)
+            delete m_MethodGenericTypeArgs;
     }
 
     static HRESULT Initialize(ICorProfilerInfo3* pInfo);
@@ -278,5 +278,5 @@ private:
     ULONG m_TraceDepth;
 
 public:
-    IClassInfo** m_GenericTypeArgs;
+    IClassInfo** m_MethodGenericTypeArgs;
 };

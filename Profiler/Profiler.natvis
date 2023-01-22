@@ -308,6 +308,7 @@ $split = $_ -split ' '
             <Item Name="m_ClassID">m_ClassID</Item>
             <Item Name="m_szName">m_szName</Item>
             <Item Name="m_TypeDef">m_TypeDef</Item>
+            <Item Name="m_IsCanonical">m_IsCanonical</Item>
             <Synthetic Name="m_Fields">
                 <DisplayString>m_NumFields = {m_NumFields}</DisplayString>
                 <Expand>

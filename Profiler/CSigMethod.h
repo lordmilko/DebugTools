@@ -4,6 +4,8 @@
 #include "CUnknown.h"
 #include "ISigParameter.h"
 
+class IClassInfo;
+
 class CSigMethod : public CUnknown
 {
 public:
@@ -50,7 +52,6 @@ public:
 class CSigMethodDef : public CSigMethod
 {
 public:
-    //todo: will this call the base ctor?
     CSigMethodDef(
         LPWSTR szName,
         CorCallingConvention callingConvention,
@@ -65,21 +66,14 @@ public:
         m_GenericTypeArgNames = genericTypeArgNames;
     }
 
-    ~CSigMethodDef()
-    {
-        if (m_GenericTypeArgNames)
-        {
-            for (ULONG i = 0; i < m_NumGenericTypeArgNames; i++)
-                free(m_GenericTypeArgNames[i]);
-
-            free(m_GenericTypeArgNames);
-        }
-    }
+    ~CSigMethodDef();
 
     ULONG m_NumGenericTypeArgNames;
     LPWSTR* m_GenericTypeArgNames;
 
     ModuleID m_ModuleID;
+
+    IClassInfo* m_CanonicalType;
 };
 
 class CSigMethodRef : public CSigMethod

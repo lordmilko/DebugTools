@@ -35,6 +35,11 @@ private:
     HRESULT GetMethodTypeArgsAndContainingClass(
         _Out_ IClassInfo** ppMethodClassInfo);
 
+    HRESULT GetMethodCanonicalType(
+        _In_ ModuleID moduleId,
+        _In_ mdToken token,
+        _Out_ IClassInfo** ppMethodClassInfo);
+
     IClassInfo* m_pClassInfo;
 
     FunctionIDOrClientID m_FunctionId;

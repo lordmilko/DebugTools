@@ -303,7 +303,7 @@ HRESULT CCorProfilerCallback::ClassLoadFinished(ClassID classId, HRESULT hrStatu
 
                 for (ULONG i = 0; i < info->m_NumGenericTypeArgs; i++)
                 {
-                    if (m_CanonTypes.find(info->m_GenericTypeArgs[i]) != m_CanonTypes.end())
+                    if (m_CanonTypes.find(info->m_GenericTypeArgs[i]) == m_CanonTypes.end())
                     {
                         all = FALSE;
                         break;
@@ -313,7 +313,10 @@ HRESULT CCorProfilerCallback::ClassLoadFinished(ClassID classId, HRESULT hrStatu
                 if (all)
                 {
                     info->AddRef();
-                    m_CanonicalGenericTypes.insert(info);
+                    {
+                        info->m_IsCanonical = true;
+                        m_CanonicalGenericTypes.insert(info);
+                    }
                 }
             }
         }
