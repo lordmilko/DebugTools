@@ -145,15 +145,16 @@ HRESULT CClassInfoResolver::GetMethodCanonicalType(
         {
             if (item->m_ModuleID == moduleId && item->m_TypeDef == typeDef)
             {
-                dprintf(L"Got canonical type %I64X %s\n", item->m_ClassID, item->m_szName);
+                //dprintf(L"Got canonical type %I64X %s\n", item->m_ClassID, item->m_szName);
                 *ppMethodClassInfo = item;
+                hr = S_OK;
                 goto ErrExit;
             }
         }
     }
 
 ErrExit:
-    if (hr != S_OK)
+    if (*ppMethodClassInfo == nullptr)
         return PROFILER_E_NO_CLASSID;
 
     return hr;

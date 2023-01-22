@@ -167,6 +167,19 @@ HRESULT CCorProfilerCallback::ModuleAttachedToAssembly(ModuleID moduleId, Assemb
     ULONG cbPublicKeyToken = 0;
     LPWSTR assemblyName = nullptr;
 
+    /* CTypeRefResolver::Resolve will take a(shared) lock on m_ModuleMutex as long as it is executing.During
+     * its execution, it may also take a lock on m_AssemblyMutex. If we were to lock m_ModuleMutex in the SUCCEEDED() block below,
+     * the following sequence of events could transpire:
+     * 
+     * 1. CTypeRefResolver::Resolve locks m_ModuleMutex in shared mode
+     * 2. ModuleAttachedToAssembly locks m_AssemblyMutex in exclusive mode
+     * 3. CTypeRefResolver::ResolveAssemblyRef attempts to lock m_AssemblyMutex in shared mode, is blocked by exclusive lock in ModuleAttachedToAssembly
+     * 4. ModuleAttachedToAssembly attempts to lock m_ModuleMutex, is blocked by shared lock in CTypeRefResolver::Resolve!
+     * 
+     * We workaround this by acquiring m_ModuleMutex BEFORE m_AssemblyMutex here in ModuleAttachedToAssembly, thus blocking us until CTypeRefResolver::Resolve
+     * finishes executing
+     */
+    CLock moduleLock(&m_ModuleMutex, true);
     CLock assemblyLock(&m_AssemblyMutex, true);
 
     auto asmMatch = m_AssemblyInfoMap.find(assemblyId);
@@ -216,8 +229,6 @@ HRESULT CCorProfilerCallback::ModuleAttachedToAssembly(ModuleID moduleId, Assemb
 ErrExit:
     if (SUCCEEDED(hr))
     {
-        CLock moduleLock(&m_ModuleMutex, true);
-
         CModuleInfo* pModuleInfo = new CModuleInfo(assemblyId, moduleId, pMDI);
 
         m_ModuleInfoMap[moduleId] = pModuleInfo;

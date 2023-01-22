@@ -1132,8 +1132,6 @@ HRESULT CValueTracer::GetClassId(
                     {
                         *classId = item->m_ClassID;
 
-                        CLock lock(&g_pProfiler->m_TypeIdMutex);
-
                         //No point owning the array because a copy will be made upon inserting it into the map anyway
                         CTypeIdentifier identifier(outerModuleId, outerTypeDef, pGenericType->m_NumGenericArgs, typeArgIds, FALSE);
 

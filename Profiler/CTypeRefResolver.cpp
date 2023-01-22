@@ -10,7 +10,7 @@ HRESULT CTypeRefResolver::Resolve(
     mdToken tkResolutionScope;
     CorTokenType resolutionScopeType;
     CLock moduleMutex(&g_pProfiler->m_ModuleMutex);
-    WCHAR* typeName = new WCHAR[NAME_BUFFER_SIZE];
+    WCHAR typeName[NAME_BUFFER_SIZE];
 
     auto match = g_pProfiler->m_ModuleInfoMap.find(m_ModuleID);
 
@@ -37,7 +37,7 @@ HRESULT CTypeRefResolver::Resolve(
 
             *moduleId = item->m_ModuleID;
             *typeDef = item->m_TypeDef;
-            return S_OK;
+            goto ErrExit;
         }
     }
 
@@ -57,9 +57,6 @@ HRESULT CTypeRefResolver::Resolve(
         hr = PROFILER_E_UNKNOWN_RESOLUTION_SCOPE;
 
 ErrExit:
-    if (typeName)
-        delete typeName;
-
     return hr;
 }
 
