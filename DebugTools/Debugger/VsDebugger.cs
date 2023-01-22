@@ -12,7 +12,7 @@ namespace DebugTools
 {
     public class VsDebugger
     {
-        public static void Attach(Process target)
+        public static void Attach(Process target, string type = "Native")
         {
             while(true)
             {
@@ -30,7 +30,7 @@ namespace DebugTools
                                 {
                                     try
                                     {
-                                        process.Attach2("Native");
+                                        process.Attach2(type);
                                     }
                                     catch (Exception ex)
                                     {

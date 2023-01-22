@@ -12,7 +12,11 @@ namespace DebugTools.Profiler
     {
         public static readonly string Profilerx86;
         public static readonly string Profilerx64;
+        public static readonly string DebugHostx86;
+        public static readonly string DebugHostx64;
         public static readonly string TestHost;
+
+        internal const string DebugHostName = "DebugTools.Host.{0}.exe";
 
         public static readonly string InstallationRoot;
 
@@ -30,12 +34,16 @@ namespace DebugTools.Profiler
 
             Profilerx86 = Path.Combine(InstallationRoot, "x86", string.Format(profilerName, "x86"));
             Profilerx64 = Path.Combine(InstallationRoot, "x64", string.Format(profilerName, "x64"));
+            DebugHostx86 = Path.Combine(InstallationRoot, "x86", string.Format(DebugHostName, "x86"));
+            DebugHostx64 = Path.Combine(InstallationRoot, "x64", string.Format(DebugHostName, "x64"));
 
             if (!File.Exists(Profilerx86) || !File.Exists(Profilerx64))
             {
                 //Maybe it's a unit test; look inside the DebugTools folder instead
                 Profilerx86 = Path.Combine(InstallationRoot, "DebugTools", "x86", string.Format(profilerName, "x86"));
                 Profilerx64 = Path.Combine(InstallationRoot, "DebugTools", "x64", string.Format(profilerName, "x64"));
+                DebugHostx86 = Path.Combine(InstallationRoot, "DebugTools", "x86", string.Format(DebugHostName, "x86"));
+                DebugHostx64 = Path.Combine(InstallationRoot, "DebugTools", "x64", string.Format(DebugHostName, "x64"));
             }
 
             TestHost = Path.Combine(InstallationRoot, "DebugTools.TestHost.exe");
@@ -177,7 +185,7 @@ namespace DebugTools.Profiler
             }
         }
 
-        static byte[] GetEnvironmentBytes(StringDictionary sd)
+        internal static byte[] GetEnvironmentBytes(StringDictionary sd)
         {
             StringBuilder stringBuilder = new StringBuilder();
 

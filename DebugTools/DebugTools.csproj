@@ -8,8 +8,10 @@
   </PropertyGroup>
 
   <ItemGroup>
-      <PackageReference Include="envdte80" Version="8.0.3" />
-      <PackageReference Include="Microsoft.Diagnostics.Tracing.TraceEvent" Version="3.0.6" />
+    <Reference Include="System.Runtime.Remoting" />
+
+    <PackageReference Include="envdte80" Version="8.0.3" />
+    <PackageReference Include="Microsoft.Diagnostics.Tracing.TraceEvent" Version="3.0.6" />
   </ItemGroup>
 
   <ItemGroup>
