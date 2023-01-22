@@ -8,9 +8,18 @@
   </PropertyGroup>
 
   <ItemGroup>
-      <PackageReference Include="ClrDebug" Version="0.1.0" />
       <PackageReference Include="envdte80" Version="8.0.3" />
       <PackageReference Include="Microsoft.Diagnostics.Tracing.TraceEvent" Version="3.0.6" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- If ClrDebug has been cloned to the parent directory containing both ClrDebug and DebugTools,
+         prefer the local version for development purposes -->
+    <PackageReference Include="ClrDebug" Version="0.1.0" Condition="!Exists('$(LocalClrDebug)')" />
+
+    <Reference Include="ClrDebug" Condition="Exists('$(LocalClrDebug)')">
+      <HintPath>$(LocalClrDebug)</HintPath>
+    </Reference>
   </ItemGroup>
 
 </Project>

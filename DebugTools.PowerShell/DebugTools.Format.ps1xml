@@ -72,10 +72,10 @@
                     <TableColumnHeader/> <!-- HelperName -->
                     <TableColumnHeader/> <!-- IP -->
                     <TableColumnHeader/> <!-- SP -->
-                    <TableColumnHeader/> <!-- MethodName -->
-                    <TableColumnHeader/> <!-- Parameters -->
                     <TableColumnHeader/> <!-- MethodDesc -->
                     <TableColumnHeader/> <!-- MethodTable -->
+                    <TableColumnHeader/> <!-- MethodName -->
+                    <TableColumnHeader/> <!-- Parameters -->
                 </TableHeaders>
                 <TableRowEntries>
                     <TableRowEntry>
@@ -93,16 +93,16 @@
                                 <PropertyName>SP</PropertyName>
                             </TableColumnItem>
                             <TableColumnItem>
-                                <PropertyName>MethodName</PropertyName>
-                            </TableColumnItem>
-                            <TableColumnItem>
-                                <PropertyName>Parameters</PropertyName>
-                            </TableColumnItem>
-                            <TableColumnItem>
                                 <PropertyName>MethodDesc</PropertyName>
                             </TableColumnItem>
                             <TableColumnItem>
                                 <PropertyName>MethodTable</PropertyName>
+                            </TableColumnItem>
+                            <TableColumnItem>
+                                <PropertyName>MethodName</PropertyName>
+                            </TableColumnItem>
+                            <TableColumnItem>
+                                <PropertyName>Parameters</PropertyName>
                             </TableColumnItem>
                         </TableColumnItems>
                     </TableRowEntry>

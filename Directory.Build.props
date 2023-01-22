@@ -1,0 +1,5 @@
+﻿<Project>
+  <PropertyGroup>
+    <LocalClrDebug>..\..\ClrDebug\ClrDebug\bin\$(Configuration)\netstandard2.0\ClrDebug.dll</LocalClrDebug>
+  </PropertyGroup>  
+</Project>
