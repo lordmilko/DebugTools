@@ -6,14 +6,19 @@ using System.Runtime.Remoting;
 using System.Runtime.Remoting.Channels;
 using System.Runtime.Remoting.Channels.Ipc;
 using System.Runtime.Serialization.Formatters;
-using System.Text;
 using System.Threading;
-using System.Threading.Tasks;
+using Microsoft.Diagnostics.Runtime;
 
 namespace DebugTools.Host
 {
     public class HostApp : MarshalByRefObject
     {
+        static HostApp()
+        {
+            //ClrMD will try and load DbgHelp, so we must set the DLL directory before ClrMD is invoked
+            NativeMethods.SetDllDirectory("C:\\Program Files (x86)\\Windows Kits\\10\\Debuggers\\" + (IntPtr.Size == 8 ? "x64" : "x86"));
+        }
+
         public const string WaitForDebug = "DEBUGTOOLS_HOST_WAITFORDEBUG";
         public const string ParentPID = "DEBUGTOOLS_HOST_PARENT_PID";
 
@@ -29,6 +34,8 @@ namespace DebugTools.Host
         public static HostApp GetInstance() => instance;
 
         #region Server
+
+        public int ProcessId => Process.GetCurrentProcess().Id;
 
         public static void Main()
         {
@@ -47,10 +54,6 @@ namespace DebugTools.Host
         private static void WaitForDebugger()
         {
             var value = Environment.GetEnvironmentVariable(WaitForDebug);
-
-            Thread.Sleep(5000);
-
-            Console.WriteLine("Env is " + value);
 
             if (value == "1")
             {
@@ -107,6 +110,56 @@ namespace DebugTools.Host
             var waitHandle = new EventWaitHandle(true, EventResetMode.AutoReset, eventName);
 
             waitHandle.Set();
+        }
+
+        #endregion
+        #region API
+
+        public DbgVtblSymbolInfo[] GetComObjects(int processId)
+        {
+            var process = Process.GetProcessById(processId);
+
+            return WithClrMD(process, runtime =>
+            {
+                var rcws = runtime.Heap.EnumerateObjects().Where(o => o.Type?.Name == "System.__ComObject").ToArray();
+
+                var results = new List<DbgVtblSymbolInfo>();
+
+                using (var symbolManager = new SymbolManager(process))
+                {
+                    foreach (var rcw in rcws)
+                    {
+                        if (rcw.Type.IsRCW(rcw))
+                        {
+                            var rcwData = rcw.Type.GetRCWData(rcw);
+
+                            var symbol = symbolManager.GetVtblSymbol(rcwData.VTablePointer);
+
+                            if (symbol != null)
+                                results.Add(symbol);
+                        }
+                    }
+
+                    return results.ToArray();
+                }
+            });
+        }
+
+        private T WithClrMD<T>(Process process, Func<ClrRuntime, T> func)
+        {
+            using (var dataTarget = DataTarget.AttachToProcess(process.Id, 0, AttachFlag.Passive))
+            {
+                var versions = dataTarget.ClrVersions;
+
+                if (versions.Count == 0)
+                    throw new InvalidOperationException($"Cannot attach ClrMD to process '{process.Id}': CLR runtime has not been initialized.");
+
+                var runtime = versions[0].CreateRuntime();
+
+                var result = func(runtime);
+
+                return result;
+            }
         }
 
         #endregion

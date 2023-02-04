@@ -1,8 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
+using System.Runtime.InteropServices;
+using ClrDebug;
+using DebugTools.Host;
 using DebugTools.Profiler;
 using DebugTools.SOS;
+using Architecture = DebugTools.Host.Architecture;
 
 namespace DebugTools.PowerShell
 {
@@ -11,6 +16,9 @@ namespace DebugTools.PowerShell
         internal static List<ProfilerSession> ProfilerSessions = new List<ProfilerSession>();
 
         internal static List<SOSProcess> SOSProcesses = new List<SOSProcess>();
+
+        internal static (HostApp host, Process process) Hostx86;
+        internal static (HostApp host, Process process) Hostx64;
 
         internal static ProfilerSession GetImplicitProfilerSession()
         {
@@ -53,6 +61,37 @@ namespace DebugTools.PowerShell
                 throw new InvalidOperationException($"Cannot execute cmdlet: no -Process was specified and all previous SOS Processes have now terminated.");
 
             throw new InvalidOperationException($"Cannot execute cmdlet: no -Session was specified and no global Session could be found in the PowerShell session.");
+        }
+
+        internal static HostApp GetDetectedHost(Process targetProcess, bool needDebug = false)
+        {
+            if (!NativeMethods.IsWow64Process(targetProcess.Handle, out var isWow64))
+                throw new SOSException($"Failed to query {nameof(NativeMethods.IsWow64Process)}: {(HRESULT)Marshal.GetHRForLastWin32Error()}");
+
+            if (isWow64)
+            {
+                if (Hostx86.host == null || Hostx86.process.HasExited)
+                {
+                    var hostApp = HostProvider.CreateApp(Architecture.x86, needDebug);
+                    var hostProcess = Process.GetProcessById(hostApp.ProcessId);
+
+                    Hostx86 = (hostApp, hostProcess);
+                }
+                
+                return Hostx86.host;
+            }
+            else
+            {
+                if (Hostx64.host == null || Hostx64.process.HasExited)
+                {
+                    var hostApp = HostProvider.CreateApp(Architecture.x64, needDebug);
+                    var hostProcess = Process.GetProcessById(hostApp.ProcessId);
+
+                    Hostx64 = (hostApp, hostProcess);
+                }
+
+                return Hostx64.host;
+            }
         }
     }
 }
