@@ -719,7 +719,7 @@ UINT_PTR __stdcall CCorProfilerCallback::RecordFunction(FunctionID funcId, void*
 
     if (!ShouldHook())
     {
-        LogShouldHook(L"Not tracing %llX\n", funcId);
+        LogShouldHook(L"Not tracing " FORMAT_PTR "\n", funcId);
         *pbHookFunction = FALSE;
         goto ErrExit;
     }
@@ -779,7 +779,7 @@ UINT_PTR __stdcall CCorProfilerCallback::RecordFunction(FunctionID funcId, void*
 
     //Write the event
 
-    LogShouldHook(L"Tracing %s %llX\n", g_szMethodName, funcId);
+    LogShouldHook(L"Tracing %s " FORMAT_PTR "\n", g_szMethodName, funcId);
     *pbHookFunction = true;
 
     if (g_pProfiler->m_Detailed)
@@ -790,7 +790,7 @@ UINT_PTR __stdcall CCorProfilerCallback::RecordFunction(FunctionID funcId, void*
 ErrExit:
     if (FAILED(hr) && !*pbHookFunction)
     {
-        LogShouldHook(L"Not tracing %llX due to HRESULT 0x%X\n", funcId, hr);
+        LogShouldHook(L"Not tracing " FORMAT_PTR " due to HRESULT 0x%X\n", funcId, hr);
     }
 
     if (typeArgs && !methodSaved)

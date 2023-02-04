@@ -104,7 +104,7 @@ HRESULT CExceptionManager::SearchFilterEnter(FunctionID functionId)
     //Set the function that will call the filter. This is NOT the FunctionID of the filter itself
     pExceptionInfo->m_FilterInvokerFunctionId = functionId;
 
-    LogException(L"FilterEnter %s %llX\n", pExceptionInfo->m_pClassInfo->m_szName, functionId);
+    LogException(L"FilterEnter %s " FORMAT_PTR "\n", pExceptionInfo->m_pClassInfo->m_szName, functionId);
 
     g_FilterCallDepth++;
 
@@ -153,7 +153,7 @@ HRESULT CExceptionManager::UnwindFunctionEnter(FunctionID functionId)
         }
     }
 
-    LogException(L"UnwindFunctionEnter %s %llX\n", pExceptionInfo->m_pClassInfo->m_szName, functionId);
+    LogException(L"UnwindFunctionEnter %s " FORMAT_PTR "\n", pExceptionInfo->m_pClassInfo->m_szName, functionId);
 
     pExceptionInfo->PushFrame(functionId);
 
@@ -180,14 +180,14 @@ HRESULT CExceptionManager::UnwindFunctionLeave()
         if (g_pProfiler->IsHookedFunction(functionId))
         {
             unwindFrame = TRUE;
-            LogException(L"UnwindFunctionLeave %s: Unwinding shadow stack frame %llX\n", pExceptionInfo->m_pClassInfo->m_szName, functionId.functionID);
+            LogException(L"UnwindFunctionLeave %s: Unwinding shadow stack frame " FORMAT_PTR "\n", pExceptionInfo->m_pClassInfo->m_szName, functionId.functionID);
 
             //This increments g_Sequence so our profiler controller will explode if we don't also provide an ETW notification
             LEAVE_FUNCTION(functionId);
         }
         else
         {
-            LogException(L"UnwindFunctionLeave %s: Not unwinding shadow stack frame %llX as it was not hooked\n", pExceptionInfo->m_pClassInfo->m_szName, functionId.functionID);
+            LogException(L"UnwindFunctionLeave %s: Not unwinding shadow stack frame " FORMAT_PTR " as it was not hooked\n", pExceptionInfo->m_pClassInfo->m_szName, functionId.functionID);
         }
     }
 
@@ -247,7 +247,7 @@ HRESULT CExceptionManager::CatcherEnter(FunctionID functionId, ObjectID objectId
     _ASSERTE(pExceptionInfo->m_ExceptionState == ExceptionState::None);
 
     LogException(
-        L"ExceptionCatcherEnter: %s None -> EnterCatch (EIP %llX, EBP %llX)\n",
+        L"ExceptionCatcherEnter: %s None -> EnterCatch (EIP " FORMAT_PTR ", EBP " FORMAT_PTR ")\n",
         pExceptionInfo->m_pClassInfo->m_szName,
         clauseInfo.programCounter,
         clauseInfo.framePointer
@@ -302,7 +302,7 @@ HRESULT CExceptionManager::CatcherLeave()
         _ASSERTE(pExceptionInfo->m_ExceptionState == ExceptionState::EnterCatch);
 
         LogException(
-            L"ExceptionCatcherLeave: %s EnterCatch -> None (EIP %llX, EBP %llX)\n",
+            L"ExceptionCatcherLeave: %s EnterCatch -> None (EIP " FORMAT_PTR ", EBP " FORMAT_PTR ")\n",
             pExceptionInfo->m_pClassInfo->m_szName,
             clauseInfo.programCounter,
             clauseInfo.framePointer

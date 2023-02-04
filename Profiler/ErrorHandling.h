@@ -70,7 +70,7 @@ extern thread_local BOOL g_DebugBlob;
 #define LogException
 #endif
 #ifndef LogShouldHook
-#define LogShouldHook
+#define LogShouldHook(...)
 #endif
 #ifndef LogHook
 #define LogHook

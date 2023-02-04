@@ -41,7 +41,7 @@ extern thread_local std::stack<FunctionID> g_CallStack;
             g_CallStack.pop(); \
             if (old != functionId.functionID) \
             { \
-                dprintf(L"Stack Error: Expected %llX but got %llX\n", old, functionId.functionID); \
+                dprintf(L"Stack Error: Expected " FORMAT_PTR " but got " FORMAT_PTR "\n", old, functionId.functionID); \
                 DebugBreakSafe(); \
                 hr = PROFILER_E_UNKNOWN_FRAME; \
                 goto ErrExit; \

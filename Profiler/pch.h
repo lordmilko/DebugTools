@@ -27,6 +27,12 @@ namespace std
     };
 }*/
 
+#ifdef _X86_
+#define FORMAT_PTR L"%I32X"
+#else
+#define FORMAT_PTR L"%I64X"
+#endif
+
 #include "ErrorHandling.h"
 
 #define IfFailGoto(EXPR, LABEL) \

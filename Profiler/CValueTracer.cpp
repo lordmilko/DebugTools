@@ -1122,7 +1122,7 @@ HRESULT CValueTracer::GetClassId(
                  * ask what the array's element type is). Worst case scenario we'll attempt to trace System.__Canon
                  * which you'd _think_ behaves just like a regular object */
 
-                dprintf(L"Type Load Error with module 0x%I32X, type 0x%I32X\n", outerModuleId, outerTypeDef);
+                dprintf(L"Type Load Error with module 0x" FORMAT_PTR ", type 0x" FORMAT_PTR "\n", outerModuleId, outerTypeDef);
 
                 CLock classLock(&g_pProfiler->m_ClassMutex);
 
@@ -1823,7 +1823,7 @@ HRESULT CValueTracer::GetMethodInfoNoLock(FunctionIDOrClientID functionId, _Out_
     {
         DebugBreakSafe();
 
-        dprintf(L"Unknown func %llX called\n", functionId.functionID);
+        dprintf(L"Unknown func " FORMAT_PTR " called\n", functionId.functionID);
         return E_FAIL;
     }
 
@@ -1833,7 +1833,7 @@ HRESULT CValueTracer::GetMethodInfoNoLock(FunctionIDOrClientID functionId, _Out_
     {
         DebugBreakSafe();
 
-        dprintf(L"Unknown func %llX called\n", functionId.functionID);
+        dprintf(L"Unknown func " FORMAT_PTR " called\n", functionId.functionID);
         return E_FAIL;
     }
 
