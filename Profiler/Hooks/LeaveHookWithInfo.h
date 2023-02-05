@@ -9,7 +9,9 @@ extern "C" void STDMETHODCALLTYPE LeaveStubWithInfo(FunctionIDOrClientID functio
 {
     HRESULT hr = S_OK;
 
-    LEAVE_FUNCTION(functionId);
+    LEAVE_FUNCTION(functionId.functionID);
+    LogCall(L"LeaveDetailed", functionId);
+
     CExceptionManager::ClearStaleExceptions();
 
     if (!g_TracingEnabled)

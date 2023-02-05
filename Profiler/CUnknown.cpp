@@ -1,12 +1,12 @@
 #include "pch.h"
 #include "CUnknown.h"
-#include <unordered_map>
+#include <unordered_set>
 #include <mutex>
 
 long g_UnknownRefCount = 0;
 
 //These have to be pointers because the first CUnknown that's created is CSigType::Sentinel which a global static, and runs before these globals have been initialized
-std::unordered_map<CUnknown*, BYTE>* g_UnknownMap;
+std::unordered_set<CUnknown*>* g_UnknownMap;
 std::mutex* g_UnknownMutex;
 
 //#define DEBUG_UNKNOWN 1
@@ -16,13 +16,13 @@ CUnknown::CUnknown()
 #if _DEBUG && DEBUG_UNKNOWN
     if (g_UnknownRefCount == 0)
     {
-        g_UnknownMap = new std::unordered_map<CUnknown*, BYTE>();
+        g_UnknownMap = new std::unordered_set<CUnknown*>();
         g_UnknownMutex = new std::mutex();
     }
 
     auto pp = &g_UnknownMap;
     g_UnknownMutex->lock();
-    (*g_UnknownMap)[this] = 1;
+    (*g_UnknownMap).insert(this);
     g_UnknownMutex->unlock();
     InterlockedIncrement(&g_UnknownRefCount);
 #endif
@@ -33,7 +33,7 @@ ULONG CUnknown::AddRef()
 {
 #if _DEBUG && DEBUG_UNKNOWN
     g_UnknownMutex->lock();
-    (*g_UnknownMap)[this] = 1;
+    (*g_UnknownMap).insert(this);
     g_UnknownMutex->unlock();
     InterlockedIncrement(&g_UnknownRefCount);
 #endif

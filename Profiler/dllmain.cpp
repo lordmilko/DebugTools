@@ -52,7 +52,7 @@ extern "C" HRESULT WINAPI DllGetClassObject(REFCLSID rclsid, REFIID riid, void**
 
         //If the target process filename is not in the active proces filename, disable profiling immediately
         if (wcsstr(fileName, targetProcess) == nullptr)
-            return CLASS_E_CLASSNOTAVAILABLE;
+            return CORPROF_E_PROFILER_CANCEL_ACTIVATION;
     }
 
     if (IsEqualCLSID(rclsid, __uuidof(Profiler)))

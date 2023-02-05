@@ -40,9 +40,6 @@ HRESULT CExceptionManager::UnmanagedToManagedTransition(FunctionID functionId, C
 
 HRESULT CExceptionManager::ManagedToUnmanagedTransition(FunctionID functionId, COR_PRF_TRANSITION_REASON reason)
 {
-    if (g_ExceptionQueue.empty())
-        return S_OK;
-
     CExceptionInfo* pExceptionInfo = GetCurrentException();
 
     _ASSERTE(reason == COR_PRF_TRANSITION_CALL || reason == COR_PRF_TRANSITION_RETURN);
@@ -127,6 +124,20 @@ HRESULT CExceptionManager::UnwindFunctionEnter(FunctionID functionId)
 
     CExceptionInfo* pExceptionInfo = GetCurrentException();
 
+    BOOL isHooked = g_pProfiler->IsHookedFunction(functionId);
+
+    /* We've now entered a managed frame again. If the exception occurred inside a callback called
+     * from unmanaged code, we'll still have transition frames in our g_CallStack.
+     * However, we saw in Visual Studio that we may be calling a COM method and trying to load an assembly. If a FileNotFoundException is thrown, UnwindFunctionEnter
+     * will be called for AppDomain.CreateInstance and associated U2M methods. This will cause UnwindUnmanagedTransitions to be called right away. However, after the exception has been caught,
+     * an orderly transition will occur anyway. If we wipe out the transitions several frames too early, the orderly transition won't detect we've unwound anything (because the sequence won't have changed for it)
+     * and so will try and unwind again, causing a Managed frame to be unwound that shouldn't have been.
+     *
+     * If you think about it, it shouldn't matter if we ignore any frame which isn't normally hooked. We have special logic like UnwindUnmanagedTransitions to cleanup such unmanaged frames in the end
+     */
+    if (isHooked)
+        UnwindUnmanagedTransitions();
+
     if (pExceptionInfo->m_IsInFilter && g_ExceptionQueue.size() > 1)
     {
         /* When an UnwindFunctionLeave event occurs, this indicates an unwind of an "exception handler scope".
@@ -163,7 +174,6 @@ HRESULT CExceptionManager::UnwindFunctionEnter(FunctionID functionId)
 HRESULT CExceptionManager::UnwindFunctionLeave()
 {
     HRESULT hr = S_OK;
-    BOOL unwindFrame = FALSE;
 
     CExceptionInfo* pExceptionInfo = GetCurrentException();
 
@@ -177,13 +187,16 @@ HRESULT CExceptionManager::UnwindFunctionLeave()
     }
     else
     {
-        if (g_pProfiler->IsHookedFunction(functionId))
+        if (g_pProfiler->IsHookedFunction(functionId.functionID))
         {
-            unwindFrame = TRUE;
             LogException(L"UnwindFunctionLeave %s: Unwinding shadow stack frame " FORMAT_PTR "\n", pExceptionInfo->m_pClassInfo->m_szName, functionId.functionID);
 
             //This increments g_Sequence so our profiler controller will explode if we don't also provide an ETW notification
-            LEAVE_FUNCTION(functionId);
+            LEAVE_FUNCTION(functionId.functionID);
+            LogCall(L"Unwind", functionId.functionID);
+            ValidateETW(EventWriteExceptionFrameUnwindEvent(functionId.functionID, g_Sequence, (int) FrameKind::Managed));
+
+            UnwindU2M(functionId.functionID);
         }
         else
         {
@@ -194,9 +207,6 @@ HRESULT CExceptionManager::UnwindFunctionLeave()
     ClearStaleExceptions();
 
 ErrExit:
-    if (unwindFrame)
-        ValidateETW(EventWriteExceptionFrameUnwindEvent(functionId.functionID, g_Sequence, hr)); //todo: we should instead have an exceptionunwind event
-
     return hr;
 }
 
@@ -363,6 +373,8 @@ void CExceptionManager::ClearStaleExceptions()
 
 void CExceptionManager::ClearLastException(CExceptionInfo* pExceptionInfo, ExceptionCompletedReason reason)
 {
+    HRESULT hr = S_OK;
+
     EventWriteExceptionCompletedEvent(pExceptionInfo->m_Sequence, (int) reason);
 
     if (reason != ExceptionCompletedReason::UnhandledInFilter)
@@ -389,4 +401,81 @@ void CExceptionManager::ClearStaleException(CExceptionInfo* pExceptionInfo)
     delete pExceptionInfo;
 
     LogException(L"Exceptions remaining: %d\n", g_ExceptionQueue.size());
+}
+
+void CExceptionManager::UnwindU2M(FunctionID functionId)
+{
+    if (g_CallStack.empty())
+        return;
+
+    HRESULT hr = S_OK;
+
+    Frame* top = &g_CallStack.top();
+
+    /* We're currently unwinding from a managed frame, which means the frame we just popped off is probably a Managed frame.
+     * I don't know if it could be an M2U stub. If we can gracefully unwind M2U stubs, then if there's two M2U stubs I think
+     * we should be fine unwinding the second one. the only thing we can't handle is an U2M stub, which won't otherwise have
+     * an opportunity to be unwound */
+    while (top->Kind == FrameKind::U2M)
+    {
+        //If the U2M frame has the same FunctionID as the managed frame we just gracefully popped, there's no stub frame that needs to be removed.
+        //These U2M frames will be removed gracefully by themselves in ManagedToUnmanagedTransition(Return). This can happen when unmanaged code calls into
+        //a COM interface it owns whose implementing type is in managed code
+        if (top->FunctionId == functionId)
+            break;
+
+        /* We're now going to unwind into an unmanaged frame. For some reason, when a COM method invokes a delegate callback, rather than going COM -> Callback, it actually goes COM -> Delegate.Invoke() -> Callback.
+         * We just unwound Callback, but the U2M Delegate.Invoke() won't get unwound
+
+         * In the case of M2U, we may do NativeMethods.Foo (M2U) -> Delegate.Invoke (U2M). But we don't know whether our exception will be caught in unmanaged code!
+         * So here's what will happen
+         * - If the exception is caught inside unmanaged code, there will be an orderly U2M event (which we'll be able to unwind from). If there was an M2U event before it, it will be called too
+         * - If the exception is not caught inside unmanaged code, we'll hit a CatcherEnter event, at which point we'll unwind any non-managed frames
+         */
+        LEAVE_FUNCTION(top->FunctionId);
+        LogCall(L"Unwind U2M Stub", top->FunctionId);
+        ValidateETW(EventWriteExceptionFrameUnwindEvent(top->FunctionId, g_Sequence, (int)top->Kind));
+
+        if (g_CallStack.empty())
+            break;
+
+        top = &g_CallStack.top();
+    }
+
+    if (top->Kind == FrameKind::M2U)
+        g_CheckM2UUnwind = TRUE;
+ErrExit:
+    return;
+}
+
+void CExceptionManager::UnwindUnmanagedTransitions()
+{
+    HRESULT hr = S_OK;
+
+    if (!g_CallStack.empty())
+    {
+        Frame* top = &g_CallStack.top();
+
+        while (top->Kind != FrameKind::Managed)
+        {
+            //The exception was caught in unmanaged code, and we've just stepped back into managed code. As such we need to clear any
+            //transition frames we recorded
+            LEAVE_FUNCTION(top->FunctionId);
+
+            if (top->Kind == FrameKind::M2U)
+                LogException(L"Unwind M2U", top->FunctionId);
+            else
+                LogException(L"Unwind U2M", top->FunctionId);
+
+            ValidateETW(EventWriteExceptionFrameUnwindEvent(top->FunctionId, g_Sequence, (int)top->Kind));
+
+            if (g_CallStack.empty())
+                break;
+
+            top = &g_CallStack.top();
+        }
+    }
+
+ErrExit:
+    return;
 }

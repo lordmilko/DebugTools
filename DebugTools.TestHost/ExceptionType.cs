@@ -484,6 +484,20 @@ namespace DebugTools.TestHost
             }
         }
 
+        public void UncaughtInNative_DoubleCallback()
+        {
+            try
+            {
+                NativeMethods.EnumWindows((hWnd_1, lParam_1) =>
+                {
+                    return NativeMethods.EnumWindows((hWnd_2, lParam_2) => throw new NotImplementedException("Error Message"), IntPtr.Zero);
+                }, IntPtr.Zero);
+            }
+            catch (NotImplementedException)
+            {
+            }
+        }
+
         #endregion
         #region CaughtInNative
 
@@ -499,6 +513,7 @@ namespace DebugTools.TestHost
             Marshal.ThrowExceptionForHR(sos.GetAssemblyList(appDomains[0], numAssemblies, assemblies, out numAssemblies));
             Marshal.ThrowExceptionForHR(sos.GetAssemblyModuleList(assemblies[0], 0, null, out var numModules));
 
+            Debug.WriteLine("Checking modules");
             var modules = new ulong[numModules];
             Marshal.ThrowExceptionForHR(sos.GetAssemblyModuleList(assemblies[0], numModules, modules, out numModules));
 
@@ -510,6 +525,7 @@ namespace DebugTools.TestHost
              * ExceptionUnwindFunctionLeave     - TypeDefToModuleCallback
              * UnmanagedToManaged (Return)      - gracefully return HRESULT
              */
+            Debug.WriteLine("Calling!");
             var hr = sos.TraverseModuleMap(ModuleMapType.TypeDefToMethodTable, modules[0], TypeDefToModuleCallback, IntPtr.Zero);
 
             Debug.WriteLine($"Completed with {hr:X}");

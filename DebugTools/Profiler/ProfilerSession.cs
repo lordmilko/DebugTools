@@ -7,7 +7,6 @@ using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading;
 using ClrDebug;
-using DebugTools.SOS;
 using DebugTools.Tracing;
 using Microsoft.Diagnostics.Tracing.Session;
 
@@ -24,7 +23,7 @@ namespace DebugTools.Profiler
 
         public Thread Thread { get; }
 
-        public ConcurrentDictionary<long, IMethodInfo> Methods { get; } = new ConcurrentDictionary<long, IMethodInfo>();
+        internal ConcurrentDictionary<long, IMethodInfoInternal> Methods { get; } = new ConcurrentDictionary<long, IMethodInfoInternal>();
 
         public bool HasExited => Process?.HasExited ?? true;
 
@@ -34,7 +33,9 @@ namespace DebugTools.Profiler
         private Dictionary<int, string> threadNames = new Dictionary<int, string>();
 
         private bool collectStackTrace;
+        private bool includeUnknownTransitions;
         private bool stopping;
+        private bool cancelIfTimeoutNoEvents;
         private DateTime stopTime;
 
         private CancellationTokenSource traceCTS;
@@ -72,6 +73,9 @@ namespace DebugTools.Profiler
             parser.CallLeaveDetailed += Parser_CallLeaveDetailed;
             parser.TailcallDetailed += Parser_TailcallDetailed;
 
+            parser.ManagedToUnmanaged += args => Parser_UnmanagedTransition(args, FrameKind.M2U);
+            parser.UnmanagedToManaged += args => Parser_UnmanagedTransition(args, FrameKind.U2M);
+
             parser.Exception += Parser_Exception;
             parser.ExceptionFrameUnwind += Parser_ExceptionFrameUnwind;
             parser.ExceptionCompleted += Parser_ExceptionCompleted;
@@ -100,12 +104,28 @@ namespace DebugTools.Profiler
 
         private void Parser_MethodInfo(MethodInfoArgs v)
         {
-            Methods[v.FunctionID] = new MethodInfo(v.FunctionID, v.ModuleName, v.TypeName, v.MethodName);
+            var wasUnknown = Methods.TryGetValue(v.FunctionID, out var existing) && existing is UnknownMethodInfo;
+
+            //If the function was unknown previously (which can occur in weird double unmanaged to managed transitions, such as with
+            //Visual Studio's VsAppDomainManager.OnStart()) we'll overwrite it, and be sure to check against the previous instance by looking at the function id,
+            //not the object reference
+            Methods[v.FunctionID] = new MethodInfo(v.FunctionID, v.ModuleName, v.TypeName, v.MethodName)
+            {
+                WasUnknown = wasUnknown
+            };
         }
 
         private void Parser_MethodInfoDetailed(MethodInfoDetailedArgs v)
         {
-            Methods[v.FunctionID] = new MethodInfoDetailed(v.FunctionID, v.ModuleName, v.TypeName, v.MethodName, v.Token, v.SigBlob, v.SigBlobLength);
+            var wasUnknown = Methods.TryGetValue(v.FunctionID, out var existing) && existing is UnknownMethodInfo;
+
+            //If the function was unknown previously (which can occur in weird double unmanaged to managed transitions, such as with
+            //Visual Studio's VsAppDomainManager.OnStart()) we'll overwrite it, and be sure to check against the previous instance by looking at the function id,
+            //not the object reference
+            Methods[v.FunctionID] = new MethodInfoDetailed(v.FunctionID, v.ModuleName, v.TypeName, v.MethodName, v.Token, v.SigBlob, v.SigBlobLength)
+            {
+                WasUnknown = wasUnknown
+            };
         }
 
         #endregion
@@ -114,33 +134,13 @@ namespace DebugTools.Profiler
         private void Parser_CallEnter(CallArgs args) =>
             CallEnterCommon(args, (t, v, m) => t.Enter(v, m));
 
-        private void Parser_CallLeave(CallArgs v)
-        {
-            ProcessStopping(v.TimeStamp);
+        private void Parser_CallLeave(CallArgs args) =>
+            CallLeaveCommon(args, (t, v, m) => t.Leave(v, m));
 
-            if (collectStackTrace)
-            {
-                Validate(v);
+        private void Parser_Tailcall(CallArgs args) =>
+            CallLeaveCommon(args, (t, v, m) => t.Tailcall(v, m));
 
-                if (ThreadCache.TryGetValue(v.ThreadID, out var threadStack))
-                    threadStack.Leave(v, GetMethodSafe(v.FunctionID));
-            }
-        }
-
-        private void Parser_Tailcall(CallArgs v)
-        {
-            ProcessStopping(v.TimeStamp);
-
-            if (collectStackTrace)
-            {
-                Validate(v);
-
-                if (ThreadCache.TryGetValue(v.ThreadID, out var threadStack))
-                    threadStack.Tailcall(v, GetMethodSafe(v.FunctionID));
-            }
-        }
-
-        private void CallEnterCommon<T>(T args, Func<ThreadStack, T, IMethodInfo, IFrame> addMethod) where T : ICallArgs
+        private void CallEnterCommon<T>(T args, Func<ThreadStack, T, IMethodInfoInternal, IFrame> addMethod, bool ignoreUnknown = false) where T : ICallArgs
         {
             ProcessStopping(args.TimeStamp);
 
@@ -150,60 +150,61 @@ namespace DebugTools.Profiler
 
                 bool setName = false;
 
+                var method = GetMethodSafe(args.FunctionID);
+
                 if (!ThreadCache.TryGetValue(args.ThreadID, out var threadStack))
                 {
-                    threadStack = new ThreadStack();
+                    if (ignoreUnknown && method.WasUnknown && !includeUnknownTransitions)
+                        return;
+
+                    threadStack = new ThreadStack(includeUnknownTransitions);
                     ThreadCache[args.ThreadID] = threadStack;
 
                     setName = true;
                 }
 
-                var method = GetMethodSafe(args.FunctionID);
                 var frame = addMethod(threadStack, args, method);
 
-                var local = watchQueue;
-                local?.Add(frame);
+                if (frame != null)
+                {
+                    var local = watchQueue;
+                    local?.Add(frame);
+                }
 
                 if (setName && threadNames.TryGetValue(args.ThreadID, out var name))
                     threadStack.Root.ThreadName = name;
             }
         }
 
+        private void CallLeaveCommon<T>(T args, Action<ThreadStack, T, IMethodInfoInternal> leaveMethod, bool validateHR = true) where T : ICallArgs
+        {
+            ProcessStopping(args.TimeStamp);
+
+            if (collectStackTrace)
+            {
+                if (validateHR)
+                    Validate(args);
+
+                if (ThreadCache.TryGetValue(args.ThreadID, out var threadStack))
+                {
+                    var method = GetMethodSafe(args.FunctionID);
+
+                    leaveMethod(threadStack, args, method);
+                }
+            }
+        }
+
         #endregion
         #region CallDetailedArgs
 
-        private void Parser_CallEnterDetailed(CallDetailedArgs args) => CallEnterCommon(args, (t, v, m) =>
-        {
-            Validate(v);
+        private void Parser_CallEnterDetailed(CallDetailedArgs args) =>
+            CallEnterCommon(args, (t, v, m) => t.EnterDetailed(v, m));
 
-            return t.EnterDetailed(v, m);
-        });
+        private void Parser_CallLeaveDetailed(CallDetailedArgs args) =>
+            CallLeaveCommon(args, (t, v, m) => t.LeaveDetailed(v, m));
 
-        private void Parser_CallLeaveDetailed(CallDetailedArgs args)
-        {
-            ProcessStopping(args.TimeStamp);
-
-            if (collectStackTrace)
-            {
-                Validate(args);
-
-                if (ThreadCache.TryGetValue(args.ThreadID, out var threadStack))
-                    threadStack.LeaveDetailed(args, GetMethodSafe(args.FunctionID));
-            }
-        }
-
-        private void Parser_TailcallDetailed(CallDetailedArgs args)
-        {
-            ProcessStopping(args.TimeStamp);
-
-            if (collectStackTrace)
-            {
-                Validate(args);
-
-                if (ThreadCache.TryGetValue(args.ThreadID, out var threadStack))
-                    threadStack.TailcallDetailed(args, GetMethodSafe(args.FunctionID));
-            }
-        }
+        private void Parser_TailcallDetailed(CallDetailedArgs args) =>
+            CallLeaveCommon(args, (t, v, m) => t.TailcallDetailed(v, m));
 
         private void Validate(ICallArgs args)
         {
@@ -227,6 +228,17 @@ namespace DebugTools.Profiler
         }
 
         #endregion
+        #region Unmanaged
+
+        private void Parser_UnmanagedTransition(UnmanagedTransitionArgs args, FrameKind kind)
+        {
+            if (args.Reason == COR_PRF_TRANSITION_REASON.COR_PRF_TRANSITION_CALL)
+                CallEnterCommon(args, (t, v, m) => t.EnterUnmanagedTransition(v, m, kind), true);
+            else
+                CallLeaveCommon(args, (t, v, m) => t.LeaveUnmanagedTransition(v, m));
+        }
+
+        #endregion
         #region Exception
 
         private void Parser_Exception(ExceptionArgs args)
@@ -238,18 +250,8 @@ namespace DebugTools.Profiler
             }
         }
 
-        private void Parser_ExceptionFrameUnwind(CallArgs v)
-        {
-            ProcessStopping(v.TimeStamp);
-
-            if (collectStackTrace)
-            {
-                Validate(v);
-
-                if (ThreadCache.TryGetValue(v.ThreadID, out var threadStack))
-                    threadStack.ExceptionFrameUnwind(v, GetMethodSafe(v.FunctionID));
-            }
-        }
+        private void Parser_ExceptionFrameUnwind(CallArgs args) =>
+            CallLeaveCommon(args, (t, v, m) => t.ExceptionFrameUnwind(v, m), false);
 
         private void Parser_ExceptionCompleted(ExceptionCompletedArgs v)
         {
@@ -277,12 +279,15 @@ namespace DebugTools.Profiler
             }
         }
 
-        private IMethodInfo GetMethodSafe(long functionId)
+        private IMethodInfoInternal GetMethodSafe(long functionId)
         {
             if (Methods.TryGetValue(functionId, out var value))
                 return value;
 
-            value = new MethodInfo(functionId, "Unknown", "Unknown", "Unknown");
+            value = new UnknownMethodInfo(functionId)
+            {
+                WasUnknown = true
+            };
             Methods[functionId] = value;
             return value;
         }
@@ -290,6 +295,7 @@ namespace DebugTools.Profiler
         public void Start(CancellationToken cancellationToken, string processName, ProfilerSetting[] settings)
         {
             collectStackTrace = settings?.Any(s => s == ProfilerSetting.TraceStart) == true;
+            includeUnknownTransitions = settings?.Any(s => s == ProfilerSetting.IncludeUnknownUnmanagedTransitions) == true;
 
             var pipeCTS = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
             traceCTS = new CancellationTokenSource();
@@ -304,6 +310,14 @@ namespace DebugTools.Profiler
                 TraceEventSession.EnableProvider(ProfilerTraceEventParser.ProviderGuid, options: options);
 
                 Thread.Start();
+
+                if (traceCTS != null)
+                {
+                    cancelThread = new Thread(CancelTraceThreadProc);
+
+                    cancelIfTimeoutNoEvents = false;
+                    cancelThread.Start();
+                }
 
                 p.EnableRaisingEvents = true;
                 p.Exited += (s, e) =>
@@ -320,9 +334,8 @@ namespace DebugTools.Profiler
 
                     if (traceCTS != null)
                     {
-                        cancelThread = new Thread(CancelTraceThreadProc);
-
-                        cancelThread.Start();
+                        lastEvent = DateTime.Now;
+                        cancelIfTimeoutNoEvents = true;
                     }
                     else
                     {
@@ -360,6 +373,12 @@ namespace DebugTools.Profiler
 
             while (true)
             {
+                if (!cancelIfTimeoutNoEvents)
+                {
+                    Thread.Sleep(100);
+                    continue;
+                }
+
                 //If we go more than 2 seconds without receiving a new event after the process has shutdown, we'll assume no more events are incoming
                 var threshold = DateTime.Now.AddSeconds(-2);
 
@@ -424,6 +443,7 @@ namespace DebugTools.Profiler
                     {
                         stopTime = DateTime.Now;
                         stopping = true;
+                        cancelIfTimeoutNoEvents = true;
                         Console.WriteLine("Stopping...");
                     });
 
@@ -455,6 +475,7 @@ namespace DebugTools.Profiler
             {
                 stopTime = DateTime.Now;
                 stopping = true;
+                cancelIfTimeoutNoEvents = true;
                 Console.WriteLine("Stopping...");
             });
 

@@ -198,6 +198,7 @@ namespace Profiler.Tests
         NoCatchThrowInFinallyUnwindOneFrame,
 
         UncaughtInNative,
+        UncaughtInNative_DoubleCallback,
         CaughtInNative,
 
         Rethrow,

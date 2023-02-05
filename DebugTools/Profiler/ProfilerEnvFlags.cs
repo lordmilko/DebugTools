@@ -11,6 +11,7 @@
         ModuleWhitelist,
         IgnoreDefaultBlacklist,
 
-        DisablePipe
+        DisablePipe,
+        IncludeUnknownUnmanagedTransitions
     }
 }

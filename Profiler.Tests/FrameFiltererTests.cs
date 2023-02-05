@@ -489,6 +489,25 @@ namespace Profiler.Tests
 ");
         }
 
+        [TestMethod]
+        public void FrameFilterer_FilterUnmanaged()
+        {
+            var options = new FrameFilterOptions
+            {
+                Unmanaged = true
+            };
+
+            var tree = MakeRoot(
+                MakeFrame("first", String("aaa")),
+                MakeUnmanagedFrame("second")
+            );
+
+            TestStack(options, tree, @"
+1000
+└─M2U Methods.second
+");
+        }
+
         private RootFrame MakeRoot(params IMethodFrame[] children)
         {
             var newFrame = new RootFrame
@@ -516,6 +535,24 @@ namespace Profiler.Tests
                 new MockMethodInfoDetailed(typeof(Methods).GetMethod(methodName)),
                 new List<object> {parameter},
                 VoidValue.Instance
+            );
+
+            if (children != null)
+            {
+                newFrame.Children.AddRange(children);
+
+                foreach (var child in children)
+                    child.Parent = newFrame;
+            }
+
+            return newFrame;
+        }
+
+        private IUnmanagedTransitionFrame MakeUnmanagedFrame(string methodName, params IMethodFrame[] children)
+        {
+            var newFrame = new MockUnmanagedTransitionFrame(
+                new MockMethodInfo(typeof(Methods).GetMethod(methodName)),
+                FrameKind.M2U
             );
 
             if (children != null)

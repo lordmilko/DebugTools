@@ -114,6 +114,7 @@ namespace DebugTools.Profiler
                             break;
 
                         case ProfilerEnvFlags.DisablePipe:
+                        case ProfilerEnvFlags.IncludeUnknownUnmanagedTransitions:
                             break;
 
                         default:

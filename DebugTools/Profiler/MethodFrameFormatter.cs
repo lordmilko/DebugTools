@@ -68,10 +68,24 @@ namespace DebugTools.Profiler
             {
                 var info = m.MethodInfo;
 
-                writer
-                    .Write(GetTypeName(info.TypeName), frame, FrameTokenKind.TypeName)
-                    .Write(".", frame, FrameTokenKind.Dot)
-                    .Write(info.MethodName, frame, FrameTokenKind.MethodName);
+                if (frame is IUnmanagedTransitionFrame f)
+                {
+                    writer
+                        .Write(f.Kind, frame, FrameTokenKind.FrameKind)
+                        .Write(" ", frame, FrameTokenKind.Space);
+                }
+
+                if (info is UnknownMethodInfo)
+                {
+                    writer.Write("0x" + info.FunctionID.ToString("X"), frame, FrameTokenKind.FunctionId);
+                }
+                else
+                {
+                    writer
+                        .Write(GetTypeName(info.TypeName), frame, FrameTokenKind.TypeName)
+                        .Write(".", frame, FrameTokenKind.Dot)
+                        .Write(info.MethodName, frame, FrameTokenKind.MethodName);
+                }
             }
             else
                 throw new NotImplementedException($"Don't know how to handle frame of type '{frame}'.");

@@ -16,6 +16,13 @@ namespace Profiler.Tests
             this.frame = frame;
         }
 
+        public FrameVerifier HasName(string name)
+        {
+            Assert.AreEqual(name, frame.ToString());
+
+            return this;
+        }
+
         public void HasFrame(string name)
         {
             var child = frame.Children.FirstOrDefault(m => m.MethodInfo.MethodName == name);

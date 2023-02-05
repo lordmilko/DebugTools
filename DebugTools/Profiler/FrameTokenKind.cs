@@ -18,6 +18,9 @@
         MethodName,
 
         Parameter,
-        ParametersUnknown
+        ParametersUnknown,
+
+        FunctionId,
+        FrameKind,
     }
 }

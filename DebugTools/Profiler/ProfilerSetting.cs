@@ -7,6 +7,7 @@
         public static readonly ProfilerSetting TraceStart = new ProfilerSetting(ProfilerEnvFlags.TraceStart, null);
         public static readonly ProfilerSetting IgnoreDefaultBlacklist = new ProfilerSetting(ProfilerEnvFlags.IgnoreDefaultBlacklist, null);
         public static readonly ProfilerSetting DisablePipe = new ProfilerSetting(ProfilerEnvFlags.DisablePipe, null);
+        public static readonly ProfilerSetting IncludeUnknownUnmanagedTransitions = new ProfilerSetting(ProfilerEnvFlags.IncludeUnknownUnmanagedTransitions, null);
 
         public ProfilerEnvFlags Flag { get; }
 

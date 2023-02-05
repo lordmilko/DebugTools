@@ -38,6 +38,8 @@ public:
 
 private:
     static void ClearStaleException(CExceptionInfo* pExceptionInfo);
+    static void UnwindU2M(FunctionID functionId);
+    static void UnwindUnmanagedTransitions();
     
     void EnterUnmanaged(CExceptionInfo* pExceptionInfo);
     void LeaveUnmanaged(CExceptionInfo* pExceptionInfo);

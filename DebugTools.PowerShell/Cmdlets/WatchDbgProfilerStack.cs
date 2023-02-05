@@ -19,6 +19,9 @@ namespace DebugTools.PowerShell.Cmdlets
         [Parameter(Mandatory = false, ParameterSetName = ParameterSet.Filter)]
         public SwitchParameter VoidValue { get; set; }
 
+        [Parameter(Mandatory = false, ParameterSetName = ParameterSet.Filter)]
+        public SwitchParameter Unmanaged { get; set; }
+
         #region Primitive
 
         [Parameter(Mandatory = false, ParameterSetName = ParameterSet.Filter)]
@@ -95,6 +98,7 @@ namespace DebugTools.PowerShell.Cmdlets
                     Exclude = Exclude,
                     Unique = Unique,
                     VoidValue = VoidValue,
+                    Unmanaged = Unmanaged,
                     BoolValue = BoolValue,
                     CharValue = CharValue,
                     SByteValue = SByteValue,

@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Management.Automation;
 using DebugTools.Profiler;
 
@@ -39,6 +38,9 @@ namespace DebugTools.PowerShell.Cmdlets
         [Parameter(Mandatory = false)]
         public SwitchParameter DisablePipe { get; set; }
 
+        [Parameter(Mandatory = false)]
+        public SwitchParameter IncludeUnknownUnmanagedTransitions { get; set; }
+
         protected override void ProcessRecord()
         {
             var session = new ProfilerSession();
@@ -64,6 +66,9 @@ namespace DebugTools.PowerShell.Cmdlets
 
             if (DisablePipe)
                 settings.Add(ProfilerSetting.DisablePipe);
+
+            if (IncludeUnknownUnmanagedTransitions)
+                settings.Add(ProfilerSetting.IncludeUnknownUnmanagedTransitions);
 
             if (IgnoreDefaultBlacklist)
                 settings.Add(ProfilerSetting.IgnoreDefaultBlacklist);

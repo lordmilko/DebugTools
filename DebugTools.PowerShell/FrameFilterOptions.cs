@@ -15,6 +15,8 @@ namespace DebugTools.PowerShell
 
         public bool VoidValue { get; set; }
 
+        public bool Unmanaged { get; set; }
+
         #region Primitive
 
         private bool[] boolValue;

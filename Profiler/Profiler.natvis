@@ -350,6 +350,10 @@ $split = $_ -split ' '
     <Type Name="CExceptionInfo">
         <DisplayString>{m_pClassInfo->m_szName,sub}</DisplayString>
     </Type>
+    <Type Name="Frame">
+        <DisplayString Condition="Kind == 0">{Kind,en} {FunctionId,X}</DisplayString>
+        <DisplayString Condition="Kind != 0">{Kind,en}         {FunctionId,X}</DisplayString>
+    </Type>
 
     <HResult Name="PROFILER_E_BUFFERFULL">
         <HRValue>0x80041001</HRValue>

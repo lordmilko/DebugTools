@@ -12,6 +12,7 @@ namespace Profiler.Tests
         public string ModuleName { get; }
         public string TypeName { get; }
         public string MethodName { get; }
+        public bool WasUnknown { get; set; }
 
         public SigMethodDef SigMethod { get; }
 

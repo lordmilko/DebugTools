@@ -9,7 +9,9 @@ extern "C" void STDMETHODCALLTYPE LeaveStub(FunctionIDOrClientID functionId)
 {
     HRESULT hr = S_OK;
 
-    LEAVE_FUNCTION(functionId);
+    LEAVE_FUNCTION(functionId.functionID);
+    LogCall(L"Leave", functionId);
+
     CExceptionManager::ClearStaleExceptions();
 
 ErrExit:

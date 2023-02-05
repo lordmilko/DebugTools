@@ -261,7 +261,7 @@ namespace Profiler.Tests
         {
             TestInternal(TestType.Blacklist, type.ToString(), v =>
             {
-                var modules = v.Methods.Select(m => m.ModuleName).Distinct().ToArray();
+                var modules = v.Methods.Where(m => !(m is UnknownMethodInfo)).Select(m => m.ModuleName).Distinct().ToArray();
 
                 validate(modules.Verify());
             }, settings);

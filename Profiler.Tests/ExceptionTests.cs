@@ -1,5 +1,6 @@
 using System;
 using System.Linq;
+using DebugTools;
 using DebugTools.Profiler;
 using DebugTools.Tracing;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -113,6 +114,32 @@ namespace Profiler.Tests
         public void Exception_UncaughtInNative() =>
             Test(ExceptionTestType.UncaughtInNative, v =>
             {
+                var expected = new[]
+                {
+                    "M2U DebugTools.TestHost.NativeMethods.EnumWindows",
+                    "U2M DebugTools.TestHost.EnumWindowsProc.Invoke",
+                    "U2M DebugTools.TestHost.EnumWindowsProc.Invoke"
+                };
+
+                var frames = v.Validator.FindFrames(m => m is IUnmanagedTransitionFrame).ToArray();
+
+                Assert.AreEqual(expected.Length, frames.Length);
+
+                for (var i = 0; i < frames.Length; i++)
+                {
+                    var expectedItem = expected[i];
+                    var actualItem = frames[i];
+
+                    actualItem.Verify().HasName(expectedItem);
+                }
+
+                v.HasException(0, "System.NotImplementedException", ExceptionStatus.Caught);
+            });
+
+        [TestMethod]
+        public void Exception_UncaughtInNative_DoubleCallback() =>
+            Test(ExceptionTestType.UncaughtInNative_DoubleCallback, v =>
+            {
                 v.HasException(0, "System.NotImplementedException", ExceptionStatus.Caught);
             });
 
@@ -120,6 +147,13 @@ namespace Profiler.Tests
         public void Exception_CaughtInNative() =>
             Test(ExceptionTestType.CaughtInNative, v =>
             {
+                var frames = v.Validator.FindFrames(m => m is IUnmanagedTransitionFrame).DistinctBy(f => f.ToString()).ToArray();
+
+                Assert.IsTrue(frames.Length > 0);
+
+                v.Validator.HasFrame("TraverseModuleMap", "DebugTools.TestHost.ISOSDacInterface");
+                v.Validator.HasFrame("Invoke", "DebugTools.TestHost.MODULEMAPTRAVERSE");
+
                 v.HasException(0, "System.NotImplementedException", ExceptionStatus.UnmanagedCaught);
             });
 
@@ -167,7 +201,7 @@ namespace Profiler.Tests
 
         internal void Test(ExceptionTestType type, Action<ExceptionVerifier> validate, params ProfilerSetting[] settings)
         {
-            TestInternal(TestType.Exception, type.ToString(), v => validate(new ExceptionVerifier(v.ThreadStacks.Single().Exceptions.Values.ToArray())), settings);
+            TestInternal(TestType.Exception, type.ToString(), v => validate(new ExceptionVerifier(v.ThreadStacks.Single().Exceptions.Values.ToArray(), v)), settings);
         }
     }
 }

@@ -7,7 +7,9 @@
 // ReSharper disable once CppNonInlineFunctionDefinitionInHeaderFile
 extern "C" void STDMETHODCALLTYPE EnterStub(FunctionIDOrClientID functionId)
 {
-    ENTER_FUNCTION(functionId);
+    ENTER_FUNCTION(functionId.functionID, FrameKind::Managed);
+
+    LogCall(L"Enter", functionId);
 
     if (!g_TracingEnabled)
         return;

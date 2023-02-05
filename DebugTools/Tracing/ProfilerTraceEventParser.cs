@@ -15,18 +15,21 @@ namespace DebugTools.Tracing
             public const int CallExitDetailed = 5;
             public const int TailcallDetailed = 6;
 
-            public const int Exception = 7;
-            public const int ExceptionFrameUnwind = 8;
-            public const int ExceptionCompleted = 9;
+            public const int ManagedToUnmanaged = 7;
+            public const int UnmanagedToManaged = 8;
 
-            public const int MethodInfo = 10;
-            public const int MethodInfoDetailed = 11;
+            public const int Exception = 9;
+            public const int ExceptionFrameUnwind = 10;
+            public const int ExceptionCompleted = 11;
 
-            public const int ThreadCreate = 12;
-            public const int ThreadDestroy = 13;
-            public const int ThreadName = 14;
+            public const int MethodInfo = 12;
+            public const int MethodInfoDetailed = 13;
 
-            public const int Shutdown = 15;
+            public const int ThreadCreate = 14;
+            public const int ThreadDestroy = 15;
+            public const int ThreadName = 16;
+
+            public const int Shutdown = 17;
         }
 
         /// <summary>
@@ -77,6 +80,18 @@ namespace DebugTools.Tracing
         {
             add => source.RegisterEventTemplate(TailcallDetailedTemplate(value));
             remove => source.UnregisterEventTemplate(value, EventId.TailcallDetailed, ProviderGuid);
+        }
+
+        public event Action<UnmanagedTransitionArgs> ManagedToUnmanaged
+        {
+            add => source.RegisterEventTemplate(ManagedToUnmanagedTemplate(value));
+            remove => source.UnregisterEventTemplate(value, EventId.ManagedToUnmanaged, ProviderGuid);
+        }
+
+        public event Action<UnmanagedTransitionArgs> UnmanagedToManaged
+        {
+            add => source.RegisterEventTemplate(UnmanagedToManagedTemplate(value));
+            remove => source.UnregisterEventTemplate(value, EventId.UnmanagedToManaged, ProviderGuid);
         }
 
         public event Action<ExceptionArgs> Exception
@@ -145,28 +160,32 @@ namespace DebugTools.Tracing
         {
             if (events == null)
             {
-                var arr = new TraceEvent[12];
-                arr[0] = CallEnterTemplate(null);
-                arr[1] = CallLeaveTemplate(null);
-                arr[2] = TailcallTemplate(null);
+                events = new TraceEvent[]
+                {
+                    CallEnterTemplate(null),
+                    CallLeaveTemplate(null),
+                    TailcallTemplate(null),
 
-                arr[3] = CallEnterDetailedTemplate(null);
-                arr[4] = CallLeaveDetailedTemplate(null);
-                arr[5] = TailcallDetailedTemplate(null);
+                    CallEnterDetailedTemplate(null),
+                    CallLeaveDetailedTemplate(null),
+                    TailcallDetailedTemplate(null),
 
-                arr[6] = ExceptionTemplate(null);
-                arr[7] = ExceptionFrameUnwindTemplate(null);
-                arr[8] = ExceptionCompletedTemplate(null);
+                    ManagedToUnmanagedTemplate(null),
+                    UnmanagedToManagedTemplate(null),
 
-                arr[9] = MethodInfoTemplate(null);
-                arr[10] = MethodInfoDetailedTemplate(null);
+                    ExceptionTemplate(null),
+                    ExceptionFrameUnwindTemplate(null),
+                    ExceptionCompletedTemplate(null),
 
-                arr[11] = ThreadCreateTemplate(null);
-                arr[12] = ThreadDestroyTemplate(null);
-                arr[13] = ThreadNameTemplate(null);
+                    MethodInfoTemplate(null),
+                    MethodInfoDetailedTemplate(null),
 
-                arr[14] = ShutdownTemplate(null);
-                events = arr;
+                    ThreadCreateTemplate(null),
+                    ThreadDestroyTemplate(null),
+                    ThreadNameTemplate(null),
+
+                    ShutdownTemplate(null)
+                };
             }
 
             foreach (var item in events)
@@ -189,6 +208,10 @@ namespace DebugTools.Tracing
         private static CallDetailedArgs CallLeaveDetailedTemplate(Action<CallDetailedArgs> action) => new CallDetailedArgs(action, EventId.CallExitDetailed, 0, null, Guid.Empty, 0, null, ProviderGuid, ProviderName);
 
         private static CallDetailedArgs TailcallDetailedTemplate(Action<CallDetailedArgs> action) => new CallDetailedArgs(action, EventId.TailcallDetailed, 0, null, Guid.Empty, 0, null, ProviderGuid, ProviderName);
+
+        private static UnmanagedTransitionArgs ManagedToUnmanagedTemplate(Action<UnmanagedTransitionArgs> action) => new UnmanagedTransitionArgs(action, EventId.ManagedToUnmanaged, 0, null, Guid.Empty, 0, null, ProviderGuid, ProviderName);
+
+        private static UnmanagedTransitionArgs UnmanagedToManagedTemplate(Action<UnmanagedTransitionArgs> action) => new UnmanagedTransitionArgs(action, EventId.UnmanagedToManaged, 0, null, Guid.Empty, 0, null, ProviderGuid, ProviderName);
 
         private static ExceptionArgs ExceptionTemplate(Action<ExceptionArgs> action) => new ExceptionArgs(action, EventId.Exception, 0, null, Guid.Empty, 0, null, ProviderGuid, ProviderName);
 

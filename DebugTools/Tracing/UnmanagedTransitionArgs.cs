@@ -2,30 +2,23 @@
 using System.Diagnostics;
 using System.Text;
 using ClrDebug;
-using DebugTools.Profiler;
 using Microsoft.Diagnostics.Tracing;
 
 namespace DebugTools.Tracing
 {
-    /// <summary>
-    /// Describes the CallArgs template defined in DebugToolsProfiler.man
-    /// </summary>
-    public sealed class CallArgs : TraceEvent, ICallArgs
+    public class UnmanagedTransitionArgs : TraceEvent, ICallArgs
     {
         public long FunctionID => GetInt64At(0);
 
         public long Sequence => GetInt64At(8);
 
-        public HRESULT HRESULT => (HRESULT) GetInt32At(16);
+        public COR_PRF_TRANSITION_REASON Reason => (COR_PRF_TRANSITION_REASON) GetInt32At(16);
 
-        /// <summary>
-        /// Gets the kind of frame that was unwound. This field is only valid in unwind events.
-        /// </summary>
-        public FrameKind UnwindFrameKind => (FrameKind) GetInt32At(16);
+        public HRESULT HRESULT => HRESULT.S_OK;
 
-        private Action<CallArgs> action;
+        private Action<UnmanagedTransitionArgs> action;
 
-        internal CallArgs(Action<CallArgs> action, int eventID, int task, string taskName, Guid taskGuid, int opcode, string opcodeName, Guid providerGuid, string providerName) :
+        internal UnmanagedTransitionArgs(Action<UnmanagedTransitionArgs> action, int eventID, int task, string taskName, Guid taskGuid, int opcode, string opcodeName, Guid providerGuid, string providerName) :
             base(eventID, task, taskName, taskGuid, opcode, opcodeName, providerGuid, providerName)
         {
             this.action = action;
@@ -34,7 +27,7 @@ namespace DebugTools.Tracing
         protected override Delegate Target
         {
             get => action;
-            set => action = (Action<CallArgs>) value;
+            set => action = (Action<UnmanagedTransitionArgs>) value;
         }
 
         public override string[] PayloadNames
@@ -42,7 +35,7 @@ namespace DebugTools.Tracing
             get
             {
                 if (payloadNames == null)
-                    payloadNames = new[] { nameof(FunctionID), nameof(Sequence), nameof(HRESULT) };
+                    payloadNames = new[] { nameof(FunctionID), nameof(Sequence), nameof(Reason) };
 
                 return payloadNames;
             }
@@ -59,7 +52,7 @@ namespace DebugTools.Tracing
                     return Sequence;
 
                 case 2:
-                    return HRESULT;
+                    return Reason;
 
                 default:
                     Debug.Assert(false, $"Unknown payload field '{index}'");
@@ -72,7 +65,7 @@ namespace DebugTools.Tracing
             Prefix(sb);
             XmlAttrib(sb, nameof(FunctionID), FunctionID);
             XmlAttrib(sb, nameof(Sequence), Sequence);
-            XmlAttrib(sb, nameof(HRESULT), HRESULT);
+            XmlAttrib(sb, nameof(Reason), Reason);
             sb.Append("/>");
             return sb;
         }

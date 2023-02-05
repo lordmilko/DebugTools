@@ -13,7 +13,13 @@ namespace DebugTools.Profiler
 
         public Dictionary<long, ExceptionInfo> Exceptions { get; } = new Dictionary<long, ExceptionInfo>();
 
+        private bool includeUnknownTransitions;
         private long lastSequence;
+
+        public ThreadStack(bool includeUnknownTransitions)
+        {
+            this.includeUnknownTransitions = includeUnknownTransitions;
+        }
 
         #region CallArgs
 
@@ -93,6 +99,41 @@ namespace DebugTools.Profiler
         }
 
         #endregion
+        #region UnmanagedTransition
+
+        internal IFrame EnterUnmanagedTransition(UnmanagedTransitionArgs args, IMethodInfoInternal method, FrameKind kind)
+        {
+            Validate(args);
+
+            if (method.WasUnknown && !includeUnknownTransitions)
+                return null;
+
+            var newFrame = new UnmanagedTransitionFrame(method, args.Sequence, kind);
+
+            if (Current == null)
+                Current = new RootFrame { ThreadId = args.ThreadID };
+
+            newFrame.Parent = Current;
+            Current.Children.Add(newFrame);
+
+            Current = newFrame;
+            return newFrame;
+        }
+
+        internal void LeaveUnmanagedTransition(UnmanagedTransitionArgs args, IMethodInfoInternal method)
+        {
+            if (method.WasUnknown && !includeUnknownTransitions)
+            {
+                Validate(args);
+                return;
+            }
+
+            ValidateEnd(args, method);
+
+            EndCallInternal();
+        }
+
+        #endregion
         #region Exception
 
         public void Exception(ExceptionArgs args)
@@ -100,8 +141,18 @@ namespace DebugTools.Profiler
             Exceptions[args.Sequence] = new ExceptionInfo(args);
         }
 
-        public void ExceptionFrameUnwind(CallArgs args, IMethodInfo method)
+        internal void ExceptionFrameUnwind(CallArgs args, IMethodInfoInternal method)
         {
+            if (args.UnwindFrameKind != FrameKind.Managed)
+            {
+                if (method.WasUnknown && !includeUnknownTransitions)
+                {
+                    //We never recorded this frame in the first place, so we don't need to unwind it
+                    Validate(args);
+                    return;
+                }
+            }
+
             ValidateEnd(args, method);
 
             EndCallInternal();
@@ -138,7 +189,7 @@ namespace DebugTools.Profiler
             {
                 var expected = f.MethodInfo;
 
-                if (expected != method)
+                if (expected.FunctionID != method.FunctionID)
                     throw new InvalidOperationException($"Expected method: {expected} ({expected.FunctionID:X}). Actual: {method} ({method.FunctionID:X})");
             }
         }

@@ -20,14 +20,35 @@ class ISigArrayType;
 //Stores a number that uniquely identifies each Enter/Leave/Tailcall event for the current thread.
 extern thread_local ULONG g_Sequence;
 
-//Stores the current stack of function calls for the current thread.
-extern thread_local std::stack<FunctionID> g_CallStack;
+enum class FrameKind
+{
+    Managed = 0,
+    U2M,
+    M2U
+};
 
-#define ENTER_FUNCTION(FUNCTIONID) \
+struct Frame
+{
+    FunctionID FunctionId;
+    FrameKind Kind;
+
+    Frame(FunctionID functionId, FrameKind kind) :
+        FunctionId(functionId),
+        Kind(kind)
+    {
+    }
+};
+
+//Stores the current stack of function calls for the current thread.
+extern thread_local std::stack<Frame> g_CallStack;
+
+extern thread_local BOOL g_CheckM2UUnwind;
+
+#define ENTER_FUNCTION(FUNCTIONID, ENTERKIND) \
     do { \
     g_Sequence++; \
     LogSequence(L"Sequence is now %d %S(%d) (Enter)\n", g_Sequence, __FILE__, __LINE__); \
-    g_CallStack.push(FUNCTIONID.functionID); \
+    g_CallStack.emplace(FUNCTIONID, ENTERKIND); \
     } while(0)
 
 #define LEAVE_FUNCTION(FUNCTIONID) \
@@ -37,11 +58,11 @@ extern thread_local std::stack<FunctionID> g_CallStack;
         /* If we started tracing after process start, we may see a series of leaves for enters that we never recorded */ \
         if (!g_CallStack.empty()) \
         { \
-            FunctionID old = g_CallStack.top(); \
+            Frame old = g_CallStack.top(); \
             g_CallStack.pop(); \
-            if (old != functionId.functionID) \
+            if (old.FunctionId != (FUNCTIONID)) \
             { \
-                dprintf(L"Stack Error: Expected " FORMAT_PTR " but got " FORMAT_PTR "\n", old, functionId.functionID); \
+                dprintf(L"Stack Error: Expected " FORMAT_PTR " but got " FORMAT_PTR "\n", old.FunctionId, FUNCTIONID); \
                 DebugBreakSafe(); \
                 hr = PROFILER_E_UNKNOWN_FRAME; \
                 goto ErrExit; \

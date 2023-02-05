@@ -896,6 +896,10 @@ namespace DebugTools.TestHost
                     instance.UncaughtInNative();
                     break;
 
+                case ExceptionTestType.UncaughtInNative_DoubleCallback:
+                    instance.UncaughtInNative_DoubleCallback();
+                    break;
+
                 case ExceptionTestType.CaughtInNative:
                     instance.CaughtInNative();
                     break;

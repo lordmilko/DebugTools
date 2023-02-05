@@ -1,6 +1,4 @@
-﻿using System.Text;
-
-namespace DebugTools.Profiler
+﻿namespace DebugTools.Profiler
 {
     public class MethodFrameStringWriter : IMethodFrameWriter
     {

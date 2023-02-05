@@ -9,7 +9,8 @@
 #define VALUE_BUFFER_SIZE 62000 //ETW is limited to 64KB
 
 thread_local ULONG g_Sequence = 0;
-thread_local std::stack<FunctionID> g_CallStack;
+thread_local std::stack<Frame> g_CallStack;
+thread_local BOOL g_CheckM2UUnwind = FALSE;
 
 thread_local std::unordered_set<UINT_PTR> g_SeenMap;
 thread_local BYTE g_ValueBuffer[VALUE_BUFFER_SIZE];

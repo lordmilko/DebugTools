@@ -9,7 +9,9 @@ extern "C" void STDMETHODCALLTYPE TailcallStub(FunctionIDOrClientID functionId)
 {
     HRESULT hr = S_OK;
 
-    LEAVE_FUNCTION(functionId);
+    LEAVE_FUNCTION(functionId.functionID);
+    LogCall(L"Tailcall", functionId);
+
     CExceptionManager::ClearStaleExceptions();
 
 ErrExit:

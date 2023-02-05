@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Management.Automation;
-using System.Reflection;
 using DebugTools.Profiler;
 
 namespace DebugTools.PowerShell.Cmdlets
@@ -30,6 +29,9 @@ namespace DebugTools.PowerShell.Cmdlets
 
         [Parameter(Mandatory = false, ParameterSetName = ParameterSet.Filter)]
         public SwitchParameter VoidValue { get; set; }
+
+        [Parameter(Mandatory = false, ParameterSetName = ParameterSet.Filter)]
+        public SwitchParameter Unmanaged { get; set; }
 
         #region Primitive
 
@@ -108,6 +110,7 @@ namespace DebugTools.PowerShell.Cmdlets
                         Exclude = Exclude,
                         Unique = Unique,
                         VoidValue = VoidValue,
+                        Unmanaged = Unmanaged,
                         BoolValue = BoolValue,
                         CharValue = CharValue,
                         SByteValue = SByteValue,

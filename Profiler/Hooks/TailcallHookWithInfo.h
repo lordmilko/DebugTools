@@ -9,7 +9,9 @@ extern "C" void STDMETHODCALLTYPE TailcallStubWithInfo(FunctionIDOrClientID func
 {
     HRESULT hr = S_OK;
 
-    LEAVE_FUNCTION(functionId);
+    LEAVE_FUNCTION(functionId.functionID);
+    LogCall(L"TailcallDetailed", functionId);
+
     CExceptionManager::ClearStaleExceptions();
 
     if (!g_TracingEnabled)

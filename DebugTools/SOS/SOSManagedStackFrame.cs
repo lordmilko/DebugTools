@@ -1,5 +1,4 @@
-﻿using System.Collections.Generic;
-using ClrDebug;
+﻿using ClrDebug;
 
 namespace DebugTools.SOS
 {

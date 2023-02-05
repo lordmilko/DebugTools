@@ -2,6 +2,7 @@
 
 void dprintf(LPCWSTR format, ...);
 
+//#define LOG_CALL 1
 //#define LOG_HRESULT 1 //And break on error
 //#define LOG_EXCEPTION 1
 //#define LOG_SHOULDHOOK 1
@@ -12,6 +13,9 @@ void dprintf(LPCWSTR format, ...);
 
 #ifdef _DEBUG
 
+#ifdef LOG_CALL
+#define LogCall(KIND, FUNCTIONID) dprintf(L"%d %d " KIND " " FORMAT_PTR "\n", GetCurrentThreadId(), g_Sequence, FUNCTIONID);
+#endif //LOG_CALL
 #ifdef LOG_HRESULT
 //#define BreakCondition hr == E_FAIL
 #ifndef BreakCondition
@@ -63,14 +67,19 @@ extern thread_local BOOL g_DebugBlob;
 
 #endif //_DEBUG
 
+#define DO_NOTHING do { } while(0)
+
+#ifndef LogCall
+#define LogCall(...) DO_NOTHING
+#endif
 #ifndef LogError
 #define LogError(EXPR)
 #endif
 #ifndef LogException
-#define LogException
+#define LogException(...) DO_NOTHING
 #endif
 #ifndef LogShouldHook
-#define LogShouldHook(...)
+#define LogShouldHook(...) DO_NOTHING
 #endif
 #ifndef LogHook
 #define LogHook

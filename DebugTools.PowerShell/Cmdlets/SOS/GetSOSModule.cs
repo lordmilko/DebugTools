@@ -7,7 +7,7 @@ namespace DebugTools.PowerShell.Cmdlets
     [Cmdlet(VerbsCommon.Get, "SOSModule", DefaultParameterSetName = ParameterSet.Address)]
     public class GetSOSModule : SOSCmdlet
     {
-        [Parameter(Mandatory = true, ValueFromPipeline = true)]
+        [Parameter(Mandatory = true, ValueFromPipeline = true, ParameterSetName = ParameterSet.Default)]
         public SOSAssembly Assembly { get; set; }
 
         [Parameter(Mandatory = true, Position = 0, ParameterSetName = ParameterSet.Address)]

@@ -72,17 +72,17 @@ namespace DebugTools.PowerShell
         {
             if (item is IRootFrame r)
             {
-                if (r.ThreadName != null && ShouldInclude(i => i.IsMatch(r.ThreadName)) && !ShouldExclude(r) && !options.HasFilterValue)
+                if (r.ThreadName != null && ShouldInclude(item, i => i.IsMatch(r.ThreadName)) && !ShouldExclude(r) && !options.HasFilterValue)
                     return true;
             }
             else if (item is IMethodFrameDetailed d)
             {
-                if (ShouldInclude(i => i.IsMatch(d.MethodInfo.MethodName) || i.IsMatch(d.MethodInfo.TypeName)) && HasValue(d) && !ShouldExclude(d))
+                if (ShouldInclude(item, i => i.IsMatch(d.MethodInfo.MethodName) || i.IsMatch(d.MethodInfo.TypeName)) && HasValue(d) && !ShouldExclude(d))
                     return true;
             }
             else if (item is IMethodFrame m)
             {
-                if (ShouldInclude(i => i.IsMatch(m.MethodInfo.MethodName) || i.IsMatch(m.MethodInfo.TypeName)) && !ShouldExclude(m))
+                if (ShouldInclude(item, i => i.IsMatch(m.MethodInfo.MethodName) || i.IsMatch(m.MethodInfo.TypeName)) && !ShouldExclude(m))
                     return true;
             }
 
@@ -204,8 +204,14 @@ namespace DebugTools.PowerShell
 
         #endregion
 
-        private bool ShouldInclude(Func<WildcardPattern, bool> match)
+        private bool ShouldInclude(IFrame frame, Func<WildcardPattern, bool> match)
         {
+            if (options.Unmanaged)
+            {
+                if (!(frame is IUnmanagedTransitionFrame))
+                    return false;
+            }
+
             if (includeWildcards == null)
                 return true;
 

@@ -26,7 +26,7 @@ extern thread_local WCHAR g_szAssemblyName[NAME_BUFFER_SIZE];
 extern thread_local WCHAR g_szFieldName[NAME_BUFFER_SIZE];
 
 #if _DEBUG && DEBUG_UNKNOWN
-extern std::unordered_map<CUnknown*, BYTE>* g_UnknownMap;
+extern std::unordered_set<CUnknown*>* g_UnknownMap;
 #endif
 
 class CCorProfilerCallback final : public ICorProfilerCallback3
@@ -96,7 +96,8 @@ public:
         return m_ObjectIdBlacklist.find(objectId) != m_ObjectIdBlacklist.end();
     }
 
-    BOOL IsHookedFunction(FunctionIDOrClientID functionId);
+    BOOL IsHookedFunction(FunctionID functionId);
+    void EnsureTransitionMethodRecorded(FunctionID functionId);
 
 #pragma region IUnknown
     STDMETHODIMP_(ULONG) AddRef() override;
@@ -215,9 +216,13 @@ public:
     std::shared_mutex m_ClassMutex;
 
     std::unordered_map<FunctionID, CSigMethodDef*> m_MethodInfoMap;
-    std::unordered_map<FunctionID, BYTE> m_HookedMethodMap;
+    std::unordered_set<FunctionID> m_HookedMethodMap;
     std::shared_mutex m_MethodMutex;
 
+    std::unordered_set<FunctionID> m_TransitionMap;
+    std::shared_mutex m_TransitionMutex;
+
+    //For some reason using an unordered_set would cause a destructor to be called or something upon calling insert() or emplace()
     std::unordered_map<ObjectID, BYTE> m_ObjectIdBlacklist;
     std::shared_mutex m_ObjectIdBlacklistMutex;
 

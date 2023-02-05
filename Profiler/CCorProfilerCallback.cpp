@@ -78,16 +78,78 @@ HRESULT CCorProfilerCallback::QueryInterface(REFIID riid, void** ppvObject)
 
 HRESULT CCorProfilerCallback::UnmanagedToManagedTransition(FunctionID functionId, COR_PRF_TRANSITION_REASON reason)
 {
-    m_ExceptionManager.UnmanagedToManagedTransition(functionId, reason);
+    HRESULT hr = S_OK;
 
-    return S_OK;
+    EnsureTransitionMethodRecorded(functionId);
+
+    if (!g_ExceptionQueue.empty())
+    {
+        ULONG oldSequence = g_Sequence;
+
+        m_ExceptionManager.UnmanagedToManagedTransition(functionId, reason);
+
+        //If LEAVE_FUNCTION was called, an ExceptionFrameUnwindEvent was executed, and both the profiler and the controller know
+        //that the frame has been left. As such, there's nothing more we need to do here
+        if (oldSequence != g_Sequence)
+            goto ErrExit;
+    }
+
+    if (reason == COR_PRF_TRANSITION_CALL)
+    {
+        ENTER_FUNCTION(functionId, FrameKind::U2M);
+        LogCall(L"U2M Call", functionId);
+    }
+    else
+    {
+        LEAVE_FUNCTION(functionId);
+        LogCall(L"U2M Return", functionId);
+    }
+
+    if (!g_TracingEnabled)
+        return hr;
+
+    ValidateETW(EventWriteUnmanagedToManagedEvent(functionId, g_Sequence, reason));
+
+ErrExit:
+    return hr;
 }
 
 HRESULT CCorProfilerCallback::ManagedToUnmanagedTransition(FunctionID functionId, COR_PRF_TRANSITION_REASON reason)
 {
-    m_ExceptionManager.ManagedToUnmanagedTransition(functionId, reason);
+    HRESULT hr = S_OK;
 
-    return S_OK;
+    EnsureTransitionMethodRecorded(functionId);
+
+    if (!g_ExceptionQueue.empty())
+    {
+        ULONG oldSequence = g_Sequence;
+
+        m_ExceptionManager.ManagedToUnmanagedTransition(functionId, reason);
+
+        //If LEAVE_FUNCTION was called, an ExceptionFrameUnwindEvent was executed, and both the profiler and the controller know
+        //that the frame has been left. As such, there's nothing more we need to do here
+        if (oldSequence != g_Sequence)
+            goto ErrExit;
+    }
+
+    if (reason == COR_PRF_TRANSITION_CALL)
+    {
+        ENTER_FUNCTION(functionId, FrameKind::M2U);
+        LogCall(L"M2U Call", functionId);
+    }
+    else
+    {
+        LEAVE_FUNCTION(functionId);
+        LogCall(L"M2U Return", functionId);
+    }
+
+    if (!g_TracingEnabled)
+        return hr;
+
+    ValidateETW(EventWriteManagedToUnmanagedEvent(functionId, g_Sequence, reason));
+
+ErrExit:
+    return hr;
 }
 
 #pragma endregion
@@ -749,7 +811,7 @@ UINT_PTR __stdcall CCorProfilerCallback::RecordFunction(FunctionID funcId, void*
             CLock methodMutex(&g_pProfiler->m_MethodMutex, true);
 
             g_pProfiler->m_MethodInfoMap[funcId] = method;
-            g_pProfiler->m_HookedMethodMap[funcId] = 1;
+            g_pProfiler->m_HookedMethodMap.insert(funcId);
 
             methodSaved = TRUE;
         }
@@ -771,7 +833,7 @@ UINT_PTR __stdcall CCorProfilerCallback::RecordFunction(FunctionID funcId, void*
         ));
 
         CLock methodMutex(&g_pProfiler->m_MethodMutex, true);
-        g_pProfiler->m_HookedMethodMap[funcId] = 1;
+        g_pProfiler->m_HookedMethodMap.insert(funcId);
     }
 
     //Get the type name
@@ -1329,11 +1391,33 @@ CorElementType CCorProfilerCallback::GetElementTypeFromClassName(LPWSTR szName)
     return ELEMENT_TYPE_END;
 }
 
-BOOL CCorProfilerCallback::IsHookedFunction(FunctionIDOrClientID functionId)
+BOOL CCorProfilerCallback::IsHookedFunction(FunctionID functionId)
 {
     CLock methodLock(&m_MethodMutex);
 
-    return m_HookedMethodMap.find(functionId.functionID) != m_HookedMethodMap.end();
+    return m_HookedMethodMap.find(functionId) != m_HookedMethodMap.end();
+}
+
+void CCorProfilerCallback::EnsureTransitionMethodRecorded(FunctionID functionId)
+{
+    /* Certain transition stubs(such as COMToCLR and CLRToCOM) are meaningless, however when the COM method(or the P / Invoke definition is actually invoked)
+     * there is a second helper frame that is called (I think it may be the one that gets inlined). These methods DO exist in our metadata (i.e. the COM interface method or the P/Invoke definition),
+     * however the function mapper won't be called for these methods (which makes sense, since they're special frames). As such, we need to record them ourselves. */
+
+    CLock transitionLock(&m_TransitionMutex);
+
+    if (m_TransitionMap.find(functionId) == m_TransitionMap.end())
+    {
+        BOOL isHooked = IsHookedFunction(functionId);
+
+        if (!isHooked)
+        {
+            BOOL hook;
+            RecordFunction(functionId, nullptr, &hook);
+        }
+
+        m_TransitionMap.insert(functionId);
+    }
 }
 
 void NTAPI CCorProfilerCallback::ExitProcessCallback(

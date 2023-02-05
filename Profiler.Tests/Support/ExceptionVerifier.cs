@@ -7,10 +7,12 @@ namespace Profiler.Tests
     internal struct ExceptionVerifier
     {
         private ExceptionInfo[] exceptions;
+        internal Validator Validator { get; }
 
-        public ExceptionVerifier(ExceptionInfo[] exceptions)
+        public ExceptionVerifier(ExceptionInfo[] exceptions, Validator validator)
         {
             this.exceptions = exceptions;
+            Validator = validator;
         }
 
         public void HasException(int index, string type, ExceptionStatus completedReason)
