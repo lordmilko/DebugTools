@@ -1404,7 +1404,7 @@ void CCorProfilerCallback::EnsureTransitionMethodRecorded(FunctionID functionId)
      * there is a second helper frame that is called (I think it may be the one that gets inlined). These methods DO exist in our metadata (i.e. the COM interface method or the P/Invoke definition),
      * however the function mapper won't be called for these methods (which makes sense, since they're special frames). As such, we need to record them ourselves. */
 
-    CLock transitionLock(&m_TransitionMutex);
+    CLock transitionLock(&m_TransitionMutex, true);
 
     if (m_TransitionMap.find(functionId) == m_TransitionMap.end())
     {
