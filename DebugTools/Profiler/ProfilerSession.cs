@@ -97,7 +97,8 @@ namespace DebugTools.Profiler
                 userCTS?.Cancel();
             };
 
-            Thread = new Thread(ThreadProc);
+            Thread = new Thread(ThreadProc) {Name = "ETWThreadProc"};
+            cancelThread = new Thread(CancelTraceThreadProc) {Name = "CancelThreadProc"};
         }
 
         #region MethodInfo
@@ -310,13 +311,11 @@ namespace DebugTools.Profiler
                 TraceEventSession.EnableProvider(ProfilerTraceEventParser.ProviderGuid, options: options);
 
                 Thread.Start();
+                cancelThread.Start();
 
                 if (traceCTS != null)
                 {
-                    cancelThread = new Thread(CancelTraceThreadProc);
-
                     cancelIfTimeoutNoEvents = false;
-                    cancelThread.Start();
                 }
 
                 p.EnableRaisingEvents = true;
@@ -384,8 +383,8 @@ namespace DebugTools.Profiler
 
                 if (threshold > lastEvent)
                 {
-                    traceCTS.Cancel();
-                    break;
+                    traceCTS?.Cancel();
+                    cancelIfTimeoutNoEvents = false;
                 }
                 else
                     Thread.Sleep(100);
@@ -443,6 +442,7 @@ namespace DebugTools.Profiler
                     {
                         stopTime = DateTime.Now;
                         stopping = true;
+                        lastEvent = DateTime.Now;
                         cancelIfTimeoutNoEvents = true;
                         Console.WriteLine("Stopping...");
                     });
@@ -475,6 +475,7 @@ namespace DebugTools.Profiler
             {
                 stopTime = DateTime.Now;
                 stopping = true;
+                lastEvent = DateTime.Now;
                 cancelIfTimeoutNoEvents = true;
                 Console.WriteLine("Stopping...");
             });
@@ -514,6 +515,8 @@ namespace DebugTools.Profiler
             if (Process.HasExited)
                 return;
 
+            ThreadCache.Clear();
+
             ExecuteCommand(MessageType.EnableTracing, true);
 
             collectStackTrace = true;
@@ -551,6 +554,18 @@ namespace DebugTools.Profiler
                 if (!Process.HasExited)
                     ExecuteCommand(MessageType.EnableTracing, false);
             }
+        }
+
+        public void Reset()
+        {
+            traceCTS.Token.WaitHandle.WaitOne();
+
+            cancelIfTimeoutNoEvents = false;
+            stopping = false;
+
+            ThreadCache.Clear();
+
+            traceCTS = new CancellationTokenSource();
         }
 
         public void ThrowOnError()

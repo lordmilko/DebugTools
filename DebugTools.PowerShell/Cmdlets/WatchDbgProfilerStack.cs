@@ -134,6 +134,8 @@ namespace DebugTools.PowerShell.Cmdlets
                 }
                 finally
                 {
+                    Session.Reset();
+
                     if (!DisableProgress)
                     {
                         record.RecordType = ProgressRecordType.Completed;
