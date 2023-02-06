@@ -77,6 +77,8 @@ namespace DebugTools.PowerShell
 
                     Hostx86 = (hostApp, hostProcess);
                 }
+
+                TryDebug(Hostx86, needDebug);
                 
                 return Hostx86.host;
             }
@@ -90,8 +92,19 @@ namespace DebugTools.PowerShell
                     Hostx64 = (hostApp, hostProcess);
                 }
 
+                TryDebug(Hostx86, needDebug);
+
                 return Hostx64.host;
             }
+        }
+
+        private static void TryDebug((HostApp host, Process process) host, bool needDebug)
+        {
+            if (!needDebug || host.host.IsDebuggerAttached)
+                return;
+
+            VsDebugger.Attach(host.process, "Managed");
+            host.host.IsDebuggerAttached = true;
         }
     }
 }

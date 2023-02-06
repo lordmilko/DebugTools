@@ -42,6 +42,8 @@ namespace DebugTools.Host
 
             var app = remoteExecutor.ExecuteInRemoteProcess<HostApp>(typeof(HostApp), nameof(HostApp.GetInstance));
 
+            app.IsDebuggerAttached = needDebug;
+
             return app;
         }
 
@@ -54,7 +56,7 @@ namespace DebugTools.Host
             {
                 cb = Marshal.SizeOf<STARTUPINFO>(),
                 dwFlags = STARTF.STARTF_USESHOWWINDOW,
-                wShowWindow = ShowWindow.Minimized
+                wShowWindow = ShowWindow.Hide
             };
 
             PROCESS_INFORMATION pi;

@@ -1,4 +1,7 @@
 ﻿using System;
+using System.Linq;
+using ClrDebug;
+using Microsoft.Diagnostics.Runtime;
 
 namespace DebugTools
 {
@@ -9,17 +12,21 @@ namespace DebugTools
 
         public SymFromAddrResult Symbol { get; }
 
-        public ulong RVA { get; }
+        public CLRDATA_ADDRESS RVA { get; }
 
         public DbgSymbolInfo[] Methods { get; }
 
-        public DbgVtblSymbolInfo(DbgSymbolInfo vtbl, DbgSymbolInfo[] methods)
+        public string[] Interfaces { get; }
+
+        public DbgVtblSymbolInfo(DbgSymbolInfo vtbl, DbgSymbolInfo[] methods, RcwData rcwData)
         {
             Symbol = vtbl.Symbol;
             Module = vtbl.Module;
             RVA = vtbl.RVA;
 
             Methods = methods;
+
+            Interfaces = rcwData.Interfaces.Select(i => i.Type.Name).ToArray();
         }
     }
 }

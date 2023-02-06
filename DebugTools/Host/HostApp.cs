@@ -13,6 +13,8 @@ namespace DebugTools.Host
 {
     public class HostApp : MarshalByRefObject
     {
+        private Dictionary<int, SymbolManager> symbolManagerCache = new Dictionary<int, SymbolManager>();
+
         static HostApp()
         {
             //ClrMD will try and load DbgHelp, so we must set the DLL directory before ClrMD is invoked
@@ -115,34 +117,47 @@ namespace DebugTools.Host
         #endregion
         #region API
 
+        public bool IsDebuggerAttached { get; set; }
+
         public DbgVtblSymbolInfo[] GetComObjects(int processId)
         {
             var process = Process.GetProcessById(processId);
 
             return WithClrMD(process, runtime =>
             {
-                var rcws = runtime.Heap.EnumerateObjects().Where(o => o.Type?.Name == "System.__ComObject").ToArray();
+                var rcws = runtime.Heap.EnumerateObjects().Where(o => o.Type?.Name == "System.__ComObject");
 
                 var results = new List<DbgVtblSymbolInfo>();
 
-                using (var symbolManager = new SymbolManager(process))
+                var symbolManager = GetSymbolManager(process);
+
+                foreach (var rcw in rcws)
                 {
-                    foreach (var rcw in rcws)
+                    if (rcw.Type.IsRCW(rcw))
                     {
-                        if (rcw.Type.IsRCW(rcw))
-                        {
-                            var rcwData = rcw.Type.GetRCWData(rcw);
+                        var rcwData = rcw.Type.GetRCWData(rcw);
 
-                            var symbol = symbolManager.GetVtblSymbol(rcwData.VTablePointer);
+                        var symbol = symbolManager.GetVtblSymbol(rcwData);
 
-                            if (symbol != null)
-                                results.Add(symbol);
-                        }
+                        if (symbol != null)
+                            results.Add(symbol);
                     }
-
-                    return results.ToArray();
                 }
+
+                return results.ToArray();
             });
+        }
+
+        private SymbolManager GetSymbolManager(Process process)
+        {
+            if (!symbolManagerCache.TryGetValue(process.Id, out var manager))
+            {
+                manager = new SymbolManager(process);
+
+                symbolManagerCache[process.Id] = manager;
+            }
+
+            return manager;
         }
 
         private T WithClrMD<T>(Process process, Func<ClrRuntime, T> func)

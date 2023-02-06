@@ -4,27 +4,28 @@ using System.Management.Automation;
 
 namespace DebugTools.PowerShell.Cmdlets
 {
-    [Cmdlet(VerbsCommon.Get, "ComObject")]
-    public class GetComObject : HostCmdlet
+    [Cmdlet(VerbsCommon.Get, "ComObjectMethod")]
+    public class GetComObjectMethod : HostCmdlet
     {
+        [Parameter(Mandatory = true, ValueFromPipeline = true)]
+        public DbgVtblSymbolInfo DbgVtblSymbolInfo { get; set; }
+
         [Parameter(Mandatory = false, Position = 0)]
         public string[] Name { get; set; }
 
         protected override void ProcessRecordEx()
         {
-            IEnumerable<DbgVtblSymbolInfo> results = HostApp.GetComObjects(Process.Id);
+            IEnumerable<DbgSymbolInfo> methods = DbgVtblSymbolInfo.Methods;
 
             if (Name != null)
             {
                 var wildcards = Name.Select(n => new WildcardPattern(n, WildcardOptions.IgnoreCase)).ToArray();
 
-                results = results.Where(m => wildcards.Any(w => 
-                    w.IsMatch(m.Symbol.ToString()) || m.Interfaces.Any(w.IsMatch))
-                );
+                methods = methods.Where(m => wildcards.Any(w => w.IsMatch(m.Symbol.ToString())));
             }
 
-            foreach (DbgVtblSymbolInfo result in results)
-                WriteObject(result);
+            foreach (var method in methods)
+                WriteObject(method);
         }
     }
 }

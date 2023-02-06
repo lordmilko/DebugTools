@@ -1,14 +1,17 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 using System.Runtime.InteropServices;
 using ClrDebug;
-using ClrDebug.DbgEng;
+using Microsoft.Diagnostics.Runtime;
 
 namespace DebugTools
 {
     class SymbolManager : IDisposable
     {
+        private Dictionary<ulong, DbgVtblSymbolInfo> symbolCache = new Dictionary<ulong, DbgVtblSymbolInfo>();
+
         public Process Process { get; }
 
         public List<SymbolModule> Modules { get; }
@@ -58,45 +61,27 @@ namespace DebugTools
             return HRESULT.S_OK;
         }
 
-        private SymTag GetSymTag(ulong moduleBase, int typeId)
+        public DbgVtblSymbolInfo GetVtblSymbol(RcwData rcwData)
         {
-            var result = NativeMethods.SymGetTypeInfo(
-                Process.Handle,
-                moduleBase,
-                typeId,
-                IMAGEHLP_SYMBOL_TYPE_INFO.TI_GET_SYMTAG,
-                out var info
-            );
+            if (symbolCache.TryGetValue(rcwData.VTablePointer, out var existing))
+                return existing;
 
-            if (!result)
-                throw new InvalidOperationException($"Failed to get tag from module {moduleBase} type {typeId}");
-
-            var tag = (SymTag)info.ToInt32();
-
-            return tag;
-        }
-
-        private int? GetTypeId(ulong moduleBase, int typeId)
-        {
-            var result = NativeMethods.SymGetTypeInfo(
-                Process.Handle,
-                moduleBase,
-                typeId,
-                IMAGEHLP_SYMBOL_TYPE_INFO.TI_GET_TYPEID,
-                out var info
-            );
-
-            if (!result)
-                return null;
-
-            return info.ToInt32();
-        }
-
-        public DbgVtblSymbolInfo GetVtblSymbol(ulong address)
-        {
             var offset = 0;
 
-            var vtbl = GetSymbol(address);
+            if (TryGetSymbol(rcwData.VTablePointer, out var vtbl) == HRESULT.CORDBG_E_MODULE_NOT_LOADED)
+            {
+                var modules = GetModules();
+
+                var existingModules = Modules.Select(m => m.Start).ToArray();
+
+                foreach (var module in modules)
+                {
+                    if (!existingModules.Contains(module.Start))
+                        Modules.Add(module);
+                }
+
+                vtbl = GetSymbol(rcwData.VTablePointer);
+            }
 
             //No symbols
             if (vtbl.Symbol.Displacement != 0)
@@ -112,7 +97,7 @@ namespace DebugTools
 
                 while (true)
                 {
-                    var slotAddr = (long) address + offset;
+                    var slotAddr = (long) rcwData.VTablePointer + offset;
 
                     if (offset > 0)
                     {
@@ -139,7 +124,7 @@ namespace DebugTools
             {
                 while (offset < vtbl.Symbol.SymbolInfo.Size)
                 {
-                    var buffer = NativeExtensions.ReadProcessMemory(Process.Handle, new IntPtr((long)address + offset), IntPtr.Size);
+                    var buffer = NativeExtensions.ReadProcessMemory(Process.Handle, new IntPtr((long)rcwData.VTablePointer + offset), IntPtr.Size);
 
                     var methodAddress = IntPtr.Size == 8 ? BitConverter.ToUInt64(buffer, 0) : BitConverter.ToUInt32(buffer, 0);
 
@@ -151,7 +136,9 @@ namespace DebugTools
                 }
             }
 
-            return new DbgVtblSymbolInfo(vtbl, methods.ToArray());
+            existing = new DbgVtblSymbolInfo(vtbl, methods.ToArray(), rcwData);
+            symbolCache[rcwData.VTablePointer] = existing;
+            return existing;
         }
 
         private bool TryGetModuleFromAddress(ulong address, out SymbolModule result)
