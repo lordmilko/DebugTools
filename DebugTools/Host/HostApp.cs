@@ -6,6 +6,7 @@ using System.Runtime.Remoting;
 using System.Runtime.Remoting.Channels;
 using System.Runtime.Remoting.Channels.Ipc;
 using System.Runtime.Serialization.Formatters;
+using System.Text.RegularExpressions;
 using System.Threading;
 using Microsoft.Diagnostics.Runtime;
 
@@ -119,13 +120,15 @@ namespace DebugTools.Host
 
         public bool IsDebuggerAttached { get; set; }
 
-        public DbgVtblSymbolInfo[] GetComObjects(int processId)
+        public DbgVtblSymbolInfo[] GetComObjects(int processId, string[] interfaces)
         {
             var process = Process.GetProcessById(processId);
 
+            var regexes = interfaces?.Select(i => new Regex(i, RegexOptions.IgnoreCase | RegexOptions.Singleline)).ToArray();
+
             return WithClrMD(process, runtime =>
             {
-                var rcws = runtime.Heap.EnumerateObjects().Where(o => o.Type?.Name == "System.__ComObject");
+                var rcws = runtime.Heap.EnumerateObjects().Where(o => o.Type?.Name == "System.__ComObject").ToArray();
 
                 var results = new List<DbgVtblSymbolInfo>();
 
@@ -136,6 +139,12 @@ namespace DebugTools.Host
                     if (rcw.Type.IsRCW(rcw))
                     {
                         var rcwData = rcw.Type.GetRCWData(rcw);
+
+                        if (regexes != null)
+                        {
+                            if (!regexes.Any(r => rcwData.Interfaces.Any(i => r.IsMatch(i.Type.Name))))
+                                continue;
+                        }
 
                         var symbol = symbolManager.GetVtblSymbol(rcwData);
 

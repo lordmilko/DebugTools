@@ -16,7 +16,7 @@ namespace DebugTools
         {
             Symbol = symbol;
             Module = module;
-            RVA = symbol.SymbolInfo.Address - Module.Start;
+            RVA = symbol.SymbolInfo.Address + (ulong )symbol.Displacement - Module.Start;
         }
 
         public override string ToString()

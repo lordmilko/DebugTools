@@ -14,6 +14,10 @@ namespace DebugTools
 
         public CLRDATA_ADDRESS RVA { get; }
 
+        public CLRDATA_ADDRESS LoadedAddress { get; }
+
+        public CLRDATA_ADDRESS OriginalAddress { get; }
+
         public DbgSymbolInfo[] Methods { get; }
 
         public string[] Interfaces { get; }
@@ -23,6 +27,8 @@ namespace DebugTools
             Symbol = vtbl.Symbol;
             Module = vtbl.Module;
             RVA = vtbl.RVA;
+            LoadedAddress = vtbl.Module.Start + RVA;
+            OriginalAddress = vtbl.Module.OriginalBase + RVA;
 
             Methods = methods;
 
