@@ -11,5 +11,7 @@
         public const string Module = "ModuleSet";
 
         public const string Address = "AddressSet";
+
+        public const string Global = "GlobalSet";
     }
 }

@@ -15,6 +15,8 @@ namespace DebugTools.PowerShell
     {
         internal static List<ProfilerSession> ProfilerSessions = new List<ProfilerSession>();
 
+        internal static ProfilerSession GlobalProfilerSession { get; set; }
+
         internal static List<SOSProcess> SOSProcesses = new List<SOSProcess>();
 
         internal static (HostApp host, Process process) Hostx86;
@@ -40,7 +42,22 @@ namespace DebugTools.PowerShell
             if (ProfilerSessions.Count > 0)
                 return ProfilerSessions.Last(); //All of the sessions have ended, so take the last one
 
+            if (GlobalProfilerSession != null)
+                return GlobalProfilerSession;
+
             throw new InvalidOperationException($"Cannot execute cmdlet: no -Session was specified and no global Session could be found in the PowerShell session.");
+        }
+
+        internal static ProfilerSession AcquireGlobalProfilerSession(bool mayCreate = false)
+        {
+            if (GlobalProfilerSession == null)
+            {
+                GlobalProfilerSession = new ProfilerSession();
+
+                GlobalProfilerSession.StartGlobal();
+            }
+
+            return GlobalProfilerSession;
         }
 
         internal static SOSProcess GetImplicitSOSProcess()

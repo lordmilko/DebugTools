@@ -10,10 +10,25 @@ namespace DebugTools.PowerShell.Cmdlets
         [Parameter(Mandatory = false)]
         public ProfilerSession Session { get; set; }
 
+        [Parameter(Mandatory = false)]
+        public SwitchParameter Global { get; set; }
+
+        private bool mayCreateGlobalSession;
+
+        protected ProfilerSessionCmdlet(bool mayCreateGlobalSession = false)
+        {
+            this.mayCreateGlobalSession = mayCreateGlobalSession;
+        }
+
         protected sealed override void ProcessRecord()
         {
             if (Session == null)
-                Session = DebugToolsSessionState.GetImplicitProfilerSession();
+            {
+                if (Global)
+                    Session = DebugToolsSessionState.AcquireGlobalProfilerSession(mayCreateGlobalSession);
+                else
+                    Session = DebugToolsSessionState.GetImplicitProfilerSession();
+            }
 
             ProcessRecordEx();
         }

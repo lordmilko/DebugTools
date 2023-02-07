@@ -46,6 +46,8 @@ namespace DebugTools.Profiler
 
         private Exception threadProcException;
         private BlockingCollection<IFrame> watchQueue;
+        private bool global;
+        private bool disposing;
 
         public ThreadStack[] LastTrace { get; private set; }
 
@@ -90,11 +92,16 @@ namespace DebugTools.Profiler
 
             parser.Shutdown += v =>
             {
-                //Calling Dispose() guarantees an immediate stop
-                TraceEventSession.Dispose();
+                //If we're monitoring sessions globally, we don't care if a given process exits, we want to keep
+                //watching for the next process
+                if (!global)
+                {
+                    //Calling Dispose() guarantees an immediate stop
+                    TraceEventSession.Dispose();
 
-                traceCTS?.Cancel();
-                userCTS?.Cancel();
+                    traceCTS?.Cancel();
+                    userCTS?.Cancel();
+                }
             };
 
             Thread = new Thread(ThreadProc) {Name = "ETWThreadProc"};
@@ -366,11 +373,22 @@ namespace DebugTools.Profiler
             }
         }
 
+        public void StartGlobal()
+        {
+            global = true;
+            traceCTS = new CancellationTokenSource();
+
+            TraceEventSession.EnableProvider(ProfilerTraceEventParser.ProviderGuid);
+
+            Thread.Start();
+            cancelThread.Start();
+        }
+
         private void CancelTraceThreadProc()
         {
             lastEvent = DateTime.Now;
 
-            while (true)
+            while (!disposing)
             {
                 if (!cancelIfTimeoutNoEvents)
                 {
@@ -397,6 +415,8 @@ namespace DebugTools.Profiler
             {
                 threadProcException = null;
                 TraceEventSession.Source.Process();
+
+                Debug.WriteLine("########## ETW THREADPROC ENDED ##########");
             }
             catch(Exception ex)
             {
@@ -537,7 +557,7 @@ namespace DebugTools.Profiler
 
         private IEnumerable<IFrame> WithTracing(Func<IEnumerable<IFrame>> action)
         {
-            if (Process.HasExited)
+            if (Process?.HasExited == true)
                 yield break;
 
             ExecuteCommand(MessageType.EnableTracing, true);
@@ -551,7 +571,7 @@ namespace DebugTools.Profiler
             }
             finally
             {
-                if (!Process.HasExited)
+                if (Process != null && !Process.HasExited)
                     ExecuteCommand(MessageType.EnableTracing, false);
             }
         }
@@ -613,6 +633,7 @@ namespace DebugTools.Profiler
             //Upon disposing the session the thread will end
             TraceEventSession?.Dispose();
             pipe?.Dispose();
+            disposing = true;
 
             if (!HasExited)
             {

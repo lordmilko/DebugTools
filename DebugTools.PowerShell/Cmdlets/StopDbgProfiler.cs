@@ -8,6 +8,9 @@ namespace DebugTools.PowerShell.Cmdlets
         protected override void ProcessRecordEx()
         {
             Session.Dispose();
+
+            if (Session == DebugToolsSessionState.GlobalProfilerSession)
+                DebugToolsSessionState.GlobalProfilerSession = null;
         }
     }
 }

@@ -80,6 +80,10 @@ namespace DebugTools.PowerShell.Cmdlets
         [Parameter(Mandatory = false)]
         public SwitchParameter DisableProgress { get; set; }
 
+        public WatchDbgProfilerStack() : base(true)
+        {
+        }
+
         protected override void ProcessRecordEx()
         {
             using (CtrlCHandler())

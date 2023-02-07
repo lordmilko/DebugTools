@@ -19,9 +19,20 @@ namespace DebugTools.PowerShell.Cmdlets
         [Parameter(Mandatory = false)]
         public SwitchParameter Force { get; set; }
 
+        [Parameter(Mandatory = false)]
+        public SwitchParameter Global { get; set; }
+
         protected override void ProcessRecord()
         {
             IEnumerable<ProfilerSession> sessions = DebugToolsSessionState.ProfilerSessions;
+
+            if (Global)
+            {
+                if (DebugToolsSessionState.GlobalProfilerSession != null)
+                    WriteObject(DebugToolsSessionState.GlobalProfilerSession);
+
+                return;
+            }
 
             if (!Force)
                 sessions = sessions.Where(i => !i.Process.HasExited);
