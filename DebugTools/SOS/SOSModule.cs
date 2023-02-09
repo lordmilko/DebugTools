@@ -1,8 +1,10 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using ClrDebug;
 
 namespace DebugTools.SOS
 {
+    [Serializable]
     public class SOSModule
     {
         public static SOSModule[] GetModules(SOSAssembly assembly, SOSDacInterface sos)
@@ -33,27 +35,28 @@ namespace DebugTools.SOS
         public string FileName { get; }
         public SOSAssembly Assembly { get; }
 
-        public CLRDATA_ADDRESS Address => data.Address;
-        public CLRDATA_ADDRESS PEAssembly => data.PEAssembly;
-        public CLRDATA_ADDRESS ilBase => data.ilBase;
-        public CLRDATA_ADDRESS metadataStart => data.metadataStart;
-        public long metadataSize => data.metadataSize;
-        public bool bIsReflection => data.bIsReflection;
-        public bool bIsPEFile => data.bIsPEFile;
-        public long dwBaseClassIndex => data.dwBaseClassIndex;
-        public long dwModuleID => data.dwModuleID;
-        public DacpModuleDataTransientFlags dwTransientFlags => data.dwTransientFlags;
-        public CLRDATA_ADDRESS TypeDefToMethodTableMap => data.TypeDefToMethodTableMap;
-        public CLRDATA_ADDRESS TypeRefToMethodTableMap => data.TypeRefToMethodTableMap;
-        public CLRDATA_ADDRESS MethodDefToDescMap => data.MethodDefToDescMap;
-        public CLRDATA_ADDRESS FieldDefToDescMap => data.FieldDefToDescMap;
-        public CLRDATA_ADDRESS MemberRefToDescMap => data.MemberRefToDescMap;
-        public CLRDATA_ADDRESS FileReferencesMap => data.FileReferencesMap;
-        public CLRDATA_ADDRESS ManifestModuleReferencesMap => data.ManifestModuleReferencesMap;
-        public CLRDATA_ADDRESS pLookupTableHeap => data.pLookupTableHeap;
-        public CLRDATA_ADDRESS pThunkHeap => data.pThunkHeap;
-        public long dwModuleIndex => data.dwModuleIndex;
+        public CLRDATA_ADDRESS Address { get; }
+        public CLRDATA_ADDRESS PEAssembly { get; }
+        public CLRDATA_ADDRESS ilBase { get; }
+        public CLRDATA_ADDRESS metadataStart { get; }
+        public long metadataSize { get; }
+        public bool bIsReflection { get; }
+        public bool bIsPEFile { get; }
+        public long dwBaseClassIndex { get; }
+        public long dwModuleID { get; }
+        public DacpModuleDataTransientFlags dwTransientFlags { get; }
+        public CLRDATA_ADDRESS TypeDefToMethodTableMap { get; }
+        public CLRDATA_ADDRESS TypeRefToMethodTableMap { get; }
+        public CLRDATA_ADDRESS MethodDefToDescMap { get; }
+        public CLRDATA_ADDRESS FieldDefToDescMap { get; }
+        public CLRDATA_ADDRESS MemberRefToDescMap { get; }
+        public CLRDATA_ADDRESS FileReferencesMap { get; }
+        public CLRDATA_ADDRESS ManifestModuleReferencesMap { get; }
+        public CLRDATA_ADDRESS pLookupTableHeap { get; }
+        public CLRDATA_ADDRESS pThunkHeap { get; }
+        public long dwModuleIndex { get; }
 
+        [NonSerialized]
         private MetaDataImport import;
 
         internal MetaDataImport GetImport(SOSDacInterface sos)
@@ -67,12 +70,29 @@ namespace DebugTools.SOS
             return import;
         }
 
-        private readonly DacpModuleData data;
-
         private SOSModule(CORDB_ADDRESS address, SOSAssembly assembly, DacpModuleData data, SOSDacInterface sos)
         {
             Assembly = assembly;
-            this.data = data;
+            Address = data.Address;
+            PEAssembly = data.PEAssembly;
+            ilBase = data.ilBase;
+            metadataStart = data.metadataStart;
+            metadataSize = data.metadataSize;
+            bIsReflection = data.bIsReflection;
+            bIsPEFile = data.bIsPEFile;
+            dwBaseClassIndex = data.dwBaseClassIndex;
+            dwModuleID = data.dwModuleID;
+            dwTransientFlags = data.dwTransientFlags;
+            TypeDefToMethodTableMap = data.TypeDefToMethodTableMap;
+            TypeRefToMethodTableMap = data.TypeRefToMethodTableMap;
+            MethodDefToDescMap = data.MethodDefToDescMap;
+            FieldDefToDescMap = data.FieldDefToDescMap;
+            MemberRefToDescMap = data.MemberRefToDescMap;
+            FileReferencesMap = data.FileReferencesMap;
+            ManifestModuleReferencesMap = data.ManifestModuleReferencesMap;
+            pLookupTableHeap = data.pLookupTableHeap;
+            pThunkHeap = data.pThunkHeap;
+            dwModuleIndex = data.dwModuleIndex;
 
             var module = sos.GetModule(address);
 

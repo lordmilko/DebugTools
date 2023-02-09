@@ -21,7 +21,7 @@ namespace DebugTools.PowerShell.Cmdlets
 
         protected override void ProcessRecord()
         {
-            IEnumerable<SOSProcess> processes = DebugToolsSessionState.SOSProcesses;
+            IEnumerable<LocalSOSProcess> processes = DebugToolsSessionState.SOSProcesses;
 
             if (!Force)
                 processes = processes.Where(i => !i.Process.HasExited);

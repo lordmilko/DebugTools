@@ -9,20 +9,7 @@ namespace DebugTools.PowerShell.Cmdlets
     {
         protected override void ProcessRecordEx()
         {
-            var threadStore = SOS.ThreadStoreData;
-
-            var currentThread = threadStore.firstThread;
-
-            var threads = new List<SOSThreadInfo>();
-
-            while (currentThread != 0)
-            {
-                var threadData = SOS.GetThreadData(currentThread);
-
-                threads.Add(new SOSThreadInfo(threadData, SOS));
-
-                currentThread = threadData.nextThread;
-            }
+            var threads = HostApp.GetSOSThreads(Process);
 
             foreach (var thread in threads)
                 WriteObject(thread);

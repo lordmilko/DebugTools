@@ -2,7 +2,6 @@
 using System.Diagnostics;
 using System.Linq;
 using System.Management.Automation;
-using DebugTools.SOS;
 
 namespace DebugTools.PowerShell.Cmdlets
 {
@@ -14,6 +13,9 @@ namespace DebugTools.PowerShell.Cmdlets
 
         [Parameter(Mandatory = false, ParameterSetName = ParameterSet.Manual, Position = 0)]
         public int ProcessId { get; set; }
+
+        [Parameter(Mandatory = false)]
+        public SwitchParameter Dbg { get; set; }
 
         protected override void ProcessRecord()
         {
@@ -29,7 +31,11 @@ namespace DebugTools.PowerShell.Cmdlets
             }
             else
             {
-                var sosProcess = new SOSProcess(process);
+                var hostApp = DebugToolsSessionState.GetDetectedHost(process, Dbg);
+
+                var handle = hostApp.CreateSOSProcess(process.Id);
+
+                var sosProcess = new LocalSOSProcess(handle);
 
                 DebugToolsSessionState.SOSProcesses.Add(sosProcess);
 

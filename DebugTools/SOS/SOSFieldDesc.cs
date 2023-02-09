@@ -1,8 +1,10 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using ClrDebug;
 
 namespace DebugTools.SOS
 {
+    [Serializable]
     public class SOSFieldDesc
     {
         public static SOSFieldDesc[] GetFieldDescs(SOSMethodTable methodTable, SOSDacInterface sos)
@@ -42,33 +44,43 @@ namespace DebugTools.SOS
         public CLRDATA_ADDRESS Address { get; }
         public SOSMethodTable MethodTable { get; }
 
-        public CorElementType Type => data.Type;
-        public CorElementType sigType => data.sigType;
-        public CLRDATA_ADDRESS MTOfType => data.MTOfType;
-        public CLRDATA_ADDRESS ModuleOfType => data.ModuleOfType;
-        public mdTypeDef TypeToken => data.TypeToken;
-        public mdFieldDef mb => data.mb;
-        public CLRDATA_ADDRESS MTOfEnclosingClass => data.MTOfEnclosingClass;
-        public int dwOffset => data.dwOffset;
-        public bool bIsThreadLocal => data.bIsThreadLocal;
-        public bool bIsContextLocal => data.bIsContextLocal;
-        public bool bIsStatic => data.bIsStatic;
-        public CLRDATA_ADDRESS NextField => data.NextField;
-
-        private readonly DacpFieldDescData data;
+        public CorElementType Type { get; }
+        public CorElementType sigType { get; }
+        public CLRDATA_ADDRESS MTOfType { get; }
+        public CLRDATA_ADDRESS ModuleOfType { get; }
+        public mdTypeDef TypeToken { get; }
+        public mdFieldDef mb { get; }
+        public CLRDATA_ADDRESS MTOfEnclosingClass { get; }
+        public int dwOffset { get; }
+        public bool bIsThreadLocal { get; }
+        public bool bIsContextLocal { get; }
+        public bool bIsStatic { get; }
+        public CLRDATA_ADDRESS NextField { get; }
 
         public SOSFieldDesc(CLRDATA_ADDRESS address, SOSMethodTable methodTable, DacpFieldDescData data, SOSDacInterface sos)
         {
             Address = address;
             MethodTable = methodTable;
-            this.data = data;
 
             var import = methodTable.Module.GetImport(sos);
 
-            var field = import.GetFieldProps(mb);
+            var field = import.GetFieldProps(data.mb);
 
             Name = field.szField;
-        }
+
+            Type = data.Type;
+            sigType = data.sigType;
+            MTOfType = data.MTOfType;
+            ModuleOfType = data.ModuleOfType;
+            TypeToken = data.TypeToken;
+            mb = data.mb;
+            MTOfEnclosingClass = data.MTOfEnclosingClass;
+            dwOffset = data.dwOffset;
+            bIsThreadLocal = data.bIsThreadLocal;
+            bIsContextLocal = data.bIsContextLocal;
+            bIsStatic = data.bIsStatic;
+            NextField = data.NextField;
+    }
 
         public override string ToString()
         {

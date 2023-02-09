@@ -1,9 +1,14 @@
-﻿using ClrDebug;
+﻿using System;
+using ClrDebug;
 
 namespace DebugTools.SOS
 {
-    class SOSParameterInfo
+    [Serializable]
+    public class SOSParameterInfo
     {
+        //The SOSStackFrame holds a reference to the SOSParameterInfo which holds a reference to the SOSStackFrame.
+        //The serializer will see there is a recursive reference automatically. The deserialized SOSFrame will have
+        //reference equality with the SOSStackFrame that contains this SOSParameterInfo.
         public SOSStackFrame SOSFrame { get; }
 
         public string Name { get; }

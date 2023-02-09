@@ -1,8 +1,10 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using ClrDebug;
 
 namespace DebugTools.SOS
 {
+    [Serializable]
     public class SOSAssembly
     {
         public static SOSAssembly[] GetAssemblies(SOSAppDomain appDomain, SOSDacInterface sos)
@@ -39,23 +41,30 @@ namespace DebugTools.SOS
         public SOSAppDomain AppDomain { get; }
         public string Location { get; }
 
-        public CLRDATA_ADDRESS AssemblyPtr => data.AssemblyPtr;
-        public CLRDATA_ADDRESS ClassLoader => data.ClassLoader;
-        public CLRDATA_ADDRESS ParentDomain => data.ParentDomain;
-        public CLRDATA_ADDRESS BaseDomainPtr => data.BaseDomainPtr;
-        public CLRDATA_ADDRESS AssemblySecDesc => data.AssemblySecDesc;
-        public bool isDynamic => data.isDynamic;
-        public int ModuleCount => data.ModuleCount;
-        public int LoadContext => data.LoadContext;
-        public bool isDomainNeutral => data.isDomainNeutral;
-        public int dwLocationFlags => data.dwLocationFlags;
-
-        private readonly DacpAssemblyData data;
+        public CLRDATA_ADDRESS AssemblyPtr { get; }
+        public CLRDATA_ADDRESS ClassLoader { get; }
+        public CLRDATA_ADDRESS ParentDomain { get; }
+        public CLRDATA_ADDRESS BaseDomainPtr { get; }
+        public CLRDATA_ADDRESS AssemblySecDesc { get; }
+        public bool isDynamic { get; }
+        public int ModuleCount { get; }
+        public int LoadContext { get; }
+        public bool isDomainNeutral { get; }
+        public int dwLocationFlags { get; }
 
         private SOSAssembly(CLRDATA_ADDRESS address, SOSAppDomain appDomain, DacpAssemblyData data, SOSDacInterface sos)
         {
             AppDomain = appDomain;
-            this.data = data;
+            AssemblyPtr = data.AssemblyPtr;
+            ClassLoader = data.ClassLoader;
+            ParentDomain = data.ParentDomain;
+            BaseDomainPtr = data.BaseDomainPtr;
+            AssemblySecDesc = data.AssemblySecDesc;
+            isDynamic = data.isDynamic;
+            ModuleCount = data.ModuleCount;
+            LoadContext = data.LoadContext;
+            isDomainNeutral = data.isDomainNeutral;
+            dwLocationFlags = data.dwLocationFlags;
 
             if (data.isDynamic)
                 Name = "Dynamic";

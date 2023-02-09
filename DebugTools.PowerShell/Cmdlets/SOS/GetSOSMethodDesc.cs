@@ -21,7 +21,7 @@ namespace DebugTools.PowerShell.Cmdlets
         {
             if (ParameterSetName == ParameterSet.Address)
             {
-                var assembly = SOSMethodDesc.GetMethodDesc(Address, SOS);
+                var assembly = HostApp.GetSOSMethodDesc(Process, Address);
 
                 if (assembly == null)
                     WriteWarning($"{Address} is not a valid MethodDesc");
@@ -30,7 +30,7 @@ namespace DebugTools.PowerShell.Cmdlets
             }
             else
             {
-                IEnumerable<SOSMethodDesc> methodDescs = SOSMethodDesc.GetMethodDescs(MethodTable, SOS);
+                IEnumerable<SOSMethodDesc> methodDescs = HostApp.GetSOSMethodDescs(Process, MethodTable);
 
                 if (Name != null)
                     methodDescs = methodDescs.FilterBy(a => a.Name, Name);

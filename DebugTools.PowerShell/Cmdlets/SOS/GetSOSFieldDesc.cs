@@ -18,7 +18,7 @@ namespace DebugTools.PowerShell.Cmdlets
         {
             if (ParameterSetName == ParameterSet.Address)
             {
-                var assembly = SOSFieldDesc.GetFieldDesc(Address, SOS);
+                var assembly = HostApp.GetSOSFieldDesc(Process, Address);
 
                 if (assembly == null)
                     WriteWarning($"{Address} is not a valid FieldDesc");
@@ -27,7 +27,7 @@ namespace DebugTools.PowerShell.Cmdlets
             }
             else
             {
-                IEnumerable<SOSFieldDesc> fieldDescs = SOSFieldDesc.GetFieldDescs(MethodTable, SOS);
+                IEnumerable<SOSFieldDesc> fieldDescs = HostApp.GetSOSFieldDescs(Process, MethodTable);
 
                 foreach (var fieldDesc in fieldDescs)
                     WriteObject(fieldDesc);

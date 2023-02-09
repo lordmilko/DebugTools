@@ -6,7 +6,8 @@ using ClrDebug;
 
 namespace DebugTools.SOS
 {
-    abstract class SOSStackFrame
+    [Serializable]
+    public abstract class SOSStackFrame
     {
         public abstract SOSStackFrameType Type { get; }
 

@@ -1,7 +1,9 @@
-﻿using ClrDebug;
+﻿using System;
+using ClrDebug;
 
 namespace DebugTools.SOS
 {
+    [Serializable]
     public class SOSThreadInfo
     {
         public int ThreadId { get; }

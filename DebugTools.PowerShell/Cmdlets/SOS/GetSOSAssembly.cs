@@ -21,7 +21,7 @@ namespace DebugTools.PowerShell.Cmdlets
         {
             if (ParameterSetName == ParameterSet.Address)
             {
-                var assembly = SOSAssembly.GetAssembly(Address, SOS);
+                var assembly = HostApp.GetSOSAssembly(Process, Address);
 
                 if (assembly == null)
                     WriteWarning($"{Address} is not a valid Assembly");
@@ -30,7 +30,7 @@ namespace DebugTools.PowerShell.Cmdlets
             }
             else
             {
-                IEnumerable<SOSAssembly> assemblies = SOSAssembly.GetAssemblies(AppDomain, SOS);
+                IEnumerable<SOSAssembly> assemblies = HostApp.GetSOSAssemblies(Process, AppDomain);
 
                 if (Name != null)
                     assemblies = assemblies.FilterBy(a => a.Name, Name);

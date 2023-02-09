@@ -8,6 +8,7 @@ namespace DebugTools.PowerShell.Cmdlets
         protected override void ProcessRecordEx()
         {
             DebugToolsSessionState.SOSProcesses.Remove(Process);
+            HostApp.RemoveSOSProcess(Process);
         }
     }
 }

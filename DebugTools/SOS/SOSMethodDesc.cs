@@ -1,8 +1,10 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using ClrDebug;
 
 namespace DebugTools.SOS
 {
+    [Serializable]
     public class SOSMethodDesc
     {
         public static SOSMethodDesc[] GetMethodDescs(SOSMethodTable methodTable, SOSDacInterface sos)
@@ -49,74 +51,76 @@ namespace DebugTools.SOS
         /// <summary>
         /// Indicates if the runtime has native code available for the given instantiation of the method.
         /// </summary>
-        public bool bHasNativeCode => data.bHasNativeCode;
+        public bool bHasNativeCode { get; }
 
         /// <summary>
         /// Indicates if the method is generated dynamically through lightweight code generation.
         /// </summary>
-        public bool bIsDynamic => data.bIsDynamic;
+        public bool bIsDynamic { get; }
 
         /// <summary>
         /// The method's slot number in the method table.
         /// </summary>
-        public ushort wSlotNumber => data.wSlotNumber;
+        public ushort wSlotNumber { get; }
 
         /// <summary>
         /// The method's initial native address.
         /// </summary>
-        public CLRDATA_ADDRESS NativeCodeAddr => data.NativeCodeAddr;
+        public CLRDATA_ADDRESS NativeCodeAddr { get; }
 
-        public CLRDATA_ADDRESS AddressOfNativeCodeSlot => data.AddressOfNativeCodeSlot;
+        public CLRDATA_ADDRESS AddressOfNativeCodeSlot { get; }
 
         /// <summary>
         /// Pointer to the MethodDesc in the runtime.
         /// </summary>
-        public CLRDATA_ADDRESS MethodDescPtr => data.MethodDescPtr;
+        public CLRDATA_ADDRESS MethodDescPtr { get; }
 
-        public CLRDATA_ADDRESS MethodTablePtr => data.MethodTablePtr;
+        public CLRDATA_ADDRESS MethodTablePtr { get; }
 
-        public CLRDATA_ADDRESS ModulePtr => data.ModulePtr;
+        public CLRDATA_ADDRESS ModulePtr { get; }
 
         /// <summary>
         /// Token associated with the given method.
         /// </summary>
-        public mdToken MDToken => data.MDToken;
+        public mdToken MDToken { get; }
 
-        public CLRDATA_ADDRESS GCInfo => data.GCInfo;
+        public CLRDATA_ADDRESS GCInfo { get; }
 
-        public CLRDATA_ADDRESS GCStressCodeCopy => data.GCStressCodeCopy;
+        public CLRDATA_ADDRESS GCStressCodeCopy { get; }
 
         /// <summary>
         /// If the method is dynamic, the runtime uses this buffer internally for information tracking.
         /// </summary>
-        public CLRDATA_ADDRESS managedDynamicMethodObject => data.managedDynamicMethodObject;
+        public CLRDATA_ADDRESS managedDynamicMethodObject { get; }
 
         /// <summary>
         /// Used to populate the structure per request when given a native code address.
         /// </summary>
-        public CLRDATA_ADDRESS requestedIP => data.requestedIP;
-
-        /// <summary>
-        /// Information about the latest instrumented version of the method.
-        /// </summary>
-        public DacpReJitData rejitDataCurrent => data.rejitDataCurrent;
-
-        /// <summary>
-        /// Rejit information for the requested native address.
-        /// </summary>
-        public DacpReJitData rejitDataRequested => data.rejitDataRequested;
+        public CLRDATA_ADDRESS requestedIP { get; }
 
         /// <summary>
         /// Number of times the method has been rejitted through instrumentation.
         /// </summary>
-        public int cJittedRejitVersions => data.cJittedRejitVersions;
-
-        private DacpMethodDescData data;
+        public int cJittedRejitVersions { get; }
 
         private SOSMethodDesc(SOSMethodTable methodTable, string name, DacpMethodDescData data)
         {
             Name = name;
-            this.data = data;
+
+            bHasNativeCode = data.bHasNativeCode;
+            bIsDynamic = data.bIsDynamic;
+            wSlotNumber = data.wSlotNumber;
+            NativeCodeAddr = data.NativeCodeAddr;
+            AddressOfNativeCodeSlot = data.AddressOfNativeCodeSlot;
+            MethodDescPtr = data.MethodDescPtr;
+            MethodTablePtr = data.MethodTablePtr;
+            ModulePtr = data.ModulePtr;
+            MDToken = data.MDToken;
+            GCInfo = data.GCInfo;
+            GCStressCodeCopy = data.GCStressCodeCopy;
+            managedDynamicMethodObject = data.managedDynamicMethodObject;
+            requestedIP = data.requestedIP;
+            cJittedRejitVersions = data.cJittedRejitVersions;
         }
 
         public override string ToString()

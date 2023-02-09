@@ -1,6 +1,6 @@
 ﻿namespace DebugTools.SOS
 {
-    enum SOSStackFrameType
+    public enum SOSStackFrameType
     {
         Helper,
         Managed,

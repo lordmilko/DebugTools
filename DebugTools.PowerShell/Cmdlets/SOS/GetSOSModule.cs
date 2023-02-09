@@ -17,7 +17,7 @@ namespace DebugTools.PowerShell.Cmdlets
         {
             if (ParameterSetName == ParameterSet.Address)
             {
-                var assembly = SOSModule.GetModule(Address, SOS);
+                var assembly = HostApp.GetSOSModule(Process, Address);
 
                 if (assembly == null)
                     WriteWarning($"{Address} is not a valid Module");
@@ -26,7 +26,7 @@ namespace DebugTools.PowerShell.Cmdlets
             }
             else
             {
-                var modules = SOSModule.GetModules(Assembly, SOS);
+                var modules = HostApp.GetSOSModules(Process, Assembly);
 
                 foreach (var module in modules)
                     WriteObject(module);

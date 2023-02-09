@@ -19,7 +19,7 @@ namespace DebugTools.PowerShell.Cmdlets
         {
             if (ParameterSetName == ParameterSet.Address)
             {
-                var assembly = SOSAppDomain.GetAppDomain(Address, SOS);
+                var assembly = HostApp.GetSOSAppDomain(Process, Address);
 
                 if (assembly == null)
                     WriteWarning($"{Address} is not a valid AppDomain");
@@ -28,7 +28,7 @@ namespace DebugTools.PowerShell.Cmdlets
             }
             else
             {
-                IEnumerable<SOSAppDomain> domains = SOSAppDomain.GetAppDomains(SOS);
+                IEnumerable<SOSAppDomain> domains = HostApp.GetSOSAppDomains(Process);
 
                 if (Type != null)
                     domains = domains.Where(d => Type.Contains(d.Type));

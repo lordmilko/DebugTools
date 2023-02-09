@@ -21,7 +21,7 @@ namespace DebugTools.PowerShell.Cmdlets
         {
             if (ParameterSetName == ParameterSet.Address)
             {
-                var assembly = SOSMethodTable.GetMethodTable(Address, SOS);
+                var assembly = HostApp.GetSOSMethodTable(Process, Address);
 
                 if (assembly == null)
                     WriteWarning($"{Address} is not a valid MethodTable");
@@ -34,7 +34,7 @@ namespace DebugTools.PowerShell.Cmdlets
 
                 foreach (var module in modules)
                 {
-                    var methodTables = SOSMethodTable.GetMethodTables(module, SOS);
+                    var methodTables = HostApp.GetSOSMethodTables(Process, module);
 
                     foreach (var methodTable in methodTables)
                         WriteObject(methodTable);
@@ -50,7 +50,7 @@ namespace DebugTools.PowerShell.Cmdlets
                     return new[] {Module};
 
                 case ParameterSet.Assembly:
-                    return SOSModule.GetModules(Assembly, SOS);
+                    return HostApp.GetSOSModules(Process, Assembly);
 
                 default:
                     throw new NotImplementedException($"Don't know how to handle parameter set '{ParameterSetName}'.");

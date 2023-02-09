@@ -11,6 +11,7 @@ namespace DebugTools.SOS
         Normal
     }
 
+    [Serializable]
     public class SOSAppDomain
     {
         public static SOSAppDomain[] GetAppDomains(SOSDacInterface sos)
@@ -52,19 +53,17 @@ namespace DebugTools.SOS
 
         public AppDomainType Type { get; }
 
-        public CLRDATA_ADDRESS AppDomainPtr => data.AppDomainPtr;
-        public CLRDATA_ADDRESS AppSecDesc => data.AppSecDesc;
-        public CLRDATA_ADDRESS pLowFrequencyHeap => data.pLowFrequencyHeap;
-        public CLRDATA_ADDRESS pHighFrequencyHeap => data.pHighFrequencyHeap;
-        public CLRDATA_ADDRESS pStubHeap => data.pStubHeap;
-        public CLRDATA_ADDRESS DomainLocalBlock => data.DomainLocalBlock;
-        public CLRDATA_ADDRESS pDomainLocalModules => data.pDomainLocalModules;
-        public int dwId => data.dwId;
-        public int AssemblyCount => data.AssemblyCount;
-        public int FailedAssemblyCount => data.FailedAssemblyCount;
-        public DacpAppDomainDataStage AppDomainStage => data.AppDomainStage;
-
-        private readonly DacpAppDomainData data;
+        public CLRDATA_ADDRESS AppDomainPtr { get; }
+        public CLRDATA_ADDRESS AppSecDesc { get; }
+        public CLRDATA_ADDRESS pLowFrequencyHeap { get; }
+        public CLRDATA_ADDRESS pHighFrequencyHeap { get; }
+        public CLRDATA_ADDRESS pStubHeap { get; }
+        public CLRDATA_ADDRESS DomainLocalBlock { get; }
+        public CLRDATA_ADDRESS pDomainLocalModules { get; }
+        public int dwId { get; }
+        public int AssemblyCount { get; }
+        public int FailedAssemblyCount { get; }
+        public DacpAppDomainDataStage AppDomainStage { get; }
 
         private SOSAppDomain(CLRDATA_ADDRESS address, SOSDacInterface sos, AppDomainType type) : this(address, sos.GetAppDomainData(address), sos, type)
         {
@@ -73,7 +72,17 @@ namespace DebugTools.SOS
         private SOSAppDomain(CLRDATA_ADDRESS address, DacpAppDomainData data, SOSDacInterface sos, AppDomainType type)
         {
             Type = type;
-            this.data = data;
+            AppDomainPtr = data.AppDomainPtr;
+            AppSecDesc = data.AppSecDesc;
+            pLowFrequencyHeap = data.pLowFrequencyHeap;
+            pHighFrequencyHeap = data.pHighFrequencyHeap;
+            pStubHeap = data.pStubHeap;
+            DomainLocalBlock = data.DomainLocalBlock;
+            pDomainLocalModules = data.pDomainLocalModules;
+            dwId = data.dwId;
+            AssemblyCount = data.AssemblyCount;
+            FailedAssemblyCount = data.FailedAssemblyCount;
+            AppDomainStage = data.AppDomainStage;
 
             switch (type)
             {

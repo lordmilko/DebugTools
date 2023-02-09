@@ -4,6 +4,7 @@ using ClrDebug;
 
 namespace DebugTools.SOS
 {
+    [Serializable]
     public class SOSMethodTable
     {
         public static SOSMethodTable[] GetMethodTables(SOSModule module, SOSDacInterface sos)
@@ -62,22 +63,20 @@ namespace DebugTools.SOS
         public SOSModule Module { get; }
         public CLRDATA_ADDRESS Address { get; }
 
-        public bool bIsFree => data.bIsFree;
-        public CLRDATA_ADDRESS Class => data.Class;
-        public CLRDATA_ADDRESS ParentMethodTable => data.ParentMethodTable;
-        public ushort wNumInterfaces => data.wNumInterfaces;
-        public ushort wNumMethods => data.wNumMethods;
-        public ushort wNumVtableSlots => data.wNumVtableSlots;
-        public ushort wNumVirtuals => data.wNumVirtuals;
-        public int BaseSize => data.BaseSize;
-        public int ComponentSize => data.ComponentSize;
-        public mdTypeDef cl => data.cl;
-        public CorTypeAttr dwAttrClass => data.dwAttrClass;
-        public bool bIsShared => data.bIsShared;
-        public bool bIsDynamic => data.bIsDynamic;
-        public bool bContainsPointers => data.bContainsPointers;
-
-        private readonly DacpMethodTableData data;
+        public bool bIsFree { get; }
+        public CLRDATA_ADDRESS Class { get; }
+        public CLRDATA_ADDRESS ParentMethodTable { get; }
+        public ushort wNumInterfaces { get; }
+        public ushort wNumMethods { get; }
+        public ushort wNumVtableSlots { get; }
+        public ushort wNumVirtuals { get; }
+        public int BaseSize { get; }
+        public int ComponentSize { get; }
+        public mdTypeDef cl { get; }
+        public CorTypeAttr dwAttrClass { get; }
+        public bool bIsShared { get; }
+        public bool bIsDynamic { get; }
+        public bool bContainsPointers { get; }
 
         private SOSMethodTable(
             SOSModule module,
@@ -88,8 +87,22 @@ namespace DebugTools.SOS
             Module = module;
             Address = address;
             Name = name;
-            this.data = data;
-        }
+
+            bIsFree = data.bIsFree;
+            Class = data.Class;
+            ParentMethodTable = data.ParentMethodTable;
+            wNumInterfaces = data.wNumInterfaces;
+            wNumMethods = data.wNumMethods;
+            wNumVtableSlots = data.wNumVtableSlots;
+            wNumVirtuals = data.wNumVirtuals;
+            BaseSize = data.BaseSize;
+            ComponentSize = data.ComponentSize;
+            cl = data.cl;
+            dwAttrClass = data.dwAttrClass;
+            bIsShared = data.bIsShared;
+            bIsDynamic = data.bIsDynamic;
+            bContainsPointers = data.bContainsPointers;
+    }
 
         public override string ToString()
         {

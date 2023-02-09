@@ -1,8 +1,10 @@
-﻿using ClrDebug;
+﻿using System;
+using ClrDebug;
 
 namespace DebugTools.SOS
 {
     //This is a special frame type - a clr!Frame
+    [Serializable]
     class SOSHelperStackFrame : SOSStackFrame
     {
         public override SOSStackFrameType Type => SOSStackFrameType.Helper;

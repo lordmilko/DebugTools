@@ -8,11 +8,13 @@ using System.Runtime.Remoting.Channels.Ipc;
 using System.Runtime.Serialization.Formatters;
 using System.Text.RegularExpressions;
 using System.Threading;
+using DebugTools.SOS;
 using Microsoft.Diagnostics.Runtime;
+using DataTarget = Microsoft.Diagnostics.Runtime.DataTarget;
 
 namespace DebugTools.Host
 {
-    public class HostApp : MarshalByRefObject
+    public partial class HostApp : MarshalByRefObject
     {
         private Dictionary<int, SymbolManager> symbolManagerCache = new Dictionary<int, SymbolManager>();
 

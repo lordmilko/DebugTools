@@ -1,7 +1,9 @@
-﻿using ClrDebug;
+﻿using System;
+using ClrDebug;
 
 namespace DebugTools.SOS
 {
+    [Serializable]
     class SOSManagedStackFrame : SOSStackFrame
     {
         public override SOSStackFrameType Type => SOSStackFrameType.Managed;

@@ -17,7 +17,7 @@ namespace DebugTools.PowerShell
 
         internal static ProfilerSession GlobalProfilerSession { get; set; }
 
-        internal static List<SOSProcess> SOSProcesses = new List<SOSProcess>();
+        internal static List<LocalSOSProcess> SOSProcesses = new List<LocalSOSProcess>();
 
         internal static (HostApp host, Process process) Hostx86;
         internal static (HostApp host, Process process) Hostx64;
@@ -60,7 +60,7 @@ namespace DebugTools.PowerShell
             return GlobalProfilerSession;
         }
 
-        internal static SOSProcess GetImplicitSOSProcess()
+        internal static LocalSOSProcess GetImplicitSOSProcess()
         {
             //Check for alive
 
