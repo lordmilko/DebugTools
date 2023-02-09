@@ -1,4 +1,5 @@
 ﻿using System;
+using System.IO;
 using System.Runtime.InteropServices;
 using ClrDebug;
 using DebugTools;
@@ -20,8 +21,13 @@ namespace Profiler.Tests
 
         public MockMethodInfoDetailed(System.Reflection.MethodInfo methodInfo)
         {
-            TypeName = methodInfo?.DeclaringType.Name;
-            MethodName = methodInfo?.Name;
+            var disp = new MetaDataDispenserEx();
+
+            import = disp.OpenScope<MetaDataImport>(methodInfo.DeclaringType.Assembly.Location, CorOpenFlags.ofRead);
+
+            ModuleName = Path.GetFileName(methodInfo.DeclaringType.Assembly.Location);
+            TypeName = methodInfo.DeclaringType.FullName;
+            MethodName = methodInfo.Name;
             SigMethod = MakeSigMethodDef(methodInfo);
         }
 
@@ -50,13 +56,6 @@ namespace Profiler.Tests
 
         public MetaDataImport GetMDI()
         {
-            if (import == null)
-            {
-                var disp = new MetaDataDispenserEx();
-
-                import = disp.OpenScope<MetaDataImport>(GetType().Assembly.Location, CorOpenFlags.ofRead);
-            }
-
             return import;
         }
     }

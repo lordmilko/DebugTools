@@ -1,5 +1,7 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
+using System.Linq;
 using System.Management.Automation;
 using System.Threading;
 
@@ -36,6 +38,21 @@ namespace DebugTools.PowerShell.Cmdlets
         /// </summary>
         protected virtual void StopProcessingEx()
         {
+        }
+
+        internal static IEnumerable<T> FilterByWildcardArray<T>(string[] arr, IEnumerable<T> records, params Func<T, string>[] getProperty)
+        {
+            if (arr != null)
+            {
+                records = records.Where(
+                    record => arr
+                        .Select(a => new WildcardPattern(a, WildcardOptions.IgnoreCase))
+                        .Any(filter => getProperty.Any(p => filter.IsMatch(p(record)))
+                        )
+                );
+            }
+
+            return records;
         }
     }
 }

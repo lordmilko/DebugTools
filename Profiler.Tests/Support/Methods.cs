@@ -105,5 +105,9 @@
         public static void second(object a)
         {
         }
+
+        public static void third(object a)
+        {
+        }
     }
 }

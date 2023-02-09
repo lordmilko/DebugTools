@@ -3,7 +3,7 @@ using DebugTools.Profiler;
 
 namespace DebugTools.PowerShell.Cmdlets
 {
-    public abstract class StackFrameCmdlet : ProfilerSessionCmdlet
+    public abstract class StackFrameCmdlet : FilterStackFrameCmdlet
     {
         [Parameter(Mandatory = false, ValueFromPipeline = true)]
         public IFrame Frame { get; set; }

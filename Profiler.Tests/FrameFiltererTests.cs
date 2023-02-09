@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using ClrDebug;
 using DebugTools.PowerShell;
@@ -508,6 +509,144 @@ namespace Profiler.Tests
 ");
         }
 
+        [TestMethod]
+        public void FrameFilterer_MethodModuleName()
+        {
+            var options = new FrameFilterOptions
+            {
+                MethodModuleName = new[] {"Profiler.Tests.dll"}
+            };
+
+            var tree = MakeRoot(
+                MakeFrame("first", String("aaa")),
+                MakeFrame(typeof(Console).GetMethods().First(m => m.Name == "WriteLine"), String("bbb"))
+            );
+
+            TestStack(options, tree, @"
+1000
+└─void Methods.first(""aaa"")
+");
+        }
+
+        [TestMethod]
+        public void FrameFilterer_MethodTypeName()
+        {
+            var options = new FrameFilterOptions
+            {
+                MethodTypeName = new[] { "System.Console" }
+            };
+
+            var tree = MakeRoot(
+                MakeFrame("first", String("aaa")),
+                MakeFrame(typeof(Console).GetMethods().First(m => m.Name == "WriteLine"), String("bbb"))
+            );
+
+            TestStack(options, tree, @"
+1000
+└─void Console.WriteLine(""bbb"")
+");
+        }
+
+        [TestMethod]
+        public void FrameFilterer_MethodName()
+        {
+            var options = new FrameFilterOptions
+            {
+                MethodName = new[] { "WriteLine" }
+            };
+
+            var tree = MakeRoot(
+                MakeFrame("first", String("aaa")),
+                MakeFrame(typeof(Console).GetMethods().First(m => m.Name == "WriteLine"), String("bbb"))
+            );
+
+            TestStack(options, tree, @"
+1000
+└─void Console.WriteLine(""bbb"")
+");
+        }
+
+        [TestMethod]
+        public void FrameFilterer_ParentMethodModuleName()
+        {
+            var options = new FrameFilterOptions
+            {
+                ParentMethodModuleName = new[] { "Profiler.Tests.dll" }
+            };
+
+            var tree = MakeRoot(
+                MakeFrame("first", String("aaa"),
+                    MakeFrame("second", String("bbb")),
+                    MakeFrame("third", String("ccc"))
+                ),
+                MakeFrame(typeof(Console).GetMethods().First(m => m.Name == "WriteLine"), String("bbb"),
+                    MakeFrame("second", String("bbb")),
+                    MakeFrame("third", String("ccc"))
+                )
+            );
+
+            TestStack(options, tree, @"
+1000
+└─void Methods.first(""aaa"")
+  ├─void Methods.second(""bbb"")
+  └─void Methods.third(""ccc"")
+");
+        }
+
+        [TestMethod]
+        public void FrameFilterer_ParentMethodTypeName()
+        {
+            var options = new FrameFilterOptions
+            {
+                ParentMethodTypeName = new[] { "System.Console" }
+            };
+
+            var tree = MakeRoot(
+                MakeFrame("first", String("aaa"),
+                    MakeFrame("second", String("bbb")),
+                    MakeFrame("third", String("ccc"))
+                ),
+                MakeFrame(typeof(Console).GetMethods().First(m => m.Name == "WriteLine"), String("bbb"),
+                    MakeFrame("second", String("bbb")),
+                    MakeFrame("third", String("ccc"))
+                )
+            );
+
+            TestStack(options, tree, @"
+1000
+└─void Console.WriteLine(""bbb"")
+  ├─void Methods.second(""bbb"")
+  └─void Methods.third(""ccc"")
+");
+        }
+
+        [TestMethod]
+        public void FrameFilterer_ParentMethodName()
+        {
+            var options = new FrameFilterOptions
+            {
+                ParentMethodName = new[] { "WriteLine" }
+            };
+
+            var tree = MakeRoot(
+                MakeFrame("first", String("aaa"),
+                    MakeFrame("second", String("bbb")),
+                    MakeFrame("third", String("ccc"))
+                ),
+                MakeFrame(typeof(Console).GetMethods().First(m => m.Name == "WriteLine"), String("bbb"),
+                    MakeFrame("second", String("bbb")),
+                    MakeFrame("third", String("ccc"))
+                )
+            );
+
+            TestStack(options, tree, @"
+1000
+└─void Console.WriteLine(""bbb"")
+  ├─void Methods.second(""bbb"")
+  └─void Methods.third(""ccc"")
+");
+        }
+
         private RootFrame MakeRoot(params IMethodFrame[] children)
         {
             var newFrame = new RootFrame
@@ -526,13 +665,16 @@ namespace Profiler.Tests
             return newFrame;
         }
 
-        private IMethodFrameDetailed MakeFrame(string methodName, object parameter, params IMethodFrame[] children)
+        private IMethodFrameDetailed MakeFrame(string methodName, object parameter, params IMethodFrame[] children) =>
+            MakeFrame(typeof(Methods).GetMethod(methodName), parameter, children);
+
+        private IMethodFrameDetailed MakeFrame(System.Reflection.MethodInfo method, object parameter, params IMethodFrame[] children)
         {
             if (parameter is IMockValue v)
                 parameter = v.OuterValue;
 
             var newFrame = new MockMethodFrameDetailed(
-                new MockMethodInfoDetailed(typeof(Methods).GetMethod(methodName)),
+                new MockMethodInfoDetailed(method),
                 new List<object> {parameter},
                 VoidValue.Instance
             );

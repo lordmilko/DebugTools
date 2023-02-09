@@ -12,6 +12,15 @@ namespace DebugTools.PowerShell.Cmdlets
         public string[] Name { get; set; }
 
         [Parameter(Mandatory = false)]
+        public string[] ModuleName { get; set; }
+
+        [Parameter(Mandatory = false)]
+        public string[] TypeName { get; set; }
+
+        [Parameter(Mandatory = false)]
+        public string[] MethodName { get; set; }
+
+        [Parameter(Mandatory = false)]
         public string[] Exclude { get; set; }
 
         [Parameter(Mandatory = false)]
@@ -44,6 +53,15 @@ namespace DebugTools.PowerShell.Cmdlets
                     return false;
                 }));
             }
+
+            if (ModuleName != null)
+                methods = FilterByWildcardArray(ModuleName, methods, m => m.ModuleName);
+
+            if (TypeName != null)
+                methods = FilterByWildcardArray(TypeName, methods, m => m.TypeName);
+
+            if (MethodName != null)
+                methods = FilterByWildcardArray(MethodName, methods, m => m.MethodName);
 
             if (Exclude != null)
             {

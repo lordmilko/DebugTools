@@ -126,12 +126,31 @@ namespace DebugTools.PowerShell
             set => stringValue = SetHasValue(value);
         }
 
-        private string[] typeName;
-        public string[] TypeName
+        private string[] classTypeName;
+        public string[] ClassTypeName
         {
-            get => typeName;
-            set => typeName = SetHasValue(value);
+            get => classTypeName;
+            set => classTypeName = SetHasValue(value);
         }
+
+        #region Method
+
+        public string[] MethodModuleName { get; set; }
+
+        public string[] MethodTypeName { get; set; }
+
+        public string[] MethodName { get; set; }
+
+        #endregion
+        #region ParentMethod
+
+        public string[] ParentMethodModuleName { get; set; }
+
+        public string[] ParentMethodTypeName { get; set; }
+
+        public string[] ParentMethodName { get; set; }
+
+        #endregion
 
         public bool HasFilterValue { get; private set; }
 

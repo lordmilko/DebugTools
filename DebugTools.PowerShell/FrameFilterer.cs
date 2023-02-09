@@ -14,7 +14,16 @@ namespace DebugTools.PowerShell
         private WildcardPattern[] includeWildcards;
         private WildcardPattern[] excludeWildcards;
         private WildcardPattern[] stringWildcards;
-        private WildcardPattern[] typeWildcards;
+        private WildcardPattern[] classTypeWildcards;
+        private WildcardPattern[] methodModuleNameWildcards;
+        private WildcardPattern[] methodTypeNameWildcards;
+        private WildcardPattern[] methodNameWildcards;
+        private WildcardPattern[] parentMethodModuleNameWildcards;
+        private WildcardPattern[] parentMethodTypeNameWildcards;
+        private WildcardPattern[] parentMethodNameWildcards;
+
+        private bool hasMethodFilter;
+        private bool hasParentMethodFilter;
 
         private ConcurrentDictionary<IFrame, byte> includes;
 
@@ -31,7 +40,24 @@ namespace DebugTools.PowerShell
             includeWildcards = MakeWildcard(options.Include);
             excludeWildcards = MakeWildcard(options.Exclude);
             stringWildcards = MakeWildcard(options.StringValue);
-            typeWildcards = MakeWildcard(options.TypeName);
+            classTypeWildcards = MakeWildcard(options.ClassTypeName);
+            methodModuleNameWildcards = MakeWildcard(options.MethodModuleName);
+            methodTypeNameWildcards = MakeWildcard(options.MethodTypeName);
+            methodNameWildcards = MakeWildcard(options.MethodName);
+            parentMethodModuleNameWildcards = MakeWildcard(options.ParentMethodModuleName);
+            parentMethodTypeNameWildcards = MakeWildcard(options.ParentMethodTypeName);
+            parentMethodNameWildcards = MakeWildcard(options.ParentMethodName);
+
+            hasParentMethodFilter =
+                parentMethodModuleNameWildcards != null ||
+                parentMethodTypeNameWildcards != null ||
+                parentMethodNameWildcards != null;
+
+            hasMethodFilter =
+                methodModuleNameWildcards != null ||
+                methodTypeNameWildcards != null ||
+                methodNameWildcards != null ||
+                hasParentMethodFilter;
 
             if (options.HasFilterValue)
                 MatchedValues = new ConcurrentDictionary<object, byte>();
@@ -109,10 +135,20 @@ namespace DebugTools.PowerShell
                     newRoots.Add(newRoot);
             }
 
+            SortFrames(newRoots);
+
             if (!options.HasFilterValue)
                 HighlightFrames.Clear();
 
             return newRoots;
+        }
+
+        private void SortFrames<T>(List<T> frames) where T : IFrame
+        {
+            frames.Sort((a, b) => a.Sequence.CompareTo(b.Sequence));
+
+            foreach (var frame in frames)
+                SortFrames(frame.Children);
         }
 
         public bool CheckFrameAndClear(IFrame frame)
@@ -212,10 +248,70 @@ namespace DebugTools.PowerShell
                     return false;
             }
 
+            if (hasMethodFilter && !TryFilterByMethod(frame))
+                return false;
+
             if (includeWildcards == null)
                 return true;
 
             return includeWildcards.Any(match);
+        }
+
+        private bool TryFilterByMethod(IFrame frame)
+        {
+            if (!(frame is IMethodFrame f))
+                return false;
+
+            var methodInfo = f.MethodInfo;
+
+            if (methodModuleNameWildcards != null)
+            {
+                if (!methodModuleNameWildcards.Any(w => w.IsMatch(methodInfo.ModuleName)))
+                    return false;
+            }
+
+            if (methodTypeNameWildcards != null)
+            {
+                if (!methodTypeNameWildcards.Any(w => w.IsMatch(methodInfo.TypeName)))
+                    return false;
+            }
+
+            if (methodNameWildcards != null)
+            {
+                if (!methodNameWildcards.Any(w => w.IsMatch(methodInfo.MethodName)))
+                    return false;
+            }
+
+            if (frame.Parent is IMethodFrame parentFrame)
+            {
+                var parentMethodInfo = parentFrame.MethodInfo;
+
+                if (parentMethodModuleNameWildcards != null)
+                {
+                    if (!parentMethodModuleNameWildcards.Any(w => w.IsMatch(parentMethodInfo.ModuleName)))
+                        return false;
+                }
+
+                if (parentMethodTypeNameWildcards != null)
+                {
+                    if (!parentMethodTypeNameWildcards.Any(w => w.IsMatch(parentMethodInfo.TypeName)))
+                        return false;
+                }
+
+                if (parentMethodNameWildcards != null)
+                {
+                    if (!parentMethodNameWildcards.Any(w => w.IsMatch(parentMethodInfo.MethodName)))
+                        return false;
+                }
+            }
+            else
+            {
+                //We want to filter by parent method, but we don't have a parent method
+                if (hasParentMethodFilter)
+                    return false;
+            }
+
+            return true;
         }
 
         private bool HasValue(IMethodFrameDetailed d)
@@ -595,9 +691,9 @@ namespace DebugTools.PowerShell
         {
             if (value is ComplexTypeValue c && c.Value != null)
             {
-                if (typeWildcards != null)
+                if (classTypeWildcards != null)
                 {
-                    if (typeWildcards.Any(t => t.IsMatch(c.Name)))
+                    if (classTypeWildcards.Any(t => t.IsMatch(c.Name)))
                     {
                         AddMatchedValue(value, methodComponent);
                         return true;

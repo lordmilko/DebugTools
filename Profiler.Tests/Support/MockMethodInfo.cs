@@ -1,4 +1,5 @@
-﻿using DebugTools.Profiler;
+﻿using System.IO;
+using DebugTools.Profiler;
 
 namespace Profiler.Tests
 {
@@ -12,8 +13,9 @@ namespace Profiler.Tests
 
         public MockMethodInfo(System.Reflection.MethodInfo methodInfo)
         {
-            TypeName = methodInfo?.DeclaringType.Name;
-            MethodName = methodInfo?.Name;
+            ModuleName = Path.GetFileName(methodInfo.DeclaringType.Assembly.Location);
+            TypeName = methodInfo.DeclaringType.FullName;
+            MethodName = methodInfo.Name;
         }
     }
 }
