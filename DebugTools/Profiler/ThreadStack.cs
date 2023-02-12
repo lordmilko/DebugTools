@@ -160,7 +160,12 @@ namespace DebugTools.Profiler
 
         public void ExceptionCompleted(ExceptionCompletedArgs args)
         {
-            Exceptions[args.Sequence].Status = args.Reason;
+            //When we start the target process, we SHOULD get notified of every exception that is created (and completed)
+            //We saw a case with Visual Studio however where we got a completed event for an exception we had never seen. Maybe the initial
+            //creation event was dropped due to high load. The only other scenario where we can hit this should be where a session was created
+            //globally without the use of our profiler controller, and we globally attach to it
+            if (Exceptions.TryGetValue(args.Sequence, out var exception))
+                exception.Status = args.Reason;
         }
 
         #endregion

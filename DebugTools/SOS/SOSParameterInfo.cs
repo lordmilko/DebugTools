@@ -1,5 +1,6 @@
 ﻿using System;
 using ClrDebug;
+using static ClrDebug.HRESULT;
 
 namespace DebugTools.SOS
 {
@@ -21,7 +22,7 @@ namespace DebugTools.SOS
         {
             SOSFrame = sosFrame;
 
-            if (frame.TryGetArgumentByIndex(i, out var argInfo) != HRESULT.S_OK)
+            if (frame.TryGetArgumentByIndex(i, out var argInfo) != S_OK)
                 return;
 
             Name = argInfo.name;
@@ -30,11 +31,11 @@ namespace DebugTools.SOS
             // common case being a non-primitive value type).  In these
             // cases we need to print the location of the parameter,
             // so that we can later examine it (e.g. using !dumpvc)
-            var result = argInfo.arg.TryGetNumLocations(out var numLocs) == HRESULT.S_OK && numLocs == 1;
+            var result = argInfo.arg.TryGetNumLocations(out var numLocs) == S_OK && numLocs == 1;
 
             if (result)
             {
-                result = argInfo.arg.TryGetLocationByIndex(0, out var locInfo) == HRESULT.S_OK;
+                result = argInfo.arg.TryGetLocationByIndex(0, out var locInfo) == S_OK;
 
                 if (result)
                 {
@@ -45,12 +46,33 @@ namespace DebugTools.SOS
                 }
             }
 
-            if (argInfo.arg.Raw.GetBytes(0, out var dataSize, out var buffer) == HRESULT.ERROR_BUFFER_OVERFLOW)
+            if (argInfo.arg.Raw.GetBytes(0, out var dataSize, null) == ERROR_BUFFER_OVERFLOW)
             {
                 var hr = argInfo.arg.TryGetBytes(dataSize + 1, out var byteInfo);
 
-                if (hr == HRESULT.S_OK)
-                    Value = byteInfo.buffer.ToInt64();
+                if (hr == S_OK)
+                {
+                    var buffer = byteInfo.buffer;
+
+                    switch (dataSize)
+                    {
+                        case 1:
+                            Value = (ulong)buffer[0];
+                            break;
+
+                        case 2:
+                            Value = (ulong)BitConverter.ToUInt16(buffer, 0);
+                            break;
+
+                        case 4:
+                            Value = (ulong) BitConverter.ToUInt32(buffer, 0);
+                            break;
+
+                        case 8:
+                            Value = BitConverter.ToUInt64(buffer, 0);
+                            break;
+                    }
+                }
             }
         }
 

@@ -19,7 +19,7 @@
   <ItemGroup>
     <!-- If ClrDebug has been cloned to the parent directory containing both ClrDebug and DebugTools,
          prefer the local version for development purposes -->
-    <PackageReference Include="ClrDebug" Version="0.1.0" Condition="!Exists('$(LocalClrDebug)')" />
+    <PackageReference Include="ClrDebug" Version="0.2.0" Condition="!Exists('$(LocalClrDebug)')" />
 
     <Reference Include="ClrDebug" Condition="Exists('$(LocalClrDebug)')">
       <HintPath>$(LocalClrDebug)</HintPath>

@@ -137,9 +137,6 @@ namespace DebugTools.PowerShell
 
             SortFrames(newRoots);
 
-            if (!options.HasFilterValue)
-                HighlightFrames.Clear();
-
             return newRoots;
         }
 
