@@ -94,7 +94,7 @@ namespace DebugTools.SOS
             return HRESULT.S_OK;
         }
 
-        public HRESULT ReadVirtual(CLRDATA_ADDRESS address, IntPtr buffer, int bytesRequested, out int bytesRead)
+        public unsafe HRESULT ReadVirtual(CLRDATA_ADDRESS address, IntPtr buffer, int bytesRequested, out int bytesRead)
         {
             if (address == MagicFlushAddress && flushContext > 0)
             {
@@ -113,38 +113,52 @@ namespace DebugTools.SOS
 
             HRESULT hr = HRESULT.S_OK;
 
-            while (bytesRequested > 0)
+            //For some reason, when trying to read the optHeaderMagic in GetMachineAndResourceSectionRVA() when trying to establish an SOS
+            //against PowerShell 7, when using the buffer provided by mscordaccore, ReadProcessMemory would say it read 2 bytes, but no memory would actually change.
+            //Manually copying into mscordaccore's buffer after we safely read into our own buffer appears to resolve this
+            var innerBuffer = Marshal.AllocHGlobal(pageSize);
+
+            try
             {
-                //This bit of magic ensures we're not reading more than 1 page worth of data. I don't understand how this works
-                //however Microsoft use it all the time so you know it's right
-                var readSize = pageSize - (int)(address & (pageSize - 1));
-                readSize = Math.Min(bytesRequested, readSize);
-
-                var result = NativeMethods.ReadProcessMemory(
-                    process.Handle,
-                    address,
-                    buffer,
-                    readSize,
-                    out bytesRead
-                );
-
-                if (!result)
+                while (bytesRequested > 0)
                 {
-                    //Some methodtables' parents appear to point to an invalid memory address. When we read these invalid memory addresses,
-                    //pass them back to the DAC and then are asked to read some actual data from these invalid locations, this will naturally fail with ERROR_PARTIAL_COPY,
-                    //but really its a total failure
-                    if (totalRead > 0)
-                        hr = HRESULT.S_OK;
-                    else
-                        hr = (HRESULT)Marshal.GetHRForLastWin32Error();
+                    //This bit of magic ensures we're not reading more than 1 page worth of data. I don't understand how this works
+                    //however Microsoft use it all the time so you know it's right
+                    var readSize = pageSize - (int)(address & (pageSize - 1));
+                    readSize = Math.Min(bytesRequested, readSize);
 
-                    break;
+                    var result = NativeMethods.ReadProcessMemory(
+                        process.Handle,
+                        address,
+                        innerBuffer,
+                        readSize,
+                        out bytesRead
+                    );
+
+                    Buffer.MemoryCopy(innerBuffer.ToPointer(), buffer.ToPointer(), bytesRead, bytesRead);
+
+                    if (!result)
+                    {
+                        //Some methodtables' parents appear to point to an invalid memory address. When we read these invalid memory addresses,
+                        //pass them back to the DAC and then are asked to read some actual data from these invalid locations, this will naturally fail with ERROR_PARTIAL_COPY,
+                        //but really its a total failure
+                        if (totalRead > 0)
+                            hr = HRESULT.S_OK;
+                        else
+                            hr = (HRESULT)Marshal.GetHRForLastWin32Error();
+
+                        break;
+                    }
+
+                    totalRead += bytesRead;
+                    address += bytesRead;
+                    buffer = new IntPtr(buffer.ToInt64() + bytesRead);
+                    bytesRequested -= bytesRead;
                 }
-
-                totalRead += bytesRead;
-                address += bytesRead;
-                buffer = new IntPtr(buffer.ToInt64() + bytesRead);
-                bytesRequested -= bytesRead;
+            }
+            finally
+            {
+                Marshal.FreeHGlobal(innerBuffer);
             }
 
             if (hr == HRESULT.S_OK)

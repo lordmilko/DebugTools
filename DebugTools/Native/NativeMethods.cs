@@ -73,6 +73,9 @@ namespace DebugTools
             [In] ref STARTUPINFO lpStartupInfo,
             out PROCESS_INFORMATION lpProcessInformation);
 
+        [DllImport("kernel32.dll", SetLastError = true)]
+        public static extern IntPtr GetProcAddress(IntPtr hModule, string lpProcName);
+
         [DllImport(kernel32, SetLastError = true)]
         internal static extern bool GetThreadContext(IntPtr hThread, IntPtr lpContext);
 
@@ -80,6 +83,9 @@ namespace DebugTools
         public static extern bool IsWow64Process(
             [In] IntPtr hProcess,
             [Out, MarshalAs(UnmanagedType.Bool)] out bool Wow64Process);
+
+        [DllImport("kernel32.dll", EntryPoint = "LoadLibraryW", CharSet = CharSet.Unicode, SetLastError = true)]
+        public static extern IntPtr LoadLibrary(string lpLibFileName);
 
         [DllImport(kernel32, SetLastError = true)]
         public static extern IntPtr OpenThread(ThreadAccess dwDesiredAccess, bool bInheritHandle, int dwThreadId);
@@ -97,6 +103,9 @@ namespace DebugTools
 
         [DllImport(kernel32, CharSet = CharSet.Unicode, SetLastError = true)]
         internal static extern bool SetDllDirectory(string lpPathName);
+
+        [DllImport(kernel32, SetLastError = true)]
+        public static extern bool SetEvent([In] IntPtr hEvent);
 
         [DllImport(kernel32, SetLastError = true)]
         public static extern bool SetConsoleCtrlHandler(ConsoleCtrlHandlerRoutine HandlerRoutine, bool Add);

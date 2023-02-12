@@ -20,7 +20,9 @@ namespace DebugTools.SOS
 
             var appDomainStoreData = sos.AppDomainStoreData;
 
-            list.Add(new SOSAppDomain(appDomainStoreData.sharedDomain, sos, AppDomainType.Shared));
+            if (appDomainStoreData.sharedDomain != 0)
+                list.Add(new SOSAppDomain(appDomainStoreData.sharedDomain, sos, AppDomainType.Shared));
+
             list.Add(new SOSAppDomain(appDomainStoreData.systemDomain, sos, AppDomainType.System));
 
             var appDomainAddresses = sos.GetAppDomainList(appDomainStoreData.DomainCount);
