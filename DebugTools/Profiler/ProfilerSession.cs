@@ -311,7 +311,7 @@ namespace DebugTools.Profiler
             Process = ProfilerInfo.CreateProcess(processName, p =>
             {
                 //If we're only targeting a specific child process, we can't filter based on the process we just created
-                 TraceEventProviderOptions options = settings?.Any(s => s.Flag == ProfilerEnvFlags.TargetProcess) == true
+                 TraceEventProviderOptions options = IsTargetingChildProcess(settings, processName)
                      ? null
                      : new TraceEventProviderOptions {ProcessIDFilter = new[] {p.Id}};
 
@@ -371,6 +371,24 @@ namespace DebugTools.Profiler
                 if (!Process.HasExited)
                     throw;
             }
+        }
+
+        private bool IsTargetingChildProcess(ProfilerSetting[] settings, string processName)
+        {
+            if (settings == null)
+                return false;
+
+            var setting = settings.FirstOrDefault(s => s.Flag == ProfilerEnvFlags.TargetProcess);
+
+            if (setting == null)
+                return false;
+
+            //processName could be a process and some command line args, however in the simple case it's just a process name.
+            //Specifying this property is useful when you want to profile Visual Studio but not any of the processes it spawns
+            if (processName.EndsWith(setting.StringValue, StringComparison.OrdinalIgnoreCase))
+                return true;
+
+            return false;
         }
 
         public void StartGlobal()
