@@ -13,7 +13,10 @@
     <PackageReference Include="envdte80" Version="8.0.3" />
 
     <PackageReference Include="Microsoft.Diagnostics.Runtime" Version="1.1.142101" />
-    <PackageReference Include="Microsoft.Diagnostics.Tracing.TraceEvent" Version="3.0.6" />
+    <PackageReference Include="Microsoft.Diagnostics.Tracing.TraceEvent" Version="3.0.6">
+      <IncludeAssets>all</IncludeAssets>
+      <ExcludeAssets>build;buildTransitive</ExcludeAssets>
+    </PackageReference>
   </ItemGroup>
 
   <ItemGroup>
