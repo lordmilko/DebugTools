@@ -86,13 +86,14 @@ namespace DebugTools.PowerShell.Cmdlets
         {
         }
 
-        protected FrameFilterOptions GetFrameFilterOptions(bool unique, string[] include, string[] exclude)
+        protected FrameFilterOptions GetFrameFilterOptions(bool unique, string[] include, string[] exclude, string[] calledFrom)
         {
             var options = new FrameFilterOptions
             {
                 Unique = unique,
                 Include = include,
                 Exclude = exclude,
+                CalledFrom = calledFrom,
                 VoidValue = VoidValue,
                 Unmanaged = Unmanaged,
                 BoolValue = BoolValue,

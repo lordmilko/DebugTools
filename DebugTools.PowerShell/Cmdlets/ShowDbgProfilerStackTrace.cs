@@ -24,6 +24,9 @@ namespace DebugTools.PowerShell.Cmdlets
         [Parameter(Mandatory = false, ParameterSetName = ParameterSet.Filter)]
         public string[] Exclude { get; set; }
 
+        [Parameter(Mandatory = false, ParameterSetName = ParameterSet.Filter)]
+        public string[] CalledFrom { get; set; }
+
         [Parameter(Mandatory = false)]
         public string[] HighlightMethod { get; set; }
 
@@ -46,7 +49,7 @@ namespace DebugTools.PowerShell.Cmdlets
             if (ParameterSetName == ParameterSet.Filter)
             {
                 filter = new FrameFilterer(
-                    GetFrameFilterOptions(Unique, Include, Exclude)
+                    GetFrameFilterOptions(Unique, Include, Exclude, CalledFrom)
                 );
             }
         }

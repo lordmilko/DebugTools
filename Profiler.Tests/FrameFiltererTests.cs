@@ -647,6 +647,107 @@ namespace Profiler.Tests
 ");
         }
 
+        [TestMethod]
+        public void FrameFilterer_CalledFrom()
+        {
+            var options = new FrameFilterOptions
+            {
+                CalledFrom = new[] {"second"}
+            };
+
+            var tree = MakeRoot(
+                MakeFrame("first", String("aaa"),
+                    MakeFrame("second", String("bbb"),
+                        MakeFrame("third", String("ccc")),
+                        MakeFrame(
+                            typeof(Console).GetMethods().First(m => m.Name == "ReadLine"),
+                            String("ddd")
+                        )
+                    ),
+                    MakeFrame(
+                        typeof(Console).GetMethods().First(m => m.Name == "WriteLine"),
+                        String("eee")
+                    )
+                )
+            );
+
+            TestStack(options, tree, @"
+void Methods.second(""bbb"")
+├─void Methods.third(""ccc"")
+└─void Console.ReadLine(""ddd"")
+");
+        }
+
+        [TestMethod]
+        public void FrameFilterer_CalledFrom_Unique()
+        {
+            var options = new FrameFilterOptions
+            {
+                CalledFrom = new[] { "second" },
+                Unique = true
+            };
+
+            var tree = MakeRoot(
+                MakeFrame("first", String("aaa"),
+                    MakeFrame("second", String("bbb"),
+                        MakeFrame("third", String("ccc")),
+                        MakeFrame("third", String("ccc")),
+                        MakeFrame(
+                            typeof(Console).GetMethods().First(m => m.Name == "ReadLine"),
+                            String("ddd")
+                        )
+                    ),
+                    MakeFrame(
+                        typeof(Console).GetMethods().First(m => m.Name == "WriteLine"),
+                        String("eee")
+                    )
+                )
+            );
+
+            TestStack(options, tree, @"
+1000
+└─void Methods.second(""bbb"")
+  ├─void Methods.third(""ccc"")
+  └─void Console.ReadLine(""ddd"")
+");
+        }
+
+        [TestMethod]
+        public void FrameFilterer_CalledFrom_TwiceInStack()
+        {
+            var options = new FrameFilterOptions
+            {
+                CalledFrom = new[] { "second" }
+            };
+
+            var tree = MakeRoot(
+                MakeFrame("first", String("aaa"),
+                    MakeFrame("second", String("bbb"),
+                        MakeFrame("third", String("ccc")),
+                        MakeFrame("third", String("ddd"),
+                            MakeFrame("second", String("eee"))
+                        ),
+                        MakeFrame(
+                            typeof(Console).GetMethods().First(m => m.Name == "ReadLine"),
+                            String("fff")
+                        )
+                    ),
+                    MakeFrame(
+                        typeof(Console).GetMethods().First(m => m.Name == "WriteLine"),
+                        String("ggg")
+                    )
+                )
+            );
+
+            TestStack(options, tree, @"
+void Methods.second(""bbb"")
+├─void Methods.third(""ccc"")
+├─void Methods.third(""ddd"")
+│ └─void Methods.second(""eee"")
+└─void Console.ReadLine(""fff"")
+");
+        }
+
         private RootFrame MakeRoot(params IMethodFrame[] children)
         {
             var newFrame = new RootFrame

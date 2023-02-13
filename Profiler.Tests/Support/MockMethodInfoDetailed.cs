@@ -17,10 +17,14 @@ namespace Profiler.Tests
 
         public SigMethodDef SigMethod { get; }
 
+        private System.Reflection.MethodInfo realMethodInfo;
+
         private MetaDataImport import;
 
         public MockMethodInfoDetailed(System.Reflection.MethodInfo methodInfo)
         {
+            realMethodInfo = methodInfo;
+
             var disp = new MetaDataDispenserEx();
 
             import = disp.OpenScope<MetaDataImport>(methodInfo.DeclaringType.Assembly.Location, CorOpenFlags.ofRead);
@@ -57,6 +61,19 @@ namespace Profiler.Tests
         public MetaDataImport GetMDI()
         {
             return import;
+        }
+
+        public override bool Equals(object obj)
+        {
+            if (obj is MockMethodInfoDetailed m)
+                return m.realMethodInfo.Equals(realMethodInfo);
+
+            return base.Equals(obj);
+        }
+
+        public override int GetHashCode()
+        {
+            return realMethodInfo.GetHashCode();
         }
     }
 }

@@ -16,6 +16,15 @@ namespace DebugTools.Profiler
 
         public IRootFrame GetRoot() => this;
 
+        public IRootFrame Clone()
+        {
+            return new RootFrame
+            {
+                ThreadId = ThreadId,
+                ThreadName = ThreadName
+            };
+        }
+
         public override string ToString()
         {
             return MethodFrameStringWriter.Default.ToString(this);

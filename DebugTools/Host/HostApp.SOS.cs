@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using ClrDebug;
 using DebugTools.SOS;
+using static ClrDebug.HRESULT;
 
 namespace DebugTools.Host
 {
@@ -145,7 +146,7 @@ namespace DebugTools.Host
 
             var hr = xclrDataProcess.TryGetTaskByOSThreadID(threadId, out var task);
 
-            if (hr != HRESULT.S_OK)
+            if (hr != S_OK)
             {
                 return $"Failed to get {nameof(XCLRDataTask)} for thread {threadId}: {hr}";
             }
@@ -158,7 +159,7 @@ namespace DebugTools.Host
                 out var stackWalk
             );
 
-            if (hr != HRESULT.S_OK)
+            if (hr != S_OK)
             {
                 return $"Failed to get {nameof(XCLRDataStackWalk)} for thread {threadId}: {hr}";
             }
@@ -171,23 +172,23 @@ namespace DebugTools.Host
                 CLRDATA_ADDRESS sp;
                 hr = GetFrameLocation(stackWalk, out ip, out sp);
 
-                if (hr == HRESULT.S_OK)
+                if (hr == S_OK)
                 {
                     DacpFrameData frameData = new DacpFrameData();
                     var frameDataResult = frameData.Request(stackWalk.Raw);
 
-                    if (frameDataResult == HRESULT.S_OK && frameData.frameAddr != 0)
+                    if (frameDataResult == S_OK && frameData.frameAddr != 0)
                         sosFrames.Add(new SOSHelperStackFrame(ip, frameData, stackWalk, sos, sosProcess.DataTarget));
                     else
                         sosFrames.Add(new SOSManagedStackFrame(ip, sp, stackWalk, sos));
                 }
                 else
                 {
-                    return $"Failed to get frame location for thread {threadId}: {hr}";
+                    return $"Failed to get frame location for thread {threadId}: {hr}{(hr == S_FALSE ? ". Frame may be a native frame" : string.Empty)}";
                 }
 
                 hr = stackWalk.TryNext();
-            } while (hr == HRESULT.S_OK);
+            } while (hr == S_OK);
 
             return sosFrames.ToArray();
         }
@@ -200,7 +201,7 @@ namespace DebugTools.Host
             {
                 hr = stackWalk.TryGetContext<X86_CONTEXT>(ContextFlags.X86ContextAll, out var ctx);
 
-                if (hr == HRESULT.S_OK)
+                if (hr == S_OK)
                 {
                     ip = ctx.Eip;
                     sp = ctx.Esp;
@@ -215,7 +216,7 @@ namespace DebugTools.Host
             {
                 hr = stackWalk.TryGetContext<AMD64_CONTEXT>(ContextFlags.AMD64ContextAll, out var ctx);
 
-                if (hr == HRESULT.S_OK)
+                if (hr == S_OK)
                 {
                     ip = ctx.Rip;
                     sp = ctx.Rsp;

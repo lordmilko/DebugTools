@@ -13,6 +13,7 @@ namespace DebugTools.PowerShell
 
         private WildcardPattern[] includeWildcards;
         private WildcardPattern[] excludeWildcards;
+        private WildcardPattern[] calledFromWildcards;
         private WildcardPattern[] stringWildcards;
         private WildcardPattern[] classTypeWildcards;
         private WildcardPattern[] methodModuleNameWildcards;
@@ -39,6 +40,7 @@ namespace DebugTools.PowerShell
 
             includeWildcards = MakeWildcard(options.Include);
             excludeWildcards = MakeWildcard(options.Exclude);
+            calledFromWildcards = MakeWildcard(options.CalledFrom);
             stringWildcards = MakeWildcard(options.StringValue);
             classTypeWildcards = MakeWildcard(options.ClassTypeName);
             methodModuleNameWildcards = MakeWildcard(options.MethodModuleName);
@@ -98,17 +100,17 @@ namespace DebugTools.PowerShell
         {
             if (item is IRootFrame r)
             {
-                if (r.ThreadName != null && ShouldInclude(item, i => i.IsMatch(r.ThreadName)) && !ShouldExclude(r) && !options.HasFilterValue)
+                if (r.ThreadName != null && ShouldInclude(r, (f, w) => w.IsMatch(f.ThreadName)) && !ShouldExclude(r) && !options.HasFilterValue)
                     return true;
             }
             else if (item is IMethodFrameDetailed d)
             {
-                if (ShouldInclude(item, i => i.IsMatch(d.MethodInfo.MethodName) || i.IsMatch(d.MethodInfo.TypeName)) && HasValue(d) && !ShouldExclude(d))
+                if (ShouldInclude(d, (f, w) => w.IsMatch(f.MethodInfo.MethodName) || w.IsMatch(f.MethodInfo.TypeName)) && HasValue(d) && !ShouldExclude(d))
                     return true;
             }
             else if (item is IMethodFrame m)
             {
-                if (ShouldInclude(item, i => i.IsMatch(m.MethodInfo.MethodName) || i.IsMatch(m.MethodInfo.TypeName)) && !ShouldExclude(m))
+                if (ShouldInclude(m, (f, w) => w.IsMatch(f.MethodInfo.MethodName) || w.IsMatch(f.MethodInfo.TypeName)) && !ShouldExclude(m))
                     return true;
             }
 
@@ -119,20 +121,82 @@ namespace DebugTools.PowerShell
 
         public List<IFrame> GetSortedFilteredFrames()
         {
-            var knownOriginalFrames = new Dictionary<IFrame, IFrame>();
-
             var newRoots = new List<IFrame>();
 
             var sortedFrames = SortedFrames;
 
-            foreach (var frame in sortedFrames)
+            if (options.CalledFrom == null)
             {
-                var originalStackTrace = GetOriginalStackTrace(frame);
+                var knownOriginalFrames = new Dictionary<IFrame, IFrame>();
 
-                var newRoot = GetNewFrames(originalStackTrace, sortedFrames, knownOriginalFrames);
+                foreach (var frame in sortedFrames)
+                {
+                    var originalStackTrace = GetOriginalStackTrace(frame);
 
-                if (newRoot != null)
-                    newRoots.Add(newRoot);
+                    var newRoot = GetNewFrames(originalStackTrace, sortedFrames, knownOriginalFrames);
+
+                    if (newRoot != null)
+                        newRoots.Add(newRoot);
+                }
+            }
+            else
+            {
+                var hashSet = new HashSet<IFrame>();
+
+                var parents = sortedFrames.Select(s => s.Parent).Distinct().ToList();
+
+                foreach (var item in parents)
+                    hashSet.Add(item);
+
+                var toRemove = new List<IFrame>();
+
+                foreach (var parent in parents)
+                {
+                    var p = parent.Parent;
+
+                    while (!(p is IRootFrame))
+                    {
+                        if (hashSet.Contains(p))
+                        {
+                            toRemove.Add(parent);
+                            break;
+                        }
+
+                        p = p.Parent;
+                    }
+                }
+
+                parents = hashSet.Except(toRemove).ToList();
+
+                if (options.Unique)
+                {
+                    var knownOriginalFrames = new Dictionary<IFrame, IFrame>(FrameEqualityComparer.Instance);
+
+                    var dict = new Dictionary<IRootFrame, IRootFrame>();
+
+                    foreach (var frame in parents)
+                    {
+                        var newFrame = GetNewFramesForCalledFrom((IMethodFrame) frame, null, parents, knownOriginalFrames);
+
+                        if (newFrame != null)
+                        {
+                            var originalRoot = frame.GetRoot();
+
+                            if (dict.TryGetValue(originalRoot, out var newRoot))
+                                newRoot.Children.Add(newFrame);
+                            else
+                            {
+                                newRoot = originalRoot.Clone();
+                                newRoot.Children.Add(newFrame);
+                                dict[originalRoot] = newRoot;
+                            }
+                        }
+                    }
+
+                    newRoots = dict.Values.Cast<IFrame>().ToList();
+                }
+                else
+                    newRoots.AddRange(parents);
             }
 
             SortFrames(newRoots);
@@ -194,11 +258,7 @@ namespace DebugTools.PowerShell
                 {
                     if (item is IRootFrame r)
                     {
-                        newRoot = new RootFrame
-                        {
-                            ThreadId = r.ThreadId,
-                            ThreadName = r.ThreadName
-                        };
+                        newRoot = r.Clone();
 
                         newItem = newRoot;
                         newParent = newRoot;
@@ -235,9 +295,38 @@ namespace DebugTools.PowerShell
             return newRoot;
         }
 
+        private IMethodFrame GetNewFramesForCalledFrom(
+            IMethodFrame frame,
+            IMethodFrame newParent,
+            List<IFrame> originalSortedFrames,
+            Dictionary<IFrame, IFrame> knownOriginalFrames)
+        {
+            if (!knownOriginalFrames.TryGetValue(frame, out var newItem))
+            {
+                newItem = frame.CloneWithNewParent(newParent);
+
+                foreach (var child in frame.Children)
+                {
+                    var newChild = GetNewFramesForCalledFrom(child, (IMethodFrame)newItem, originalSortedFrames, knownOriginalFrames);
+                    
+                    if (newChild != null)
+                        newItem.Children.Add(newChild);
+                }
+
+                knownOriginalFrames[frame] = newItem;
+
+                if (originalSortedFrames.Contains(frame, FrameEqualityComparer.Instance))
+                    HighlightFrames.Add(newItem);
+            }
+            else
+                return null;
+
+            return (IMethodFrame) newItem;
+        }
+
         #endregion
 
-        private bool ShouldInclude(IFrame frame, Func<WildcardPattern, bool> match)
+        private bool ShouldInclude<T>(T frame, Func<T, WildcardPattern, bool> match) where T : IFrame
         {
             if (options.Unmanaged)
             {
@@ -248,10 +337,30 @@ namespace DebugTools.PowerShell
             if (hasMethodFilter && !TryFilterByMethod(frame))
                 return false;
 
+            if (calledFromWildcards != null)
+            {
+                var parent = frame.Parent;
+
+                while (!(parent is IRootFrame))
+                {
+                    if (parent is IMethodFrame f && parent is T)
+                    {
+                        if (calledFromWildcards.Any(w => match((T)parent, w)))
+                            goto checkInclude;
+                    }
+
+                    parent = parent.Parent;
+                }
+
+                //Either the frame isn't a method frame, or there wasn't a match against our parent
+                return false;
+            }
+
+checkInclude:
             if (includeWildcards == null)
                 return true;
 
-            return includeWildcards.Any(match);
+            return includeWildcards.Any(w => match(frame, w));
         }
 
         private bool TryFilterByMethod(IFrame frame)

@@ -15,11 +15,14 @@ namespace DebugTools.PowerShell.Cmdlets
         [Parameter(Mandatory = false)]
         public string[] Exclude { get; set; }
 
+        [Parameter(Mandatory = false)]
+        public string[] CalledFrom { get; set; }
+
         private FrameFilterer filter;
 
         protected override void BeginProcessing()
         {
-            filter = new FrameFilterer(GetFrameFilterOptions(Unique, Include, Exclude));
+            filter = new FrameFilterer(GetFrameFilterOptions(Unique, Include, Exclude, CalledFrom));
         }
 
         protected override void DoProcessRecordEx()

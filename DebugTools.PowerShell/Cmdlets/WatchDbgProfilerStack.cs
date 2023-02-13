@@ -16,6 +16,9 @@ namespace DebugTools.PowerShell.Cmdlets
         [Parameter(Mandatory = false, ParameterSetName = ParameterSet.Filter)]
         public string[] Exclude { get; set; }
 
+        [Parameter(Mandatory = false, ParameterSetName = ParameterSet.Filter)]
+        public string[] CalledFrom { get; set; }
+
         [Parameter(Mandatory = false)]
         public SwitchParameter ExcludeNamespace { get; set; }
 
@@ -38,7 +41,7 @@ namespace DebugTools.PowerShell.Cmdlets
                     WriteProgress(record);
                 }
 
-                var filter = new FrameFilterer(GetFrameFilterOptions(Unique, Include, Exclude));
+                var filter = new FrameFilterer(GetFrameFilterOptions(Unique, Include, Exclude, CalledFrom));
 
                 var methodFrameFormatter = new MethodFrameFormatter(ExcludeNamespace);
                 var writer = new MethodFrameStringWriter(methodFrameFormatter);

@@ -31,7 +31,15 @@ namespace Profiler.Tests
         public long Sequence { get; }
         public IRootFrame GetRoot()
         {
-            throw new System.NotImplementedException();
+            var parent = Parent;
+
+            while (true)
+            {
+                if (parent is IRootFrame)
+                    return (IRootFrame)parent;
+
+                parent = parent.Parent;
+            }
         }
 
         #endregion

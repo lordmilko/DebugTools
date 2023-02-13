@@ -13,6 +13,8 @@ namespace DebugTools.PowerShell
 
         public string[] Exclude { get; set; }
 
+        public string[] CalledFrom { get; set; }
+
         public bool VoidValue { get; set; }
 
         public bool Unmanaged { get; set; }

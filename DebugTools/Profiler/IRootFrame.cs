@@ -5,5 +5,7 @@
         int ThreadId { get; set; }
 
         string ThreadName { get; set; }
+
+        IRootFrame Clone();
     }
 }
