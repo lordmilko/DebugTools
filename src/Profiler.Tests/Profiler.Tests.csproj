@@ -36,4 +36,9 @@
     </Reference>
   </ItemGroup>
 
+  <Target Name="ClearTestResults" BeforeTargets="DispatchToInnerBuilds">
+    <RemoveDir Directories="$(ProjectDir)TestResults" />
+    <RemoveDir Directories="$(SolutionDir)TestResults" />
+  </Target>
+
 </Project>
