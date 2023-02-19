@@ -22,7 +22,7 @@ function New-CSharpPackage
 
     $nugetArgs = @(
         "pack"
-        Join-Path $BuildFolder "DebugTools\DebugTools.csproj"
+        Join-Path $BuildFolder "src\DebugTools\DebugTools.csproj"
         "-Exclude"
         "**/*.tt;**/*.txt;**/*.json"
         "-outputdirectory"

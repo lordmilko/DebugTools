@@ -167,7 +167,7 @@ class CodeCoverage
 
     [void]AssertHasPowerShellDll()
     {
-        $binPath = (Resolve-Path $PSScriptRoot\..\..\..\Profiler.Tests\bin).Path
+        $binPath = (Resolve-Path $PSScriptRoot\..\..\..\src\Profiler.Tests\bin).Path
 
         $directory = gci $binPath |sort lastwritetime -Descending|select -first 1 -expand FullName
 
@@ -191,7 +191,7 @@ class CodeCoverage
         $testsStr = $tests -join " "
         $vstestParams = $null
 
-        $testAdapterPath = Join-PathEx $this.BuildFolder Tools PowerShell.TestAdapter bin Release netstandard2.0
+        $testAdapterPath = Join-PathEx $this.BuildFolder src Tools PowerShell.TestAdapter bin Release netstandard2.0
 
         $testParams = "/TestAdapterPath:\`"$testAdapterPath\`""
 
@@ -212,7 +212,7 @@ class CodeCoverage
 
     [object]GetPowerShellTests()
     {
-        $testRoot = Join-Path $this.BuildFolder "Profiler.Tests\PowerShell"
+        $testRoot = Join-Path $this.BuildFolder "src\Profiler.Tests\PowerShell"
 
         $tests = gci $testRoot -Recurse -Filter *.Tests.ps1 | where {
             # Blacklist Solution.Tests.ps1 as this invokes Invoke-DbgAnalyzer which causes vstest.console to hang on completion
@@ -247,11 +247,11 @@ class CodeCoverage
 
     [void]InstallPowerShellAdapter()
     {
-        $adapterPath = Join-Path $this.BuildFolder "Tools\PowerShell.TestAdapter\bin\Release\netstandard2.0\PowerShell.TestAdapter.dll"
+        $adapterPath = Join-Path $this.BuildFolder "src\Tools\PowerShell.TestAdapter\bin\Release\netstandard2.0\PowerShell.TestAdapter.dll"
 
         if(!(Test-Path $adapterPath))
         {
-            $csproj = Join-Path $this.BuildFolder "Tools\PowerShell.TestAdapter\PowerShell.TestAdapter.csproj"
+            $csproj = Join-Path $this.BuildFolder "src\Tools\PowerShell.TestAdapter\PowerShell.TestAdapter.csproj"
 
             Write-Host $csproj
 

@@ -2,9 +2,9 @@
   <Import Project="..\build\Version.props" />
 
   <PropertyGroup>
-    <LocalClrDebug>..\..\ClrDebug\ClrDebug\bin\$(Configuration)\netstandard2.0\ClrDebug.dll</LocalClrDebug>
+    <LocalClrDebug>..\..\..\ClrDebug\ClrDebug\bin\$(Configuration)\netstandard2.0\ClrDebug.dll</LocalClrDebug>
 	
-	  <Copyright>(c) 2022 lordmilko. All rights reserved.</Copyright>
+    <Copyright>(c) 2022 lordmilko. All rights reserved.</Copyright>
   </PropertyGroup>
 
   <!-- Package Versions -->

@@ -118,7 +118,7 @@ function SetVersionPropsCore($version, $assemblyVersion, $fileVersion, $infoVers
 function SetPsd1Props($version)
 {
     $root = Get-SolutionRoot
-    $psd1Path = Join-Path $root "DebugTools.PowerShell\DebugTools.psd1"
+    $psd1Path = Join-Path $root "src\DebugTools.PowerShell\DebugTools.psd1"
 
     if(!(Test-Path $psd1Path))
     {

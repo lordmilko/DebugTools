@@ -10,9 +10,9 @@ function New-AppveyorPackage
 
     $config = [PSCustomObject]@{
         SolutionRoot          = "$env:APPVEYOR_BUILD_FOLDER"
-        CSharpProjectRoot     = "$env:APPVEYOR_BUILD_FOLDER\DebugTools"
-        CSharpOutputDir       = "$env:APPVEYOR_BUILD_FOLDER\DebugTools\bin\$env:CONFIGURATION"
-        PowerShellProjectRoot = "$env:APPVEYOR_BUILD_FOLDER\DebugTools.PowerShell"
+        CSharpProjectRoot     = "$env:APPVEYOR_BUILD_FOLDER\src\DebugTools"
+        CSharpOutputDir       = "$env:APPVEYOR_BUILD_FOLDER\src\DebugTools\bin\$env:CONFIGURATION"
+        PowerShellProjectRoot = "$env:APPVEYOR_BUILD_FOLDER\src\DebugTools.PowerShell"
         PowerShellOutputDir   = Get-PowerShellOutputDir $env:APPVEYOR_BUILD_FOLDER $env:CONFIGURATION
         Manager               = New-PackageManager
         Configuration         = $env:CONFIGURATION

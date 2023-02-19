@@ -3,15 +3,15 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 16
 VisualStudioVersion = 16.0.32126.315
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Profiler", "Profiler\Profiler.vcxitems", "{6911D380-AB7A-4039-9570-54B9E8314223}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Profiler", "src\Profiler\Profiler.vcxitems", "{6911D380-AB7A-4039-9570-54B9E8314223}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Profiler.x64", "Profiler.x64\Profiler.x64.vcxproj", "{3BB8E037-B0CF-421A-BF42-77EBB4E82C64}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Profiler.x64", "src\Profiler.x64\Profiler.x64.vcxproj", "{3BB8E037-B0CF-421A-BF42-77EBB4E82C64}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Profiler.x86", "Profiler.x86\Profiler.x86.vcxproj", "{7A67E69F-D319-45CF-B94E-D9A7E24616BF}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Profiler.x86", "src\Profiler.x86\Profiler.x86.vcxproj", "{7A67E69F-D319-45CF-B94E-D9A7E24616BF}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DebugTools", "DebugTools\DebugTools.csproj", "{6DAFFE6D-D925-4355-A83B-81A4F8F7EC1C}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DebugTools", "src\DebugTools\DebugTools.csproj", "{6DAFFE6D-D925-4355-A83B-81A4F8F7EC1C}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DebugTools.PowerShell", "DebugTools.PowerShell\DebugTools.PowerShell.csproj", "{9F008B7C-FF81-41B0-8EF9-EF7EFA27700C}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DebugTools.PowerShell", "src\DebugTools.PowerShell\DebugTools.PowerShell.csproj", "{9F008B7C-FF81-41B0-8EF9-EF7EFA27700C}"
 	ProjectSection(ProjectDependencies) = postProject
 		{101A842A-0C30-4D5C-B9E8-AFC71E97F7EF} = {101A842A-0C30-4D5C-B9E8-AFC71E97F7EF}
 		{3BB8E037-B0CF-421A-BF42-77EBB4E82C64} = {3BB8E037-B0CF-421A-BF42-77EBB4E82C64}
@@ -19,26 +19,26 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DebugTools.PowerShell", "De
 		{7A67E69F-D319-45CF-B94E-D9A7E24616BF} = {7A67E69F-D319-45CF-B94E-D9A7E24616BF}
 	EndProjectSection
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Profiler.Tests", "Profiler.Tests\Profiler.Tests.csproj", "{65452C23-C0A6-418F-A308-2022E4A12B33}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Profiler.Tests", "src\Profiler.Tests\Profiler.Tests.csproj", "{65452C23-C0A6-418F-A308-2022E4A12B33}"
 	ProjectSection(ProjectDependencies) = postProject
 		{3BB8E037-B0CF-421A-BF42-77EBB4E82C64} = {3BB8E037-B0CF-421A-BF42-77EBB4E82C64}
 		{7A67E69F-D319-45CF-B94E-D9A7E24616BF} = {7A67E69F-D319-45CF-B94E-D9A7E24616BF}
 		{62886DA7-3718-4098-8F6B-B212F596ED1B} = {62886DA7-3718-4098-8F6B-B212F596ED1B}
 	EndProjectSection
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DebugTools.TestHost", "DebugTools.TestHost\DebugTools.TestHost.csproj", "{62886DA7-3718-4098-8F6B-B212F596ED1B}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DebugTools.TestHost", "src\DebugTools.TestHost\DebugTools.TestHost.csproj", "{62886DA7-3718-4098-8F6B-B212F596ED1B}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{45095176-2916-4D96-BB77-A54531ECB76B}"
 	ProjectSection(SolutionItems) = preProject
 		.editorconfig = .editorconfig
-		Directory.Build.props = Directory.Build.props
+		src\Directory.Build.props = src\Directory.Build.props
 	EndProjectSection
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DebugTools.Host.x86", "DebugTools.Host.x86\DebugTools.Host.x86.csproj", "{101A842A-0C30-4D5C-B9E8-AFC71E97F7EF}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DebugTools.Host.x86", "src\DebugTools.Host.x86\DebugTools.Host.x86.csproj", "{101A842A-0C30-4D5C-B9E8-AFC71E97F7EF}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DebugTools.Host.x64", "DebugTools.Host.x64\DebugTools.Host.x64.csproj", "{66075B5F-41DB-4F09-897E-91176C01B92F}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DebugTools.Host.x64", "src\DebugTools.Host.x64\DebugTools.Host.x64.csproj", "{66075B5F-41DB-4F09-897E-91176C01B92F}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Profiler.Benchmarks", "Profiler.Benchmarks\Profiler.Benchmarks.csproj", "{214391B3-2E61-4792-9367-7C4F804805B2}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Profiler.Benchmarks", "src\Profiler.Benchmarks\Profiler.Benchmarks.csproj", "{214391B3-2E61-4792-9367-7C4F804805B2}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "build", "build", "{BDCBABF3-5EAF-44F7-AF07-463C26D55CD5}"
 	ProjectSection(SolutionItems) = preProject
@@ -126,9 +126,9 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tests", "Tests", "{69DC8ED2
 EndProject
 Global
 	GlobalSection(SharedMSBuildProjectFiles) = preSolution
-		Profiler\Profiler.vcxitems*{3bb8e037-b0cf-421a-bf42-77ebb4e82c64}*SharedItemsImports = 4
-		Profiler\Profiler.vcxitems*{6911d380-ab7a-4039-9570-54b9e8314223}*SharedItemsImports = 9
-		Profiler\Profiler.vcxitems*{7a67e69f-d319-45cf-b94e-d9a7e24616bf}*SharedItemsImports = 4
+		src\Profiler\Profiler.vcxitems*{3bb8e037-b0cf-421a-bf42-77ebb4e82c64}*SharedItemsImports = 4
+		src\Profiler\Profiler.vcxitems*{6911d380-ab7a-4039-9570-54b9e8314223}*SharedItemsImports = 9
+		src\Profiler\Profiler.vcxitems*{7a67e69f-d319-45cf-b94e-d9a7e24616bf}*SharedItemsImports = 4
 	EndGlobalSection
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU

@@ -34,7 +34,7 @@ function Get-CIVersionInternal($BuildFolder)
     $file = $versionContents.FileVersion
     $package = $versionContents.Version
 
-    $psd1Path = Join-Path $BuildFolder "DebugTools.PowerShell\DebugTools.psd1"
+    $psd1Path = Join-Path $BuildFolder "src\DebugTools.PowerShell\DebugTools.psd1"
 
     if(!(Test-Path $psd1Path))
     {
