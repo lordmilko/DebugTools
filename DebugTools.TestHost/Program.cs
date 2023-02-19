@@ -935,7 +935,7 @@ namespace DebugTools.TestHost
         {
             var test = (BlacklistTestType)Enum.Parse(typeof(BlacklistTestType), subType);
 
-            Debug.WriteLine($"Running test '{test}'");
+            Trace.WriteLine($"Running test '{test}'");
 
             switch (test)
             {

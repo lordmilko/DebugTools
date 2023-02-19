@@ -426,7 +426,11 @@ checkInclude:
             {
                 var parameters = d.GetEnterParameters();
 
-                void CacheParameters() => MethodFrameDetailed.ParameterCache.Add(d, parameters);
+                void CacheParameters()
+                {
+                    if (!MethodFrameDetailed.ParameterCache.TryGetValue(d, out _))
+                        MethodFrameDetailed.ParameterCache.Add(d, parameters);
+                }
 
                 if (parameters != null)
                 {
@@ -441,7 +445,11 @@ checkInclude:
 
                 if (returnValue != null)
                 {
-                    void CacheResult() => MethodFrameDetailed.ReturnCache.Add(d, returnValue);
+                    void CacheResult()
+                    {
+                        if (!MethodFrameDetailed.ReturnCache.TryGetValue(d, out _))
+                            MethodFrameDetailed.ReturnCache.Add(d, returnValue);
+                    }
 
                     if (MatchAny(d, returnValue, returnValue, CacheResult))
                         return true;

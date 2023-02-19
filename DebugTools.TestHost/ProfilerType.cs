@@ -4,6 +4,7 @@ namespace DebugTools.TestHost
 {
     class ProfilerType
     {
+        [MethodImpl(MethodImplOptions.NoInlining)]
         public void NoArgs()
         {
         }

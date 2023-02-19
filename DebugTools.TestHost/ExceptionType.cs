@@ -1,12 +1,14 @@
 ﻿using System;
 using System.Diagnostics;
 using System.IO;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
 namespace DebugTools.TestHost
 {
     class ExceptionType
     {
+        [MethodImpl(MethodImplOptions.NoInlining)]
         public void CaughtWithinMethod()
         {
             try
@@ -25,6 +27,7 @@ namespace DebugTools.TestHost
 
         #region UnwindOneFrame
 
+        [MethodImpl(MethodImplOptions.NoInlining)]
         public void UnwindOneFrame1()
         {
             try
@@ -50,6 +53,7 @@ namespace DebugTools.TestHost
 
         #endregion
 
+        [MethodImpl(MethodImplOptions.NoInlining)]
         public void Nested_ThrownInCatchAndImmediatelyCaught()
         {
             try
@@ -78,6 +82,7 @@ namespace DebugTools.TestHost
             }
         }
 
+        [MethodImpl(MethodImplOptions.NoInlining)]
         public void Nested_ThrownInCatchAndCaughtByOuterCatch()
         {
             try
@@ -114,6 +119,7 @@ namespace DebugTools.TestHost
 
         #region Nested_InnerException_UnwindToInnerHandler_InDeeperFrameThanOuterCatch
 
+        [MethodImpl(MethodImplOptions.NoInlining)]
         public void Nested_InnerException_UnwindToInnerHandler_InDeeperFrameThanOuterCatch1()
         {
             //Just because we're unwinding the frames of the inner exception, does not mean that the
@@ -147,6 +153,7 @@ namespace DebugTools.TestHost
 
         #endregion
 
+        [MethodImpl(MethodImplOptions.NoInlining)]
         public void Nested_CaughtByOuterCatch()
         {
             try
@@ -171,6 +178,7 @@ namespace DebugTools.TestHost
 
         #region Nested_UnwindOneFrameFromThrowInCatch
 
+        [MethodImpl(MethodImplOptions.NoInlining)]
         public void Nested_UnwindOneFrameFromThrowInCatch1()
         {
             try
@@ -208,6 +216,7 @@ namespace DebugTools.TestHost
         #endregion
         #region Nested_UnwindTwoFramesFromThrowInCatch
 
+        [MethodImpl(MethodImplOptions.NoInlining)]
         public void Nested_UnwindTwoFramesFromThrowInCatch1()
         {
             try
@@ -251,6 +260,7 @@ namespace DebugTools.TestHost
 
         #endregion
 
+        [MethodImpl(MethodImplOptions.NoInlining)]
         public void Nested_ThrownInFinallyAndImmediatelyCaught()
         {
             try
@@ -292,6 +302,7 @@ namespace DebugTools.TestHost
 
         #region Nested_ThrownInFinallyAndUnwindOneFrame
 
+        [MethodImpl(MethodImplOptions.NoInlining)]
         public void Nested_ThrownInFinallyAndUnwindOneFrame1()
         {
             try
@@ -341,6 +352,7 @@ namespace DebugTools.TestHost
         #endregion
         #region Nested_ThrownInFinallyAndUnwindTwoFrames
 
+        [MethodImpl(MethodImplOptions.NoInlining)]
         public void Nested_ThrownInFinallyAndUnwindTwoFrames1()
         {
             try
@@ -378,6 +390,7 @@ namespace DebugTools.TestHost
         #endregion
         #region NoCatchThrowWithFinallyUnwindOneFrame
 
+        [MethodImpl(MethodImplOptions.NoInlining)]
         public void NoCatchThrowWithFinallyUnwindOneFrame1()
         {
             try
@@ -415,6 +428,7 @@ namespace DebugTools.TestHost
         #endregion
         #region NoCatchThrowInFinallyUnwindOneFrame
 
+        [MethodImpl(MethodImplOptions.NoInlining)]
         public void NoCatchThrowInFinallyUnwindOneFrame1()
         {
             try
@@ -458,6 +472,7 @@ namespace DebugTools.TestHost
         #endregion
         #region UncaughtInNative
 
+        [MethodImpl(MethodImplOptions.NoInlining)]
         public void UncaughtInNative()
         {
             try
@@ -484,6 +499,7 @@ namespace DebugTools.TestHost
             }
         }
 
+        [MethodImpl(MethodImplOptions.NoInlining)]
         public void UncaughtInNative_DoubleCallback()
         {
             try
@@ -501,6 +517,7 @@ namespace DebugTools.TestHost
         #endregion
         #region CaughtInNative
 
+        [MethodImpl(MethodImplOptions.NoInlining)]
         public void CaughtInNative()
         {
             var sos = GetSOSDacInterface();
@@ -575,6 +592,7 @@ namespace DebugTools.TestHost
 
         #endregion
 
+        [MethodImpl(MethodImplOptions.NoInlining)]
         public void Rethrow()
         {
             try
@@ -595,6 +613,7 @@ namespace DebugTools.TestHost
 
         #region CallFunctionInCatchAndThrow
 
+        [MethodImpl(MethodImplOptions.NoInlining)]
         public void CallFunctionInCatchAndThrow1()
         {
             try
@@ -622,6 +641,7 @@ namespace DebugTools.TestHost
 
         #region ThrownInFilterAndCaught
 
+        [MethodImpl(MethodImplOptions.NoInlining)]
         public void ThrownInFilterAndCaught()
         {
             try
@@ -649,6 +669,7 @@ namespace DebugTools.TestHost
         #endregion
         #region ThrownInFilterAndNotCaught
 
+        [MethodImpl(MethodImplOptions.NoInlining)]
         public void ThrownInFilterAndNotCaught()
         {
             //We should NOT have an InvalidOperationException. Instead, we should have a TimeoutException
@@ -686,6 +707,7 @@ namespace DebugTools.TestHost
         #endregion
         #region ThrownInFilterThatUnwindsOneFrameAndNotCaught
 
+        [MethodImpl(MethodImplOptions.NoInlining)]
         public void ThrownInFilterThatUnwindsOneFrameAndNotCaught()
         {
             //We should NOT have an InvalidOperationException. Instead, we should have a TimeoutException

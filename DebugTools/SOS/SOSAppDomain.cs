@@ -23,7 +23,9 @@ namespace DebugTools.SOS
             if (appDomainStoreData.sharedDomain != 0)
                 list.Add(new SOSAppDomain(appDomainStoreData.sharedDomain, sos, AppDomainType.Shared));
 
-            list.Add(new SOSAppDomain(appDomainStoreData.systemDomain, sos, AppDomainType.System));
+            //System Domain should always exist, however if you query too quickly after the process has started it may not exist yet
+            if (appDomainStoreData.systemDomain != 0)
+                list.Add(new SOSAppDomain(appDomainStoreData.systemDomain, sos, AppDomainType.System));
 
             var appDomainAddresses = sos.GetAppDomainList(appDomainStoreData.DomainCount);
 

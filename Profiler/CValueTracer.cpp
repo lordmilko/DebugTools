@@ -1801,8 +1801,10 @@ BOOL CValueTracer::IsInvalidObject(ObjectID objectId)
          * because for some reason our __except handler won't catch the exception if it occurs in Object::GetGCSafeTypeHandleIfPossible, so we have to validate the pointer
          * ourselves. The .NET Framework has mechanisms available to test whether a given ObjectID is valid, however they rely on the debugging APIs, and we probably
          * shouldn't be loading mscordacwks.dll into the target process just so we can play around with ISOSDacInterface (ISOSDacInterface::GetObjectData() looks like
-         * it would do the trick) */
-        UINT_PTR val = *(UINT_PTR*)objectId;
+         * it would do the trick).
+         * 
+         * This is marked as volatile so that in Release builds the entire dereference on objectId isn't optimized away */
+        volatile UINT_PTR val = *(UINT_PTR*)objectId;
     }
     __except (GetExceptionCode() == EXCEPTION_ACCESS_VIOLATION ? EXCEPTION_EXECUTE_HANDLER : EXCEPTION_CONTINUE_SEARCH)
     {

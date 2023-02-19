@@ -469,15 +469,13 @@ HRESULT CCorProfilerCallback::ExceptionUnwindFinallyLeave()                     
 /// <returns>A HRESULT that indicates success or failure. In the event of failure the profiler and its DLL will be unloaded.</returns>
 HRESULT CCorProfilerCallback::Initialize(IUnknown* pICorProfilerInfoUnk)
 {
-#ifdef _DEBUG
-    OutputDebugStringW(L"Waiting for debugger to attach...\n");
-
     if (GetBoolEnv("DEBUGTOOLS_WAITFORDEBUG"))
     {
+        OutputDebugStringW(L"Waiting for debugger to attach...\n");
+
         while (!::IsDebuggerPresent())
             ::Sleep(100);
     }    
-#endif
 
     m_Detailed = GetBoolEnv("DEBUGTOOLS_DETAILED");
     g_TracingEnabled = GetBoolEnv("DEBUGTOOLS_TRACESTART");

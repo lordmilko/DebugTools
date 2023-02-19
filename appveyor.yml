@@ -1,0 +1,42 @@
+version: 'Build #{build}'
+image: Visual Studio 2019
+configuration: Release
+environment:
+  # Don't bother setting up a package cache
+  DOTNET_SKIP_FIRST_TIME_EXPERIENCE: 1
+  DOTNET_CLI_TELEMETRY_OPTOUT: 1
+install:
+  # Install NuGet Provider, Chocolatey dependencies
+  - ps: |
+      Import-Module .\build\ci\Appveyor.psm1 -DisableNameChecking
+      Invoke-AppveyorInstall
+before_build:
+  # Restore NuGet packages
+  # Set Appveyor build from DebugTools version
+  - ps: Invoke-AppveyorBeforeBuild
+build_script:
+  # Build all target frameworks
+  - ps: Invoke-AppveyorBuild
+after_build:
+  - ps: Invoke-AppveyorAfterBuild
+before_test:
+  # Build NuGet packages
+  - ps: Invoke-AppveyorBeforeTest
+test_script:
+  # Test all target frameworks
+  - ps: Invoke-AppveyorTest
+after_test:
+  # Calculate .NET coverage
+  - ps: Invoke-AppveyorAfterTest
+#on_finish:
+#  - ps: $blockRdp = $true; iex ((new-object net.webclient).DownloadString('https://raw.githubusercontent.com/appveyor/ci/master/scripts/enable-rdp.ps1'))
+artifacts:
+  - path: '*.zip'
+  - path: '*.nupkg'
+skip_commits:
+  files:
+    - '**/*.md'
+    - '**/*.yml'
+    - '**/*.nuspec'
+    - assets/*
+skip_tags: true

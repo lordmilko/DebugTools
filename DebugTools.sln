@@ -31,13 +31,98 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{45095176-2916-4D96-BB77-A54531ECB76B}"
 	ProjectSection(SolutionItems) = preProject
 		.editorconfig = .editorconfig
+		Directory.Build.props = Directory.Build.props
 	EndProjectSection
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DebugTools.Host.x86", "DebugTools.Host.x86\DebugTools.Host.x86.csproj", "{101A842A-0C30-4D5C-B9E8-AFC71E97F7EF}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DebugTools.Host.x64", "DebugTools.Host.x64\DebugTools.Host.x64.csproj", "{66075B5F-41DB-4F09-897E-91176C01B92F}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Profiler.Benchmarks", "Profiler.Benchmarks\Profiler.Benchmarks.csproj", "{214391B3-2E61-4792-9367-7C4F804805B2}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Profiler.Benchmarks", "Profiler.Benchmarks\Profiler.Benchmarks.csproj", "{214391B3-2E61-4792-9367-7C4F804805B2}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "build", "build", "{BDCBABF3-5EAF-44F7-AF07-463C26D55CD5}"
+	ProjectSection(SolutionItems) = preProject
+		build\NuGet.props = build\NuGet.props
+		build\Version.props = build\Version.props
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "CI", "CI", "{84F9EA1E-8DE8-4D49-B6C9-7B36FF4F2F7C}"
+	ProjectSection(SolutionItems) = preProject
+		build\CI\Appveyor.psm1 = build\CI\Appveyor.psm1
+		build\CI\ci.psm1 = build\CI\ci.psm1
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "DebugTools.Build", "DebugTools.Build", "{75581148-3C67-4E2C-8FB3-D517C2C6BA7A}"
+	ProjectSection(SolutionItems) = preProject
+		build\DebugTools.Build\DebugTools.Build.Format.ps1xml = build\DebugTools.Build\DebugTools.Build.Format.ps1xml
+		build\DebugTools.Build\DebugTools.Build.psd1 = build\DebugTools.Build\DebugTools.Build.psd1
+		build\DebugTools.Build\DebugTools.Build.psm1 = build\DebugTools.Build\DebugTools.Build.psm1
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Functions", "Functions", "{385996B1-C331-4A0E-8F5E-AD597E86D0CE}"
+	ProjectSection(SolutionItems) = preProject
+		build\DebugTools.Build\Functions\Clear-DbgBuild.ps1 = build\DebugTools.Build\Functions\Clear-DbgBuild.ps1
+		build\DebugTools.Build\Functions\Get-DbgCommand.ps1 = build\DebugTools.Build\Functions\Get-DbgCommand.ps1
+		build\DebugTools.Build\Functions\Get-DbgCoverage.ps1 = build\DebugTools.Build\Functions\Get-DbgCoverage.ps1
+		build\DebugTools.Build\Functions\Get-DbgHelp.ps1 = build\DebugTools.Build\Functions\Get-DbgHelp.ps1
+		build\DebugTools.Build\Functions\Get-DbgLog.ps1 = build\DebugTools.Build\Functions\Get-DbgLog.ps1
+		build\DebugTools.Build\Functions\Get-DbgTestResult.ps1 = build\DebugTools.Build\Functions\Get-DbgTestResult.ps1
+		build\DebugTools.Build\Functions\Get-DbgVersion.ps1 = build\DebugTools.Build\Functions\Get-DbgVersion.ps1
+		build\DebugTools.Build\Functions\Initialize-BuildEnvironment.ps1 = build\DebugTools.Build\Functions\Initialize-BuildEnvironment.ps1
+		build\DebugTools.Build\Functions\Install-DbgDependency.ps1 = build\DebugTools.Build\Functions\Install-DbgDependency.ps1
+		build\DebugTools.Build\Functions\Invoke-DbgAnalyzer.ps1 = build\DebugTools.Build\Functions\Invoke-DbgAnalyzer.ps1
+		build\DebugTools.Build\Functions\Invoke-DbgBuild.ps1 = build\DebugTools.Build\Functions\Invoke-DbgBuild.ps1
+		build\DebugTools.Build\Functions\Invoke-DbgTest.ps1 = build\DebugTools.Build\Functions\Invoke-DbgTest.ps1
+		build\DebugTools.Build\Functions\New-DbgPackage.ps1 = build\DebugTools.Build\Functions\New-DbgPackage.ps1
+		build\DebugTools.Build\Functions\Set-DbgVersion.ps1 = build\DebugTools.Build\Functions\Set-DbgVersion.ps1
+		build\DebugTools.Build\Functions\Simulate-DbgCI.ps1 = build\DebugTools.Build\Functions\Simulate-DbgCI.ps1
+		build\DebugTools.Build\Functions\Start-DebugTools.ps1 = build\DebugTools.Build\Functions\Start-DebugTools.ps1
+		build\DebugTools.Build\Functions\Update-DbgVersion.ps1 = build\DebugTools.Build\Functions\Update-DbgVersion.ps1
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Appveyor", "Appveyor", "{D159EC18-9788-4A9B-92F5-822A9F10C331}"
+	ProjectSection(SolutionItems) = preProject
+		build\CI\Appveyor\Clear-AppveyorBuild.ps1 = build\CI\Appveyor\Clear-AppveyorBuild.ps1
+		build\CI\Appveyor\Invoke-AppveyorAfterBuild.ps1 = build\CI\Appveyor\Invoke-AppveyorAfterBuild.ps1
+		build\CI\Appveyor\Invoke-AppveyorAfterTest.ps1 = build\CI\Appveyor\Invoke-AppveyorAfterTest.ps1
+		build\CI\Appveyor\Invoke-AppveyorBeforeBuild.ps1 = build\CI\Appveyor\Invoke-AppveyorBeforeBuild.ps1
+		build\CI\Appveyor\Invoke-AppveyorBeforeTest.ps1 = build\CI\Appveyor\Invoke-AppveyorBeforeTest.ps1
+		build\CI\Appveyor\Invoke-AppveyorBuild.ps1 = build\CI\Appveyor\Invoke-AppveyorBuild.ps1
+		build\CI\Appveyor\Invoke-AppveyorInstall.ps1 = build\CI\Appveyor\Invoke-AppveyorInstall.ps1
+		build\CI\Appveyor\Invoke-AppveyorTest.ps1 = build\CI\Appveyor\Invoke-AppveyorTest.ps1
+		build\CI\Appveyor\Measure-AppveyorCoverage.ps1 = build\CI\Appveyor\Measure-AppveyorCoverage.ps1
+		build\CI\Appveyor\New-AppveyorPackage.ps1 = build\CI\Appveyor\New-AppveyorPackage.ps1
+		build\CI\Appveyor\Set-AppveyorVersion.ps1 = build\CI\Appveyor\Set-AppveyorVersion.ps1
+		build\CI\Appveyor\Simulate-Appveyor.ps1 = build\CI\Appveyor\Simulate-Appveyor.ps1
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "CI", "CI", "{FC5895ED-5B8A-4247-B656-BDAD42E0C1D4}"
+	ProjectSection(SolutionItems) = preProject
+		build\CI\CI\Clear-CIBuild.ps1 = build\CI\CI\Clear-CIBuild.ps1
+		build\CI\CI\Get-CIDependency.ps1 = build\CI\CI\Get-CIDependency.ps1
+		build\CI\CI\Get-CIVersion.ps1 = build\CI\CI\Get-CIVersion.ps1
+		build\CI\CI\Install-CIDependency.ps1 = build\CI\CI\Install-CIDependency.ps1
+		build\CI\CI\Invoke-CIBuild.ps1 = build\CI\CI\Invoke-CIBuild.ps1
+		build\CI\CI\Invoke-CITest.ps1 = build\CI\CI\Invoke-CITest.ps1
+		build\CI\CI\New-CSharpPackage.ps1 = build\CI\CI\New-CSharpPackage.ps1
+		build\CI\CI\New-PowerShellPackage.ps1 = build\CI\CI\New-PowerShellPackage.ps1
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Helpers", "Helpers", "{9ADABBC7-4A08-4378-BC9E-8F4BDDFF7B9C}"
+	ProjectSection(SolutionItems) = preProject
+		build\CI\Helpers\Get-CodeCoverage.ps1 = build\CI\Helpers\Get-CodeCoverage.ps1
+		build\CI\Helpers\Get-SolutionRoot.ps1 = build\CI\Helpers\Get-SolutionRoot.ps1
+		build\CI\Helpers\Import-ModuleFunctions.ps1 = build\CI\Helpers\Import-ModuleFunctions.ps1
+		build\CI\Helpers\Install-Dependency.ps1 = build\CI\Helpers\Install-Dependency.ps1
+		build\CI\Helpers\Invoke-Process.ps1 = build\CI\Helpers\Invoke-Process.ps1
+		build\CI\Helpers\PackageManager.ps1 = build\CI\Helpers\PackageManager.ps1
+		build\CI\Helpers\Write-Log.ps1 = build\CI\Helpers\Write-Log.ps1
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tests", "Tests", "{69DC8ED2-B380-4B46-BD0D-4F8619047C55}"
+	ProjectSection(SolutionItems) = preProject
+		build\CI\Tests\Appveyor.Tests.ps1 = build\CI\Tests\Appveyor.Tests.ps1
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SharedMSBuildProjectFiles) = preSolution
@@ -60,6 +145,7 @@ Global
 		{3BB8E037-B0CF-421A-BF42-77EBB4E82C64}.Debug|x64.Build.0 = Debug|x64
 		{3BB8E037-B0CF-421A-BF42-77EBB4E82C64}.Debug|x86.ActiveCfg = Debug|x64
 		{3BB8E037-B0CF-421A-BF42-77EBB4E82C64}.Release|Any CPU.ActiveCfg = Release|x64
+		{3BB8E037-B0CF-421A-BF42-77EBB4E82C64}.Release|Any CPU.Build.0 = Release|x64
 		{3BB8E037-B0CF-421A-BF42-77EBB4E82C64}.Release|x64.ActiveCfg = Release|x64
 		{3BB8E037-B0CF-421A-BF42-77EBB4E82C64}.Release|x64.Build.0 = Release|x64
 		{3BB8E037-B0CF-421A-BF42-77EBB4E82C64}.Release|x86.ActiveCfg = Release|x64
@@ -69,6 +155,7 @@ Global
 		{7A67E69F-D319-45CF-B94E-D9A7E24616BF}.Debug|x86.ActiveCfg = Debug|Win32
 		{7A67E69F-D319-45CF-B94E-D9A7E24616BF}.Debug|x86.Build.0 = Debug|Win32
 		{7A67E69F-D319-45CF-B94E-D9A7E24616BF}.Release|Any CPU.ActiveCfg = Release|Win32
+		{7A67E69F-D319-45CF-B94E-D9A7E24616BF}.Release|Any CPU.Build.0 = Release|Win32
 		{7A67E69F-D319-45CF-B94E-D9A7E24616BF}.Release|x64.ActiveCfg = Release|Win32
 		{7A67E69F-D319-45CF-B94E-D9A7E24616BF}.Release|x86.ActiveCfg = Release|Win32
 		{7A67E69F-D319-45CF-B94E-D9A7E24616BF}.Release|x86.Build.0 = Release|Win32
@@ -159,6 +246,15 @@ Global
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{84F9EA1E-8DE8-4D49-B6C9-7B36FF4F2F7C} = {BDCBABF3-5EAF-44F7-AF07-463C26D55CD5}
+		{75581148-3C67-4E2C-8FB3-D517C2C6BA7A} = {BDCBABF3-5EAF-44F7-AF07-463C26D55CD5}
+		{385996B1-C331-4A0E-8F5E-AD597E86D0CE} = {75581148-3C67-4E2C-8FB3-D517C2C6BA7A}
+		{D159EC18-9788-4A9B-92F5-822A9F10C331} = {84F9EA1E-8DE8-4D49-B6C9-7B36FF4F2F7C}
+		{FC5895ED-5B8A-4247-B656-BDAD42E0C1D4} = {84F9EA1E-8DE8-4D49-B6C9-7B36FF4F2F7C}
+		{9ADABBC7-4A08-4378-BC9E-8F4BDDFF7B9C} = {84F9EA1E-8DE8-4D49-B6C9-7B36FF4F2F7C}
+		{69DC8ED2-B380-4B46-BD0D-4F8619047C55} = {84F9EA1E-8DE8-4D49-B6C9-7B36FF4F2F7C}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {B667A379-C9BF-4B2E-8063-FE6A6B1CDA24}

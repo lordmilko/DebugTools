@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Diagnostics;
+using System.Threading;
 using ClrDebug;
 using DebugTools.Profiler;
 using DebugTools.SOS;
@@ -85,7 +86,28 @@ namespace Profiler.Tests
             {
                 var sos = CLRDataCreateInstance(new DataTarget(process)).SOSDacInterface;
 
-                action(sos);
+                Exception exception = null;
+
+                //If we query too quickly after the process has started, the relevant structures may not
+                //have loaded within the target process yet yet.
+                for (var i = 0; i < 100; i++)
+                {
+                    if (process.HasExited)
+                        throw exception;
+
+                    try
+                    {
+                        action(sos);
+                        break;
+                    }
+                    catch (AssertFailedException ex)
+                    {
+                        if (exception == null)
+                            exception = ex;
+                    }
+                }
+
+                Thread.Sleep(10);
             }
             finally
             {
