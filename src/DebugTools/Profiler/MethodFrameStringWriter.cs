@@ -3,6 +3,7 @@
     public class MethodFrameStringWriter : IMethodFrameWriter
     {
         public static MethodFrameStringWriter Default => new MethodFrameStringWriter(MethodFrameFormatter.Default);
+        public static MethodFrameStringWriter WithoutNamespace = new MethodFrameStringWriter(MethodFrameFormatter.WithoutNamespace);
 
         private MethodFrameFormatter formatter;
 

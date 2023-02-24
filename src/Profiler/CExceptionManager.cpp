@@ -48,7 +48,7 @@ HRESULT CExceptionManager::ManagedToUnmanagedTransition(FunctionID functionId, C
 
     if (reason == COR_PRF_TRANSITION_CALL)
     {
-        /* Something managed has called something unmanaged.Maybe the catch / finally invoked something that caused
+        /* Something managed has called something unmanaged. Maybe the catch / finally invoked something that caused
          * managed(1) -> unmanaged(1). We'll record this fact, so we can pair the inevitable UnmanagedToManaged(Return) up with this call event.
          * If a UnmanagedToManaged(Return) event occurs without an initial call, this means we've returned to unmanaged(0) which called managed(1)
          * and has gracefully handled the exception (we'll fly straight through the unmanaged code without transition notifications if the unmanaged code

@@ -7,6 +7,8 @@ namespace DebugTools.Profiler
 {
     public class ThreadStack
     {
+        internal int ThreadId { get; }
+
         public IFrame Current { get; set; }
 
         public IRootFrame Root => Current.GetRoot();
@@ -16,9 +18,10 @@ namespace DebugTools.Profiler
         private bool includeUnknownTransitions;
         private long lastSequence;
 
-        public ThreadStack(bool includeUnknownTransitions)
+        public ThreadStack(bool includeUnknownTransitions, int threadId)
         {
             this.includeUnknownTransitions = includeUnknownTransitions;
+            ThreadId = threadId;
         }
 
         #region CallArgs
@@ -138,7 +141,7 @@ namespace DebugTools.Profiler
 
         public void Exception(ExceptionArgs args)
         {
-            Exceptions[args.Sequence] = new ExceptionInfo(args);
+            Exceptions[args.Sequence] = new ExceptionInfo(args, ThreadId, (IMethodFrame) Current);
         }
 
         internal void ExceptionFrameUnwind(CallArgs args, IMethodInfoInternal method)
@@ -165,7 +168,10 @@ namespace DebugTools.Profiler
             //creation event was dropped due to high load. The only other scenario where we can hit this should be where a session was created
             //globally without the use of our profiler controller, and we globally attach to it
             if (Exceptions.TryGetValue(args.Sequence, out var exception))
+            {
                 exception.Status = args.Reason;
+                exception.HandledFrame = (IMethodFrame) Current;
+            }
         }
 
         #endregion

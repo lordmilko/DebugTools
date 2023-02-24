@@ -10,12 +10,20 @@ namespace DebugTools.Profiler
 
         public long Sequence { get; }
 
+        public int ThreadId { get; }
+
         public ExceptionStatus Status { get; set; }
 
-        public ExceptionInfo(ExceptionArgs args)
+        public IMethodFrame ThrownFrame { get; }
+
+        public IMethodFrame HandledFrame { get; internal set; }
+
+        public ExceptionInfo(ExceptionArgs args, int threadId, IMethodFrame thrownFrame)
         {
             Type = args.Type;
             Sequence = args.Sequence;
+            ThreadId = threadId;
+            ThrownFrame = thrownFrame;
         }
 
         public override string ToString()

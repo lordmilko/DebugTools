@@ -5,6 +5,7 @@ namespace DebugTools.Profiler
     public class MethodFrameFormatter
     {
         public static readonly MethodFrameFormatter Default = new MethodFrameFormatter(false);
+        public static readonly MethodFrameFormatter WithoutNamespace = new MethodFrameFormatter(true);
 
         private bool excludeNamespace;
 

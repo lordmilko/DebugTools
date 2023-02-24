@@ -109,5 +109,49 @@
                 </TableRowEntries>
             </TableControl>
         </View>
+        <View>
+            <Name>Default</Name>
+            <ViewSelectedBy>
+                <TypeName>DebugTools.Profiler.ExceptionInfo</TypeName>
+            </ViewSelectedBy>
+            <TableControl>
+                <TableHeaders>
+                    <TableColumnHeader/> <!-- ThreadId -->
+                    <TableColumnHeader/> <!-- Type -->
+                    <TableColumnHeader/> <!-- Sequence -->
+                    <TableColumnHeader/> <!-- Status -->
+                    <TableColumnHeader> <!-- ThrownFrame -->
+                        <Label>ThrownFrame</Label>
+                    </TableColumnHeader>
+                    <TableColumnHeader> <!-- HandledFrame -->
+                        <Label>HandledFrame</Label>
+                    </TableColumnHeader>
+                </TableHeaders>
+                <TableRowEntries>
+                    <TableRowEntry>
+                        <TableColumnItems>
+                            <TableColumnItem>
+                                <PropertyName>ThreadId</PropertyName>
+                            </TableColumnItem>
+                            <TableColumnItem>
+                                <PropertyName>Type</PropertyName>
+                            </TableColumnItem>
+                            <TableColumnItem>
+                                <PropertyName>Sequence</PropertyName>
+                            </TableColumnItem>
+                            <TableColumnItem>
+                                <PropertyName>Status</PropertyName>
+                            </TableColumnItem>
+                            <TableColumnItem>
+                                <ScriptBlock>[DebugTools.Profiler.MethodFrameStringWriter]::WithoutNamespace.ToString($_.ThrownFrame)</ScriptBlock>
+                            </TableColumnItem>
+                            <TableColumnItem>
+                                <ScriptBlock>[DebugTools.Profiler.MethodFrameStringWriter]::WithoutNamespace.ToString($_.HandledFrame)</ScriptBlock>
+                            </TableColumnItem>
+                        </TableColumnItems>
+                    </TableRowEntry>
+                </TableRowEntries>
+            </TableControl>
+        </View>
     </ViewDefinitions>
 </Configuration>

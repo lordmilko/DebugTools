@@ -165,7 +165,7 @@ namespace DebugTools.Profiler
                     if (ignoreUnknown && method.WasUnknown && !includeUnknownTransitions)
                         return;
 
-                    threadStack = new ThreadStack(includeUnknownTransitions);
+                    threadStack = new ThreadStack(includeUnknownTransitions, args.ThreadID);
                     ThreadCache[args.ThreadID] = threadStack;
 
                     setName = true;
