@@ -68,6 +68,7 @@ namespace DebugTools.Profiler
 
             bool needDebug = false;
             bool ignoreDefaultBlacklist = false;
+            bool minimized = false;
 
             if (settings != null)
             {
@@ -113,6 +114,10 @@ namespace DebugTools.Profiler
                             ignoreDefaultBlacklist = true;
                             break;
 
+                        case ProfilerEnvFlags.Minimized:
+                            minimized = true;
+                            break;
+
                         case ProfilerEnvFlags.DisablePipe:
                         case ProfilerEnvFlags.IncludeUnknownUnmanagedTransitions:
                             break;
@@ -132,9 +137,13 @@ namespace DebugTools.Profiler
             STARTUPINFO si = new STARTUPINFO
             {
                 cb = Marshal.SizeOf<STARTUPINFO>(),
-                dwFlags = STARTF.STARTF_USESHOWWINDOW,
-                wShowWindow = ShowWindow.Minimized
             };
+
+            if (minimized)
+            {
+                si.dwFlags = STARTF.STARTF_USESHOWWINDOW;
+                si.wShowWindow = ShowWindow.Minimized;
+            }
 
             PROCESS_INFORMATION pi;
 

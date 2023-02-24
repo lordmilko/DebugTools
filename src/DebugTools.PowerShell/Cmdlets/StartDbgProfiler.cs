@@ -41,6 +41,9 @@ namespace DebugTools.PowerShell.Cmdlets
         [Parameter(Mandatory = false)]
         public SwitchParameter IncludeUnknownUnmanagedTransitions { get; set; }
 
+        [Parameter(Mandatory = false)]
+        public SwitchParameter Minimized { get; set; }
+
         protected override void ProcessRecord()
         {
             var session = new ProfilerSession();
@@ -69,6 +72,9 @@ namespace DebugTools.PowerShell.Cmdlets
 
             if (IncludeUnknownUnmanagedTransitions)
                 settings.Add(ProfilerSetting.IncludeUnknownUnmanagedTransitions);
+
+            if (Minimized)
+                settings.Add(ProfilerSetting.Minimized);
 
             if (IgnoreDefaultBlacklist)
                 settings.Add(ProfilerSetting.IgnoreDefaultBlacklist);

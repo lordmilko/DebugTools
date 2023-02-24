@@ -12,6 +12,7 @@
         IgnoreDefaultBlacklist,
 
         DisablePipe,
-        IncludeUnknownUnmanagedTransitions
+        IncludeUnknownUnmanagedTransitions,
+        Minimized
     }
 }

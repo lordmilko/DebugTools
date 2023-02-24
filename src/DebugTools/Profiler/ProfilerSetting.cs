@@ -8,6 +8,7 @@
         public static readonly ProfilerSetting IgnoreDefaultBlacklist = new ProfilerSetting(ProfilerEnvFlags.IgnoreDefaultBlacklist, null);
         public static readonly ProfilerSetting DisablePipe = new ProfilerSetting(ProfilerEnvFlags.DisablePipe, null);
         public static readonly ProfilerSetting IncludeUnknownUnmanagedTransitions = new ProfilerSetting(ProfilerEnvFlags.IncludeUnknownUnmanagedTransitions, null);
+        public static readonly ProfilerSetting Minimized = new ProfilerSetting(ProfilerEnvFlags.Minimized, null);
 
         public ProfilerEnvFlags Flag { get; }
 
