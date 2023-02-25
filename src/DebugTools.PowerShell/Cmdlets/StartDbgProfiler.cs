@@ -59,10 +59,10 @@ namespace DebugTools.PowerShell.Cmdlets
             if (Detailed)
                 settings.Add(ProfilerSetting.Detailed);
 
-            settings.Add(new ProfilerSetting(ProfilerEnvFlags.TraceValueDepth, ValueDepth));
+            settings.Add(ProfilerSetting.TraceValueDepth(ValueDepth));
 
             if (MyInvocation.BoundParameters.ContainsKey(nameof(TargetProcess)))
-                settings.Add(new ProfilerSetting(ProfilerEnvFlags.TargetProcess, TargetProcess));
+                settings.Add(ProfilerSetting.TargetProcess(TargetProcess));
 
             if (TraceStart)
                 settings.Add(ProfilerSetting.TraceStart);

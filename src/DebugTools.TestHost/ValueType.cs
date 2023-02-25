@@ -366,6 +366,11 @@ namespace DebugTools.TestHost
         }
 
         [MethodImpl(MethodImplOptions.NoInlining)]
+        public void ObjectArg_TraceDepth(object a)
+        {
+        }
+
+        [MethodImpl(MethodImplOptions.NoInlining)]
         public void InterfaceArg(IInterface a)
         {
         }

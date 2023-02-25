@@ -339,6 +339,10 @@ namespace Profiler.Tests
             Test(ValueTestType.ObjectArg, v => v.HasClassType("System.Object"));
 
         [TestMethod]
+        public void Value_ObjectArg_TraceDepth() =>
+            Test(ValueTestType.ObjectArg_TraceDepth, v => v.HasValue("foo"), ProfilerSetting.TraceValueDepth(1));
+
+        [TestMethod]
         public void Value_InterfaceArg() =>
             Test(ValueTestType.InterfaceArg, v => v.HasClassType("DebugTools.TestHost.ImplInterface"));
 

@@ -298,7 +298,6 @@ HRESULT CValueTracer::TraceValue(
     HRESULT hr = S_OK;
     BOOL needDecrease = FALSE;
 
-
     BOOL needSeenMap = elementType == ELEMENT_TYPE_CLASS || elementType == ELEMENT_TYPE_GENERICINST || elementType == ELEMENT_TYPE_SZARRAY || elementType == ELEMENT_TYPE_ARRAY;
 
     if (needSeenMap && g_SeenMap.find(startAddress) != g_SeenMap.end())
@@ -412,8 +411,13 @@ HRESULT CValueTracer::TraceValue(
         break;
 
     case ELEMENT_TYPE_CLASS:
-    case ELEMENT_TYPE_OBJECT:
         IfFailGo(TraceClass(startAddress, elementType, bytesRead));
+        break;
+
+    //If a field or parameter is of type object, there's a level of indirection we need to traverse
+    //in order to get to the real value we need to inspect
+    case ELEMENT_TYPE_OBJECT:
+        IfFailGo(TraceClassIgnoreDepth(startAddress, elementType, bytesRead));
         break;
 
     case ELEMENT_TYPE_ARRAY:
@@ -728,6 +732,15 @@ HRESULT CValueTracer::TraceString(_In_ UINT_PTR startAddress, _Out_opt_ ULONG& b
     bytesRead += sizeof(void*);
 
 ErrExit:
+    return hr;
+}
+
+HRESULT CValueTracer::TraceClassIgnoreDepth(_In_ UINT_PTR startAddress, _In_ CorElementType classElementType, _Out_opt_ ULONG& bytesRead)
+{
+    m_TraceDepth--;
+    HRESULT hr = TraceClass(startAddress, classElementType, bytesRead);
+    m_TraceDepth++;
+
     return hr;
 }
 

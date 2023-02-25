@@ -16,7 +16,7 @@
 
         public string StringValue => Value?.ToString();
 
-        public ProfilerSetting(ProfilerEnvFlags flag, object value)
+        private ProfilerSetting(ProfilerEnvFlags flag, object value)
         {
             Flag = flag;
             Value = value;
@@ -30,6 +30,16 @@
         public static ProfilerSetting ModuleWhitelist(MatchCollection collection)
         {
             return new ProfilerSetting(ProfilerEnvFlags.ModuleWhitelist, collection);
+        }
+
+        public static ProfilerSetting TraceValueDepth(int valueDepth)
+        {
+            return new ProfilerSetting(ProfilerEnvFlags.TraceValueDepth, valueDepth);
+        }
+
+        public static ProfilerSetting TargetProcess(string targetProcess)
+        {
+            return new ProfilerSetting(ProfilerEnvFlags.TargetProcess, targetProcess);
         }
     }
 }

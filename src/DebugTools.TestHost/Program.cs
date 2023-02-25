@@ -441,6 +441,10 @@ namespace DebugTools.TestHost
                     instance.ObjectArg(new object());
                     break;
 
+                case ValueTestType.ObjectArg_TraceDepth:
+                    instance.ObjectArg_TraceDepth("foo");
+                    break;
+
                 case ValueTestType.InterfaceArg:
                     instance.InterfaceArg(new ImplInterface());
                     break;
