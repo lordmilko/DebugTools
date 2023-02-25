@@ -339,6 +339,9 @@ namespace DebugTools.PowerShell
 
             if (calledFromWildcards != null)
             {
+                if (frame is IRootFrame)
+                    return false;
+
                 var parent = frame.Parent;
 
                 while (!(parent is IRootFrame))
