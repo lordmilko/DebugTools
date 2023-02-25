@@ -25,11 +25,13 @@ namespace DebugTools.Tracing
             public const int MethodInfo = 12;
             public const int MethodInfoDetailed = 13;
 
-            public const int ThreadCreate = 14;
-            public const int ThreadDestroy = 15;
-            public const int ThreadName = 16;
+            public const int ModuleLoaded = 14;
 
-            public const int Shutdown = 17;
+            public const int ThreadCreate = 15;
+            public const int ThreadDestroy = 16;
+            public const int ThreadName = 17;
+
+            public const int Shutdown = 18;
         }
 
         /// <summary>
@@ -124,6 +126,12 @@ namespace DebugTools.Tracing
             remove => source.UnregisterEventTemplate(value, EventId.MethodInfoDetailed, ProviderGuid);
         }
 
+        public event Action<ModuleLoadedArgs> ModuleLoaded
+        {
+            add => source.RegisterEventTemplate(ModuleLoadedTemplate(value));
+            remove => source.UnregisterEventTemplate(value, EventId.ModuleLoaded, ProviderGuid);
+        }
+
         public event Action<ThreadArgs> ThreadCreate
         {
             add => source.RegisterEventTemplate(ThreadCreateTemplate(value));
@@ -180,6 +188,8 @@ namespace DebugTools.Tracing
                     MethodInfoTemplate(null),
                     MethodInfoDetailedTemplate(null),
 
+                    ModuleLoadedTemplate(null),
+
                     ThreadCreateTemplate(null),
                     ThreadDestroyTemplate(null),
                     ThreadNameTemplate(null),
@@ -222,6 +232,8 @@ namespace DebugTools.Tracing
         private static MethodInfoArgs MethodInfoTemplate(Action<MethodInfoArgs> action) => new MethodInfoArgs(action, EventId.MethodInfo, 0, null, Guid.Empty, 0, null, ProviderGuid, ProviderName);
 
         private static MethodInfoDetailedArgs MethodInfoDetailedTemplate(Action<MethodInfoDetailedArgs> action) => new MethodInfoDetailedArgs(action, EventId.MethodInfoDetailed, 0, null, Guid.Empty, 0, null, ProviderGuid, ProviderName);
+
+        private static ModuleLoadedArgs ModuleLoadedTemplate(Action<ModuleLoadedArgs> action) => new ModuleLoadedArgs(action, EventId.ModuleLoaded, 0, null, Guid.Empty, 0, null, ProviderGuid, ProviderName);
 
         private static ThreadArgs ThreadCreateTemplate(Action<ThreadArgs> action) => new ThreadArgs(action, EventId.ThreadCreate, 0, null, Guid.Empty, 0, null, ProviderGuid, ProviderName);
 

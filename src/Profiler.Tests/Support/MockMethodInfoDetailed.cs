@@ -40,8 +40,6 @@ namespace Profiler.Tests
             if (methodInfo == null)
                 return null;
 
-            var import = GetMDI();
-
             var methodDef = (mdMethodDef) methodInfo.MetadataToken;
 
             var props = import.GetMethodProps(methodDef);
@@ -56,11 +54,6 @@ namespace Profiler.Tests
 
                 return sigMethod;
             }
-        }
-
-        public MetaDataImport GetMDI()
-        {
-            return import;
         }
 
         public override bool Equals(object obj)

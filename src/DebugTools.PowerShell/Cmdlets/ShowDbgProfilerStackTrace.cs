@@ -72,7 +72,7 @@ namespace DebugTools.PowerShell.Cmdlets
                 outputFrames = frames;
 
             var methodFrameFormatter = new MethodFrameFormatter(ExcludeNamespace);
-            var methodFrameWriter = new MethodFrameColorWriter(methodFrameFormatter, output)
+            var methodFrameWriter = new MethodFrameColorWriter(methodFrameFormatter, output, Session.Modules)
             {
                 HighlightValues = filter?.MatchedValues,
                 HighlightMethodNames = highlightMethodNameWildcards,

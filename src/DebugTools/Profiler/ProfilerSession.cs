@@ -25,6 +25,9 @@ namespace DebugTools.Profiler
 
         internal ConcurrentDictionary<long, IMethodInfoInternal> Methods { get; } = new ConcurrentDictionary<long, IMethodInfoInternal>();
 
+        //Only populated in detailed mode
+        internal ConcurrentDictionary<int, ModuleInfo> Modules { get; } = new ConcurrentDictionary<int, ModuleInfo>();
+
         public bool HasExited => Process?.HasExited ?? true;
 
         private NamedPipeClientStream pipe;
@@ -66,6 +69,8 @@ namespace DebugTools.Profiler
 
             parser.MethodInfo += Parser_MethodInfo;
             parser.MethodInfoDetailed += Parser_MethodInfoDetailed;
+
+            parser.ModuleLoaded += Parser_ModuleLoaded;
 
             parser.CallEnter += Parser_CallEnter;
             parser.CallLeave += Parser_CallLeave;
@@ -137,6 +142,12 @@ namespace DebugTools.Profiler
         }
 
         #endregion
+
+        private void Parser_ModuleLoaded(ModuleLoadedArgs args)
+        {
+            Modules[args.UniqueModuleID] = new ModuleInfo(args.UniqueModuleID, args.Path);
+        }
+
         #region CallArgs
 
         private void Parser_CallEnter(CallArgs args) =>

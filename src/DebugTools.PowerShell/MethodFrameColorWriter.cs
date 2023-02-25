@@ -21,10 +21,16 @@ namespace DebugTools.PowerShell
 
         public IOutputSource Output { get; }
 
-        public MethodFrameColorWriter(MethodFrameFormatter formatter, IOutputSource output)
+        private IDictionary<int, ModuleInfo> modules;
+
+        public MethodFrameColorWriter(
+            MethodFrameFormatter formatter,
+            IOutputSource output,
+            IDictionary<int, ModuleInfo> modules)
         {
             this.formatter = formatter;
             Output = output;
+            this.modules = modules;
         }
 
         private StringBuilder nameBuilder = new StringBuilder();
@@ -37,7 +43,7 @@ namespace DebugTools.PowerShell
             if (value is FormattedValue f)
             {
                 if (HighlightValues?.ContainsKey(f.Original) == true)
-                    HighlightValue(f, GetMDI(frame), GetSigType(value, frame, kind));
+                    HighlightValue(f, GetSigType(value, frame, kind));
                 else
                     WriteMaybeHighlight(f.Formatted, highlightFrame);
             }
@@ -66,7 +72,7 @@ namespace DebugTools.PowerShell
                     case FrameTokenKind.Parameter:
                     case FrameTokenKind.ReturnValue:
                         if (HighlightValues?.ContainsKey(value) == true)
-                            HighlightValue(value, GetMDI(frame), GetSigType(value, frame, kind));
+                            HighlightValue(value, GetSigType(value, frame, kind));
                         else
                             WriteMaybeHighlight(value, highlightFrame);
                         break;
@@ -115,15 +121,7 @@ namespace DebugTools.PowerShell
             return null;
         }
 
-        private MetaDataImport GetMDI(IFrame frame)
-        {
-            if (frame is IMethodFrameDetailed d)
-                return ((IMethodInfoDetailed) d.MethodInfo).GetMDI();
-
-            return null;
-        }
-
-        private void HighlightValue(object value, MetaDataImport import, SigType sigType)
+        private void HighlightValue(object value, SigType sigType)
         {
             string str;
             object obj;
@@ -142,75 +140,84 @@ namespace DebugTools.PowerShell
             var builder = new StringBuilder();
             builder.Append(str);
 
-            BuildHighlightValue(obj, builder, import, sigType, true, false);
+            BuildHighlightValue(obj, builder, sigType, true, false);
 
             Output.WriteColor(builder.ToString(), ConsoleColor.Yellow);
         }
 
-        private void BuildHighlightValue(object obj, StringBuilder builder, MetaDataImport import, SigType sigType, bool root, bool inPointer)
+        private void BuildHighlightValue(object obj, StringBuilder builder, SigType sigType, bool root, bool inPointer)
         {
-            if (obj is ComplexTypeValue c && (sigType is SigClassType || sigType is SigValueType))
+            if (obj is ComplexTypeValue c && IsAnyTypeOrNull(sigType, typeof(SigClassType), typeof(SigValueType)))
             {
-                mdFieldDef[] fields;
+                mdFieldDef[] fields = null;
 
                 var blobFieldCount = c.FieldValues?.Count ?? 0;
 
-                if (sigType is SigClassType sigClass)
-                {
-                    fields = import.EnumFields((mdTypeDef)sigClass.Token).ToArray();
+                MetaDataImport import = null;
 
-                    if (fields.Length != blobFieldCount)
-                        throw new InvalidOperationException($"{sigClass} had {blobFieldCount} serialized fields however had {fields.Length} metadata fields.");
-                }
-                else
+                if (c.UniqueModuleID != 0 && modules.TryGetValue(c.UniqueModuleID, out var moduleInfo))
                 {
-                    var sigValueType = (SigValueType)sigType;
+                    import = moduleInfo.GetMDI();
 
-                    fields = import.EnumFields((mdTypeDef)sigValueType.Token).ToArray();
+                    fields = import.EnumFields(c.TypeDef).ToArray();
 
                     //This should ALWAYS be true. Even if a field doesn't have a value, we still scrape
                     //the default value
                     if (fields.Length != blobFieldCount)
-                        throw new InvalidOperationException($"{sigValueType} had {blobFieldCount} serialized fields however had {fields.Length} metadata fields.");
+                        throw new InvalidOperationException($"{sigType} had {blobFieldCount} serialized fields however had {fields.Length} metadata fields.");
                 }
 
                 for(var i = 0; i < blobFieldCount; i++)
                 {
                     if (HighlightValues.ContainsKey(c.FieldValues[i]))
                     {
-                        var props = import.GetFieldProps(fields[i]);
-
                         if (inPointer)
                             builder.Append("->");
                         else
                             builder.Append(".");
 
-                        builder.Append(props.szField);
+                        if (fields != null)
+                        {
+                            var props = import.GetFieldProps(fields[i]);
 
-                        var reader = new SigReader(props.ppvSigBlob, props.pcbSigBlob, fields[i], import);
+                            builder.Append(props.szField);
 
-                        var fieldSigType = reader.ParseField();
-                        BuildHighlightValue(c.FieldValues[i], builder, import, fieldSigType, false, false);
+                            var reader = new SigReader(props.ppvSigBlob, props.pcbSigBlob, fields[i], import);
+
+                            var fieldSigType = reader.ParseField();
+                            BuildHighlightValue(c.FieldValues[i], builder, fieldSigType, false, false);
+                        }
+                        else
+                        {
+                            builder.Append($"{{Field{i + 1}}}");
+
+                            BuildHighlightValue(c.FieldValues[i], builder, null, false, false);
+                        }
+
                         break;
                     }
                 }
             }
-            else if (obj is SZArrayValue sz && !root && sigType is SigSZArrayType szSig)
+            else if (obj is SZArrayValue sz && !root && IsAnyTypeOrNull(sigType, typeof(SigSZArrayType)))
             {
+                var szSig = (SigSZArrayType)sigType;
+
                 for (var i = 0; i < sz.Value.Length; i++)
                 {
                     if (HighlightValues.ContainsKey(sz.Value[i]))
                     {
                         builder.Append("[").Append(i).Append("]");
 
-                        BuildHighlightValue(sz.Value[i], builder, import, szSig.ElementType, false, false);
+                        BuildHighlightValue(sz.Value[i], builder, szSig?.ElementType, false, false);
 
                         break;
                     }
                 }
             }
-            else if (obj is ArrayValue arr && !root && sigType is SigArrayType arrSig)
+            else if (obj is ArrayValue arr && !root && IsAnyTypeOrNull(sigType, typeof(SigArrayType)))
             {
+                var arrSig = (SigArrayType)sigType;
+
                 var dimensionSizes = new int[arr.Value.Rank];
 
                 for (var i = 0; i < arr.Rank; i++)
@@ -243,7 +250,7 @@ namespace DebugTools.PowerShell
 
                         builder.Append("]");
 
-                        BuildHighlightValue(current, builder, import, arrSig.ElementType, false, false);
+                        BuildHighlightValue(current, builder, arrSig?.ElementType, false, false);
 
                         break;
                     }
@@ -253,8 +260,10 @@ namespace DebugTools.PowerShell
                     currentDimension = arr.Value.Rank - 1;
                 }
             }
-            else if (obj is PtrValue ptr && sigType is SigPtrType ptrSig)
+            else if (obj is PtrValue ptr && IsAnyTypeOrNull(sigType, typeof(SigPtrType)))
             {
+                var ptrSig = (SigPtrType)sigType;
+
                 //If there's multiple levels of indirection, unwrap them all down to the lowest
                 //level pointer
                 while (ptr.Value is PtrValue v)
@@ -265,12 +274,12 @@ namespace DebugTools.PowerShell
 
                 if (ptr.Value is StructValue s)
                 {
-                    BuildHighlightValue(ptr.Value, builder, import, ptrSig.PtrType, false, true);
+                    BuildHighlightValue(ptr.Value, builder, ptrSig?.PtrType, false, true);
                 }
                 else
                 {
                     if (!root)
-                        BuildHighlightValue(ptr.Value, builder, import, ptrSig.PtrType, false, true);
+                        BuildHighlightValue(ptr.Value, builder, ptrSig?.PtrType, false, true);
                 }
             }
             else
@@ -278,6 +287,16 @@ namespace DebugTools.PowerShell
                 if (!root && HighlightValues.ContainsKey(obj))
                     builder.Append("=").Append(obj);
             }
+        }
+
+        private bool IsAnyTypeOrNull(SigType value, params Type[] types)
+        {
+            if (value == null)
+                return true;
+
+            var t = value.GetType();
+
+            return types.Any(v => v.IsAssignableFrom(t));
         }
 
         private void WriteMaybeHighlight(object message, bool highlightFrame)

@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.IO;
 using System.Text;
+using ClrDebug;
 
 namespace DebugTools.Profiler
 {
@@ -9,6 +10,10 @@ namespace DebugTools.Profiler
         public string Name { get; }
 
         public object Value { get; }
+
+        public mdTypeDef TypeDef { get; }
+
+        public int UniqueModuleID { get; }
 
         public List<object> FieldValues { get; }
 
@@ -27,6 +32,9 @@ namespace DebugTools.Profiler
 
             var nameBytes = reader.ReadBytes(length * 2);
             Name = Encoding.Unicode.GetString(nameBytes, 0, (length - 1) * 2);
+
+            TypeDef = reader.ReadInt32();
+            UniqueModuleID = reader.ReadInt32();
 
             var numFields = reader.ReadInt32();
 

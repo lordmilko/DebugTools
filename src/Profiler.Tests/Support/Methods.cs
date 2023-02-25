@@ -1,9 +1,19 @@
-﻿namespace Profiler.Tests
+﻿using System;
+
+namespace Profiler.Tests
 {
+    interface IIface
+    {
+    }
+
 #pragma warning disable 0649 //Field is never assigned to, and will always have its default value
-    class TestClass
+    class TestClass : IDisposable, IIface
     {
         public string Field1;
+
+        public void Dispose()
+        {
+        }
     }
 
     class TestClassWithClassField
@@ -16,24 +26,48 @@
         public string[] Field1;
     }
 
+    class TestClassWithSZArrayInterfaceField : IIface
+    {
+        public IIface[] Field1;
+    }
+
+    class TestClassWithArrayInterfaceField : IIface
+    {
+        public IIface[,] Field1;
+    }
+
     class TestClassWithArrayField
     {
         public string[,] Field1;
     }
 
-    unsafe class TestClassWithPointerSimpleField
+    unsafe class TestClassWithPointerSimpleField : IIface
     {
         public char* Field1;
     }
 
-    struct TestStructWithSimpleField
+    class TestClassWithInterfaceField : IIface
+    {
+        public IIface Field2;
+    }
+
+    struct TestStructWithSimpleField : IDisposable, IIface
     {
         public int Field2;
+
+        public void Dispose()
+        {
+        }
     }
 
     unsafe struct TestStructWithPointerField
     {
         public char* Field1;
+    }
+
+    struct TestStructWithInterfaceField : IIface
+    {
+        public IIface Field1;
     }
 
     unsafe class TestClassWithPointerStructField
@@ -44,6 +78,11 @@
     unsafe class TestClassWithPointerPointerSimpleField
     {
         public char** Field1;
+    }
+
+    class TestGenericClass<T>
+    {
+        public T Field1;
     }
 
 #pragma warning restore 0649 //Field is never assigned to, and will always have its default value
@@ -75,6 +114,18 @@
         }
 
         public static void ArrayField(TestClassWithArrayField a)
+        {
+        }
+
+        public static void GenericArg<T>(T a)
+        {
+        }
+
+        public static void ForeignInterfaceArg(IDisposable a)
+        {
+        }
+
+        public static void LocalInterfaceArg(IIface a)
         {
         }
 

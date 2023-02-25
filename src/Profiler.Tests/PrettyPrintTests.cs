@@ -198,6 +198,268 @@ namespace Profiler.Tests
         }
 
         [TestMethod]
+        public void MethodFrameFormat_HighlightClassArg_LocalInterfaceParameter()
+        {
+            TestArg(
+                () => Methods.LocalInterfaceArg(new TestClass { Field1 = "bar" }),
+                "void Methods.LocalInterfaceArg(<Yellow>TestClass</Yellow>)",
+                (w, p, r) => w.HighlightValues[p[0]] = 0
+            );
+        }
+
+        [TestMethod]
+        public void MethodFrameFormat_HighlightStructArg_LocalInterfaceParameter()
+        {
+            TestArg(
+                () => Methods.LocalInterfaceArg(new TestStructWithSimpleField { Field2 = 1 }),
+                "void Methods.LocalInterfaceArg(<Yellow>TestStructWithSimpleField</Yellow>)",
+                (w, p, r) => w.HighlightValues[p[0]] = 0
+            );
+        }
+
+        [TestMethod]
+        public void MethodFrameFormat_HighlightClassArg_ForeignInterfaceParameter()
+        {
+            TestArg(
+                () => Methods.ForeignInterfaceArg(new TestClass{Field1 = "bar"}),
+                "void Methods.ForeignInterfaceArg(<Yellow>TestClass</Yellow>)",
+                (w, p, r) => w.HighlightValues[p[0]] = 0
+            );
+        }
+
+        [TestMethod]
+        public void MethodFrameFormat_HighlightStructArg_ForeignInterfaceParameter()
+        {
+            TestArg(
+                () => Methods.ForeignInterfaceArg(new TestStructWithSimpleField { Field2 = 1 }),
+                "void Methods.ForeignInterfaceArg(<Yellow>TestStructWithSimpleField</Yellow>)",
+                (w, p, r) => w.HighlightValues[p[0]] = 0
+            );
+        }
+
+        [TestMethod]
+        public void MethodFrameFormat_HighlightClassArg_LocalInterfaceParameter_SimpleField()
+        {
+            TestArg(
+                () => Methods.LocalInterfaceArg(new TestClass { Field1 = "bar" }),
+                "void Methods.LocalInterfaceArg(<Yellow>TestClass.Field1=\"bar\"</Yellow>)",
+                (w, p, r) =>
+                {
+                    var classObj = (ClassValue)p[0];
+
+                    w.HighlightValues[classObj] = 0;
+                    w.HighlightValues[classObj.FieldValues[0]] = 0;
+                }
+            );
+        }
+
+        [TestMethod]
+        public void MethodFrameFormat_HighlightStructArg_LocalInterfaceParameter_SimpleField()
+        {
+            TestArg(
+                () => Methods.LocalInterfaceArg(new TestStructWithSimpleField { Field2 = 1 }),
+                "void Methods.LocalInterfaceArg(<Yellow>TestStructWithSimpleField.Field2=1</Yellow>)",
+                (w, p, r) =>
+                {
+                    var classObj = (StructValue)p[0];
+
+                    w.HighlightValues[classObj] = 0;
+                    w.HighlightValues[classObj.FieldValues[0]] = 0;
+                }
+            );
+        }
+
+        [TestMethod]
+        public void MethodFrameFormat_HighlightClassArg_LocalInterfaceParameter_InterfaceField()
+        {
+            TestArg(
+                () => Methods.LocalInterfaceArg(new TestClassWithInterfaceField { Field2 = new TestClass { Field1 = "bar" } }),
+                "void Methods.LocalInterfaceArg(<Yellow>TestClassWithInterfaceField.Field2.Field1=\"bar\"</Yellow>)",
+                (w, p, r) =>
+                {
+                    var classObj = (ClassValue)p[0];
+                    var classField = (ClassValue)classObj.FieldValues[0];
+
+                    w.HighlightValues[classObj] = 0;
+                    w.HighlightValues[classField] = 0;
+                    w.HighlightValues[classField.FieldValues[0]] = 0;
+                }
+            );
+        }
+
+        [TestMethod]
+        public void MethodFrameFormat_HighlightStructArg_LocalInterfaceParameter_InterfaceField()
+        {
+            TestArg(
+                () => Methods.LocalInterfaceArg(new TestStructWithInterfaceField { Field1 = new TestStructWithSimpleField { Field2 = 1 } }),
+                "void Methods.LocalInterfaceArg(<Yellow>TestStructWithInterfaceField.Field1.Field2=1</Yellow>)",
+                (w, p, r) =>
+                {
+                    var classObj = (StructValue)p[0];
+                    var classField = (StructValue)classObj.FieldValues[0];
+
+                    w.HighlightValues[classObj] = 0;
+                    w.HighlightValues[classField] = 0;
+                    w.HighlightValues[classField.FieldValues[0]] = 0;
+                }
+            );
+        }
+
+        [TestMethod]
+        public void MethodFrameFormat_HighlightClassArg_LocalInterfaceParameter_UnknownModule_SimpleField()
+        {
+            TestArg(
+                () => Methods.LocalInterfaceArg(new TestClass { Field1 = "bar" }),
+                "void Methods.LocalInterfaceArg(<Yellow>TestClass.{Field1}=\"bar\"</Yellow>)",
+                (w, p, r) =>
+                {
+                    var classObj = (ClassValue)p[0];
+
+                    w.HighlightValues[classObj] = 0;
+                    w.HighlightValues[classObj.FieldValues[0]] = 0;
+                },
+                dict => dict.Clear()
+            );
+        }
+
+        [TestMethod]
+        public void MethodFrameFormat_HighlightClassArg_LocalInterfaceParameter_UnknownModule_ClassField()
+        {
+            TestArg(
+                () => Methods.LocalInterfaceArg(new TestClassWithInterfaceField { Field2 = new TestClass { Field1 = "bar" } }),
+                "void Methods.LocalInterfaceArg(<Yellow>TestClassWithInterfaceField.{Field1}.{Field1}=\"bar\"</Yellow>)",
+                (w, p, r) =>
+                {
+                    var classObj = (ClassValue)p[0];
+                    var classField = (ClassValue)classObj.FieldValues[0];
+
+                    w.HighlightValues[classObj] = 0;
+                    w.HighlightValues[classField] = 0;
+                    w.HighlightValues[classField.FieldValues[0]] = 0;
+                },
+                dict => dict.Clear()
+            );
+        }
+
+        [TestMethod]
+        public void MethodFrameFormat_HighlightClassArg_LocalInterfaceParameter_UnknownModule_SZArrayField()
+        {
+            TestArg(
+                () => Methods.LocalInterfaceArg(new TestClassWithSZArrayInterfaceField { Field1 = new[] { new TestClass { Field1 = "bar" } } }),
+                "void Methods.LocalInterfaceArg(<Yellow>TestClassWithSZArrayInterfaceField.{Field1}[0].{Field1}=\"bar\"</Yellow>)",
+                (w, p, r) =>
+                {
+                    var classObj = (ClassValue)p[0];
+                    var array = (SZArrayValue)classObj.FieldValues[0];
+                    var classElm = (ClassValue)array.Value[0];
+
+                    w.HighlightValues[classObj] = 0;
+                    w.HighlightValues[array] = 0;
+                    w.HighlightValues[classElm] = 0;
+                    w.HighlightValues[classElm.FieldValues[0]] = 0;
+                },
+                dict => dict.Clear()
+            );
+        }
+
+        [TestMethod]
+        public void MethodFrameFormat_HighlightClassArg_LocalInterfaceParameter_UnknownModule_ArrayField()
+        {
+            var arr = new[,]
+            {
+                {
+                    new TestClass { Field1 = "bar" }
+                }
+            };
+
+            TestArg(
+                () => Methods.LocalInterfaceArg(new TestClassWithArrayInterfaceField { Field1 = arr }),
+                "void Methods.LocalInterfaceArg(<Yellow>TestClassWithArrayInterfaceField.{Field1}[0,0].{Field1}=\"bar\"</Yellow>)",
+                (w, p, r) =>
+                {
+                    var classObj = (ClassValue)p[0];
+                    var array = (ArrayValue)classObj.FieldValues[0];
+                    var classElm = (ClassValue)array.Value.GetValue(0, 0);
+
+                    w.HighlightValues[classObj] = 0;
+                    w.HighlightValues[array] = 0;
+                    w.HighlightValues[classElm] = 0;
+                    w.HighlightValues[classElm.FieldValues[0]] = 0;
+                },
+                dict => dict.Clear()
+            );
+        }
+
+        [TestMethod]
+        public void MethodFrameFormat_HighlightClassArg_LocalInterfaceParameter_UnknownModule_PtrField()
+        {
+            var testClassWithInterfaceField = GetType().Assembly.GetType("Profiler.Tests.TestClassWithInterfaceField");
+            var testClassWithPointerStructField = GetType().Assembly.GetType("Profiler.Tests.TestClassWithPointerStructField");
+            var testStructWithSimpleField = GetType().Assembly.GetType("Profiler.Tests.TestStructWithSimpleField");
+
+            TestArg(
+                Class(
+                    "TestClassWithInterfaceField",
+                    new[]
+                    {
+                        Class(
+                            "TestClassWithPointerStructField",
+                            new[]
+                            {
+                                Ptr(
+                                    Struct(
+                                        "TestStructWithSimpleField",
+                                        new[]{ Int32(1) },
+                                        GetModule(testStructWithSimpleField.Module),
+                                        testStructWithSimpleField.MetadataToken
+                                    )
+                                )
+                            },
+                            GetModule(testClassWithPointerStructField.Module),
+                            testClassWithPointerStructField.MetadataToken
+                        )
+                    },
+                    GetModule(testClassWithInterfaceField.Module),
+                    testClassWithInterfaceField.MetadataToken
+                ),
+                "void Methods.LocalInterfaceArg(<Yellow>TestClassWithInterfaceField.{Field1}.{Field1}->{Field1}=1</Yellow>)",
+                (w, p, r) =>
+                {
+                    var classObj = (ClassValue)p[0];
+                    var classField = (ClassValue)classObj.FieldValues[0];
+                    var ptr = (PtrValue)classField.FieldValues[0];
+                    var structObj = (StructValue)ptr.Value;
+
+                    w.HighlightValues[classObj] = 0;
+                    w.HighlightValues[classField] = 0;
+                    w.HighlightValues[ptr] = 0;
+                    w.HighlightValues[structObj] = 0;
+                    w.HighlightValues[structObj.FieldValues[0]] = 0;
+                },
+                "LocalInterfaceArg",
+                dict => dict.Clear()
+            );
+        }
+
+        [TestMethod]
+        public void MethodFrameFormat_HighlightClassArg_GenericArg()
+        {
+            TestArg(
+                () => Methods.GenericArg(new TestGenericClass<TestClass> { Field1 = new TestClass { Field1 = "bar"} }),
+                "void Methods.generic(<Yellow>TestGenericClass`1</Yellow>)",
+                (w, p, r) =>
+                {
+                    var classObj = (ClassValue)p[0];
+                    var classField = (ClassValue)classObj.FieldValues[0];
+
+                    w.HighlightValues[classObj] = 0;
+                    w.HighlightValues[classField] = 0;
+                    w.HighlightValues[classField.FieldValues[0]] = 0;
+                }
+            );
+        }
+
+        [TestMethod]
         public void MethodFrameFormat_HighlightPointerSimpleArg()
         {
             TestArg(
@@ -360,7 +622,11 @@ namespace Profiler.Tests
             );
         }
 
-        private void TestArg(Expression<Action> expr, string expected, SetHighlightsDelegate setHighlights = null)
+        private void TestArg(
+            Expression<Action> expr,
+            string expected,
+            SetHighlightsDelegate setHighlights = null,
+            Action<IDictionary<int, ModuleInfo>> modifyKnownModules = null)
         {
             var call = (MethodCallExpression)expr.Body;
             var method = call.Method;
@@ -371,9 +637,15 @@ namespace Profiler.Tests
 
             var output = new StringColorOutputSource();
 
+            var modules = KnownModules;
+
+            if (modifyKnownModules != null)
+                modifyKnownModules(modules);
+
             var writer = new MethodFrameColorWriter(
                 new MethodFrameFormatter(true),
-                output
+                output,
+                modules
             );
 
             object returnValue = VoidValue.Instance;
@@ -400,18 +672,30 @@ namespace Profiler.Tests
             Assert.AreEqual(expected, output.ToString());
         }
 
-        private void TestArg(IMockValue parameter, string expected, SetHighlightsDelegate setHighlights = null, string methodName = "first")
+        private void TestArg(IMockValue parameter, string expected, SetHighlightsDelegate setHighlights = null, string methodName = "first", Action<IDictionary<int, ModuleInfo>> modifyKnownModules = null)
         {
-            Test(new List<IMockValue> {parameter}, Void, expected, setHighlights, methodName);
+            Test(new List<IMockValue> {parameter}, Void, expected, setHighlights, methodName, modifyKnownModules);
         }
 
-        private void Test(List<IMockValue> parameters, object returnValue, string expected, SetHighlightsDelegate setHighlights = null, string methodName = "first")
+        private void Test(
+            List<IMockValue> parameters,
+            object returnValue,
+            string expected,
+            SetHighlightsDelegate setHighlights = null,
+            string methodName = "first",
+            Action<IDictionary<int, ModuleInfo>> modifyKnownModules = null)
         {
             var output = new StringColorOutputSource();
 
+            var modules = KnownModules;
+
+            if (modifyKnownModules != null)
+                modifyKnownModules(modules);
+
             var writer = new MethodFrameColorWriter(
                 new MethodFrameFormatter(true),
-                output
+                output,
+                modules
             );
 
             if (returnValue is IMockValue v)

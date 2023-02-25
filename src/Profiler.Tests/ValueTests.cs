@@ -607,7 +607,7 @@ namespace Profiler.Tests
 
         [TestMethod]
         public void Value_ClassArg() =>
-            Test(ValueTestType.ClassArg, v => v.HasClassType("DebugTools.TestHost.Class1"));
+            Test(ValueTestType.ClassArg, v => v.HasClassType("DebugTools.TestHost.Class1"), ProfilerSetting.WaitForDebugger);
 
         [TestMethod]
         public void Value_ClassWithFieldArg() =>

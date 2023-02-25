@@ -659,7 +659,7 @@ Remarks:
 #endif // MCGEN_DISABLE_PROVIDER_CODE_GENERATION
 
 //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-// Provider "DebugToolsProfiler" event count 17
+// Provider "DebugToolsProfiler" event count 18
 //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 // Provider GUID = c6f30827-dd2d-4fee-ad2e-bba0ce6cbd8f
@@ -674,9 +674,10 @@ EXTERN_C __declspec(selectany) const GUID DebugToolsProfiler = {0xc6f30827, 0xdd
 //
 #define CallKeyword 0x8000000000
 #define InfoKeyword 0x1
-#define ThreadKeyword 0x2
-#define SystemKeyword 0x4
-#define ExceptionKeyword 0x8
+#define ModuleKeyword 0x2
+#define ThreadKeyword 0x4
+#define SystemKeyword 0x8
+#define ExceptionKeyword 0x10
 
 //
 // Event Descriptors
@@ -697,24 +698,26 @@ EXTERN_C __declspec(selectany) const EVENT_DESCRIPTOR ManagedToUnmanagedEvent = 
 #define ManagedToUnmanagedEvent_value 0x7
 EXTERN_C __declspec(selectany) const EVENT_DESCRIPTOR UnmanagedToManagedEvent = {0x8, 0x0, 0x0, 0x5, 0x0, 0x0, 0x8000000000};
 #define UnmanagedToManagedEvent_value 0x8
-EXTERN_C __declspec(selectany) const EVENT_DESCRIPTOR ExceptionEvent = {0x9, 0x0, 0x0, 0x5, 0x0, 0x0, 0x8};
+EXTERN_C __declspec(selectany) const EVENT_DESCRIPTOR ExceptionEvent = {0x9, 0x0, 0x0, 0x5, 0x0, 0x0, 0x10};
 #define ExceptionEvent_value 0x9
-EXTERN_C __declspec(selectany) const EVENT_DESCRIPTOR ExceptionFrameUnwindEvent = {0xa, 0x0, 0x0, 0x5, 0x0, 0x0, 0x8};
+EXTERN_C __declspec(selectany) const EVENT_DESCRIPTOR ExceptionFrameUnwindEvent = {0xa, 0x0, 0x0, 0x5, 0x0, 0x0, 0x10};
 #define ExceptionFrameUnwindEvent_value 0xa
-EXTERN_C __declspec(selectany) const EVENT_DESCRIPTOR ExceptionCompletedEvent = {0xb, 0x0, 0x0, 0x5, 0x0, 0x0, 0x8};
+EXTERN_C __declspec(selectany) const EVENT_DESCRIPTOR ExceptionCompletedEvent = {0xb, 0x0, 0x0, 0x5, 0x0, 0x0, 0x10};
 #define ExceptionCompletedEvent_value 0xb
 EXTERN_C __declspec(selectany) const EVENT_DESCRIPTOR MethodInfoEvent = {0xc, 0x0, 0x0, 0x5, 0x0, 0x0, 0x1};
 #define MethodInfoEvent_value 0xc
 EXTERN_C __declspec(selectany) const EVENT_DESCRIPTOR MethodInfoDetailedEvent = {0xd, 0x0, 0x0, 0x5, 0x0, 0x0, 0x1};
 #define MethodInfoDetailedEvent_value 0xd
-EXTERN_C __declspec(selectany) const EVENT_DESCRIPTOR ThreadCreateEvent = {0xe, 0x0, 0x0, 0x5, 0x0, 0x0, 0x2};
-#define ThreadCreateEvent_value 0xe
-EXTERN_C __declspec(selectany) const EVENT_DESCRIPTOR ThreadDestroyEvent = {0xf, 0x0, 0x0, 0x5, 0x0, 0x0, 0x2};
-#define ThreadDestroyEvent_value 0xf
-EXTERN_C __declspec(selectany) const EVENT_DESCRIPTOR ThreadNameEvent = {0x10, 0x0, 0x0, 0x5, 0x0, 0x0, 0x2};
-#define ThreadNameEvent_value 0x10
-EXTERN_C __declspec(selectany) const EVENT_DESCRIPTOR ShutdownEvent = {0x11, 0x0, 0x0, 0x5, 0x0, 0x0, 0x4};
-#define ShutdownEvent_value 0x11
+EXTERN_C __declspec(selectany) const EVENT_DESCRIPTOR ModuleLoadedEvent = {0xe, 0x0, 0x0, 0x5, 0x0, 0x0, 0x2};
+#define ModuleLoadedEvent_value 0xe
+EXTERN_C __declspec(selectany) const EVENT_DESCRIPTOR ThreadCreateEvent = {0xf, 0x0, 0x0, 0x5, 0x0, 0x0, 0x4};
+#define ThreadCreateEvent_value 0xf
+EXTERN_C __declspec(selectany) const EVENT_DESCRIPTOR ThreadDestroyEvent = {0x10, 0x0, 0x0, 0x5, 0x0, 0x0, 0x4};
+#define ThreadDestroyEvent_value 0x10
+EXTERN_C __declspec(selectany) const EVENT_DESCRIPTOR ThreadNameEvent = {0x11, 0x0, 0x0, 0x5, 0x0, 0x0, 0x4};
+#define ThreadNameEvent_value 0x11
+EXTERN_C __declspec(selectany) const EVENT_DESCRIPTOR ShutdownEvent = {0x12, 0x0, 0x0, 0x5, 0x0, 0x0, 0x8};
+#define ShutdownEvent_value 0x12
 
 //
 // MCGEN_DISABLE_PROVIDER_CODE_GENERATION macro:
@@ -728,13 +731,13 @@ EXTERN_C __declspec(selectany) const EVENT_DESCRIPTOR ShutdownEvent = {0x11, 0x0
 // These variables are for use by MC-generated code and should not be used directly.
 //
 EXTERN_C __declspec(selectany) DECLSPEC_CACHEALIGN ULONG DebugToolsProfilerEnableBits[1];
-EXTERN_C __declspec(selectany) const ULONGLONG DebugToolsProfilerKeywords[5] = {0x8000000000, 0x8, 0x1, 0x2, 0x4};
-EXTERN_C __declspec(selectany) const unsigned char DebugToolsProfilerLevels[5] = {5, 5, 5, 5, 5};
+EXTERN_C __declspec(selectany) const ULONGLONG DebugToolsProfilerKeywords[6] = {0x8000000000, 0x10, 0x1, 0x2, 0x4, 0x8};
+EXTERN_C __declspec(selectany) const unsigned char DebugToolsProfilerLevels[6] = {5, 5, 5, 5, 5, 5};
 
 //
 // Provider context
 //
-EXTERN_C __declspec(selectany) MCGEN_TRACE_CONTEXT DebugToolsProfiler_Context = {0, (ULONG_PTR)DebugToolsProfiler_Traits, 0, 0, 0, 0, 0, 0, 5, DebugToolsProfilerEnableBits, DebugToolsProfilerKeywords, DebugToolsProfilerLevels};
+EXTERN_C __declspec(selectany) MCGEN_TRACE_CONTEXT DebugToolsProfiler_Context = {0, (ULONG_PTR)DebugToolsProfiler_Traits, 0, 0, 0, 0, 0, 0, 6, DebugToolsProfilerEnableBits, DebugToolsProfilerKeywords, DebugToolsProfilerLevels};
 
 //
 // Provider REGHANDLE
@@ -829,7 +832,7 @@ _mcgen_PASTE2(_mcgen_RegisterForContext_DebugToolsProfiler_, MCGEN_EVENTREGISTER
 {
     RtlZeroMemory(pContext, sizeof(*pContext));
     pContext->Context.Logger = (ULONG_PTR)DebugToolsProfiler_Traits;
-    pContext->Context.EnableBitsCount = 5;
+    pContext->Context.EnableBitsCount = 6;
     pContext->Context.EnableBitMask = pContext->EnableBits;
     pContext->Context.EnableKeyWords = DebugToolsProfilerKeywords;
     pContext->Context.EnableLevel = DebugToolsProfilerLevels;
@@ -1010,7 +1013,7 @@ _mcgen_CheckContextType_DebugToolsProfiler(_In_ McGenContext_DebugToolsProfiler*
         _mcgen_TEMPLATE_FOR_ManagedToUnmanagedEvent(&_mcgen_CheckContextType_DebugToolsProfiler(pContext)->Context, &ManagedToUnmanagedEvent, FunctionID, Sequence, Reason)
 
 // This macro is for use by MC-generated code and should not be used directly.
-#define _mcgen_TEMPLATE_FOR_ManagedToUnmanagedEvent _mcgen_PASTE2(McTemplateU0xxq_, MCGEN_EVENTWRITETRANSFER)
+#define _mcgen_TEMPLATE_FOR_ManagedToUnmanagedEvent _mcgen_PASTE2(McTemplateU0xxd_, MCGEN_EVENTWRITETRANSFER)
 
 //
 // Enablement check macro for event "UnmanagedToManagedEvent"
@@ -1033,7 +1036,7 @@ _mcgen_CheckContextType_DebugToolsProfiler(_In_ McGenContext_DebugToolsProfiler*
         _mcgen_TEMPLATE_FOR_UnmanagedToManagedEvent(&_mcgen_CheckContextType_DebugToolsProfiler(pContext)->Context, &UnmanagedToManagedEvent, FunctionID, Sequence, Reason)
 
 // This macro is for use by MC-generated code and should not be used directly.
-#define _mcgen_TEMPLATE_FOR_UnmanagedToManagedEvent _mcgen_PASTE2(McTemplateU0xxq_, MCGEN_EVENTWRITETRANSFER)
+#define _mcgen_TEMPLATE_FOR_UnmanagedToManagedEvent _mcgen_PASTE2(McTemplateU0xxd_, MCGEN_EVENTWRITETRANSFER)
 
 //
 // Enablement check macro for event "ExceptionEvent"
@@ -1151,10 +1154,33 @@ _mcgen_CheckContextType_DebugToolsProfiler(_In_ McGenContext_DebugToolsProfiler*
 #define _mcgen_TEMPLATE_FOR_MethodInfoDetailedEvent _mcgen_PASTE2(McTemplateU0xzzzqqbr5_, MCGEN_EVENTWRITETRANSFER)
 
 //
+// Enablement check macro for event "ModuleLoadedEvent"
+//
+#define EventEnabledModuleLoadedEvent() _mcgen_EVENT_BIT_SET(DebugToolsProfilerEnableBits, 3)
+#define EventEnabledModuleLoadedEvent_ForContext(pContext) _mcgen_EVENT_BIT_SET(_mcgen_CheckContextType_DebugToolsProfiler(pContext)->EnableBits, 3)
+
+//
+// Event write macros for event "ModuleLoadedEvent"
+//
+#define EventWriteModuleLoadedEvent(UniqueModuleID, Path) \
+        MCGEN_EVENT_ENABLED(ModuleLoadedEvent) \
+        ? _mcgen_TEMPLATE_FOR_ModuleLoadedEvent(&DebugToolsProfiler_Context, &ModuleLoadedEvent, UniqueModuleID, Path) : 0
+#define EventWriteModuleLoadedEvent_AssumeEnabled(UniqueModuleID, Path) \
+        _mcgen_TEMPLATE_FOR_ModuleLoadedEvent(&DebugToolsProfiler_Context, &ModuleLoadedEvent, UniqueModuleID, Path)
+#define EventWriteModuleLoadedEvent_ForContext(pContext, UniqueModuleID, Path) \
+        MCGEN_EVENT_ENABLED_FORCONTEXT(pContext, ModuleLoadedEvent) \
+        ? _mcgen_TEMPLATE_FOR_ModuleLoadedEvent(&(pContext)->Context, &ModuleLoadedEvent, UniqueModuleID, Path) : 0
+#define EventWriteModuleLoadedEvent_ForContextAssumeEnabled(pContext, UniqueModuleID, Path) \
+        _mcgen_TEMPLATE_FOR_ModuleLoadedEvent(&_mcgen_CheckContextType_DebugToolsProfiler(pContext)->Context, &ModuleLoadedEvent, UniqueModuleID, Path)
+
+// This macro is for use by MC-generated code and should not be used directly.
+#define _mcgen_TEMPLATE_FOR_ModuleLoadedEvent _mcgen_PASTE2(McTemplateU0qz_, MCGEN_EVENTWRITETRANSFER)
+
+//
 // Enablement check macro for event "ThreadCreateEvent"
 //
-#define EventEnabledThreadCreateEvent() _mcgen_EVENT_BIT_SET(DebugToolsProfilerEnableBits, 3)
-#define EventEnabledThreadCreateEvent_ForContext(pContext) _mcgen_EVENT_BIT_SET(_mcgen_CheckContextType_DebugToolsProfiler(pContext)->EnableBits, 3)
+#define EventEnabledThreadCreateEvent() _mcgen_EVENT_BIT_SET(DebugToolsProfilerEnableBits, 4)
+#define EventEnabledThreadCreateEvent_ForContext(pContext) _mcgen_EVENT_BIT_SET(_mcgen_CheckContextType_DebugToolsProfiler(pContext)->EnableBits, 4)
 
 //
 // Event write macros for event "ThreadCreateEvent"
@@ -1176,8 +1202,8 @@ _mcgen_CheckContextType_DebugToolsProfiler(_In_ McGenContext_DebugToolsProfiler*
 //
 // Enablement check macro for event "ThreadDestroyEvent"
 //
-#define EventEnabledThreadDestroyEvent() _mcgen_EVENT_BIT_SET(DebugToolsProfilerEnableBits, 3)
-#define EventEnabledThreadDestroyEvent_ForContext(pContext) _mcgen_EVENT_BIT_SET(_mcgen_CheckContextType_DebugToolsProfiler(pContext)->EnableBits, 3)
+#define EventEnabledThreadDestroyEvent() _mcgen_EVENT_BIT_SET(DebugToolsProfilerEnableBits, 4)
+#define EventEnabledThreadDestroyEvent_ForContext(pContext) _mcgen_EVENT_BIT_SET(_mcgen_CheckContextType_DebugToolsProfiler(pContext)->EnableBits, 4)
 
 //
 // Event write macros for event "ThreadDestroyEvent"
@@ -1199,8 +1225,8 @@ _mcgen_CheckContextType_DebugToolsProfiler(_In_ McGenContext_DebugToolsProfiler*
 //
 // Enablement check macro for event "ThreadNameEvent"
 //
-#define EventEnabledThreadNameEvent() _mcgen_EVENT_BIT_SET(DebugToolsProfilerEnableBits, 3)
-#define EventEnabledThreadNameEvent_ForContext(pContext) _mcgen_EVENT_BIT_SET(_mcgen_CheckContextType_DebugToolsProfiler(pContext)->EnableBits, 3)
+#define EventEnabledThreadNameEvent() _mcgen_EVENT_BIT_SET(DebugToolsProfilerEnableBits, 4)
+#define EventEnabledThreadNameEvent_ForContext(pContext) _mcgen_EVENT_BIT_SET(_mcgen_CheckContextType_DebugToolsProfiler(pContext)->EnableBits, 4)
 
 //
 // Event write macros for event "ThreadNameEvent"
@@ -1222,8 +1248,8 @@ _mcgen_CheckContextType_DebugToolsProfiler(_In_ McGenContext_DebugToolsProfiler*
 //
 // Enablement check macro for event "ShutdownEvent"
 //
-#define EventEnabledShutdownEvent() _mcgen_EVENT_BIT_SET(DebugToolsProfilerEnableBits, 4)
-#define EventEnabledShutdownEvent_ForContext(pContext) _mcgen_EVENT_BIT_SET(_mcgen_CheckContextType_DebugToolsProfiler(pContext)->EnableBits, 4)
+#define EventEnabledShutdownEvent() _mcgen_EVENT_BIT_SET(DebugToolsProfilerEnableBits, 5)
+#define EventEnabledShutdownEvent_ForContext(pContext) _mcgen_EVENT_BIT_SET(_mcgen_CheckContextType_DebugToolsProfiler(pContext)->EnableBits, 5)
 
 //
 // Event write macros for event "ShutdownEvent"
@@ -1275,6 +1301,35 @@ _mcgen_PASTE2(McTemplateU0_, MCGEN_EVENTWRITETRANSFER)(
     return McGenEventWrite(Context, Descriptor, NULL, McTemplateU0_ARGCOUNT + 1, EventData);
 }
 #endif // McTemplateU0_def
+
+//
+// Function for template "ModuleArgs" (and possibly others).
+// This function is for use by MC-generated code and should not be used directly.
+//
+#ifndef McTemplateU0qz_def
+#define McTemplateU0qz_def
+ETW_INLINE
+ULONG
+_mcgen_PASTE2(McTemplateU0qz_, MCGEN_EVENTWRITETRANSFER)(
+    _In_ PMCGEN_TRACE_CONTEXT Context,
+    _In_ PCEVENT_DESCRIPTOR Descriptor,
+    _In_ const unsigned int  _Arg0,
+    _In_opt_ PCWSTR  _Arg1
+    )
+{
+#define McTemplateU0qz_ARGCOUNT 2
+
+    EVENT_DATA_DESCRIPTOR EventData[McTemplateU0qz_ARGCOUNT + 1];
+
+    EventDataDescCreate(&EventData[1],&_Arg0, sizeof(const unsigned int)  );
+
+    EventDataDescCreate(&EventData[2],
+                        (_Arg1 != NULL) ? _Arg1 : L"NULL",
+                        (_Arg1 != NULL) ? (ULONG)((wcslen(_Arg1) + 1) * sizeof(WCHAR)) : (ULONG)sizeof(L"NULL"));
+
+    return McGenEventWrite(Context, Descriptor, NULL, McTemplateU0qz_ARGCOUNT + 1, EventData);
+}
+#endif // McTemplateU0qz_def
 
 //
 // Function for template "ThreadArgs" (and possibly others).
@@ -1392,36 +1447,6 @@ _mcgen_PASTE2(McTemplateU0xxdqbr3_, MCGEN_EVENTWRITETRANSFER)(
     return McGenEventWrite(Context, Descriptor, NULL, McTemplateU0xxdqbr3_ARGCOUNT + 1, EventData);
 }
 #endif // McTemplateU0xxdqbr3_def
-
-//
-// Function for template "UnmanagedTransitionArgs" (and possibly others).
-// This function is for use by MC-generated code and should not be used directly.
-//
-#ifndef McTemplateU0xxq_def
-#define McTemplateU0xxq_def
-ETW_INLINE
-ULONG
-_mcgen_PASTE2(McTemplateU0xxq_, MCGEN_EVENTWRITETRANSFER)(
-    _In_ PMCGEN_TRACE_CONTEXT Context,
-    _In_ PCEVENT_DESCRIPTOR Descriptor,
-    _In_ const unsigned __int64  _Arg0,
-    _In_ const unsigned __int64  _Arg1,
-    _In_ const unsigned int  _Arg2
-    )
-{
-#define McTemplateU0xxq_ARGCOUNT 3
-
-    EVENT_DATA_DESCRIPTOR EventData[McTemplateU0xxq_ARGCOUNT + 1];
-
-    EventDataDescCreate(&EventData[1],&_Arg0, sizeof(const unsigned __int64)  );
-
-    EventDataDescCreate(&EventData[2],&_Arg1, sizeof(const unsigned __int64)  );
-
-    EventDataDescCreate(&EventData[3],&_Arg2, sizeof(const unsigned int)  );
-
-    return McGenEventWrite(Context, Descriptor, NULL, McTemplateU0xxq_ARGCOUNT + 1, EventData);
-}
-#endif // McTemplateU0xxq_def
 
 //
 // Function for template "ExceptionArgs" (and possibly others).

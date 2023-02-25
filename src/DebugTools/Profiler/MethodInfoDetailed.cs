@@ -41,7 +41,7 @@ namespace DebugTools.Profiler
             SigBlobLength = sigBlobLength;
         }
 
-        public MetaDataImport GetMDI()
+        private MetaDataImport GetMDI()
         {
             if (!mdiCache.TryGetValue(ModulePath, out var mdi))
             {

@@ -4,6 +4,8 @@
 #include <shared_mutex>
 #include <unordered_map>
 
+extern ULONG g_NextUniqueModuleID;
+
 class CModuleIDAndTypeDef : public CUnknown
 {
 public:
@@ -12,7 +14,6 @@ public:
         m_ModuleID = moduleId;
         m_TypeDef = typeDef;
         m_Failed = failed;
-
     }
 
     ModuleID m_ModuleID;
@@ -30,6 +31,7 @@ public:
 
         m_AssemblyID = assemblyID;
         m_ModuleID = moduleID;
+        m_UniqueModuleID = InterlockedIncrement(&g_NextUniqueModuleID);
         m_pMDI = pMDI;
     }
 
@@ -37,6 +39,7 @@ public:
 
     AssemblyID m_AssemblyID;
     ModuleID m_ModuleID;
+    ULONG m_UniqueModuleID;
     IMetaDataImport2* m_pMDI;
 
     std::shared_mutex m_TypeRefMutex;

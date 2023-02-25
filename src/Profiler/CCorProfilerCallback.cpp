@@ -14,6 +14,8 @@ thread_local WCHAR g_szModuleName[NAME_BUFFER_SIZE];
 thread_local WCHAR g_szAssemblyName[NAME_BUFFER_SIZE];
 thread_local WCHAR g_szFieldName[NAME_BUFFER_SIZE];
 
+ULONG g_NextUniqueModuleID = 0;
+
 #pragma region IUnknown
 
 /// <summary>
@@ -312,6 +314,9 @@ ErrExit:
         }
 
         pAssemblyInfo->AddModule(pModuleInfo);
+
+        IfFailGo(m_pInfo->GetModuleInfo(moduleId, NULL, NAME_BUFFER_SIZE, NULL, g_szModuleName, NULL));
+        ValidateETW(EventWriteModuleLoadedEvent(pModuleInfo->m_UniqueModuleID, g_szModuleName));
     }
     else
     {
@@ -1050,6 +1055,9 @@ HRESULT CCorProfilerCallback::CreateClassInfo(
     IClassInfo* pClassInfo = nullptr;
     IClassInfo* pElementType = nullptr;
 
+    CModuleInfo* pModuleInfo = nullptr;
+    ULONG uniqueModuleID = 0;
+
     hr = m_pInfo->IsArrayClass(classId, &baseElemType, &baseClassId, &cRank);
 
     if (FAILED(hr))
@@ -1156,10 +1164,14 @@ HRESULT CCorProfilerCallback::CreateClassInfo(
             }
         }
 
+        if (GetModuleInfo(moduleId, &pModuleInfo) == S_OK)
+            uniqueModuleID = pModuleInfo->m_UniqueModuleID;
+
         pClassInfo = new CClassInfo(
             g_szTypeName,
             classId,
             moduleId,
+            uniqueModuleID,
             typeDef,
             cFieldOffset,
             fields,

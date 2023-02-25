@@ -1658,6 +1658,12 @@ HRESULT CValueTracer::TraceClassOrStruct(CClassInfo* pClassInfo, ObjectID object
     WriteValue(pClassInfo->m_szName, (nameLength - 1) * sizeof(WCHAR));
     WriteValue(L"\0", sizeof(WCHAR));
 
+    DebugBlob(L"Class TypeDef");
+    WriteValue(&pClassInfo->m_TypeDef, 4);
+
+    DebugBlob(L"Class Module");
+    WriteValue(&pClassInfo->m_UniqueModuleID, 4);
+
     DebugBlobCtx(L"Class Or Struct Num Fields", pClassInfo->m_szName);
     WriteValue(&pClassInfo->m_NumFields, 4);
 

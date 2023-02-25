@@ -820,7 +820,7 @@ void Methods.second(""bbb"")
             var frames = filter.GetSortedFilteredFrames();
 
             var methodFrameFormatter = new MethodFrameFormatter(true);
-            var methodFrameWriter = new MethodFrameColorWriter(methodFrameFormatter, output)
+            var methodFrameWriter = new MethodFrameColorWriter(methodFrameFormatter, output, KnownModules)
             {
                 HighlightValues = filter.MatchedValues
             };

@@ -44,14 +44,16 @@
             </ViewSelectedBy>
             <TableControl>
                 <TableHeaders>
-                    <TableColumnHeader/> <!-- Parent -->
+                    <TableColumnHeader> <!-- Display -->
+                        <Label>Display</Label>
+                    </TableColumnHeader>
                     <TableColumnHeader/> <!-- MethodInfo -->
                 </TableHeaders>
                 <TableRowEntries>
                     <TableRowEntry>
                         <TableColumnItems>
                             <TableColumnItem>
-                                <PropertyName>Parent</PropertyName>
+                                <ScriptBlock>[DebugTools.Profiler.MethodFrameStringWriter]::WithoutNamespace.ToString($_)</ScriptBlock>
                             </TableColumnItem>
                             <TableColumnItem>
                                 <PropertyName>MethodInfo</PropertyName>

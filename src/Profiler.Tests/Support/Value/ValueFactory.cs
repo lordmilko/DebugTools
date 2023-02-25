@@ -1,7 +1,11 @@
 ﻿using System;
+using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Text;
+using System.Threading;
 using ClrDebug;
 using DebugTools.Profiler;
 
@@ -9,6 +13,12 @@ namespace Profiler.Tests
 {
     class ValueFactory
     {
+        private static int nextModule;
+
+        public static IDictionary<int, ModuleInfo> KnownModules => knownModules.ToDictionary(kv => kv.Value.UniqueModuleID, kv => kv.Value);
+
+        private static ConcurrentDictionary<Module, ModuleInfo> knownModules = new ConcurrentDictionary<Module, ModuleInfo>();
+
         #region Primitive
 
         public static IMockValue<bool> Boolean(bool value)
@@ -173,7 +183,10 @@ namespace Profiler.Tests
             );
         }
 
-        public static IMockValue<object> Class(string type, params IMockValue[] fieldValues)
+        public static IMockValue<object> Class(string type, params IMockValue[] fieldValues) =>
+            Class(type, fieldValues, 0, 0);
+
+        public static IMockValue<object> Class(string type, IMockValue[] fieldValues, mdTypeDef typeDef, int uniqueModuleID)
         {
             var stream = MakeStream(writer =>
             {
@@ -189,6 +202,9 @@ namespace Profiler.Tests
                         writer.Write(0);
                     else
                     {
+                        writer.Write(typeDef);
+                        writer.Write(uniqueModuleID);
+
                         writer.Write(fieldValues.Length);
 
                         foreach (var field in fieldValues)
@@ -289,7 +305,10 @@ namespace Profiler.Tests
 
         public static IMockValue<Array> ArrayNull() => Array(CorElementType.End, null);
 
-        public static IMockValue<object> Struct(string type, params IMockValue[] fieldValues)
+        public static IMockValue<object> Struct(string type, params IMockValue[] fieldValues) =>
+            Struct(type, fieldValues);
+
+        public static IMockValue<object> Struct(string type, IMockValue[] fieldValues, mdTypeDef typeDef, int uniqueModuleID)
         {
             var stream = MakeStream(writer =>
             {
@@ -301,6 +320,9 @@ namespace Profiler.Tests
                     writer.Write(0);
                 else
                 {
+                    writer.Write(typeDef);
+                    writer.Write(uniqueModuleID);
+
                     writer.Write(fieldValues.Length);
 
                     foreach (var field in fieldValues)
@@ -400,7 +422,24 @@ namespace Profiler.Tests
                         }
                     }
 
-                    return Class(type.Name, type.GetFields().Select(f => FromRaw(f.GetValue(value))).ToArray());
+                    if (type.IsValueType)
+                    {
+                        return Struct(
+                            type.Name,
+                            type.GetFields().Select(f => FromRaw(f.GetValue(value))).ToArray(),
+                            type.MetadataToken,
+                            GetModule(type.Module)
+                        );
+                    }
+                    else
+                    {
+                        return Class(
+                            type.Name,
+                            type.GetFields().Select(f => FromRaw(f.GetValue(value))).ToArray(),
+                            type.MetadataToken,
+                            GetModule(type.Module)
+                        );
+                    }
             }
         }
 
@@ -472,7 +511,13 @@ namespace Profiler.Tests
                     if (type == typeof(object))
                         return CorElementType.Object;
 
-                    throw new NotImplementedException($"Don't know how to handle value of type '{type.GetType().Name}'.");
+                    if (type.IsClass)
+                        return CorElementType.Class;
+
+                    if (type.IsValueType)
+                        return CorElementType.ValueType;
+
+                    throw new NotImplementedException($"Don't know how to handle value of type '{type.Name}'.");
             }
         }
 
@@ -487,6 +532,16 @@ namespace Profiler.Tests
 
             stream.Seek(0, SeekOrigin.Begin);
             return stream;
+        }
+
+        internal static int GetModule(Module module)
+        {
+            return knownModules.GetOrAdd(module, m =>
+            {
+                var uniqueModuleID = Interlocked.Increment(ref nextModule);
+
+                return new ModuleInfo(uniqueModuleID, module.FullyQualifiedName);
+            }).UniqueModuleID;
         }
     }
 }

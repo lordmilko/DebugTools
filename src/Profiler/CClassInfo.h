@@ -29,6 +29,7 @@ public:
         LPWSTR szName,
         ClassID classId,
         ModuleID moduleId,
+        ULONG uniqueModuleID,
         mdTypeDef typeDef,
         ULONG numFields,
         CSigField** fields,
@@ -38,6 +39,7 @@ public:
     {
         m_szName = _wcsdup(szName);
         m_ModuleID = moduleId;
+        m_UniqueModuleID = uniqueModuleID;
         m_TypeDef = typeDef;
         m_NumFields = numFields;
         m_Fields = fields;
@@ -70,6 +72,7 @@ public:
 
     LPWSTR m_szName;
     ModuleID m_ModuleID;
+    ULONG m_UniqueModuleID;
     mdTypeDef m_TypeDef;
     ULONG m_NumFields;
     CSigField** m_Fields;
