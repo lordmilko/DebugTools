@@ -511,6 +511,11 @@ namespace DebugTools.TestHost
         }
 
         [MethodImpl(MethodImplOptions.NoInlining)]
+        public void StringArrayArg_TraceDepth(string[] a)
+        {
+        }
+
+        [MethodImpl(MethodImplOptions.NoInlining)]
         public void EmptyStringArrayArg(string[] a)
         {
         }

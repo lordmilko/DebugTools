@@ -907,6 +907,9 @@ HRESULT CValueTracer::TraceArrayInternal(
 {
     HRESULT hr = S_OK;
 
+    //We want to capture at least the first level of data inside of the array
+    m_TraceDepth--;
+
     ULONG32* dimensionSizes = new ULONG32[pArrayInfo->m_Rank];
     int* dimensionLowerBounds = new int[pArrayInfo->m_Rank];
     BYTE* pData;
@@ -992,6 +995,8 @@ HRESULT CValueTracer::TraceArrayInternal(
     bytesRead += sizeof(void*);
 
 ErrExit:
+    m_TraceDepth++;
+
     if (dimensionSizes)
         delete dimensionSizes;
 

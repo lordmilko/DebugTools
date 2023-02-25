@@ -592,6 +592,10 @@ namespace Profiler.Tests
             Test(ValueTestType.StringArrayArg, v => v.HasArrayValues(CorElementType.Class, "a", "b"));
 
         [TestMethod]
+        public void Value_StringArrayArg_TraceDepth() =>
+            Test(ValueTestType.StringArrayArg_TraceDepth, v => v.HasArrayValues(CorElementType.Class, "a", "b"), ProfilerSetting.TraceValueDepth(1));
+
+        [TestMethod]
         public void Value_EmptyStringArrayArg() =>
             Test(ValueTestType.EmptyStringArrayArg, v => v.HasArrayValues(CorElementType.Class, new string[0]));
 

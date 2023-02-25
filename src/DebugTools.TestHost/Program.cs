@@ -691,6 +691,10 @@ namespace DebugTools.TestHost
                     instance.StringArrayArg(new string[] { "a", "b" });
                     break;
 
+                case ValueTestType.StringArrayArg_TraceDepth:
+                    instance.StringArrayArg_TraceDepth(new string[] { "a", "b" });
+                    break;
+
                 case ValueTestType.EmptyStringArrayArg:
                     instance.EmptyStringArrayArg(new string[0]);
                     break;
