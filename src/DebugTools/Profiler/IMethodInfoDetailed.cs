@@ -1,8 +1,6 @@
-﻿using ClrDebug;
-
-namespace DebugTools.Profiler
+﻿namespace DebugTools.Profiler
 {
-    public interface IMethodInfoDetailed : IMethodInfo
+    internal interface IMethodInfoDetailed : IMethodInfo
     {
         SigMethodDef SigMethod { get; }
     }

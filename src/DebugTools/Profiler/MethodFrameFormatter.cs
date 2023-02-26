@@ -78,7 +78,7 @@ namespace DebugTools.Profiler
 
                 if (info is UnknownMethodInfo)
                 {
-                    writer.Write("0x" + info.FunctionID.ToString("X"), frame, FrameTokenKind.FunctionId);
+                    writer.Write("0x" + info.FunctionID, frame, FrameTokenKind.FunctionId);
                 }
                 else
                 {

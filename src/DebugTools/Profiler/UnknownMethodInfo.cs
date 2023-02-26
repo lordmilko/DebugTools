@@ -1,4 +1,5 @@
 ﻿using System.Diagnostics;
+using ClrDebug;
 
 namespace DebugTools.Profiler
 {
@@ -7,7 +8,7 @@ namespace DebugTools.Profiler
     {
         private const string Unknown = "Unknown";
 
-        public UnknownMethodInfo(long functionId) : base(functionId, Unknown, Unknown, Unknown)
+        public UnknownMethodInfo(FunctionID functionId) : base(functionId, Unknown, Unknown, Unknown)
         {
         }
 

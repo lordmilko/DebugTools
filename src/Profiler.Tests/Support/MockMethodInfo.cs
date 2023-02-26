@@ -1,11 +1,12 @@
 ﻿using System.IO;
+using ClrDebug;
 using DebugTools.Profiler;
 
 namespace Profiler.Tests
 {
     class MockMethodInfo : IMethodInfo
     {
-        public long FunctionID { get; }
+        public FunctionID FunctionID { get; }
         public string ModuleName { get; }
         public string TypeName { get; }
         public string MethodName { get; }

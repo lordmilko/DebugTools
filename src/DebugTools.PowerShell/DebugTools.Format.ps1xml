@@ -66,6 +66,38 @@
         <View>
             <Name>Default</Name>
             <ViewSelectedBy>
+                <TypeName>DebugTools.Profiler.MethodInfo</TypeName>
+            </ViewSelectedBy>
+            <TableControl>
+                <TableHeaders>
+                    <TableColumnHeader/> <!-- FunctionID -->
+                    <TableColumnHeader/> <!-- MethodInfo -->
+                    <TableColumnHeader/> <!-- TypeName -->
+                    <TableColumnHeader/> <!-- MethodName -->
+                </TableHeaders>
+                <TableRowEntries>
+                    <TableRowEntry>
+                        <TableColumnItems>
+                            <TableColumnItem>
+                                <PropertyName>FunctionID</PropertyName>
+                            </TableColumnItem>
+                            <TableColumnItem>
+                                <PropertyName>ModuleName</PropertyName>
+                            </TableColumnItem>
+                            <TableColumnItem>
+                                <PropertyName>TypeName</PropertyName>
+                            </TableColumnItem>
+                            <TableColumnItem>
+                                <PropertyName>MethodName</PropertyName>
+                            </TableColumnItem>
+                        </TableColumnItems>
+                    </TableRowEntry>
+                </TableRowEntries>
+            </TableControl>
+        </View>
+        <View>
+            <Name>Default</Name>
+            <ViewSelectedBy>
                 <TypeName>DebugTools.SOS.SOSStackFrame</TypeName>
             </ViewSelectedBy>
             <TableControl>

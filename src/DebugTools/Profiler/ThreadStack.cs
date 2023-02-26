@@ -200,7 +200,7 @@ namespace DebugTools.Profiler
             {
                 var expected = f.MethodInfo;
 
-                if (expected.FunctionID != method.FunctionID)
+                if (expected.FunctionID.Value != method.FunctionID.Value)
                     throw new InvalidOperationException($"Expected method: {expected} ({expected.FunctionID:X}). Actual: {method} ({method.FunctionID:X})");
             }
         }

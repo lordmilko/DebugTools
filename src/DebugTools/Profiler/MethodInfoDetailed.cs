@@ -10,13 +10,13 @@ namespace DebugTools.Profiler
 
         public mdMethodDef Token { get; }
 
-        public byte[] SigBlob { get; }
+        internal byte[] SigBlob { get; }
 
-        public int SigBlobLength { get; }
+        internal int SigBlobLength { get; }
 
         private SigMethodDef sigMethod;
 
-        public unsafe SigMethodDef SigMethod
+        unsafe SigMethodDef IMethodInfoDetailed.SigMethod
         {
             get
             {
@@ -34,7 +34,7 @@ namespace DebugTools.Profiler
             }
         }
 
-        public MethodInfoDetailed(long functionId, string modulePath, string typeName, string methodName, mdMethodDef token, byte[] sigBlob, int sigBlobLength) : base(functionId, modulePath, typeName, methodName)
+        public MethodInfoDetailed(FunctionID functionId, string modulePath, string typeName, string methodName, mdMethodDef token, byte[] sigBlob, int sigBlobLength) : base(functionId, modulePath, typeName, methodName)
         {
             Token = token;
             SigBlob = sigBlob;

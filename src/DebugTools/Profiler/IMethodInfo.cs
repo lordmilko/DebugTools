@@ -1,4 +1,6 @@
-﻿namespace DebugTools.Profiler
+﻿using ClrDebug;
+
+namespace DebugTools.Profiler
 {
     internal interface IMethodInfoInternal : IMethodInfo
     {
@@ -7,7 +9,7 @@
 
     public interface IMethodInfo
     {
-        long FunctionID { get; }
+        FunctionID FunctionID { get; }
 
         string ModuleName { get; }
 

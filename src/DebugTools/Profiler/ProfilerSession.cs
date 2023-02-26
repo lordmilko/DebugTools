@@ -122,7 +122,7 @@ namespace DebugTools.Profiler
             //If the function was unknown previously (which can occur in weird double unmanaged to managed transitions, such as with
             //Visual Studio's VsAppDomainManager.OnStart()) we'll overwrite it, and be sure to check against the previous instance by looking at the function id,
             //not the object reference
-            Methods[v.FunctionID] = new MethodInfo(v.FunctionID, v.ModuleName, v.TypeName, v.MethodName)
+            Methods[v.FunctionID] = new MethodInfo(new FunctionID(new IntPtr(v.FunctionID)), v.ModuleName, v.TypeName, v.MethodName)
             {
                 WasUnknown = wasUnknown
             };
@@ -135,7 +135,7 @@ namespace DebugTools.Profiler
             //If the function was unknown previously (which can occur in weird double unmanaged to managed transitions, such as with
             //Visual Studio's VsAppDomainManager.OnStart()) we'll overwrite it, and be sure to check against the previous instance by looking at the function id,
             //not the object reference
-            Methods[v.FunctionID] = new MethodInfoDetailed(v.FunctionID, v.ModuleName, v.TypeName, v.MethodName, v.Token, v.SigBlob, v.SigBlobLength)
+            Methods[v.FunctionID] = new MethodInfoDetailed(new FunctionID(new IntPtr(v.FunctionID)), v.ModuleName, v.TypeName, v.MethodName, v.Token, v.SigBlob, v.SigBlobLength)
             {
                 WasUnknown = wasUnknown
             };
@@ -303,7 +303,7 @@ namespace DebugTools.Profiler
             if (Methods.TryGetValue(functionId, out var value))
                 return value;
 
-            value = new UnknownMethodInfo(functionId)
+            value = new UnknownMethodInfo(new FunctionID(new IntPtr(functionId)))
             {
                 WasUnknown = true
             };

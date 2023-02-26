@@ -9,7 +9,7 @@ namespace Profiler.Tests
 {
     class MockMethodInfoDetailed : IMethodInfoDetailed
     {
-        public long FunctionID { get; }
+        public FunctionID FunctionID { get; }
         public string ModuleName { get; }
         public string TypeName { get; }
         public string MethodName { get; }

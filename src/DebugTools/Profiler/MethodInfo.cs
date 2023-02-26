@@ -1,5 +1,6 @@
 ﻿using System.Diagnostics;
 using System.IO;
+using ClrDebug;
 
 namespace DebugTools.Profiler
 {
@@ -9,9 +10,9 @@ namespace DebugTools.Profiler
     [DebuggerDisplay("{ModuleName,nq} {TypeName,nq}.{MethodName,nq}")]
     public class MethodInfo : IMethodInfoInternal
     {
-        public long FunctionID { get; }
+        public FunctionID FunctionID { get; }
 
-        internal string ModulePath { get; }
+        public string ModulePath { get; }
 
         public string ModuleName => Path.GetFileName(ModulePath);
 
@@ -27,7 +28,7 @@ namespace DebugTools.Profiler
             set => ((IMethodInfoInternal)this).WasUnknown = value;
         }
 
-        public MethodInfo(long functionId, string modulePath, string typeName, string methodName)
+        public MethodInfo(FunctionID functionId, string modulePath, string typeName, string methodName)
         {
             FunctionID = functionId;
             ModulePath = modulePath;
