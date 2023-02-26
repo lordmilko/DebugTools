@@ -17,7 +17,7 @@ namespace DebugTools.PowerShell
 
         protected override (MatchKind kind, string value) TransformLiteral(string str)
         {
-            if (str.EndsWith(".dll", StringComparison.OrdinalIgnoreCase) || str.EndsWith(".dll", StringComparison.OrdinalIgnoreCase))
+            if (str.EndsWith(".exe", StringComparison.OrdinalIgnoreCase) || str.EndsWith(".dll", StringComparison.OrdinalIgnoreCase))
                 return (MatchKind.ModuleName, str);
 
             if (str.Contains("\\") || str.Contains("//"))

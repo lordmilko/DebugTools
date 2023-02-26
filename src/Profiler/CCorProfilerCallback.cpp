@@ -231,7 +231,7 @@ HRESULT CCorProfilerCallback::ModuleAttachedToAssembly(ModuleID moduleId, Assemb
     ULONG cbPublicKeyToken = 0;
     LPWSTR assemblyName = nullptr;
 
-    /* CTypeRefResolver::Resolve will take a (shared) lock on m_ModuleMutex as long as it is executing.During
+    /* CTypeRefResolver::Resolve will take a (shared) lock on m_ModuleMutex as long as it is executing .During
      * its execution, it may also take a lock on m_AssemblyMutex. If we were to lock m_ModuleMutex in the SUCCEEDED() block below,
      * the following sequence of events could transpire:
      * 
@@ -326,7 +326,6 @@ ErrExit:
         if (pbPublicKeyToken)
             free((void*)pbPublicKeyToken);
 
-        //If we couldn't retrieve our required metadata, remove the module from the cache as it won't do us any good
         dprintf(L"ModuleAttachedToAssembly failed with %d\n", hr);
     }
 
@@ -353,6 +352,7 @@ HRESULT CCorProfilerCallback::ClassLoadFinished(ClassID classId, HRESULT hrStatu
 
     //We may have force loaded this type prior to ClassLoadFinished being called; in this case, there's nothing to do
 
+    //Lock scope
     {
         CLock classLock(&m_ClassMutex);
 
@@ -391,10 +391,9 @@ HRESULT CCorProfilerCallback::ClassLoadFinished(ClassID classId, HRESULT hrStatu
                 if (all)
                 {
                     info->AddRef();
-                    {
-                        info->m_IsCanonical = true;
-                        m_CanonicalGenericTypes.insert(info);
-                    }
+                    
+                    info->m_IsCanonical = true;
+                    m_CanonicalGenericTypes.insert(info);
                 }
             }
         }
@@ -468,7 +467,7 @@ HRESULT CCorProfilerCallback::ExceptionUnwindFinallyLeave()                     
 #pragma endregion
 
 /// <summary>
-/// Initializes the profiler, performing initial setup such as registering our event masks function mappers and function hooks.
+/// Initializes the profiler, performing initial setup such as registering our event masks, function mappers and function hooks.
 /// </summary>
 /// <param name="pICorProfilerInfoUnk">A clr!ProfToEEInterfaceImpl object that should be queried to retrieve an ICorProfilerInfo* interface.</param>
 /// <returns>A HRESULT that indicates success or failure. In the event of failure the profiler and its DLL will be unloaded.</returns>
@@ -764,7 +763,7 @@ UINT_PTR __stdcall CCorProfilerCallback::RecordFunction(FunctionID funcId, void*
     //Get the IMetaDataImport and mdMethodDef
     IfFailGo(pInfo->GetTokenAndMetaDataFromFunction(funcId, IID_IMetaDataImport, reinterpret_cast<IUnknown**>(&pMDI), &methodDef));
 
-    /* Get the ModuleIDand any type arguments.Due to the fact reference types will tend to share a single generic type definition,
+    /* Get the ModuleID and any type arguments. Due to the fact reference types will tend to share a single generic type definition,
      * in order to get proper typeArg information, we need to have a COR_PRF_FRAME_INFO, which we'll only have during EnterWithInfo().
      * While we don't query for generic info here, we'll know if a method is generic thanks to m_NumGenericTypeArgNames. For more info on generics,
      * see https://github.com/dotnet/runtime/blob/57bfe474518ab5b7cfe6bf7424a79ce3af9d6657/docs/design/coreclr/profiling/davbr-blog-archive/Generics%20and%20Your%20Profiler.md */
@@ -775,7 +774,7 @@ UINT_PTR __stdcall CCorProfilerCallback::RecordFunction(FunctionID funcId, void*
         &moduleId,  //[out] pModuleId
         NULL,       //[out] pToken
         0,          //[in] cTypeArgs
-        NULL, //[out] pcTypeArgs
+        NULL,       //[out] pcTypeArgs
         NULL        //[out] typeArgs
     ));
 
@@ -922,7 +921,7 @@ HRESULT CCorProfilerCallback::SetEventMask()
 
         flags |= COR_PRF_MONITOR_ASSEMBLY_LOADS; //Record assemblies for resolving mdTypeRef -> mdAssemblyRef -> CAssemblyInfo -> CModuleInfo -> ModuleID + mdtypeDef
         flags |= COR_PRF_MONITOR_MODULE_LOADS;   //Record modules for resolving mdTypeRefs
-        flags |= COR_PRF_MONITOR_CLASS_LOADS;    //Record known classes for looking up their structure when getting their field's values
+        flags |= COR_PRF_MONITOR_CLASS_LOADS;    //Record known classes for looking up their structure when getting their fields values
     }
 
     return m_pInfo->SetEventMask(flags);
@@ -1075,9 +1074,7 @@ HRESULT CCorProfilerCallback::CreateClassInfo(
     {
         //It's not an array
 
-        /* A ClassID is a TypeHandle, which can point to either
-         * A MethodTable or a TypeDesc.
-         * At the present time a TypeHandle can point at two possible things
+        /* A ClassID is a TypeHandle. At the present time a TypeHandle can point at two possible things
          * 
          *     1) A MethodTable    (Arrays, Intrinsics, Classes, Value Types and their instantiations)
          *     2) A TypeDesc       (all other cases: byrefs, pointer types, function pointers, generic type variables)
@@ -1179,6 +1176,7 @@ HRESULT CCorProfilerCallback::CreateClassInfo(
             cNumTypeArgs,
             typeArgs
         );
+
         typeArgs = nullptr; //Clear this out in case there's an error after this so we don't double free it (CClassInfo will free it in its destructor)
     }
 
@@ -1198,6 +1196,9 @@ ErrExit:
 
             delete fields;
         }
+
+        if (typeArgs)
+            delete typeArgs;
 
         if (rFieldOffset)
             delete rFieldOffset;
@@ -1233,7 +1234,8 @@ HRESULT CCorProfilerCallback::GetClassInfoFromClassId(ClassID classId, IClassInf
 
         IfFailGo(CreateClassInfo(classId, &pClassInfo));
 
-        //We already hold the class lock (see above)
+        //Either this method holds the class lock (see above), or the caller
+        //holds the class lock, and instructed us not to lock again
         AddClassNoLock(pClassInfo);
     }
     else
@@ -1410,7 +1412,7 @@ BOOL CCorProfilerCallback::IsHookedFunction(FunctionID functionId)
 
 void CCorProfilerCallback::EnsureTransitionMethodRecorded(FunctionID functionId)
 {
-    /* Certain transition stubs(such as COMToCLR and CLRToCOM) are meaningless, however when the COM method(or the P / Invoke definition is actually invoked)
+    /* Certain transition stubs(such as COMToCLR and CLRToCOM) are meaningless, however when the COM method(or the P/Invoke definition is actually invoked)
      * there is a second helper frame that is called (I think it may be the one that gets inlined). These methods DO exist in our metadata (i.e. the COM interface method or the P/Invoke definition),
      * however the function mapper won't be called for these methods (which makes sense, since they're special frames). As such, we need to record them ourselves. */
 

@@ -82,7 +82,8 @@ HRESULT CTypeRefResolver::ResolveAssemblyRef(
      *
      * When searching for assemblies, assemblies may have a slightly higher version than the one initially hardcoded in the AssemblyRef.
      * This should be allowed if an exact version match cannot be found. Once a type has been found, it may be forwarded, so any forwards
-     * must be followed.
+     * must be followed. We do not attempt to build a bullet proof type loader; we are happy with a system that is "good enough",
+     * and will add to it as required.
      *
      * The following demonstrates how the public key token can be computed for the Standard Public Key found
      * in all assemblies in the Standard Library using PowerShell (II.6.2.1.3)
@@ -91,7 +92,8 @@ HRESULT CTypeRefResolver::ResolveAssemblyRef(
      *     $publicKey = 0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x04,0x00,0x00,0x00,0x00,0x00,0x00,0x00
      *     $tokenBytes = $sha.ComputeHash($publicKey)|foreach { $_.tostring("X") }
      *     [array]::reverse($tokenBytes)
-     *     ($tokenBytes|select -first 8) -join " "  */
+     *     ($tokenBytes|select -first 8) -join " "
+     */
 
     HRESULT hr = S_OK;
 
