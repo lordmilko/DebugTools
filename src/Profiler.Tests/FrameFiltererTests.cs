@@ -748,6 +748,161 @@ void Methods.second(""bbb"")
 ");
         }
 
+        [TestMethod]
+        public void FrameFilterer_CalledFrom_Include()
+        {
+            var options = new FrameFilterOptions
+            {
+                CalledFrom = new[] { "second" },
+                Include = new[] {"fourth"}
+            };
+
+            var tree = MakeRoot(
+                MakeFrame("first", String("aaa"),
+                    MakeFrame("second", String("bbb"),
+                        MakeFrame("third", String("ccc")),
+                        MakeFrame("third", String("ddd"),
+                            MakeFrame("fourth", String("eee")),
+                            MakeFrame("first", String("fff"))
+                        ),
+                        MakeFrame(
+                            typeof(Console).GetMethods().First(m => m.Name == "ReadLine"),
+                            String("fff")
+                        )
+                    ),
+                    MakeFrame(
+                        typeof(Console).GetMethods().First(m => m.Name == "WriteLine"),
+                        String("ggg")
+                    )
+                )
+            );
+
+            TestStack(options, tree, @"
+1000
+└─void Methods.second(""bbb"")
+  └─void Methods.third(""ddd"")
+    └─void Methods.fourth(""eee"")
+");
+        }
+
+        [TestMethod]
+        public void FrameFilterer_CalledFrom_Exclude()
+        {
+            var options = new FrameFilterOptions
+            {
+                CalledFrom = new[] { "second" },
+                Exclude = new[] { "fourth" }
+            };
+
+            var tree = MakeRoot(
+                MakeFrame("first", String("aaa"),
+                    MakeFrame("second", String("bbb"),
+                        MakeFrame("third", String("ccc")),
+                        MakeFrame("third", String("ddd"),
+                            MakeFrame("fourth", String("eee")),
+                            MakeFrame("first", String("fff"))
+                        ),
+                        MakeFrame(
+                            typeof(Console).GetMethods().First(m => m.Name == "ReadLine"),
+                            String("fff")
+                        )
+                    ),
+                    MakeFrame(
+                        typeof(Console).GetMethods().First(m => m.Name == "WriteLine"),
+                        String("ggg")
+                    )
+                )
+            );
+
+            TestStack(options, tree, @"
+1000
+└─void Methods.second(""bbb"")
+  ├─void Methods.third(""ccc"")
+  ├─void Methods.third(""ddd"")
+  │ └─void Methods.first(""fff"")
+  └─void Console.ReadLine(""fff"")
+");
+        }
+
+        [TestMethod]
+        public void FrameFilterer_CalledFrom_Include_Unique()
+        {
+            var options = new FrameFilterOptions
+            {
+                CalledFrom = new[] { "second" },
+                Include = new[] { "fourth" },
+                Unique = true
+            };
+
+            var tree = MakeRoot(
+                MakeFrame("first", String("aaa"),
+                    MakeFrame("second", String("bbb"),
+                        MakeFrame("first", String("hhh"),
+                            MakeFrame("third", String("ccc")),
+                            MakeFrame("third", String("ddd"),
+                                MakeFrame("fourth", String("eee")),
+                                MakeFrame("first", String("fff"))
+                            ),
+                            MakeFrame(
+                                typeof(Console).GetMethods().First(m => m.Name == "ReadLine"),
+                                String("fff")
+                            )
+                        )
+                    ),
+                    MakeFrame(
+                        typeof(Console).GetMethods().First(m => m.Name == "WriteLine"),
+                        String("ggg")
+                    )
+                )
+            );
+
+            TestStack(options, tree, @"
+1000
+└─void Methods.second(""bbb"")
+  └─void Methods.first(""hhh"")
+    └─void Methods.third(""ddd"")
+      └─void Methods.fourth(""eee"")
+");
+        }
+
+        [TestMethod]
+        public void FrameFilterer_CalledFrom_Exclude_Unique()
+        {
+            var options = new FrameFilterOptions
+            {
+                CalledFrom = new[] { "second" },
+                Exclude = new[] { "fourth" },
+                Unique = true
+            };
+
+            var tree = MakeRoot(
+                MakeFrame("first", String("aaa"),
+                    MakeFrame("second", String("bbb"),
+                        MakeFrame("third", String("ccc")),
+                        MakeFrame("third", String("ddd"),
+                            MakeFrame("fourth", String("eee")),
+                            MakeFrame("first", String("fff"))
+                        ),
+                        MakeFrame(
+                            typeof(Console).GetMethods().First(m => m.Name == "ReadLine"),
+                            String("fff")
+                        )
+                    ),
+                    MakeFrame(
+                        typeof(Console).GetMethods().First(m => m.Name == "WriteLine"),
+                        String("ggg")
+                    )
+                )
+            );
+
+            TestStack(options, tree, @"
+1000
+└─void Methods.second(""bbb"")
+  ├─void Methods.third(""ccc"")
+  └─void Console.ReadLine(""fff"")
+");
+        }
+
         private RootFrame MakeRoot(params IMethodFrame[] children)
         {
             var newFrame = new RootFrame

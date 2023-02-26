@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 
 namespace DebugTools.PowerShell
 {
@@ -7,161 +8,205 @@ namespace DebugTools.PowerShell
 
     public class FrameFilterOptions
     {
-        public bool Unique { get; set; }
+        private Dictionary<string, object> settings = new Dictionary<string, object>();
 
-        public string[] Include { get; set; }
+        public bool Unique
+        {
+            get => GetSetting<bool>(nameof(Unique));
+            set => settings[nameof(Unique)] = value;
+        }
 
-        public string[] Exclude { get; set; }
+        public string[] Include
+        {
+            get => GetSetting<string[]>(nameof(Include));
+            set => settings[nameof(Include)] = value;
+        }
 
-        public string[] CalledFrom { get; set; }
+        public string[] Exclude
+        {
+            get => GetSetting<string[]>(nameof(Exclude));
+            set => settings[nameof(Exclude)] = value;
+        }
 
-        public bool VoidValue { get; set; }
+        public string[] CalledFrom
+        {
+            get => GetSetting<string[]>(nameof(CalledFrom));
+            set => settings[nameof(CalledFrom)] = value;
+        }
 
-        public bool Unmanaged { get; set; }
+        public bool VoidValue
+        {
+            get => GetSetting<bool>(nameof(VoidValue));
+            set => settings[nameof(VoidValue)] = value;
+        }
+
+        public bool Unmanaged
+        {
+            get => GetSetting<bool>(nameof(Unmanaged));
+            set => settings[nameof(Unmanaged)] = value;
+        }
 
         #region Primitive
 
-        private bool[] boolValue;
         public bool[] BoolValue
         {
-            get => boolValue;
-            set => boolValue = SetHasValue(value);
+            get => GetSetting<bool[]>(nameof(BoolValue));
+            set => SetHasValue(nameof(BoolValue), value);
         }
 
-        private char[] charValue;
         public char[] CharValue
         {
-            get => charValue;
-            set => charValue = SetHasValue(value);
+            get => GetSetting<char[]>(nameof(CharValue));
+            set => SetHasValue(nameof(CharValue), value);
         }
 
-        private sbyte[] sbyteValue;
         public sbyte[] SByteValue
         {
-            get => sbyteValue;
-            set => sbyteValue = SetHasValue(value);
+            get => GetSetting<sbyte[]>(nameof(SByteValue));
+            set => SetHasValue(nameof(SByteValue), value);
         }
 
-        private byte[] byteValue;
         public byte[] ByteValue
         {
-            get => byteValue;
-            set => byteValue = SetHasValue(value);
+            get => GetSetting<byte[]>(nameof(ByteValue));
+            set => SetHasValue(nameof(ByteValue), value);
         }
 
-        private short[] int16Value;
         public short[] Int16Value
         {
-            get => int16Value;
-            set => int16Value = SetHasValue(value);
+            get => GetSetting<short[]>(nameof(Int16Value));
+            set => SetHasValue(nameof(Int16Value), value);
         }
 
-        private ushort[] uint16Value;
         public ushort[] UInt16Value
         {
-            get => uint16Value;
-            set => uint16Value = SetHasValue(value);
+            get => GetSetting<ushort[]>(nameof(UInt16Value));
+            set => SetHasValue(nameof(UInt16Value), value);
         }
 
-        private int[] int32Value;
         public int[] Int32Value
         {
-            get => int32Value;
-            set => int32Value = SetHasValue(value);
+            get => GetSetting<int[]>(nameof(Int32Value));
+            set => SetHasValue(nameof(Int32Value), value);
         }
 
-        private uint[] uint32Value;
         public uint[] UInt32Value
         {
-            get => uint32Value;
-            set => uint32Value = SetHasValue(value);
+            get => GetSetting<uint[]>(nameof(UInt32Value));
+            set => SetHasValue(nameof(UInt32Value), value);
         }
 
-        private long[] int64Value;
         public long[] Int64Value
         {
-            get => int64Value;
-            set => int64Value = SetHasValue(value);
+            get => GetSetting<long[]>(nameof(Int64Value));
+            set => SetHasValue(nameof(Int64Value), value);
         }
 
-        private ulong[] uint64Value;
         public ulong[] UInt64Value
         {
-            get => uint64Value;
-            set => uint64Value = SetHasValue(value);
+            get => GetSetting<ulong[]>(nameof(UInt64Value));
+            set => SetHasValue(nameof(UInt64Value), value);
         }
 
-        private float[] floatValue;
         public float[] FloatValue
         {
-            get => floatValue;
-            set => floatValue = SetHasValue(value);
+            get => GetSetting<float[]>(nameof(FloatValue));
+            set => SetHasValue(nameof(FloatValue), value);
         }
 
-        private double[] doubleValue;
         public double[] DoubleValue
         {
-            get => doubleValue;
-            set => doubleValue = SetHasValue(value);
+            get => GetSetting<double[]>(nameof(DoubleValue));
+            set => SetHasValue(nameof(DoubleValue), value);
         }
 
-        private IntPtr[] intPtrValue;
         public IntPtr[] IntPtrValue
         {
-            get => intPtrValue;
-            set => intPtrValue = SetHasValue(value);
+            get => GetSetting<IntPtr[]>(nameof(IntPtrValue));
+            set => SetHasValue(nameof(IntPtrValue), value);
         }
 
-        private UIntPtr[] uintPtrValue;
         public UIntPtr[] UIntPtrValue
         {
-            get => uintPtrValue;
-            set => uintPtrValue = SetHasValue(value);
+            get => GetSetting<UIntPtr[]>(nameof(UIntPtrValue));
+            set => SetHasValue(nameof(UIntPtrValue), value);
         }
 
         #endregion
 
-        private string[] stringValue;
         public string[] StringValue
         {
-            get => stringValue;
-            set => stringValue = SetHasValue(value);
+            get => GetSetting<string[]>(nameof(StringValue));
+            set => SetHasValue(nameof(StringValue), value);
         }
 
-        private string[] classTypeName;
         public string[] ClassTypeName
         {
-            get => classTypeName;
-            set => classTypeName = SetHasValue(value);
+            get => GetSetting<string[]>(nameof(ClassTypeName));
+            set => SetHasValue(nameof(ClassTypeName), value);
         }
 
         #region Method
 
-        public string[] MethodModuleName { get; set; }
+        public string[] MethodModuleName
+        {
+            get => GetSetting<string[]>(nameof(MethodModuleName));
+            set => settings[nameof(MethodModuleName)] = value;
+        }
 
-        public string[] MethodTypeName { get; set; }
+        public string[] MethodTypeName
+        {
+            get => GetSetting<string[]>(nameof(MethodTypeName));
+            set => settings[nameof(MethodTypeName)] = value;
+        }
 
-        public string[] MethodName { get; set; }
+        public string[] MethodName
+        {
+            get => GetSetting<string[]>(nameof(MethodName));
+            set => settings[nameof(MethodName)] = value;
+        }
 
         #endregion
         #region ParentMethod
 
-        public string[] ParentMethodModuleName { get; set; }
+        public string[] ParentMethodModuleName
+        {
+            get => GetSetting<string[]>(nameof(ParentMethodModuleName));
+            set => settings[nameof(ParentMethodModuleName)] = value;
+        }
 
-        public string[] ParentMethodTypeName { get; set; }
+        public string[] ParentMethodTypeName
+        {
+            get => GetSetting<string[]>(nameof(ParentMethodTypeName));
+            set => settings[nameof(ParentMethodTypeName)] = value;
+        }
 
-        public string[] ParentMethodName { get; set; }
+        public string[] ParentMethodName
+        {
+            get => GetSetting<string[]>(nameof(ParentMethodName));
+            set => settings[nameof(ParentMethodName)] = value;
+        }
 
         #endregion
 
         public bool HasFilterValue { get; private set; }
 
-        private T[] SetHasValue<T>(T[] arr)
+        public bool IsCalledFromOnly => settings.Keys.Count == 1 && settings.ContainsKey(nameof(CalledFrom));
+
+        private T GetSetting<T>(string name)
+        {
+            if (settings.TryGetValue(name, out var value))
+                return (T)value;
+
+            return default(T);
+        }
+
+        private void SetHasValue<T>(string property, T[] arr)
         {
             if (arr != null && arr.Length > 0)
                 HasFilterValue = true;
 
-            return arr;
+            settings[property] = arr;
         }
     }
 }

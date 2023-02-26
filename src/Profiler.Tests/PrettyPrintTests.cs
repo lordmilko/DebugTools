@@ -446,7 +446,7 @@ namespace Profiler.Tests
         {
             TestArg(
                 () => Methods.GenericArg(new TestGenericClass<TestClass> { Field1 = new TestClass { Field1 = "bar"} }),
-                "void Methods.generic(<Yellow>TestGenericClass`1</Yellow>)",
+                "void Methods.GenericArg(<Yellow>TestGenericClass`1</Yellow>)",
                 (w, p, r) =>
                 {
                     var classObj = (ClassValue)p[0];
@@ -500,10 +500,14 @@ namespace Profiler.Tests
         [TestMethod]
         public void MethodFrameFormat_HighlightPointerStructWithFieldArg()
         {
+            var testStructWithSimpleField = GetType().Assembly.GetType("Profiler.Tests.TestStructWithSimpleField");
+
             TestArg(
                 Ptr(
                     Struct("TestStructWithSimpleField",
-                        Int32(5)
+                        new[] { Int32(5) },
+                        testStructWithSimpleField.MetadataToken,
+                        GetModule(testStructWithSimpleField.Module)
                     )
                 ),
                 "void Methods.PointerStructArg(<Yellow>TestStructWithSimpleField*->Field2=5</Yellow>)",
@@ -523,9 +527,13 @@ namespace Profiler.Tests
         [TestMethod]
         public void MethodFrameFormat_HighlightPointerSimpleField()
         {
+            var testClassWithPointerSimpleField = GetType().Assembly.GetType("Profiler.Tests.TestClassWithPointerSimpleField");
+
             TestArg(
                 Class("TestClassWithPointerSimpleField",
-                    Ptr(String("foo"))
+                    new[] { Ptr(String("foo")) },
+                    testClassWithPointerSimpleField.MetadataToken,
+                    GetModule(testClassWithPointerSimpleField.Module)
                 ),
                 "void Methods.PointerSimpleField(<Yellow>TestClassWithPointerSimpleField.Field1=\"foo\"</Yellow>)",
                 (w, p, r) =>
@@ -545,9 +553,13 @@ namespace Profiler.Tests
         [TestMethod]
         public void MethodFrameFormat_HighlightPointerPointerSimpleField()
         {
+            var testClassWithPointerPointerSimpleField = GetType().Assembly.GetType("Profiler.Tests.TestClassWithPointerPointerSimpleField");
+
             TestArg(
                 Class("TestClassWithPointerPointerSimpleField",
-                    Ptr(Ptr(String("foo")))
+                    new[] { Ptr(Ptr(String("foo"))) },
+                    testClassWithPointerPointerSimpleField.MetadataToken,
+                    GetModule(testClassWithPointerPointerSimpleField.Module)
                 ),
                 "void Methods.PointerPointerSimpleField(<Yellow>TestClassWithPointerPointerSimpleField.Field1=\"foo\"</Yellow>)",
                 (w, p, r) =>
@@ -569,15 +581,28 @@ namespace Profiler.Tests
         [TestMethod]
         public void MethodFrameFormat_HighlightPointerStructField()
         {
+            var testClassWithPointerStructField = GetType().Assembly.GetType("Profiler.Tests.TestClassWithPointerStructField");
+            var testStructWithSimpleField = GetType().Assembly.GetType("Profiler.Tests.TestStructWithSimpleField");
+
             //We matched the typename of a struct inside a pointer
 
             TestArg(
                 Class("TestClassWithPointerStructField",
-                    Ptr(
-                        Struct("TestStructWithSimpleField",
-                            Int32(5)
+                    new[]
+                    {
+                        Ptr(
+                            Struct("TestStructWithSimpleField",
+                                new[]
+                                {
+                                    Int32(5)
+                                },
+                                testStructWithSimpleField.MetadataToken,
+                                GetModule(testStructWithSimpleField.Module)
+                            )
                         )
-                    )
+                    },
+                    testClassWithPointerStructField.MetadataToken,
+                    GetModule(testClassWithPointerStructField.Module)
                 ),
                 "void Methods.PointerStructField(<Yellow>TestClassWithPointerStructField.Field1</Yellow>)",
                 (w, p, r) =>
@@ -597,13 +622,23 @@ namespace Profiler.Tests
         [TestMethod]
         public void MethodFrameFormat_HighlightPointerStructWithSimpleField()
         {
+            var testClassWithPointerStructField = GetType().Assembly.GetType("Profiler.Tests.TestClassWithPointerStructField");
+            var testStructWithSimpleField = GetType().Assembly.GetType("Profiler.Tests.TestStructWithSimpleField");
+
             TestArg(
                 Class("TestClassWithPointerStructField",
-                    Ptr(
-                        Struct("TestStructWithSimpleField",
-                            Int32(5)
+                    new[]
+                    {
+                        Ptr(
+                            Struct("TestStructWithSimpleField",
+                                new[] { Int32(5) },
+                                testStructWithSimpleField.MetadataToken,
+                                GetModule(testStructWithSimpleField.Module)
+                            )
                         )
-                    )
+                    },
+                    testClassWithPointerStructField.MetadataToken,
+                    GetModule(testClassWithPointerStructField.Module)
                 ),
                 "void Methods.PointerStructField(<Yellow>TestClassWithPointerStructField.Field1->Field2=5</Yellow>)",
                 (w, p, r) =>

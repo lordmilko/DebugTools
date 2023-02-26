@@ -306,7 +306,7 @@ namespace Profiler.Tests
         public static IMockValue<Array> ArrayNull() => Array(CorElementType.End, null);
 
         public static IMockValue<object> Struct(string type, params IMockValue[] fieldValues) =>
-            Struct(type, fieldValues);
+            Struct(type, fieldValues, 0, 0);
 
         public static IMockValue<object> Struct(string type, IMockValue[] fieldValues, mdTypeDef typeDef, int uniqueModuleID)
         {

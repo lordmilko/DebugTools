@@ -269,7 +269,7 @@ namespace DebugTools.PowerShell
                 while (ptr.Value is PtrValue v)
                 {
                     ptr = v;
-                    ptrSig = (SigPtrType) ptrSig.PtrType;
+                    ptrSig = (SigPtrType) ptrSig?.PtrType;
                 }
 
                 if (ptr.Value is StructValue s)

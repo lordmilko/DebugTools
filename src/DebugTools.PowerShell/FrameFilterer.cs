@@ -27,6 +27,12 @@ namespace DebugTools.PowerShell
         private bool hasParentMethodFilter;
 
         private ConcurrentDictionary<IFrame, byte> includes;
+        private ConcurrentDictionary<IFrame, byte> calledFromFrames = new ConcurrentDictionary<IFrame, byte>();
+
+#if DEBUG
+        private int? maxDegreesOfParallelism = null;
+        //private int? maxDegreesOfParallelism = 1;
+#endif
 
         public List<IFrame> SortedFrames => includes.Keys.OrderBy(f => f.Sequence).ToList();
 
@@ -85,7 +91,14 @@ namespace DebugTools.PowerShell
 
             while (queue.Count > 0)
             {
-                DequeueAll(queue).AsParallel().ForAll(item =>
+                var query = DequeueAll(queue).AsParallel();
+
+#if DEBUG
+                if (maxDegreesOfParallelism != null)
+                    query = query.WithDegreeOfParallelism(maxDegreesOfParallelism.Value);
+#endif
+
+                query.ForAll(item =>
                 {
                     if (CheckFrame(item))
                         includes[item] = 0;
@@ -141,42 +154,48 @@ namespace DebugTools.PowerShell
             }
             else
             {
-                var hashSet = new HashSet<IFrame>();
-
-                var parents = sortedFrames.Select(s => s.Parent).Distinct().ToList();
-
-                foreach (var item in parents)
-                    hashSet.Add(item);
-
-                var toRemove = new List<IFrame>();
-
-                foreach (var parent in parents)
+                if (options.IsCalledFromOnly)
                 {
-                    var p = parent.Parent;
+                    newRoots.AddRange(calledFromFrames.Keys);
+                }
+                else
+                {
+                    var allParents = new HashSet<IFrame>();
 
-                    while (!(p is IRootFrame))
+                    foreach (var frame in sortedFrames)
                     {
-                        if (hashSet.Contains(p))
+                        var p = frame.Parent;
+
+                        var stackParents = new List<IFrame>();
+
+                        var topFrameIndex = -1;
+
+                        while (!(p is IRootFrame))
                         {
-                            toRemove.Add(parent);
-                            break;
+                            stackParents.Add(p);
+
+                            if (calledFromFrames.ContainsKey(p))
+                                topFrameIndex = stackParents.Count - 1;
+
+                            p = p.Parent;
                         }
 
-                        p = p.Parent;
+                        for (var i = 0; i <= topFrameIndex; i++)
+                            allParents.Add(stackParents[i]);
                     }
-                }
 
-                parents = hashSet.Except(toRemove).ToList();
+                    Dictionary<IFrame, IFrame> knownOriginalFrames;
 
-                if (options.Unique)
-                {
-                    var knownOriginalFrames = new Dictionary<IFrame, IFrame>(FrameEqualityComparer.Instance);
+                    if (options.Unique)
+                        knownOriginalFrames = new Dictionary<IFrame, IFrame>(FrameEqualityComparer.Instance);
+                    else
+                        knownOriginalFrames = new Dictionary<IFrame, IFrame>();
 
                     var dict = new Dictionary<IRootFrame, IRootFrame>();
 
-                    foreach (var frame in parents)
+                    foreach (var frame in calledFromFrames.Keys)
                     {
-                        var newFrame = GetNewFramesForCalledFrom((IMethodFrame) frame, null, parents, knownOriginalFrames);
+                        var newFrame = GetNewFramesForCalledFrom((IMethodFrame)frame, null, allParents, sortedFrames, knownOriginalFrames);
 
                         if (newFrame != null)
                         {
@@ -195,8 +214,6 @@ namespace DebugTools.PowerShell
 
                     newRoots = dict.Values.Cast<IFrame>().ToList();
                 }
-                else
-                    newRoots.AddRange(parents);
             }
 
             SortFrames(newRoots);
@@ -298,6 +315,7 @@ namespace DebugTools.PowerShell
         private IMethodFrame GetNewFramesForCalledFrom(
             IMethodFrame frame,
             IMethodFrame newParent,
+            HashSet<IFrame> parents,
             List<IFrame> originalSortedFrames,
             Dictionary<IFrame, IFrame> knownOriginalFrames)
         {
@@ -307,10 +325,13 @@ namespace DebugTools.PowerShell
 
                 foreach (var child in frame.Children)
                 {
-                    var newChild = GetNewFramesForCalledFrom(child, (IMethodFrame)newItem, originalSortedFrames, knownOriginalFrames);
-                    
-                    if (newChild != null)
-                        newItem.Children.Add(newChild);
+                    if (parents.Contains(child) || originalSortedFrames.Contains(child))
+                    {
+                        var newChild = GetNewFramesForCalledFrom(child, (IMethodFrame)newItem, parents, originalSortedFrames, knownOriginalFrames);
+
+                        if (newChild != null)
+                            newItem.Children.Add(newChild);
+                    }
                 }
 
                 knownOriginalFrames[frame] = newItem;
@@ -328,6 +349,8 @@ namespace DebugTools.PowerShell
 
         private bool ShouldInclude<T>(T frame, Func<T, WildcardPattern, bool> match) where T : IFrame
         {
+            bool result = false;
+
             if (options.Unmanaged)
             {
                 if (!(frame is IUnmanagedTransitionFrame))
@@ -336,6 +359,8 @@ namespace DebugTools.PowerShell
 
             if (hasMethodFilter && !TryFilterByMethod(frame))
                 return false;
+
+            IFrame calledFromFrame = null;
 
             if (calledFromWildcards != null)
             {
@@ -349,7 +374,10 @@ namespace DebugTools.PowerShell
                     if (parent is IMethodFrame f && parent is T)
                     {
                         if (calledFromWildcards.Any(w => match((T)parent, w)))
+                        {
+                            calledFromFrame = parent;
                             goto checkInclude;
+                        }
                     }
 
                     parent = parent.Parent;
@@ -359,11 +387,53 @@ namespace DebugTools.PowerShell
                 return false;
             }
 
-checkInclude:
+        checkInclude:
             if (includeWildcards == null)
-                return true;
+            {
+                result = true;
+                goto end;
+            }
 
-            return includeWildcards.Any(w => match(frame, w));
+            if (includeWildcards.Any(w => match(frame, w)))
+            {
+                result = true;
+                goto end;
+            }
+
+        end:
+            if (result && calledFromFrame != null)
+                calledFromFrames[calledFromFrame] = 0;
+
+            return result;
+        }
+
+        private bool ShouldExclude(IRootFrame root)
+        {
+            if (excludeWildcards == null)
+                return false;
+
+            return excludeWildcards.Any(e => e.IsMatch(root.ThreadName));
+        }
+
+        private bool ShouldExclude(IMethodFrame frame)
+        {
+            if (excludeWildcards == null)
+                return false;
+
+            return excludeWildcards.Any(e => e.IsMatch(frame.MethodInfo.MethodName) || e.IsMatch(frame.MethodInfo.TypeName));
+        }
+
+        private IEnumerable<IFrame> DequeueAll(ConcurrentQueue<IFrame> queue)
+        {
+            while (queue.Count > 0)
+            {
+                var result = queue.TryDequeue(out var frame);
+
+                if (result)
+                    yield return frame;
+                else
+                    yield break;
+            }
         }
 
         private bool TryFilterByMethod(IFrame frame)
@@ -471,6 +541,8 @@ checkInclude:
             if (ReferenceEquals(value, methodComponent))
                 MatchedValues[methodComponent] = 0;
         }
+
+        #region Match
 
         private bool MatchAny(IMethodFrameDetailed d, object value, object methodComponent, Action onSuccess)
         {
@@ -876,34 +948,7 @@ checkInclude:
             return false;
         }
 
-        private bool ShouldExclude(IRootFrame root)
-        {
-            if (excludeWildcards == null)
-                return false;
-
-            return excludeWildcards.Any(e => e.IsMatch(root.ThreadName));
-        }
-
-        private bool ShouldExclude(IMethodFrame frame)
-        {
-            if (excludeWildcards == null)
-                return false;
-
-            return excludeWildcards.Any(e => e.IsMatch(frame.MethodInfo.MethodName) || e.IsMatch(frame.MethodInfo.TypeName));
-        }
-
-        private IEnumerable<IFrame> DequeueAll(ConcurrentQueue<IFrame> queue)
-        {
-            while (queue.Count > 0)
-            {
-                var result = queue.TryDequeue(out var frame);
-
-                if (result)
-                    yield return frame;
-                else
-                    yield break;
-            }
-        }
+        #endregion
 
         public void Dispose()
         {

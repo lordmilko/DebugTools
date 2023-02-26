@@ -160,5 +160,9 @@ namespace Profiler.Tests
         public static void third(object a)
         {
         }
+
+        public static void fourth(object a)
+        {
+        }
     }
 }
