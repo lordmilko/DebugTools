@@ -5,7 +5,7 @@ using System.Management.Automation;
 namespace DebugTools.PowerShell.Cmdlets
 {
     [Cmdlet(VerbsCommon.Get, "ComObjectMethod")]
-    public class GetComObjectMethod : HostCmdlet
+    public class GetComObjectMethod : PSCmdlet
     {
         [Parameter(Mandatory = true, ValueFromPipeline = true)]
         public DbgVtblSymbolInfo DbgVtblSymbolInfo { get; set; }
@@ -13,9 +13,9 @@ namespace DebugTools.PowerShell.Cmdlets
         [Parameter(Mandatory = false, Position = 0)]
         public string[] Name { get; set; }
 
-        protected override void ProcessRecordEx()
+        protected override void ProcessRecord()
         {
-            IEnumerable<DbgSymbolInfo> methods = DbgVtblSymbolInfo.Methods;
+            IEnumerable<DbgMethodSymbolInfo> methods = DbgVtblSymbolInfo.Methods;
 
             if (Name != null)
             {

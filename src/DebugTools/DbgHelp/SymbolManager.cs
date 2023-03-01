@@ -24,14 +24,14 @@ namespace DebugTools
             Modules = GetModules();
         }
 
-        public DbgSymbolInfo GetSymbol(ulong address)
+        public SymbolAndModuleInfo GetSymbol(ulong address)
         {
             TryGetSymbol(address, out var result).ThrowOnNotOK();
 
             return result;
         }
 
-        public HRESULT TryGetSymbol(ulong address, out DbgSymbolInfo dbgSymbol)
+        public HRESULT TryGetSymbol(ulong address, out SymbolAndModuleInfo dbgSymbol)
         {
             /* DbgHelp tends not to comply as nicely as you'd like if you don't load every module immedaitely as part of SymInitialize. Even if loading
              * your modules later were reliable, this is still extremely slow when you have a lot of modules (like Visual Studio) or compiled *.ni.dll .NET executables
@@ -57,7 +57,7 @@ namespace DebugTools
                 return hr;
             }
 
-            dbgSymbol = new DbgSymbolInfo(result, module);
+            dbgSymbol = new SymbolAndModuleInfo(result, module);
             return HRESULT.S_OK;
         }
 
@@ -87,7 +87,9 @@ namespace DebugTools
             if (vtbl.Symbol.Displacement != 0)
                 return null;
 
-            var methods = new List<DbgSymbolInfo>();
+            var methods = new List<SymbolAndModuleInfo>();
+
+            //This gets us the methods of CSolution, but not each individual subinterface as we don't have the vtable address of these subinterfaces
 
             if (vtbl.Symbol.SymbolInfo.Size == 0)
             {

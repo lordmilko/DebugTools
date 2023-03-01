@@ -993,7 +993,13 @@ void Methods.second(""bbb"")
 
             var actual = output.ToStringAndClear();
 
-            Assert.AreEqual(expected.TrimStart(), actual);
+            //Expected string literal will be in a document with a specific CRLF format. Normalize to be Environment.NewLine
+            expected = string.Join(Environment.NewLine, expected.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries)) + Environment.NewLine;
+
+            expected = expected.TrimStart().Replace("\n", "\\n").Replace("\r", "\\r");
+            actual = actual.Replace("\n", "\\n").Replace("\r", "\\r"); ;
+
+            Assert.AreEqual(expected, actual);
         }
     }
 }

@@ -114,7 +114,7 @@ function Test-PowerShellPackageDefinition($config, $extractFolder)
 
     if($env:APPVEYOR)
     {
-        if($psd1.CmdletsToExport -eq "*" -or !($psd1.CmdletsToExport -contains "New-VsInstance"))
+        if($psd1.CmdletsToExport -eq "*" -or !($psd1.CmdletsToExport -contains "Start-DbgProfiler"))
         {
             throw "Module manifest was not updated to specify exported cmdlets"
         }
@@ -465,10 +465,13 @@ function Test-RedistributablePackage($config)
 
 function Test-RedistributablePackageContents($config, $extractFolder)
 {
-    $required = @(
-        "ClrDebug.dll"
+    $optional = @(
         "ClrDebug.pdb"
         "ClrDebug.xml"
+    )
+
+    $required = @(
+        "ClrDebug.dll"
         "DebugTools.cmd"
         "DebugTools.Format.ps1xml"
         "DebugTools.psd1"
@@ -505,7 +508,7 @@ function Test-RedistributablePackageContents($config, $extractFolder)
         "TraceReloggerLib.dll"
     )
 
-    Test-PackageContents $extractFolder $required
+    Test-PackageContents $extractFolder $required $optional
 }
 
 function Test-RedistributableModuleInstalls($config, $extractFolder)
@@ -563,7 +566,7 @@ function Extract-Package($package, $script)
     }
 }
 
-function Test-PackageContents($folder, $required)
+function Test-PackageContents($folder, $required, $optional = $null)
 {
     Write-LogInfo "`t`t`tValidating package contents"
 
@@ -628,6 +631,23 @@ function Test-PackageContents($folder, $required)
                 $found += $match
             }
         }
+    }
+
+    if ($optional)
+    {
+        $newIllegal = @()
+
+        foreach($item in $illegal)
+        {
+            $match = $optional | where { $item -like $_ }
+
+            if(!$match)
+            {
+                $newIllegal += $match
+            }
+        }
+
+        $illegal = $newIllegal
     }
 
     if($illegal)

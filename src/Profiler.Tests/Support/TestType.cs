@@ -80,6 +80,7 @@ namespace Profiler.Tests
         NullStringArg,
 
         ObjectArg,
+        ObjectArg_TraceDepth,
         GenericClassArg,
         GenericTwoTypeArgs,
         GenericValueTypeArg,
@@ -135,6 +136,7 @@ namespace Profiler.Tests
         #endregion
 
         StringArrayArg,
+        StringArrayArg_TraceDepth,
         EmptyStringArrayArg,
         ObjectArrayContainingStringArg,
 

@@ -144,7 +144,7 @@ namespace DebugTools.Host
 
                         if (regexes != null)
                         {
-                            if (!regexes.Any(r => rcwData.Interfaces.Any(i => r.IsMatch(i.Type.Name))))
+                            if (!regexes.Any(r => rcwData.Interfaces.Any(i => r.IsMatch(DbgVtblSymbolInfo.CleanInterfaceName(i.Type.Name)))))
                                 continue;
                         }
 

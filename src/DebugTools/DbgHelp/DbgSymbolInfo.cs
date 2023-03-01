@@ -1,27 +1,28 @@
-﻿using System;
-using ClrDebug;
+﻿using ClrDebug;
+using System;
 
 namespace DebugTools
 {
     [Serializable]
-    public class DbgSymbolInfo
+    public abstract class DbgSymbolInfo
     {
-        public SymFromAddrResult Symbol { get; }
-
         public SymbolModule Module { get; }
+
+        public SymFromAddrResult Symbol { get; }
 
         public CLRDATA_ADDRESS RVA { get; }
 
-        public DbgSymbolInfo(SymFromAddrResult symbol, SymbolModule module)
-        {
-            Symbol = symbol;
-            Module = module;
-            RVA = symbol.SymbolInfo.Address + (ulong )symbol.Displacement - Module.Start;
-        }
+        public CLRDATA_ADDRESS LoadedAddress { get; }
 
-        public override string ToString()
+        public CLRDATA_ADDRESS OriginalAddress { get; }
+
+        protected DbgSymbolInfo(SymbolAndModuleInfo symbolAndModule)
         {
-            return $"{Module}!{Symbol}";
+            Symbol = symbolAndModule.Symbol;
+            Module = symbolAndModule.Module;
+            RVA = symbolAndModule.RVA;
+            LoadedAddress = symbolAndModule.Module.Start + RVA;
+            OriginalAddress = symbolAndModule.Module.OriginalBase + RVA;
         }
     }
 }
