@@ -89,7 +89,7 @@ Things you can do with the DebugTools Profiler
 
 Note: DebugTools Profiler does *not* currently support multiple appdomains. To what extent the profiler can be used against an application utilizing multiple appdomains is untested and unknown.
 
-For more information on using the DebugTools Profiler, please see the wiki.
+For more information on using the DebugTools Profiler, please see the [wiki](https://github.com/lordmilko/DebugTools/wiki).
 
 ## SOS
 
@@ -100,7 +100,7 @@ Actions you can perform using DebugTools' SOS cmdlets include
 * Enumerate AppDomains, Assemblies, Modules, MethodTables, MethodDescs and FieldDescs
 * Show a live stack trace (will pause and then resume the target process)
 
-For more information please see the wiki.
+For more information please see the [wiki](https://github.com/lordmilko/DebugTools/wiki).
 
 ## COM
 

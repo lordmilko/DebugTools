@@ -561,8 +561,11 @@ namespace DebugTools.Profiler
 
         private void WithTracing(Action action)
         {
-            if (Process.HasExited)
+            if (Process != null && Process.HasExited)
                 return;
+
+            if (traceCTS.IsCancellationRequested)
+                traceCTS = new CancellationTokenSource();
 
             ThreadCache.Clear();
 
@@ -579,7 +582,7 @@ namespace DebugTools.Profiler
             }
             finally
             {
-                if (!Process.HasExited)
+                if (Process != null && !Process.HasExited)
                     ExecuteCommand(MessageType.EnableTracing, false);
             }
         }
@@ -626,7 +629,22 @@ namespace DebugTools.Profiler
         public void ExecuteCommand(MessageType messageType, object value)
         {
             if (pipe == null)
+            {
+                var original = Console.ForegroundColor;
+
+                try
+                {
+                    Console.ForegroundColor = ConsoleColor.Yellow;
+
+                    Console.WriteLine("WARNING: Communication Pipe not active. Only startup profiling will be captured");
+                }
+                finally
+                {
+                    Console.ForegroundColor = original;
+                }
+
                 return;
+            }
 
             var buffer = new byte[1004];
 
