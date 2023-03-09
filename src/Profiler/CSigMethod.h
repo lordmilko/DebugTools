@@ -64,6 +64,8 @@ public:
     {
         m_NumGenericTypeArgNames = numGenericArgNames;
         m_GenericTypeArgNames = genericTypeArgNames;
+
+        m_CanonicalType = nullptr;
     }
 
     ~CSigMethodDef();
