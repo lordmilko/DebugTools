@@ -162,7 +162,7 @@ public:
     ~CValueTracer()
     {
         if (m_MethodGenericTypeArgs)
-            delete m_MethodGenericTypeArgs;
+            delete[] m_MethodGenericTypeArgs;
     }
 
     static HRESULT Initialize(ICorProfilerInfo3* pInfo);

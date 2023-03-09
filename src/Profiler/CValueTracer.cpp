@@ -999,10 +999,10 @@ ErrExit:
     m_TraceDepth++;
 
     if (dimensionSizes)
-        delete dimensionSizes;
+        delete[] dimensionSizes;
 
     if (dimensionLowerBounds)
-        delete dimensionLowerBounds;
+        delete[] dimensionLowerBounds;
 
     return hr;
 }
@@ -1268,7 +1268,7 @@ HRESULT CValueTracer::GetClassId(
 
 ErrExit:
     if (typeArgIds != nullptr)
-        delete typeArgIds;
+        delete[] typeArgIds;
 
     return hr;
 }

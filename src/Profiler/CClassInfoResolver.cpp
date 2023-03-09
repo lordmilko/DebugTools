@@ -111,7 +111,7 @@ HRESULT CClassInfoResolver::GetMethodTypeArgsAndContainingClass(
 
 ErrExit:
     if (typeArgs)
-        delete typeArgs;
+        delete[] typeArgs;
 
     return hr;
 }

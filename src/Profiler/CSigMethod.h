@@ -37,7 +37,7 @@ public:
             for (ULONG i = 0; i < m_NumParameters; i++)
                 m_Parameters[i]->Release();
 
-            delete m_Parameters;
+            delete[] m_Parameters;
         }
     }
 
@@ -98,7 +98,7 @@ public:
         for (ULONG i = 0; i < m_NumVarArgParameters; i++)
             m_VarArgParameters[i]->Release();
 
-        delete m_VarArgParameters;
+        delete[] m_VarArgParameters;
     }
 
     ULONG m_NumVarArgParameters;

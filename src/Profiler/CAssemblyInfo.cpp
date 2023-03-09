@@ -22,7 +22,7 @@ CAssemblyInfo::~CAssemblyInfo()
         for (ULONG i = 0; i < m_NumModules; i++)
             m_Modules[i]->Release();
 
-        delete m_Modules;
+        delete[] m_Modules;
     }
 }
 
@@ -78,7 +78,7 @@ void CAssemblyInfo::RemoveModule(CModuleInfo* pModuleInfo)
     {
         if (m_NumModules)
         {
-            delete m_Modules;
+            delete[] m_Modules;
             m_Modules = nullptr;
         }
         else

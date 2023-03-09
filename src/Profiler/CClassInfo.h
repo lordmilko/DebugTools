@@ -60,14 +60,14 @@ public:
             for (ULONG i = 0; i < m_NumFields; i++)
                 m_Fields[i]->Release();
 
-            delete m_Fields;
+            delete[] m_Fields;
         }
 
         if (m_FieldOffsets)
-            delete m_FieldOffsets;
+            delete[] m_FieldOffsets;
 
         if (m_GenericTypeArgs)
-            delete m_GenericTypeArgs;
+            delete[] m_GenericTypeArgs;
     }
 
     LPWSTR m_szName;

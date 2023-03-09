@@ -173,7 +173,7 @@ public:
             for (ULONG i = 0; i < m_NumGenericArgs; i++)
                 m_GenericArgs[i]->Release();
 
-            delete m_GenericArgs;
+            delete[] m_GenericArgs;
         }
     }
 

@@ -1194,14 +1194,14 @@ ErrExit:
                 fields[i]->Release();
             }
 
-            delete fields;
+            delete[] fields;
         }
 
         if (typeArgs)
-            delete typeArgs;
+            delete[] typeArgs;
 
         if (rFieldOffset)
-            delete rFieldOffset;
+            delete[] rFieldOffset;
 
         if (pElementType)
             pElementType->Release();

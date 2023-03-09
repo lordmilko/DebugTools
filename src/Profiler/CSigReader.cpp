@@ -46,7 +46,7 @@ ErrExit:
                 newParameters[i] = parameters[i];
 
             newParameters[numParameters] = new SigArgListParameter();
-            delete parameters;
+            delete[] parameters;
             parameters = newParameters;
             numParameters++;
         }
@@ -85,7 +85,7 @@ ErrExit:
                 parameters[i]->Release();
             }
 
-            delete parameters;
+            delete[] parameters;
         }
 
         if (retType)
@@ -159,7 +159,7 @@ HRESULT CSigReader::ParseSigMethodParams(
             for (ULONG j = 0; j < i; j++)
                 newParameters[j] = ppParameters[j];
 
-            delete ppParameters;
+            delete[] ppParameters;
             ppParameters = newParameters;
 
             ppVarArgParameters = new ISigParameter*[sigParamCount - i];
@@ -194,14 +194,14 @@ ErrExit:
             ppParameters[i]->Release();
         }
 
-        delete ppParameters;
+        delete[] ppParameters;
 
         if (ppVarArgParameters)
         {
             for (ULONG j = 0; j < *numVarArgParameters; j++)
                 ppVarArgParameters[j]->Release();
 
-            delete ppVarArgParameters;
+            delete[] ppVarArgParameters;
         }
     }
 

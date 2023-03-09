@@ -54,7 +54,7 @@ public:
     ~CTypeIdentifier()
     {
         if (m_TypeArgs && m_OwnsArray)
-            delete m_TypeArgs;
+            delete[] m_TypeArgs;
     }
 
     ModuleID m_ModuleID;

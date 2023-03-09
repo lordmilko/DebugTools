@@ -379,7 +379,7 @@ ErrExit:
         for (ULONG j = 0; j < i; j++)
             genericArgs[j]->Release();
 
-        delete genericArgs;
+        delete[] genericArgs;
     }
 
     return hr;
