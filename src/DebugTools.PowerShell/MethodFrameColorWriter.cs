@@ -108,10 +108,10 @@ namespace DebugTools.PowerShell
                 {
                     case FrameTokenKind.Parameter:
                         var index = parameters.IndexOf(value);
-                        return sigMethod.Parameters[index].Type;
+                        return UnwrapSigType(sigMethod.Parameters[index].Type);
 
                     case FrameTokenKind.ReturnValue:
-                        return sigMethod.RetType;
+                        return UnwrapSigType(sigMethod.RetType);
 
                     default:
                         throw new NotImplementedException($"Don't know how to handle {nameof(FrameTokenKind)} '{kind}'.");
@@ -119,6 +119,17 @@ namespace DebugTools.PowerShell
             }
 
             return null;
+        }
+
+        private SigType UnwrapSigType(SigType type)
+        {
+            if (type is SigRefType refType)
+                return UnwrapSigType(refType.InnerType);
+
+            if (type is SigModType modType)
+                return UnwrapSigType(modType.InnerType);
+
+            return type;
         }
 
         private void HighlightValue(object value, SigType sigType)

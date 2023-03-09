@@ -14,19 +14,7 @@ HRESULT CSigType::New(
 
     CorElementType elementType = CorSigUncompressElementType(reader.m_pSigBlob);
 
-    while (true)
-    {
-        if (elementType == ELEMENT_TYPE_CMOD_OPT || elementType == ELEMENT_TYPE_CMOD_REQD)
-        {
-            //Read the modifier
-            CorSigUncompressToken(reader.m_pSigBlob);
-
-            //Read the real type (or next modifier) which follows
-            elementType = CorSigUncompressElementType(reader.m_pSigBlob);
-        }
-        else
-            break;
-    }
+    ReadCustomModifiers(reader, elementType);
 
     BOOL isByRef = FALSE;
 
@@ -35,6 +23,12 @@ HRESULT CSigType::New(
         isByRef = TRUE;
         elementType = CorSigUncompressElementType(reader.m_pSigBlob);
     }
+
+    //According to ECMA 335, it should be impossible for CMOD_REQD or CMOD_OPT to follow BYREF. However, in practice, we have seen exactly this
+    //with DbgShell's WDebugSystemObjects::GetCurrentSystemId method. As per the following addendum to ECMA 335, it is in fact possible for
+    //BYREF to come before custom modifiers
+    //https://github.com/dotnet/runtime/blob/main/docs/design/specs/Ecma-335-Augments.md#4-byref-can-come-before-custom-modifiers
+    ReadCustomModifiers(reader, elementType);
 
     switch (elementType)
     {
@@ -153,6 +147,23 @@ ErrExit:
     }
 
     return hr;
+}
+
+void CSigType::ReadCustomModifiers(CSigReader& reader, CorElementType& elementType)
+{
+    while (true)
+    {
+        if (elementType == ELEMENT_TYPE_CMOD_OPT || elementType == ELEMENT_TYPE_CMOD_REQD)
+        {
+            //Read the modifier
+            CorSigUncompressToken(reader.m_pSigBlob);
+
+            //Read the real type (or next modifier) which follows
+            elementType = CorSigUncompressElementType(reader.m_pSigBlob);
+        }
+        else
+            break;
+    }
 }
 
 HRESULT CSigType::GetName(

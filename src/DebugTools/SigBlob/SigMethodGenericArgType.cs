@@ -11,7 +11,7 @@ namespace DebugTools
 
         public int Index { get; }
 
-        public SigMethodGenericArgType(CorElementType type, bool isByRef, mdToken[] modifiers, ref SigReader reader) : base(type, isByRef, modifiers)
+        public SigMethodGenericArgType(CorElementType type, ref SigReader reader) : base(type)
         {
             Index = reader.CorSigUncompressData();
 

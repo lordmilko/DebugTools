@@ -232,8 +232,17 @@ namespace DebugTools.Profiler
 
             if ((uint) args.HRESULT >= 0x80041001 && (uint) args.HRESULT <= 0x80042000)
             {
-                return;
-                //throw new ProfilerException((PROFILER_HRESULT)(uint)args.HRESULT);
+                switch((PROFILER_HRESULT) args.HRESULT)
+                {
+                    case PROFILER_HRESULT.PROFILER_E_BUFFERFULL:
+                    case PROFILER_HRESULT.PROFILER_E_GENERICCLASSID:
+                    case PROFILER_HRESULT.PROFILER_E_UNKNOWN_GENERIC_ARRAY:
+                    case PROFILER_HRESULT.PROFILER_E_NO_CLASSID:
+                        break;
+
+                    default:
+                        throw new ProfilerException((PROFILER_HRESULT)(uint)args.HRESULT);
+                }
             }
 
             switch (args.HRESULT)

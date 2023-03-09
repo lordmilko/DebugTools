@@ -806,10 +806,12 @@ UINT_PTR __stdcall CCorProfilerCallback::RecordFunction(FunctionID funcId, void*
 
         CSigReader reader(methodDef, pMDI, pSigBlob);
 
-        if (reader.ParseMethod(g_szMethodName, TRUE, (CSigMethod**)&method) == S_OK)
-        {
-            method->m_ModuleID = moduleId;
+        IfFailGo(reader.ParseMethod(g_szMethodName, TRUE, (CSigMethod**)&method));
 
+        method->m_ModuleID = moduleId;
+
+        //Lock scope
+        {
             CLock methodMutex(&g_pProfiler->m_MethodMutex, true);
 
             g_pProfiler->m_MethodInfoMap[funcId] = method;

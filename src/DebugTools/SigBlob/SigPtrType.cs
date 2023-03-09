@@ -6,7 +6,7 @@ namespace DebugTools
     {
         public SigType PtrType { get; }
 
-        public SigPtrType(CorElementType type, bool isByRef, mdToken[] modifiers, ref SigReader reader) : base(type, isByRef, modifiers)
+        public SigPtrType(CorElementType type, ref SigReader reader) : base(type)
         {
             PtrType = New(ref reader);
         }

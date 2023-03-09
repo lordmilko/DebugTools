@@ -8,7 +8,7 @@ namespace DebugTools
 
         public mdToken Token { get; }
 
-        public SigClassType(CorElementType type, bool isByRef, mdToken[] modifiers, ref SigReader reader) : base(type, isByRef, modifiers)
+        public SigClassType(CorElementType type, ref SigReader reader) : base(type)
         {
             Token = reader.CorSigUncompressToken();
             Name = GetName(Token, reader.Import);

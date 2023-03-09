@@ -7,7 +7,7 @@ namespace DebugTools
     {
         public SigMethod Method { get; }
 
-        public SigFnPtrType(CorElementType type, bool isByRef, mdToken[] modifiers, ref SigReader reader) : base(type, isByRef, modifiers)
+        public SigFnPtrType(CorElementType type, ref SigReader reader) : base(type)
         {
             Method = reader.ParseMethod("delegate*", false);
         }

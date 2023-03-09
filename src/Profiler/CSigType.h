@@ -35,6 +35,9 @@ public:
 
     CorElementType m_Type;
     BOOL m_IsByRef;
+
+private:
+    static void ReadCustomModifiers(CSigReader& reader, CorElementType& elementType);
 };
 
 class ISigArrayType : public CSigType

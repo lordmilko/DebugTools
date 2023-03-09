@@ -12,7 +12,7 @@ namespace DebugTools
 
         public SigType[] GenericArgs { get; }
 
-        public SigGenericType(CorElementType type, bool isByRef, mdToken[] modifiers, ref SigReader reader) : base(type, isByRef, modifiers)
+        public SigGenericType(CorElementType type, ref SigReader reader) : base(type)
         {
             GenericTypeDefinitionToken = reader.CorSigUncompressToken();
             GenericTypeDefinitionName = GetName(GenericTypeDefinitionToken, reader.Import);

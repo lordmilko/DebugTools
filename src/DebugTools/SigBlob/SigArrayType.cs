@@ -17,7 +17,7 @@ namespace DebugTools
 
         public int[] LowerBounds { get; }
 
-        public SigArrayType(CorElementType type, bool isByRef, mdToken[] modifiers, ref SigReader reader) : base(type, isByRef, modifiers)
+        public SigArrayType(CorElementType type, ref SigReader reader) : base(type)
         {
             ElementType = New(ref reader);
 

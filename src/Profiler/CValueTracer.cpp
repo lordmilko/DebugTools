@@ -63,7 +63,7 @@ HRESULT CValueTracer::EnterWithInfo(FunctionIDOrClientID functionId, COR_PRF_ELT
     IClassInfo* pMethodClassInfo = nullptr;
 
     CLock methodLock(&g_pProfiler->m_MethodMutex);
-    IfFailRet(GetMethodInfoNoLock(functionId, &pMethod));
+    IfFailGo(GetMethodInfoNoLock(functionId, &pMethod));
 
     if (pMethod->m_NumParameters == 0)
     {
@@ -144,7 +144,7 @@ HRESULT CValueTracer::LeaveWithInfo(FunctionIDOrClientID functionId, COR_PRF_ELT
 
     CLock methodLock(&g_pProfiler->m_MethodMutex);
 
-    IfFailRet(GetMethodInfoNoLock(functionId, &pMethod));
+    IfFailGo(GetMethodInfoNoLock(functionId, &pMethod));
 
     pType = pMethod->m_pRetType;
 
@@ -198,7 +198,8 @@ HRESULT CValueTracer::TailcallWithInfo(FunctionIDOrClientID functionId, COR_PRF_
 
     CLock methodLock(&g_pProfiler->m_MethodMutex);
 
-    IfFailRet(GetMethodInfoNoLock(functionId, &pMethod));
+    //HRESULT needs to be reported to profiler controller
+    hr = GetMethodInfoNoLock(functionId, &pMethod);
 
     ValidateETW(EventWriteTailcallDetailedEvent(functionId.functionID, g_Sequence, hr, 0, NULL));
 
@@ -1849,10 +1850,10 @@ HRESULT CValueTracer::GetMethodInfoNoLock(FunctionIDOrClientID functionId, _Out_
 
     if (match == g_pProfiler->m_MethodInfoMap.end())
     {
+        dprintf(L"Unknown func " FORMAT_PTR " called\n", functionId.functionID);
         DebugBreakSafe();
 
-        dprintf(L"Unknown func " FORMAT_PTR " called\n", functionId.functionID);
-        return E_FAIL;
+        return PROFILER_E_UNKNOWN_METHOD;
     }
 
     CSigMethodDef* pMethod = match->second;

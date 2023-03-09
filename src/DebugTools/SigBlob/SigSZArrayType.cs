@@ -9,7 +9,7 @@ namespace DebugTools
     {
         public SigType ElementType { get; }
 
-        public SigSZArrayType(CorElementType type, bool isByRef, mdToken[] modifiers, ref SigReader reader) : base(type, isByRef, modifiers)
+        public SigSZArrayType(CorElementType type, ref SigReader reader) : base(type)
         {
             ElementType = New(ref reader);
         }
