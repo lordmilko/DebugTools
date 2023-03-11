@@ -8,10 +8,12 @@ namespace DebugTools.Profiler
         public static readonly MethodFrameFormatter WithoutNamespace = new MethodFrameFormatter(true);
 
         private bool excludeNamespace;
+        private bool includeSequence;
 
-        public MethodFrameFormatter(bool excludeNamespace)
+        public MethodFrameFormatter(bool excludeNamespace, bool includeSequence = false)
         {
             this.excludeNamespace = excludeNamespace;
+            this.includeSequence = includeSequence;
         }
 
         public void Format(IFrame frame, IMethodFrameWriter writer)
@@ -64,6 +66,8 @@ namespace DebugTools.Profiler
                 }
 
                 writer.Write(")", frame, FrameTokenKind.CloseParen);
+
+                WriteSequence(d, writer);
             }
             else if (frame is IMethodFrame m)
             {
@@ -87,9 +91,23 @@ namespace DebugTools.Profiler
                         .Write(".", frame, FrameTokenKind.Dot)
                         .Write(info.MethodName, frame, FrameTokenKind.MethodName);
                 }
+
+                WriteSequence(m, writer);
             }
             else
                 throw new NotImplementedException($"Don't know how to handle frame of type '{frame}'.");
+        }
+
+        private void WriteSequence(IMethodFrame frame, IMethodFrameWriter writer)
+        {
+            if (!includeSequence)
+                return;
+
+            writer
+                .Write(" ", frame, FrameTokenKind.Space)
+                .Write("(", frame, FrameTokenKind.OpenParen)
+                .Write(frame.Sequence, frame, FrameTokenKind.Sequence)
+                .Write(")", frame, FrameTokenKind.CloseParen);
         }
 
         private string GetTypeName(string name)

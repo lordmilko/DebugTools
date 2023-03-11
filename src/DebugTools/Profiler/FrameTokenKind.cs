@@ -22,5 +22,7 @@
 
         FunctionId,
         FrameKind,
+
+        Sequence
     }
 }

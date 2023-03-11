@@ -21,6 +21,9 @@ namespace DebugTools.PowerShell.Cmdlets
         [Parameter(Mandatory = false)]
         public SwitchParameter ExcludeNamespace { get; set; }
 
+        [Parameter(Mandatory = false)]
+        public SwitchParameter IncludeSequence { get; set; }
+
         private WildcardPattern[] highlightMethodNameWildcards;
 
         private List<IFrame> frames = new List<IFrame>();
@@ -59,7 +62,7 @@ namespace DebugTools.PowerShell.Cmdlets
             else
                 outputFrames = frames;
 
-            var methodFrameFormatter = new MethodFrameFormatter(ExcludeNamespace);
+            var methodFrameFormatter = new MethodFrameFormatter(ExcludeNamespace, IncludeSequence);
             var methodFrameWriter = new MethodFrameColorWriter(methodFrameFormatter, output, Session.Modules)
             {
                 HighlightValues = filter?.MatchedValues,
