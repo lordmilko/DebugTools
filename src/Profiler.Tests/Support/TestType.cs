@@ -172,7 +172,8 @@ namespace Profiler.Tests
     {
         NoArgs,
         SingleChild,
-        TwoChildren
+        TwoChildren,
+        Async
     }
 
     enum ExceptionTestType

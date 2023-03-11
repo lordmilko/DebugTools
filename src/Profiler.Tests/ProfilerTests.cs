@@ -43,6 +43,15 @@ namespace Profiler.Tests
             }, ProfilerSetting.Detailed);
         }
 
+        [TestMethod]
+        public void Profiler_Async()
+        {
+            Test(ProfilerTestType.Async, v =>
+            {
+                v.HasFrame("Async");
+            });
+        }
+
         internal void Test(ProfilerTestType type, Action<Validator> validate, params ProfilerSetting[] settings) =>
             TestInternal(TestType.Profiler, type.ToString(), validate, settings);
     }

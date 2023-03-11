@@ -1,4 +1,5 @@
 ﻿using System.Runtime.CompilerServices;
+using System.Threading.Tasks;
 
 namespace DebugTools.TestHost
 {
@@ -35,6 +36,12 @@ namespace DebugTools.TestHost
         [MethodImpl(MethodImplOptions.NoInlining)]
         public void TwoChildren2()
         {
+        }
+
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        public async Task Async()
+        {
+            await Task.Delay(100);
         }
     }
 }

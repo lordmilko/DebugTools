@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Threading;
+using System.Threading.Tasks;
 using Profiler.Tests;
 
 namespace DebugTools.TestHost
@@ -831,6 +832,10 @@ namespace DebugTools.TestHost
                     instance.TwoChildren();
                     break;
 
+                case ProfilerTestType.Async:
+                    Task.Run(async () => await instance.Async()).Wait();
+                    break;
+
                 default:
                     Debug.WriteLine($"Don't know how to run profiler test '{test}'");
                     Environment.Exit(2);
@@ -935,6 +940,7 @@ namespace DebugTools.TestHost
                 case ExceptionTestType.UntracedThread:
                     instance.UntracedThread();
                     break;
+
                 default:
                     Debug.WriteLine($"Don't know how to run profiler test '{test}'");
                     Environment.Exit(2);
