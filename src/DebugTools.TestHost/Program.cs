@@ -932,6 +932,9 @@ namespace DebugTools.TestHost
                     instance.ThrownInFilterThatUnwindsOneFrameAndNotCaught();
                     break;
 
+                case ExceptionTestType.UntracedThread:
+                    instance.UntracedThread();
+                    break;
                 default:
                     Debug.WriteLine($"Don't know how to run profiler test '{test}'");
                     Environment.Exit(2);

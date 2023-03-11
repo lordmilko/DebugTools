@@ -3,6 +3,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+using System.Xml.Linq;
 
 namespace DebugTools.TestHost
 {
@@ -46,6 +47,7 @@ namespace DebugTools.TestHost
             }
         }
 
+        [MethodImpl(MethodImplOptions.NoInlining)]
         private void UnwindOneFrame2()
         {
             throw new NotImplementedException("Error Message");
@@ -135,6 +137,7 @@ namespace DebugTools.TestHost
             }
         }
 
+        [MethodImpl(MethodImplOptions.NoInlining)]
         private void Nested_InnerException_UnwindToInnerHandler_InDeeperFrameThanOuterCatch2()
         {
             try
@@ -146,6 +149,7 @@ namespace DebugTools.TestHost
             }
         }
 
+        [MethodImpl(MethodImplOptions.NoInlining)]
         private void Nested_InnerException_UnwindToInnerHandler_InDeeperFrameThanOuterCatch3()
         {
             throw new InvalidOperationException();
@@ -201,6 +205,7 @@ namespace DebugTools.TestHost
             }
         }
 
+        [MethodImpl(MethodImplOptions.NoInlining)]
         private void Nested_UnwindOneFrameFromThrowInCatch2()
         {
             try
@@ -241,11 +246,13 @@ namespace DebugTools.TestHost
             }
         }
 
+        [MethodImpl(MethodImplOptions.NoInlining)]
         private void Nested_UnwindTwoFramesFromThrowInCatch2()
         {
             Nested_UnwindTwoFramesFromThrowInCatch3();
         }
 
+        [MethodImpl(MethodImplOptions.NoInlining)]
         private void Nested_UnwindTwoFramesFromThrowInCatch3()
         {
             try
@@ -331,6 +338,7 @@ namespace DebugTools.TestHost
             }
         }
 
+        [MethodImpl(MethodImplOptions.NoInlining)]
         private void Nested_ThrownInFinallyAndUnwindOneFrame2()
         {
             try
@@ -364,11 +372,13 @@ namespace DebugTools.TestHost
             }
         }
 
+        [MethodImpl(MethodImplOptions.NoInlining)]
         private void Nested_ThrownInFinallyAndUnwindTwoFrames2()
         {
             Nested_ThrownInFinallyAndUnwindTwoFrames3();
         }
 
+        [MethodImpl(MethodImplOptions.NoInlining)]
         private void Nested_ThrownInFinallyAndUnwindTwoFrames3()
         {
             try
@@ -412,6 +422,7 @@ namespace DebugTools.TestHost
             }
         }
 
+        [MethodImpl(MethodImplOptions.NoInlining)]
         private void NoCatchThrowWithFinallyUnwindOneFrame2()
         {
             try
@@ -457,6 +468,7 @@ namespace DebugTools.TestHost
             }
         }
 
+        [MethodImpl(MethodImplOptions.NoInlining)]
         private void NoCatchThrowInFinallyUnwindOneFrame2()
         {
             try
@@ -548,6 +560,7 @@ namespace DebugTools.TestHost
             Debug.WriteLine($"Completed with {hr:X}");
         }
 
+        [MethodImpl(MethodImplOptions.NoInlining)]
         private void TypeDefToModuleCallback(int index, ulong methodtable, IntPtr token)
         {
             //This generates unmanaged/managed transition events, so it should be commented out when verifying the events that occur
@@ -555,6 +568,7 @@ namespace DebugTools.TestHost
             throw new NotImplementedException("Error Message 1");
         }
 
+        [MethodImpl(MethodImplOptions.NoInlining)]
         private ISOSDacInterface GetSOSDacInterface()
         {
             var dataTarget = new DataTarget(Process.GetCurrentProcess());
@@ -566,6 +580,7 @@ namespace DebugTools.TestHost
             return (ISOSDacInterface)iface;
         }
 
+        [MethodImpl(MethodImplOptions.NoInlining)]
         private static CLRDataCreateInstanceDelegate GetCLRDataCreateInstance()
         {
             /* We need to create a ClrDataAccess object (IXCLRDataProcess/ISOSDacInterface) from mscordacwks.dll.
@@ -632,6 +647,7 @@ namespace DebugTools.TestHost
             }
         }
 
+        [MethodImpl(MethodImplOptions.NoInlining)]
         private void CallFunctionInCatchAndThrow2()
         {
             throw new InvalidOperationException("Error Message 2");
@@ -653,6 +669,7 @@ namespace DebugTools.TestHost
             }
         }
 
+        [MethodImpl(MethodImplOptions.NoInlining)]
         private bool FilterThatCatches()
         {
             try
@@ -699,6 +716,7 @@ namespace DebugTools.TestHost
             }
         }
 
+        [MethodImpl(MethodImplOptions.NoInlining)]
         private bool FilterThatThrows()
         {
             throw new ArgumentException();
@@ -737,11 +755,27 @@ namespace DebugTools.TestHost
             }
         }
 
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        public void UntracedThread()
+        {
+            try
+            {
+                var doc = new XDocument();
+
+                throw new NotImplementedException("Error Message " + doc);
+            }
+            catch (NotImplementedException)
+            {
+            }
+        }
+
+        [MethodImpl(MethodImplOptions.NoInlining)]
         private bool FilterThatThrowsAndUnwinds1()
         {
             return FilterThatThrowsAndUnwinds2();
         }
 
+        [MethodImpl(MethodImplOptions.NoInlining)]
         private bool FilterThatThrowsAndUnwinds2()
         {
             throw new ArgumentException();

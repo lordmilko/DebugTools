@@ -27,9 +27,19 @@
             return new ProfilerSetting(ProfilerEnvFlags.ModuleBlacklist, collection);
         }
 
+        public static ProfilerSetting ModuleBlacklist(MatchKind kind, string value)
+        {
+            return ModuleBlacklist(new MatchCollection {{kind, value}});
+        }
+
         public static ProfilerSetting ModuleWhitelist(MatchCollection collection)
         {
             return new ProfilerSetting(ProfilerEnvFlags.ModuleWhitelist, collection);
+        }
+
+        public static ProfilerSetting ModuleWhitelist(MatchKind kind, string value)
+        {
+            return ModuleWhitelist(new MatchCollection { { kind, value } });
         }
 
         public static ProfilerSetting TraceValueDepth(int valueDepth)

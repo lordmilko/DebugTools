@@ -209,7 +209,9 @@ namespace Profiler.Tests
 
         //If the nested exception occurred within a filter, and escapes the filter, the filter will be considered to return "false" and the first pass will continue.
         ThrownInFilterAndNotCaught,
-        ThrownInFilterThatUnwindsOneFrameAndNotCaught
+        ThrownInFilterThatUnwindsOneFrameAndNotCaught,
+
+        UntracedThread
     }
 
     enum BlacklistTestType

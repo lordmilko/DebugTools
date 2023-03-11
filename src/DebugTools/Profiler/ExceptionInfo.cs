@@ -14,11 +14,19 @@ namespace DebugTools.Profiler
 
         public ExceptionStatus Status { get; set; }
 
-        public IMethodFrame ThrownFrame { get; }
+        /// <summary>
+        /// Gets the frame that the exception was thrown from. If the exception was thrown on a frame that is ignored by the profiler, this will be the parent frame that is traced,
+        /// or the <see cref="IRootFrame"/> if no higher frames exist on the thread.
+        /// </summary>
+        public IFrame ThrownFrame { get; }
 
-        public IMethodFrame HandledFrame { get; internal set; }
+        /// <summary>
+        /// Gets the frame that the exception was handled in. If the exception was thrown on a frame that is ignored by the profiler, this will be the parent frame that is traced,
+        /// or the <see cref="IRootFrame"/> if no higher frames exist on the thread.
+        /// </summary>
+        public IFrame HandledFrame { get; internal set; }
 
-        public ExceptionInfo(ExceptionArgs args, int threadId, IMethodFrame thrownFrame)
+        public ExceptionInfo(ExceptionArgs args, int threadId, IFrame thrownFrame)
         {
             Type = args.Type;
             Sequence = args.Sequence;

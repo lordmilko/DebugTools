@@ -199,6 +199,13 @@ namespace Profiler.Tests
                 v.HasException(2, "System.TimeoutException", ExceptionStatus.Caught);
             });
 
+        [TestMethod]
+        public void Exception_UntracedThread() =>
+            Test(ExceptionTestType.UntracedThread, v =>
+            {
+                v.HasException("System.NotImplementedException", ExceptionStatus.Caught);
+            }, ProfilerSetting.ModuleBlacklist(MatchKind.All, string.Empty), ProfilerSetting.ModuleWhitelist(MatchKind.ModuleName, "System.Xml.Linq.dll"));
+
         internal void Test(ExceptionTestType type, Action<ExceptionVerifier> validate, params ProfilerSetting[] settings)
         {
             TestInternal(TestType.Exception, type.ToString(), v => validate(new ExceptionVerifier(v.ThreadStacks.Single().Exceptions.Values.ToArray(), v)), settings);

@@ -141,7 +141,7 @@ namespace DebugTools.Profiler
 
         public void Exception(ExceptionArgs args)
         {
-            Exceptions[args.Sequence] = new ExceptionInfo(args, ThreadId, (IMethodFrame) Current);
+            Exceptions[args.Sequence] = new ExceptionInfo(args, ThreadId, Current);
         }
 
         internal void ExceptionFrameUnwind(CallArgs args, IMethodInfoInternal method)
@@ -170,7 +170,7 @@ namespace DebugTools.Profiler
             if (Exceptions.TryGetValue(args.Sequence, out var exception))
             {
                 exception.Status = args.Reason;
-                exception.HandledFrame = (IMethodFrame) Current;
+                exception.HandledFrame = Current;
             }
         }
 
