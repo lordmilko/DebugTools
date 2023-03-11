@@ -30,9 +30,9 @@ namespace Profiler.Tests
 
             TestStack(options, tree, @"
 1000
-└─void Methods.first(""aaa"")
-  ├─void Methods.second(true)
-  └─void Methods.second(false)
+└─<Green>void Methods.first(""aaa"")</Green>
+  ├─<Green>void Methods.second(true)</Green>
+  └─<Green>void Methods.second(false)</Green>
 ");
         }
 
@@ -54,7 +54,7 @@ namespace Profiler.Tests
             TestStack(options, tree, @"
 1000
 └─void Methods.first(""aaa"")
-  └─void Methods.second(<Yellow>true</Yellow>)
+  └─<Green>void Methods.second(<Yellow>true</Yellow>)</Green>
 ");
         }
 
@@ -76,7 +76,7 @@ namespace Profiler.Tests
             TestStack(options, tree, @"
 1000
 └─void Methods.first(""aaa"")
-  └─void Methods.second(<Yellow>'b'</Yellow>)
+  └─<Green>void Methods.second(<Yellow>'b'</Yellow>)</Green>
 ");
         }
 
@@ -98,7 +98,7 @@ namespace Profiler.Tests
             TestStack(options, tree, @"
 1000
 └─void Methods.first(""aaa"")
-  └─void Methods.second(<Yellow>10</Yellow>)
+  └─<Green>void Methods.second(<Yellow>10</Yellow>)</Green>
 ");
         }
 
@@ -120,7 +120,7 @@ namespace Profiler.Tests
             TestStack(options, tree, @"
 1000
 └─void Methods.first(""aaa"")
-  └─void Methods.second(<Yellow>10</Yellow>)
+  └─<Green>void Methods.second(<Yellow>10</Yellow>)</Green>
 ");
         }
 
@@ -142,7 +142,7 @@ namespace Profiler.Tests
             TestStack(options, tree, @"
 1000
 └─void Methods.first(""aaa"")
-  └─void Methods.second(<Yellow>100</Yellow>)
+  └─<Green>void Methods.second(<Yellow>100</Yellow>)</Green>
 ");
         }
 
@@ -164,7 +164,7 @@ namespace Profiler.Tests
             TestStack(options, tree, @"
 1000
 └─void Methods.first(""aaa"")
-  └─void Methods.second(<Yellow>100</Yellow>)
+  └─<Green>void Methods.second(<Yellow>100</Yellow>)</Green>
 ");
         }
 
@@ -186,7 +186,7 @@ namespace Profiler.Tests
             TestStack(options, tree, @"
 1000
 └─void Methods.first(""aaa"")
-  └─void Methods.second(<Yellow>1000</Yellow>)
+  └─<Green>void Methods.second(<Yellow>1000</Yellow>)</Green>
 ");
         }
 
@@ -208,7 +208,7 @@ namespace Profiler.Tests
             TestStack(options, tree, @"
 1000
 └─void Methods.first(""aaa"")
-  └─void Methods.second(<Yellow>1000</Yellow>)
+  └─<Green>void Methods.second(<Yellow>1000</Yellow>)</Green>
 ");
         }
 
@@ -230,7 +230,7 @@ namespace Profiler.Tests
             TestStack(options, tree, @"
 1000
 └─void Methods.first(""aaa"")
-  └─void Methods.second(<Yellow>1000</Yellow>)
+  └─<Green>void Methods.second(<Yellow>1000</Yellow>)</Green>
 ");
         }
 
@@ -252,7 +252,7 @@ namespace Profiler.Tests
             TestStack(options, tree, @"
 1000
 └─void Methods.first(""aaa"")
-  └─void Methods.second(<Yellow>1000</Yellow>)
+  └─<Green>void Methods.second(<Yellow>1000</Yellow>)</Green>
 ");
         }
 
@@ -274,7 +274,7 @@ namespace Profiler.Tests
             TestStack(options, tree, @"
 1000
 └─void Methods.first(""aaa"")
-  └─void Methods.second(<Yellow>1.1</Yellow>)
+  └─<Green>void Methods.second(<Yellow>1.1</Yellow>)</Green>
 ");
         }
 
@@ -296,7 +296,7 @@ namespace Profiler.Tests
             TestStack(options, tree, @"
 1000
 └─void Methods.first(""aaa"")
-  └─void Methods.second(<Yellow>1.1</Yellow>)
+  └─<Green>void Methods.second(<Yellow>1.1</Yellow>)</Green>
 ");
         }
 
@@ -318,7 +318,7 @@ namespace Profiler.Tests
             TestStack(options, tree, @"
 1000
 └─void Methods.first(""aaa"")
-  └─void Methods.second(<Yellow>0x3E8</Yellow>)
+  └─<Green>void Methods.second(<Yellow>0x3E8</Yellow>)</Green>
 ");
         }
 
@@ -340,7 +340,7 @@ namespace Profiler.Tests
             TestStack(options, tree, @"
 1000
 └─void Methods.first(""aaa"")
-  └─void Methods.second(<Yellow>0x3E8</Yellow>)
+  └─<Green>void Methods.second(<Yellow>0x3E8</Yellow>)</Green>
 ");
         }
 
@@ -362,7 +362,7 @@ namespace Profiler.Tests
             TestStack(options, tree, @"
 1000
 └─void Methods.first(""aaa"")
-  └─void Methods.second(<Yellow>""bbb""</Yellow>)
+  └─<Green>void Methods.second(<Yellow>""bbb""</Yellow>)</Green>
 ");
         }
 
@@ -384,7 +384,7 @@ namespace Profiler.Tests
             TestStack(options, tree, @"
 1000
 └─void Methods.first(""aaa"")
-  └─void Methods.second(<Yellow>foo</Yellow>)
+  └─<Green>void Methods.second(<Yellow>foo</Yellow>)</Green>
 ");
         }
 
@@ -406,7 +406,7 @@ namespace Profiler.Tests
             TestStack(options, tree, @"
 1000
 └─void Methods.first(""aaa"")
-  └─void Methods.second(<Yellow>foo</Yellow>)
+  └─<Green>void Methods.second(<Yellow>foo</Yellow>)</Green>
 ");
         }
 
@@ -436,7 +436,7 @@ namespace Profiler.Tests
             TestStack(options, tree, @"
 1000
 └─void Methods.first(""aaa"")
-  └─void Methods.second(<Yellow>new[]{""bbb"", ""ccc""}</Yellow>)
+  └─<Green>void Methods.second(<Yellow>new[]{""bbb"", ""ccc""}</Yellow>)</Green>
 ");
         }
 
@@ -464,7 +464,7 @@ namespace Profiler.Tests
             TestStack(options, tree, @"
 1000
 └─void Methods.first(""aaa"")
-  └─void Methods.second(<Yellow>new[,]{{""bbb"",""ccc""},{""ddd"",""eee""}}</Yellow>)
+  └─<Green>void Methods.second(<Yellow>new[,]{{""bbb"",""ccc""},{""ddd"",""eee""}}</Yellow>)</Green>
 ");
         }
 
@@ -486,7 +486,7 @@ namespace Profiler.Tests
             TestStack(options, tree, @"
 1000
 └─void Methods.first(""aaa"")
-  └─void Methods.second(<Yellow>char* (""bbb"")</Yellow>)
+  └─<Green>void Methods.second(<Yellow>char* (""bbb"")</Yellow>)</Green>
 ");
         }
 
@@ -505,7 +505,7 @@ namespace Profiler.Tests
 
             TestStack(options, tree, @"
 1000
-└─M2U Methods.second
+└─<Green>M2U Methods.second</Green>
 ");
         }
 
@@ -524,7 +524,7 @@ namespace Profiler.Tests
 
             TestStack(options, tree, @"
 1000
-└─void Methods.first(""aaa"")
+└─<Green>void Methods.first(""aaa"")</Green>
 ");
         }
 
@@ -543,7 +543,7 @@ namespace Profiler.Tests
 
             TestStack(options, tree, @"
 1000
-└─void Console.WriteLine(""bbb"")
+└─<Green>void Console.WriteLine(""bbb"")</Green>
 ");
         }
 
@@ -562,7 +562,7 @@ namespace Profiler.Tests
 
             TestStack(options, tree, @"
 1000
-└─void Console.WriteLine(""bbb"")
+└─<Green>void Console.WriteLine(""bbb"")</Green>
 ");
         }
 
@@ -588,8 +588,8 @@ namespace Profiler.Tests
             TestStack(options, tree, @"
 1000
 └─void Methods.first(""aaa"")
-  ├─void Methods.second(""bbb"")
-  └─void Methods.third(""ccc"")
+  ├─<Green>void Methods.second(""bbb"")</Green>
+  └─<Green>void Methods.third(""ccc"")</Green>
 ");
         }
 
@@ -615,8 +615,8 @@ namespace Profiler.Tests
             TestStack(options, tree, @"
 1000
 └─void Console.WriteLine(""bbb"")
-  ├─void Methods.second(""bbb"")
-  └─void Methods.third(""ccc"")
+  ├─<Green>void Methods.second(""bbb"")</Green>
+  └─<Green>void Methods.third(""ccc"")</Green>
 ");
         }
 
@@ -642,8 +642,8 @@ namespace Profiler.Tests
             TestStack(options, tree, @"
 1000
 └─void Console.WriteLine(""bbb"")
-  ├─void Methods.second(""bbb"")
-  └─void Methods.third(""ccc"")
+  ├─<Green>void Methods.second(""bbb"")</Green>
+  └─<Green>void Methods.third(""ccc"")</Green>
 ");
         }
 
@@ -707,8 +707,8 @@ void Methods.second(""bbb"")
             TestStack(options, tree, @"
 1000
 └─void Methods.second(""bbb"")
-  ├─void Methods.third(""ccc"")
-  └─void Console.ReadLine(""ddd"")
+  ├─<Green>void Methods.third(""ccc"")</Green>
+  └─<Green>void Console.ReadLine(""ddd"")</Green>
 ");
         }
 
@@ -781,7 +781,7 @@ void Methods.second(""bbb"")
 1000
 └─void Methods.second(""bbb"")
   └─void Methods.third(""ddd"")
-    └─void Methods.fourth(""eee"")
+    └─<Green>void Methods.fourth(""eee"")</Green>
 ");
         }
 
@@ -817,10 +817,10 @@ void Methods.second(""bbb"")
             TestStack(options, tree, @"
 1000
 └─void Methods.second(""bbb"")
-  ├─void Methods.third(""ccc"")
-  ├─void Methods.third(""ddd"")
-  │ └─void Methods.first(""fff"")
-  └─void Console.ReadLine(""fff"")
+  ├─<Green>void Methods.third(""ccc"")</Green>
+  ├─<Green>void Methods.third(""ddd"")</Green>
+  │ └─<Green>void Methods.first(""fff"")</Green>
+  └─<Green>void Console.ReadLine(""fff"")</Green>
 ");
         }
 
@@ -861,7 +861,7 @@ void Methods.second(""bbb"")
 └─void Methods.second(""bbb"")
   └─void Methods.first(""hhh"")
     └─void Methods.third(""ddd"")
-      └─void Methods.fourth(""eee"")
+      └─<Green>void Methods.fourth(""eee"")</Green>
 ");
         }
 
@@ -898,8 +898,8 @@ void Methods.second(""bbb"")
             TestStack(options, tree, @"
 1000
 └─void Methods.second(""bbb"")
-  ├─void Methods.third(""ccc"")
-  └─void Console.ReadLine(""fff"")
+  ├─<Green>void Methods.third(""ccc"")</Green>
+  └─<Green>void Console.ReadLine(""fff"")</Green>
 ");
         }
 
@@ -964,7 +964,7 @@ void Methods.second(""bbb"")
             return newFrame;
         }
 
-        private void TestStack(FrameFilterOptions options, IFrame tree, string expected, bool highlightFrames = false)
+        private void TestStack(FrameFilterOptions options, IFrame tree, string expected)
         {
             var output = new StringColorOutputSource();
 
@@ -977,11 +977,9 @@ void Methods.second(""bbb"")
             var methodFrameFormatter = new MethodFrameFormatter(true);
             var methodFrameWriter = new MethodFrameColorWriter(methodFrameFormatter, output, KnownModules)
             {
-                HighlightValues = filter.MatchedValues
+                HighlightValues = filter.MatchedValues,
+                HighlightFrames = filter.HighlightFrames
             };
-
-            if (highlightFrames)
-                methodFrameWriter.HighlightFrames = filter.HighlightFrames;
 
             var stackWriter = new StackFrameWriter(
                 methodFrameWriter,
