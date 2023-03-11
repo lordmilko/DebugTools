@@ -5,6 +5,18 @@ namespace DebugTools.PowerShell.Cmdlets
 {
     public abstract class FilterStackFrameCmdlet : ProfilerSessionCmdlet
     {
+        [Parameter(Mandatory = false, Position = 0, ParameterSetName = ParameterSet.Filter)]
+        public string[] Include { get; set; }
+
+        [Parameter(Mandatory = false, ParameterSetName = ParameterSet.Filter)]
+        public string[] Exclude { get; set; }
+
+        [Parameter(Mandatory = false, ParameterSetName = ParameterSet.Filter)]
+        public string[] CalledFrom { get; set; }
+
+        [Parameter(Mandatory = false, ParameterSetName = ParameterSet.Filter)]
+        public SwitchParameter Unique { get; set; }
+
         [Parameter(Mandatory = false, ParameterSetName = ParameterSet.Filter)]
         public SwitchParameter VoidValue { get; set; }
 
@@ -86,14 +98,14 @@ namespace DebugTools.PowerShell.Cmdlets
         {
         }
 
-        protected FrameFilterOptions GetFrameFilterOptions(bool unique, string[] include, string[] exclude, string[] calledFrom)
+        protected FrameFilterOptions GetFrameFilterOptions()
         {
             var options = new FrameFilterOptions
             {
-                Unique = unique,
-                Include = include,
-                Exclude = exclude,
-                CalledFrom = calledFrom,
+                Unique = Unique,
+                Include = Include,
+                Exclude = Exclude,
+                CalledFrom = CalledFrom,
                 VoidValue = VoidValue,
                 Unmanaged = Unmanaged,
                 BoolValue = BoolValue,
