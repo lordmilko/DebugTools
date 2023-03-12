@@ -60,6 +60,51 @@ namespace Profiler.Tests
         }
 
         [TestMethod]
+        public void FrameFilterer_IncludeUniqueAll()
+        {
+            var options = new FrameFilterOptions
+            {
+                Include = new[] { "*" },
+                Unique = true
+            };
+
+            var tree = MakeRoot(
+                MakeFrame("first", String("aaa"),
+                    MakeFrame("second", Boolean(true)),
+                    MakeFrame("second", Boolean(false))
+                )
+            );
+
+            TestStack(options, tree, @"
+1000
+└─void Methods.first(""aaa"")
+  └─void Methods.second(true)
+");
+        }
+
+        [TestMethod]
+        public void FrameFilterer_Unique()
+        {
+            var options = new FrameFilterOptions
+            {
+                Unique = true
+            };
+
+            var tree = MakeRoot(
+                MakeFrame("first", String("aaa"),
+                    MakeFrame("second", Boolean(true)),
+                    MakeFrame("second", Boolean(false))
+                )
+            );
+
+            TestStack(options, tree, @"
+1000
+└─void Methods.first(""aaa"")
+  └─void Methods.second(true)
+");
+        }
+
+        [TestMethod]
         public void FrameFilterer_FilterBoolValue()
         {
             var options = new FrameFilterOptions

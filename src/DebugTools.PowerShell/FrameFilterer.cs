@@ -26,6 +26,8 @@ namespace DebugTools.PowerShell
         private bool hasMethodFilter;
         private bool hasParentMethodFilter;
 
+        private bool anyExcluded;
+
         private ConcurrentDictionary<IFrame, byte> includes;
         private ConcurrentDictionary<IFrame, byte> calledFromFrames = new ConcurrentDictionary<IFrame, byte>();
 
@@ -102,6 +104,11 @@ namespace DebugTools.PowerShell
                 {
                     if (CheckFrame(item))
                         includes[item] = 0;
+                    else
+                    {
+                        if (!anyExcluded && !(item is IRootFrame))
+                            anyExcluded = true;
+                    }
 
                     foreach (var child in item.Children)
                         queue.Enqueue(child);
@@ -151,6 +158,11 @@ namespace DebugTools.PowerShell
                     if (newRoot != null)
                         newRoots.Add(newRoot);
                 }
+
+                //If you did -Unique -Include *, everything will be highlighted. No point highlighting everything
+                //if everything is selected
+                if (!anyExcluded)
+                    HighlightFrames.Clear();
             }
             else
             {
