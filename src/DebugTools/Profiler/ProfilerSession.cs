@@ -54,7 +54,7 @@ namespace DebugTools.Profiler
         private bool global;
         private bool disposing;
 
-        public ThreadStack[] LastTrace { get; private set; }
+        public ThreadStack[] LastTrace { get; protected set; }
 
         public ProfilerSession()
         {

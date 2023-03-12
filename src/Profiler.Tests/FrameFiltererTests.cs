@@ -11,7 +11,7 @@ using static Profiler.Tests.ValueFactory;
 namespace Profiler.Tests
 {
     [TestClass]
-    public class FrameFiltererTests
+    public class FrameFiltererTests : BaseTest
     {
         [TestMethod]
         public void FrameFilterer_Include()
@@ -30,9 +30,9 @@ namespace Profiler.Tests
 
             TestStack(options, tree, @"
 1000
-└─<Green>void Methods.first(""aaa"")</Green>
-  ├─<Green>void Methods.second(true)</Green>
-  └─<Green>void Methods.second(false)</Green>
+└─void Methods.first(""aaa"")
+  ├─void Methods.second(true)
+  └─void Methods.second(false)
 ");
         }
 
@@ -971,72 +971,6 @@ void Methods.second(""bbb"")
   ├─<Green>void Methods.third(""ccc"")</Green>
   └─<Green>void Console.ReadLine(""fff"")</Green>
 ");
-        }
-
-        private RootFrame MakeRoot(params IMethodFrame[] children)
-        {
-            var newFrame = new RootFrame
-            {
-                ThreadId = 1000,
-            };
-
-            if (children != null)
-            {
-                newFrame.Children.AddRange(children);
-
-                foreach (var child in children)
-                    child.Parent = newFrame;
-            }
-
-            return newFrame;
-        }
-
-        private IMethodFrameDetailed MakeFrame(string methodName, object parameter, params IMethodFrame[] children) =>
-            MakeFrame(typeof(Methods).GetMethod(methodName), parameter, children);
-
-        private IMethodFrameDetailed MakeFrame(System.Reflection.MethodInfo method, object parameter, params IMethodFrame[] children)
-        {
-            if (parameter is IMockValue v)
-                parameter = v.OuterValue;
-
-            var parameters = new List<object>();
-
-            if (parameter != null)
-                parameters.Add(parameter);
-
-            var newFrame = new MockMethodFrameDetailed(
-                new MockMethodInfoDetailed(method),
-                parameters,
-                VoidValue.Instance
-            );
-
-            if (children != null)
-            {
-                newFrame.Children.AddRange(children);
-
-                foreach (var child in children)
-                    child.Parent = newFrame;
-            }
-
-            return newFrame;
-        }
-
-        private IUnmanagedTransitionFrame MakeUnmanagedFrame(string methodName, params IMethodFrame[] children)
-        {
-            var newFrame = new MockUnmanagedTransitionFrame(
-                new MockMethodInfo(typeof(Methods).GetMethod(methodName)),
-                FrameKind.M2U
-            );
-
-            if (children != null)
-            {
-                newFrame.Children.AddRange(children);
-
-                foreach (var child in children)
-                    child.Parent = newFrame;
-            }
-
-            return newFrame;
         }
 
         private void TestStack(FrameFilterOptions options, IFrame tree, string expected)

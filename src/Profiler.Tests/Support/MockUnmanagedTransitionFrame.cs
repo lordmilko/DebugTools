@@ -21,7 +21,7 @@ namespace Profiler.Tests
 
         public IFrame Parent { get; set; }
         public List<IMethodFrame> Children { get; set; } = new List<IMethodFrame>();
-        public long Sequence { get; }
+        public long Sequence { get; set; }
         public IRootFrame GetRoot()
         {
             throw new System.NotImplementedException();

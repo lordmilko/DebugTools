@@ -6,8 +6,6 @@ namespace Profiler.Tests
 {
     class MockMethodFrameDetailed : IMethodFrameDetailed
     {
-        private static long nextSequence;
-
         public List<object> Parameters { get; }
 
         public object ReturnValue { get; }
@@ -20,15 +18,13 @@ namespace Profiler.Tests
             MethodInfo = methodInfo;
             Parameters = parameters;
             ReturnValue = returnValue;
-
-            Sequence = ++nextSequence;
         }
 
         #region IFrame
 
         public IFrame Parent { get; set; }
         public List<IMethodFrame> Children { get; set; } = new List<IMethodFrame>();
-        public long Sequence { get; }
+        public long Sequence { get; set; }
         public IRootFrame GetRoot()
         {
             var parent = Parent;
