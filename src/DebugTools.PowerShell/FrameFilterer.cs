@@ -67,7 +67,7 @@ namespace DebugTools.PowerShell
                 methodNameWildcards != null ||
                 hasParentMethodFilter;
 
-            if (options.HasFilterValue)
+            if (options.HasValueFilter)
                 MatchedValues = new ConcurrentDictionary<object, byte>();
 
             if (options.Unique)
@@ -113,7 +113,7 @@ namespace DebugTools.PowerShell
         {
             if (item is IRootFrame r)
             {
-                if (r.ThreadName != null && ShouldInclude(r, (f, w) => w.IsMatch(f.ThreadName)) && !ShouldExclude(r) && !options.HasFilterValue)
+                if (r.ThreadName != null && ShouldInclude(r, (f, w) => w.IsMatch(f.ThreadName)) && !ShouldExclude(r) && !options.HasValueFilter)
                     return true;
             }
             else if (item is IMethodFrameDetailed d)
@@ -495,7 +495,7 @@ namespace DebugTools.PowerShell
 
         private bool HasValue(IMethodFrameDetailed d)
         {
-            if (options.HasFilterValue)
+            if (options.HasValueFilter)
             {
                 var parameters = d.GetEnterParameters();
 

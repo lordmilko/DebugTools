@@ -37,6 +37,29 @@ namespace Profiler.Tests
         }
 
         [TestMethod]
+        public void FrameFilterer_IncludeUnique()
+        {
+            var options = new FrameFilterOptions
+            {
+                Include = new[] { "*second*" },
+                Unique = true
+            };
+
+            var tree = MakeRoot(
+                MakeFrame("first", String("aaa"),
+                    MakeFrame("second", Boolean(true)),
+                    MakeFrame("second", Boolean(false))
+                )
+            );
+
+            TestStack(options, tree, @"
+1000
+└─void Methods.first(""aaa"")
+  └─<Green>void Methods.second(true)</Green>
+");
+        }
+
+        [TestMethod]
         public void FrameFilterer_FilterBoolValue()
         {
             var options = new FrameFilterOptions
@@ -868,6 +891,8 @@ void Methods.second(""bbb"")
         [TestMethod]
         public void FrameFilterer_CalledFrom_Exclude_Unique()
         {
+            //todo: randomly fails when third(ddd) is selected
+
             var options = new FrameFilterOptions
             {
                 CalledFrom = new[] { "second" },
@@ -929,9 +954,14 @@ void Methods.second(""bbb"")
             if (parameter is IMockValue v)
                 parameter = v.OuterValue;
 
+            var parameters = new List<object>();
+
+            if (parameter != null)
+                parameters.Add(parameter);
+
             var newFrame = new MockMethodFrameDetailed(
                 new MockMethodInfoDetailed(method),
-                new List<object> {parameter},
+                parameters,
                 VoidValue.Instance
             );
 
