@@ -246,7 +246,37 @@ namespace DebugTools.PowerShell
         {
             if (options.IsCalledFromOnly)
             {
-                newRoots.AddRange(calledFromFrames.Keys);
+                var toRemove = new HashSet<IFrame>();
+                var toAdd = new HashSet<IFrame>();
+
+                var keys = calledFromFrames.Keys.ToArray();
+
+                foreach (var key in keys)
+                {
+                    if (key.Parent is IRootFrame)
+                    {
+                        toRemove.Add(key);
+                        toAdd.Add(key.Parent);
+                        continue;
+                    }
+
+                    var parent = key.Parent;
+
+                    while (!(parent is IRootFrame) && parent != null)
+                    {
+                        if (calledFromFrames.TryGetValue(parent, out _))
+                        {
+                            toRemove.Add(key);
+                            break;
+                        }
+
+                        parent = parent.Parent;
+                    }
+                }
+
+                var results = keys.Union(toAdd).Except(toRemove).ToArray();
+
+                newRoots.AddRange(results);
             }
             else
             {
@@ -304,6 +334,9 @@ namespace DebugTools.PowerShell
 
                 newRoots = dict.Values.Cast<IFrame>().ToList();
             }
+
+            if (!anyExcluded)
+                HighlightFrames.Clear();
         }
 
         private void SortFrames<T>(List<T> frames) where T : IFrame
@@ -453,6 +486,9 @@ namespace DebugTools.PowerShell
                     return false;
 
                 var parent = frame.Parent;
+
+                if (parent is IRootFrame && options.CalledFrom.Any(cf => cf.ToCharArray().All(c => c == '*')))
+                    return true;
 
                 while (!(parent is IRootFrame))
                 {

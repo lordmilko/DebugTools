@@ -134,7 +134,7 @@ namespace Profiler.Tests
                 )
             );
 
-            var expected = Flatten(tree).Skip(1).ToArray();
+            var expected = Flatten(tree).ToArray();
 
             Test(new GetDbgProfilerStackFrame
             {
