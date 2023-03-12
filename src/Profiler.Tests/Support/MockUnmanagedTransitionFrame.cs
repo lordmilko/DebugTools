@@ -35,7 +35,8 @@ namespace Profiler.Tests
         {
             return new MockUnmanagedTransitionFrame(MethodInfo, Kind)
             {
-                Parent = newParent
+                Parent = newParent,
+                Sequence = Sequence
             };
         }
 

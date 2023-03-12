@@ -46,7 +46,8 @@ namespace Profiler.Tests
         {
             return new MockMethodFrameDetailed((IMethodInfoDetailed) MethodInfo, Parameters, ReturnValue)
             {
-                Parent = newParent
+                Parent = newParent,
+                Sequence = Sequence
             };
         }
 

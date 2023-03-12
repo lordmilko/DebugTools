@@ -302,37 +302,9 @@ namespace DebugTools.PowerShell
         {
             if (options.IsCalledFromOnly)
             {
-                var toRemove = new HashSet<IFrame>();
-                var toAdd = new HashSet<IFrame>();
+                var frames = GetUniqueCalledFromNodes(true);
 
-                var keys = calledFromFrames.Keys.ToArray();
-
-                foreach (var key in keys)
-                {
-                    if (key.Parent is IRootFrame)
-                    {
-                        toRemove.Add(key);
-                        toAdd.Add(key.Parent);
-                        continue;
-                    }
-
-                    var parent = key.Parent;
-
-                    while (!(parent is IRootFrame) && parent != null)
-                    {
-                        if (calledFromFrames.TryGetValue(parent, out _))
-                        {
-                            toRemove.Add(key);
-                            break;
-                        }
-
-                        parent = parent.Parent;
-                    }
-                }
-
-                var results = keys.Union(toAdd).Except(toRemove).ToArray();
-
-                newRoots.AddRange(results);
+                newRoots.AddRange(frames);
             }
             else
             {
@@ -369,7 +341,9 @@ namespace DebugTools.PowerShell
 
                 var dict = new Dictionary<IRootFrame, IRootFrame>();
 
-                foreach (var frame in calledFromFrames.Keys)
+                var keys = GetUniqueCalledFromNodes(false);
+
+                foreach (var frame in keys)
                 {
                     var newFrame = GetNewFramesForCalledFrom((IMethodFrame)frame, null, allParents, sortedIncludes, knownOriginalFrames);
 
@@ -393,6 +367,45 @@ namespace DebugTools.PowerShell
 
             if (!anyExcluded)
                 HighlightFrames.Clear();
+        }
+
+        private IList<IFrame> GetUniqueCalledFromNodes(bool allowRootThread)
+        {
+            var toRemove = new HashSet<IFrame>();
+            var toAdd = new HashSet<IFrame>();
+
+            var keys = calledFromFrames.Keys.ToArray();
+
+            foreach (var key in keys)
+            {
+                if (allowRootThread && key.Parent is IRootFrame && !anyExcluded)
+                {
+                    toRemove.Add(key);
+                    toAdd.Add(key.Parent);
+                    continue;
+                }
+
+                var parent = key.Parent;
+
+                //If we have a call A -> B, and both frames were matched, remove the call to B because it'll be included
+                //under the stack trace of A
+                while (!(parent is IRootFrame) && parent != null)
+                {
+                    if (calledFromFrames.TryGetValue(parent, out _))
+                    {
+                        toRemove.Add(key);
+                        break;
+                    }
+
+                    parent = parent.Parent;
+                }
+            }
+
+            var results = keys.Union(toAdd).Except(toRemove).ToList();
+
+            SortFrames(results, false);
+
+            return results;
         }
 
         internal static void SortFrames<T>(List<T> frames, bool recurse) where T : IFrame
