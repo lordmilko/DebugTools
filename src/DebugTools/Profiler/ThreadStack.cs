@@ -204,5 +204,10 @@ namespace DebugTools.Profiler
                     throw new InvalidOperationException($"Expected method: {expected} ({expected.FunctionID:X}). Actual: {method} ({method.FunctionID:X})");
             }
         }
+
+        public override string ToString()
+        {
+            return Root.ThreadName ?? Root.ThreadId.ToString();
+        }
     }
 }

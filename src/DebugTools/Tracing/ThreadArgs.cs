@@ -10,7 +10,9 @@ namespace DebugTools.Tracing
     /// </summary>
     public sealed class ThreadArgs : TraceEvent
     {
-        public long ThreadId => GetInt64At(0);
+        public int ThreadSequence => GetInt32At(0);
+
+        public int ThreadId => GetInt32At(4);
 
         private Action<ThreadArgs> action;
 
@@ -31,7 +33,7 @@ namespace DebugTools.Tracing
             get
             {
                 if (payloadNames == null)
-                    payloadNames = new[] { nameof(ThreadID) };
+                    payloadNames = new[] { nameof(ThreadSequence), nameof(ThreadID) };
 
                 return payloadNames;
             }
@@ -42,6 +44,9 @@ namespace DebugTools.Tracing
             switch (index)
             {
                 case 0:
+                    return ThreadSequence;
+
+                case 1:
                     return ThreadID;
 
                 default:
@@ -53,6 +58,7 @@ namespace DebugTools.Tracing
         public override StringBuilder ToXml(StringBuilder sb)
         {
             Prefix(sb);
+            XmlAttrib(sb, nameof(ThreadSequence), ThreadSequence);
             XmlAttrib(sb, nameof(ThreadID), ThreadID);
             sb.Append("/>");
             return sb;

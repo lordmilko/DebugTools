@@ -8,6 +8,7 @@ void dprintf(LPCWSTR format, ...);
 //#define LOG_SHOULDHOOK 1
 //#define LOG_HOOK 1
 //#define LOG_SEQUENCE 1
+//#define LOG_THREAD 1
 //#define DEBUG_BLOB 1
 //#define DEBUG_UNKNOWN 1
 
@@ -36,6 +37,9 @@ void dprintf(LPCWSTR format, ...);
 #endif
 #ifdef LOG_SEQUENCE
 #define LogSequence dprintf
+#endif
+#ifdef LOG_THREAD
+#define LogThread dprintf
 #endif
 
 #ifdef DEBUG_BLOB
@@ -86,6 +90,9 @@ extern thread_local BOOL g_DebugBlob;
 #endif
 #ifndef LogSequence
 #define LogSequence
+#endif
+#ifndef LogThread
+#define LogThread(...) DO_NOTHING
 #endif
 #ifndef DebugBlob
 #define DebugBlob(str)

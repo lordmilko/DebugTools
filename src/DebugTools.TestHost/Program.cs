@@ -836,6 +836,29 @@ namespace DebugTools.TestHost
                     Task.Run(async () => await instance.Async()).Wait();
                     break;
 
+                case ProfilerTestType.Thread_NameAfterCreate:
+                {
+                    var thread = new Thread(instance.Thread_NameAfterCreate);
+                    thread.Start();
+                    thread.Name = "NameAfterCreate";
+                    break;
+                }
+
+                case ProfilerTestType.Thread_NameBeforeCreate:
+                {
+                    var thread = new Thread(instance.Thread_NameBeforeCreate);
+                    thread.Name = "NameBeforeCreate";
+                    thread.Start();
+                    break;
+                }
+
+                case ProfilerTestType.Thread_NamedAndNeverStarted:
+                {
+                    var thread = new Thread(instance.SingleChild);
+                    thread.Name = "NamedAndNeverStarted";
+                    break;
+                }
+
                 default:
                     Debug.WriteLine($"Don't know how to run profiler test '{test}'");
                     Environment.Exit(2);

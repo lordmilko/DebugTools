@@ -15,6 +15,7 @@ thread_local WCHAR g_szAssemblyName[NAME_BUFFER_SIZE];
 thread_local WCHAR g_szFieldName[NAME_BUFFER_SIZE];
 
 ULONG g_NextUniqueModuleID = 0;
+ULONG g_ThreadSequence = 0;
 
 #pragma region IUnknown
 
@@ -541,10 +542,14 @@ HRESULT CCorProfilerCallback::ThreadCreated(ThreadID threadId)
 {
     HRESULT hr = S_OK;
 
+    LogThread(L"ThreadCreated " FORMAT_PTR "\n", threadId);
+
+    ULONG threadSequence = GetThreadSequence(threadId);
+
     DWORD win32ThreadId;
     IfFailGo(m_pInfo->GetThreadInfo(threadId, &win32ThreadId));
 
-    ValidateETW(EventWriteThreadCreateEvent(win32ThreadId));
+    ValidateETW(EventWriteThreadCreateEvent(threadSequence, win32ThreadId));
 
 ErrExit:
     return hr;
@@ -559,10 +564,14 @@ HRESULT CCorProfilerCallback::ThreadDestroyed(ThreadID threadId)
 {
     HRESULT hr = S_OK;
 
+    LogThread(L"ThreadDestroyed " FORMAT_PTR "\n", threadId);
+
+    ULONG threadSequence = GetThreadSequence(threadId);
+
     DWORD win32ThreadId;
     IfFailGo(m_pInfo->GetThreadInfo(threadId, &win32ThreadId));
 
-    ValidateETW(EventWriteThreadDestroyEvent(win32ThreadId));
+    ValidateETW(EventWriteThreadDestroyEvent(threadSequence, win32ThreadId));
 
 ErrExit:
     return hr;
@@ -575,14 +584,22 @@ HRESULT CCorProfilerCallback::ThreadNameChanged(ThreadID threadId, ULONG cchName
 {
     HRESULT hr = S_OK;
 
+    ULONG threadSequence = GetThreadSequence(threadId);
+
+    DWORD win32ThreadId;
+    IfFailGo(m_pInfo->GetThreadInfo(threadId, &win32ThreadId));
+
     WCHAR copy[100];
 
     //MSDN states the name is not guaranteed to be null terminated, so we make a copy just in case
     StringCchCopyN(copy, 100, name, cchName);
     copy[cchName + 1] = '\0';
 
-    ValidateETW(EventWriteThreadNameEvent(copy));
+    LogThread(L"ThreadNameChanged " FORMAT_PTR " -> %s\n", threadId, copy);
 
+    ValidateETW(EventWriteThreadNameEvent(threadSequence, copy));
+
+ErrExit:
     return hr;
 }
 
@@ -1269,6 +1286,25 @@ HRESULT CCorProfilerCallback::GetModuleInfo(_In_ ModuleID moduleId, _Out_ CModul
 
 ErrExit:
     return hr;
+}
+
+ULONG CCorProfilerCallback::GetThreadSequence(
+    _In_ ThreadID threadId)
+{
+    CLock threadLock(&m_ThreadIDToSequenceMutex);
+
+    auto match = m_ThreadIDToSequenceMap.find(threadId);
+
+    if (match == m_ThreadIDToSequenceMap.end())
+    {
+        ULONG result = g_ThreadSequence++;
+
+        m_ThreadIDToSequenceMap[threadId] = result;
+
+        return result;
+    }
+    else
+        return match->second;
 }
 
 HRESULT CCorProfilerCallback::GetAssemblyName(

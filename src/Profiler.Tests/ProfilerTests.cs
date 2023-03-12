@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using DebugTools.Profiler;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -49,6 +50,39 @@ namespace Profiler.Tests
             Test(ProfilerTestType.Async, v =>
             {
                 v.HasFrame("Async");
+            });
+        }
+
+        [TestMethod]
+        public void Profiler_Thread_NameAfterCreate()
+        {
+            Test(ProfilerTestType.Thread_NameAfterCreate, v =>
+            {
+                var thread = v.FindThread("NameAfterCreate").Verify();
+
+                thread.HasFrame("Thread_NameAfterCreate");
+            });
+        }
+
+        [TestMethod]
+        public void Profiler_Thread_NameBeforeCreate()
+        {
+            Test(ProfilerTestType.Thread_NameBeforeCreate, v =>
+            {
+                var thread = v.FindThread("NameBeforeCreate").Verify();
+
+                thread.HasFrame("Thread_NameBeforeCreate");
+            });
+        }
+
+        [TestMethod]
+        public void Profiler_Thread_NamedAndNeverStarted()
+        {
+            Test(ProfilerTestType.Thread_NamedAndNeverStarted, v =>
+            {
+                var match = v.ThreadStacks.SingleOrDefault(t => t.Root.ThreadName == "Thread_NameBeforeCreate");
+
+                Assert.IsNull(match);
             });
         }
 

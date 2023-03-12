@@ -33,7 +33,9 @@ namespace DebugTools.Profiler
         private NamedPipeClientStream pipe;
 
         public Dictionary<int, ThreadStack> ThreadCache { get; } = new Dictionary<int, ThreadStack>();
-        private Dictionary<int, string> threadNames = new Dictionary<int, string>();
+        private Dictionary<int, int> threadIdToSequenceMap = new Dictionary<int, int>();
+        private Dictionary<int, int> threadSequenceToIdMap = new Dictionary<int, int>();
+        private Dictionary<int, string> threadNames = new Dictionary<int, string>(); //Sequence -> Name
 
         private bool collectStackTrace;
         private bool includeUnknownTransitions;
@@ -87,13 +89,9 @@ namespace DebugTools.Profiler
             parser.ExceptionFrameUnwind += Parser_ExceptionFrameUnwind;
             parser.ExceptionCompleted += Parser_ExceptionCompleted;
 
-            parser.ThreadName += v =>
-            {
-                threadNames[v.ThreadID] = v.ThreadName;
-
-                if (ThreadCache.TryGetValue(v.ThreadID, out var stack))
-                    stack.Root.ThreadName = v.ThreadName;
-            };
+            parser.ThreadCreate += Parser_ThreadCreate;
+            parser.ThreadDestroy += Parser_ThreadDestroy;
+            parser.ThreadName += Parser_ThreadName;
 
             parser.Shutdown += v =>
             {
@@ -113,6 +111,28 @@ namespace DebugTools.Profiler
             cancelThread = new Thread(CancelTraceThreadProc) {Name = "CancelThreadProc"};
         }
 
+        #region Thread
+
+        private void Parser_ThreadCreate(ThreadArgs v)
+        {
+            threadIdToSequenceMap[v.ThreadId] = v.ThreadSequence;
+            threadSequenceToIdMap[v.ThreadSequence] = v.ThreadId;
+        }
+
+        private void Parser_ThreadDestroy(ThreadArgs v)
+        {
+            threadIdToSequenceMap.Remove(v.ThreadId);
+        }
+
+        private void Parser_ThreadName(ThreadNameArgs v)
+        {
+            threadNames[v.ThreadSequence] = v.ThreadName;
+
+            if (threadSequenceToIdMap.TryGetValue(v.ThreadSequence, out var threadId) && ThreadCache.TryGetValue(threadId, out var stack))
+                stack.Root.ThreadName = v.ThreadName;
+        }
+
+        #endregion
         #region MethodInfo
 
         private void Parser_MethodInfo(MethodInfoArgs v)
@@ -190,8 +210,11 @@ namespace DebugTools.Profiler
                     local?.Add(frame);
                 }
 
-                if (setName && threadNames.TryGetValue(args.ThreadID, out var name))
-                    threadStack.Root.ThreadName = name;
+                if (setName)
+                {
+                    if (threadIdToSequenceMap.TryGetValue(args.ThreadID, out var threadSequence) && threadNames.TryGetValue(threadSequence, out var name))
+                        threadStack.Root.ThreadName = name;
+                }
             }
         }
 

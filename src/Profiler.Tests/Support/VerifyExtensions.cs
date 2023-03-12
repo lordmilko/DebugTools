@@ -10,6 +10,11 @@ namespace Profiler.Tests
             return new FrameVerifier(frame);
         }
 
+        public static ThreadVerifier Verify(this ThreadStack thread)
+        {
+            return new ThreadVerifier(thread);
+        }
+
         public static ValueVerifier VerifyValue(this object value)
         {
             return new ValueVerifier(value);

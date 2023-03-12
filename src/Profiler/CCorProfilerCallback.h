@@ -76,6 +76,9 @@ public:
         _In_ ModuleID moduleId,
         _Out_ CModuleInfo** ppModuleInfo);
 
+    ULONG GetThreadSequence(
+        _In_ ThreadID threadId);
+
     HRESULT GetAssemblyName(
         _In_ ULONG chName,
         _In_ ASSEMBLYMETADATA& asmMetaData,
@@ -226,8 +229,11 @@ public:
     std::unordered_map<ObjectID, BYTE> m_ObjectIdBlacklist;
     std::shared_mutex m_ObjectIdBlacklistMutex;
 
-    std::shared_mutex m_TypeIdMutex;
     std::unordered_map<CTypeIdentifier, ClassID> m_TypeIdMap;
+    std::shared_mutex m_TypeIdMutex;
+
+    std::unordered_map<ThreadID, ULONG> m_ThreadIDToSequenceMap;
+    std::shared_mutex m_ThreadIDToSequenceMutex;
 
     std::vector<CMatchItem> m_ModuleBlacklist;
     std::vector<CMatchItem> m_ModuleWhitelist;

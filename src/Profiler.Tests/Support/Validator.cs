@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using DebugTools.Profiler;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -74,6 +75,16 @@ namespace Profiler.Tests
             }
 
             throw new AssertFailedException($"Failed to find frame '{methodName}'");
+        }
+
+        internal ThreadStack FindThread(string name)
+        {
+            var match = ThreadStacks.SingleOrDefault(t => t.Root.ThreadName == name);
+
+            if (match == null)
+                Assert.Fail($"Thread '{name}' could not be found");
+
+            return match;
         }
     }
 }

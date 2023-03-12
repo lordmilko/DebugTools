@@ -1185,19 +1185,19 @@ _mcgen_CheckContextType_DebugToolsProfiler(_In_ McGenContext_DebugToolsProfiler*
 //
 // Event write macros for event "ThreadCreateEvent"
 //
-#define EventWriteThreadCreateEvent(ThreadID) \
+#define EventWriteThreadCreateEvent(ThreadSequence, ThreadID) \
         MCGEN_EVENT_ENABLED(ThreadCreateEvent) \
-        ? _mcgen_TEMPLATE_FOR_ThreadCreateEvent(&DebugToolsProfiler_Context, &ThreadCreateEvent, ThreadID) : 0
-#define EventWriteThreadCreateEvent_AssumeEnabled(ThreadID) \
-        _mcgen_TEMPLATE_FOR_ThreadCreateEvent(&DebugToolsProfiler_Context, &ThreadCreateEvent, ThreadID)
-#define EventWriteThreadCreateEvent_ForContext(pContext, ThreadID) \
+        ? _mcgen_TEMPLATE_FOR_ThreadCreateEvent(&DebugToolsProfiler_Context, &ThreadCreateEvent, ThreadSequence, ThreadID) : 0
+#define EventWriteThreadCreateEvent_AssumeEnabled(ThreadSequence, ThreadID) \
+        _mcgen_TEMPLATE_FOR_ThreadCreateEvent(&DebugToolsProfiler_Context, &ThreadCreateEvent, ThreadSequence, ThreadID)
+#define EventWriteThreadCreateEvent_ForContext(pContext, ThreadSequence, ThreadID) \
         MCGEN_EVENT_ENABLED_FORCONTEXT(pContext, ThreadCreateEvent) \
-        ? _mcgen_TEMPLATE_FOR_ThreadCreateEvent(&(pContext)->Context, &ThreadCreateEvent, ThreadID) : 0
-#define EventWriteThreadCreateEvent_ForContextAssumeEnabled(pContext, ThreadID) \
-        _mcgen_TEMPLATE_FOR_ThreadCreateEvent(&_mcgen_CheckContextType_DebugToolsProfiler(pContext)->Context, &ThreadCreateEvent, ThreadID)
+        ? _mcgen_TEMPLATE_FOR_ThreadCreateEvent(&(pContext)->Context, &ThreadCreateEvent, ThreadSequence, ThreadID) : 0
+#define EventWriteThreadCreateEvent_ForContextAssumeEnabled(pContext, ThreadSequence, ThreadID) \
+        _mcgen_TEMPLATE_FOR_ThreadCreateEvent(&_mcgen_CheckContextType_DebugToolsProfiler(pContext)->Context, &ThreadCreateEvent, ThreadSequence, ThreadID)
 
 // This macro is for use by MC-generated code and should not be used directly.
-#define _mcgen_TEMPLATE_FOR_ThreadCreateEvent _mcgen_PASTE2(McTemplateU0x_, MCGEN_EVENTWRITETRANSFER)
+#define _mcgen_TEMPLATE_FOR_ThreadCreateEvent _mcgen_PASTE2(McTemplateU0qx_, MCGEN_EVENTWRITETRANSFER)
 
 //
 // Enablement check macro for event "ThreadDestroyEvent"
@@ -1208,19 +1208,19 @@ _mcgen_CheckContextType_DebugToolsProfiler(_In_ McGenContext_DebugToolsProfiler*
 //
 // Event write macros for event "ThreadDestroyEvent"
 //
-#define EventWriteThreadDestroyEvent(ThreadID) \
+#define EventWriteThreadDestroyEvent(ThreadSequence, ThreadID) \
         MCGEN_EVENT_ENABLED(ThreadDestroyEvent) \
-        ? _mcgen_TEMPLATE_FOR_ThreadDestroyEvent(&DebugToolsProfiler_Context, &ThreadDestroyEvent, ThreadID) : 0
-#define EventWriteThreadDestroyEvent_AssumeEnabled(ThreadID) \
-        _mcgen_TEMPLATE_FOR_ThreadDestroyEvent(&DebugToolsProfiler_Context, &ThreadDestroyEvent, ThreadID)
-#define EventWriteThreadDestroyEvent_ForContext(pContext, ThreadID) \
+        ? _mcgen_TEMPLATE_FOR_ThreadDestroyEvent(&DebugToolsProfiler_Context, &ThreadDestroyEvent, ThreadSequence, ThreadID) : 0
+#define EventWriteThreadDestroyEvent_AssumeEnabled(ThreadSequence, ThreadID) \
+        _mcgen_TEMPLATE_FOR_ThreadDestroyEvent(&DebugToolsProfiler_Context, &ThreadDestroyEvent, ThreadSequence, ThreadID)
+#define EventWriteThreadDestroyEvent_ForContext(pContext, ThreadSequence, ThreadID) \
         MCGEN_EVENT_ENABLED_FORCONTEXT(pContext, ThreadDestroyEvent) \
-        ? _mcgen_TEMPLATE_FOR_ThreadDestroyEvent(&(pContext)->Context, &ThreadDestroyEvent, ThreadID) : 0
-#define EventWriteThreadDestroyEvent_ForContextAssumeEnabled(pContext, ThreadID) \
-        _mcgen_TEMPLATE_FOR_ThreadDestroyEvent(&_mcgen_CheckContextType_DebugToolsProfiler(pContext)->Context, &ThreadDestroyEvent, ThreadID)
+        ? _mcgen_TEMPLATE_FOR_ThreadDestroyEvent(&(pContext)->Context, &ThreadDestroyEvent, ThreadSequence, ThreadID) : 0
+#define EventWriteThreadDestroyEvent_ForContextAssumeEnabled(pContext, ThreadSequence, ThreadID) \
+        _mcgen_TEMPLATE_FOR_ThreadDestroyEvent(&_mcgen_CheckContextType_DebugToolsProfiler(pContext)->Context, &ThreadDestroyEvent, ThreadSequence, ThreadID)
 
 // This macro is for use by MC-generated code and should not be used directly.
-#define _mcgen_TEMPLATE_FOR_ThreadDestroyEvent _mcgen_PASTE2(McTemplateU0x_, MCGEN_EVENTWRITETRANSFER)
+#define _mcgen_TEMPLATE_FOR_ThreadDestroyEvent _mcgen_PASTE2(McTemplateU0qx_, MCGEN_EVENTWRITETRANSFER)
 
 //
 // Enablement check macro for event "ThreadNameEvent"
@@ -1231,19 +1231,19 @@ _mcgen_CheckContextType_DebugToolsProfiler(_In_ McGenContext_DebugToolsProfiler*
 //
 // Event write macros for event "ThreadNameEvent"
 //
-#define EventWriteThreadNameEvent(ThreadName) \
+#define EventWriteThreadNameEvent(ThreadSequence, ThreadName) \
         MCGEN_EVENT_ENABLED(ThreadNameEvent) \
-        ? _mcgen_TEMPLATE_FOR_ThreadNameEvent(&DebugToolsProfiler_Context, &ThreadNameEvent, ThreadName) : 0
-#define EventWriteThreadNameEvent_AssumeEnabled(ThreadName) \
-        _mcgen_TEMPLATE_FOR_ThreadNameEvent(&DebugToolsProfiler_Context, &ThreadNameEvent, ThreadName)
-#define EventWriteThreadNameEvent_ForContext(pContext, ThreadName) \
+        ? _mcgen_TEMPLATE_FOR_ThreadNameEvent(&DebugToolsProfiler_Context, &ThreadNameEvent, ThreadSequence, ThreadName) : 0
+#define EventWriteThreadNameEvent_AssumeEnabled(ThreadSequence, ThreadName) \
+        _mcgen_TEMPLATE_FOR_ThreadNameEvent(&DebugToolsProfiler_Context, &ThreadNameEvent, ThreadSequence, ThreadName)
+#define EventWriteThreadNameEvent_ForContext(pContext, ThreadSequence, ThreadName) \
         MCGEN_EVENT_ENABLED_FORCONTEXT(pContext, ThreadNameEvent) \
-        ? _mcgen_TEMPLATE_FOR_ThreadNameEvent(&(pContext)->Context, &ThreadNameEvent, ThreadName) : 0
-#define EventWriteThreadNameEvent_ForContextAssumeEnabled(pContext, ThreadName) \
-        _mcgen_TEMPLATE_FOR_ThreadNameEvent(&_mcgen_CheckContextType_DebugToolsProfiler(pContext)->Context, &ThreadNameEvent, ThreadName)
+        ? _mcgen_TEMPLATE_FOR_ThreadNameEvent(&(pContext)->Context, &ThreadNameEvent, ThreadSequence, ThreadName) : 0
+#define EventWriteThreadNameEvent_ForContextAssumeEnabled(pContext, ThreadSequence, ThreadName) \
+        _mcgen_TEMPLATE_FOR_ThreadNameEvent(&_mcgen_CheckContextType_DebugToolsProfiler(pContext)->Context, &ThreadNameEvent, ThreadSequence, ThreadName)
 
 // This macro is for use by MC-generated code and should not be used directly.
-#define _mcgen_TEMPLATE_FOR_ThreadNameEvent _mcgen_PASTE2(McTemplateU0z_, MCGEN_EVENTWRITETRANSFER)
+#define _mcgen_TEMPLATE_FOR_ThreadNameEvent _mcgen_PASTE2(McTemplateU0qz_, MCGEN_EVENTWRITETRANSFER)
 
 //
 // Enablement check macro for event "ShutdownEvent"
@@ -1303,6 +1303,33 @@ _mcgen_PASTE2(McTemplateU0_, MCGEN_EVENTWRITETRANSFER)(
 #endif // McTemplateU0_def
 
 //
+// Function for template "ThreadArgs" (and possibly others).
+// This function is for use by MC-generated code and should not be used directly.
+//
+#ifndef McTemplateU0qx_def
+#define McTemplateU0qx_def
+ETW_INLINE
+ULONG
+_mcgen_PASTE2(McTemplateU0qx_, MCGEN_EVENTWRITETRANSFER)(
+    _In_ PMCGEN_TRACE_CONTEXT Context,
+    _In_ PCEVENT_DESCRIPTOR Descriptor,
+    _In_ const unsigned int  _Arg0,
+    _In_ const unsigned __int64  _Arg1
+    )
+{
+#define McTemplateU0qx_ARGCOUNT 2
+
+    EVENT_DATA_DESCRIPTOR EventData[McTemplateU0qx_ARGCOUNT + 1];
+
+    EventDataDescCreate(&EventData[1],&_Arg0, sizeof(const unsigned int)  );
+
+    EventDataDescCreate(&EventData[2],&_Arg1, sizeof(const unsigned __int64)  );
+
+    return McGenEventWrite(Context, Descriptor, NULL, McTemplateU0qx_ARGCOUNT + 1, EventData);
+}
+#endif // McTemplateU0qx_def
+
+//
 // Function for template "ModuleArgs" (and possibly others).
 // This function is for use by MC-generated code and should not be used directly.
 //
@@ -1330,30 +1357,6 @@ _mcgen_PASTE2(McTemplateU0qz_, MCGEN_EVENTWRITETRANSFER)(
     return McGenEventWrite(Context, Descriptor, NULL, McTemplateU0qz_ARGCOUNT + 1, EventData);
 }
 #endif // McTemplateU0qz_def
-
-//
-// Function for template "ThreadArgs" (and possibly others).
-// This function is for use by MC-generated code and should not be used directly.
-//
-#ifndef McTemplateU0x_def
-#define McTemplateU0x_def
-ETW_INLINE
-ULONG
-_mcgen_PASTE2(McTemplateU0x_, MCGEN_EVENTWRITETRANSFER)(
-    _In_ PMCGEN_TRACE_CONTEXT Context,
-    _In_ PCEVENT_DESCRIPTOR Descriptor,
-    _In_ const unsigned __int64  _Arg0
-    )
-{
-#define McTemplateU0x_ARGCOUNT 1
-
-    EVENT_DATA_DESCRIPTOR EventData[McTemplateU0x_ARGCOUNT + 1];
-
-    EventDataDescCreate(&EventData[1],&_Arg0, sizeof(const unsigned __int64)  );
-
-    return McGenEventWrite(Context, Descriptor, NULL, McTemplateU0x_ARGCOUNT + 1, EventData);
-}
-#endif // McTemplateU0x_def
 
 //
 // Function for template "ExceptionCompletedArgs" (and possibly others).
@@ -1563,32 +1566,6 @@ _mcgen_PASTE2(McTemplateU0xzzzqqbr5_, MCGEN_EVENTWRITETRANSFER)(
     return McGenEventWrite(Context, Descriptor, NULL, McTemplateU0xzzzqqbr5_ARGCOUNT + 1, EventData);
 }
 #endif // McTemplateU0xzzzqqbr5_def
-
-//
-// Function for template "ThreadNameArgs" (and possibly others).
-// This function is for use by MC-generated code and should not be used directly.
-//
-#ifndef McTemplateU0z_def
-#define McTemplateU0z_def
-ETW_INLINE
-ULONG
-_mcgen_PASTE2(McTemplateU0z_, MCGEN_EVENTWRITETRANSFER)(
-    _In_ PMCGEN_TRACE_CONTEXT Context,
-    _In_ PCEVENT_DESCRIPTOR Descriptor,
-    _In_opt_ PCWSTR  _Arg0
-    )
-{
-#define McTemplateU0z_ARGCOUNT 1
-
-    EVENT_DATA_DESCRIPTOR EventData[McTemplateU0z_ARGCOUNT + 1];
-
-    EventDataDescCreate(&EventData[1],
-                        (_Arg0 != NULL) ? _Arg0 : L"NULL",
-                        (_Arg0 != NULL) ? (ULONG)((wcslen(_Arg0) + 1) * sizeof(WCHAR)) : (ULONG)sizeof(L"NULL"));
-
-    return McGenEventWrite(Context, Descriptor, NULL, McTemplateU0z_ARGCOUNT + 1, EventData);
-}
-#endif // McTemplateU0z_def
 
 #endif // MCGEN_DISABLE_PROVIDER_CODE_GENERATION
 

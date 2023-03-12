@@ -1,3 +1,5 @@
+@echo off
+
 REM This script must be executed under a Visual Studio Developer Command Prompt
 REM Manage the event manifest using ECManGen which can be found in older Windows SDK versions
 mc.exe -um -b DebugToolsProfiler.man

@@ -173,7 +173,11 @@ namespace Profiler.Tests
         NoArgs,
         SingleChild,
         TwoChildren,
-        Async
+        Async,
+
+        Thread_NameAfterCreate,
+        Thread_NameBeforeCreate,
+        Thread_NamedAndNeverStarted
     }
 
     enum ExceptionTestType

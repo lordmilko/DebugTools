@@ -1,4 +1,5 @@
 ﻿using System.Runtime.CompilerServices;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace DebugTools.TestHost
@@ -42,6 +43,18 @@ namespace DebugTools.TestHost
         public async Task Async()
         {
             await Task.Delay(100);
+        }
+
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        public void Thread_NameAfterCreate()
+        {
+            Thread.Sleep(100);
+        }
+
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        public void Thread_NameBeforeCreate()
+        {
+            Thread.Sleep(100);
         }
     }
 }
