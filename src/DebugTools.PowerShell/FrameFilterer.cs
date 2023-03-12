@@ -166,71 +166,76 @@ namespace DebugTools.PowerShell
             }
             else
             {
-                if (options.IsCalledFromOnly)
-                {
-                    newRoots.AddRange(calledFromFrames.Keys);
-                }
-                else
-                {
-                    var allParents = new HashSet<IFrame>();
-
-                    foreach (var frame in sortedFrames)
-                    {
-                        var p = frame.Parent;
-
-                        var stackParents = new List<IFrame>();
-
-                        var topFrameIndex = -1;
-
-                        while (!(p is IRootFrame))
-                        {
-                            stackParents.Add(p);
-
-                            if (calledFromFrames.ContainsKey(p))
-                                topFrameIndex = stackParents.Count - 1;
-
-                            p = p.Parent;
-                        }
-
-                        for (var i = 0; i <= topFrameIndex; i++)
-                            allParents.Add(stackParents[i]);
-                    }
-
-                    Dictionary<IFrame, IFrame> knownOriginalFrames;
-
-                    if (options.Unique)
-                        knownOriginalFrames = new Dictionary<IFrame, IFrame>(FrameEqualityComparer.Instance);
-                    else
-                        knownOriginalFrames = new Dictionary<IFrame, IFrame>();
-
-                    var dict = new Dictionary<IRootFrame, IRootFrame>();
-
-                    foreach (var frame in calledFromFrames.Keys)
-                    {
-                        var newFrame = GetNewFramesForCalledFrom((IMethodFrame)frame, null, allParents, sortedFrames, knownOriginalFrames);
-
-                        if (newFrame != null)
-                        {
-                            var originalRoot = frame.GetRoot();
-
-                            if (dict.TryGetValue(originalRoot, out var newRoot))
-                                newRoot.Children.Add(newFrame);
-                            else
-                            {
-                                newRoot = originalRoot.Clone();
-                                newRoot.Children.Add(newFrame);
-                                dict[originalRoot] = newRoot;
-                            }
-                        }
-                    }
-
-                    newRoots = dict.Values.Cast<IFrame>().ToList();
-                }
+                GetCalledFromNewRoots(ref newRoots, sortedFrames);
             }
 
             SortFrames(newRoots);
 
             return newRoots;
+        }
+
+        private void GetCalledFromNewRoots(ref List<IFrame> newRoots, List<IFrame> sortedFrames)
+        {
+            if (options.IsCalledFromOnly)
+            {
+                newRoots.AddRange(calledFromFrames.Keys);
+            }
+            else
+            {
+                var allParents = new HashSet<IFrame>();
+
+                foreach (var frame in sortedFrames)
+                {
+                    var p = frame.Parent;
+
+                    var stackParents = new List<IFrame>();
+
+                    var topFrameIndex = -1;
+
+                    while (!(p is IRootFrame))
+                    {
+                        stackParents.Add(p);
+
+                        if (calledFromFrames.ContainsKey(p))
+                            topFrameIndex = stackParents.Count - 1;
+
+                        p = p.Parent;
+                    }
+
+                    for (var i = 0; i <= topFrameIndex; i++)
+                        allParents.Add(stackParents[i]);
+                }
+
+                Dictionary<IFrame, IFrame> knownOriginalFrames;
+
+                if (options.Unique)
+                    knownOriginalFrames = new Dictionary<IFrame, IFrame>(FrameEqualityComparer.Instance);
+                else
+                    knownOriginalFrames = new Dictionary<IFrame, IFrame>();
+
+                var dict = new Dictionary<IRootFrame, IRootFrame>();
+
+                foreach (var frame in calledFromFrames.Keys)
+                {
+                    var newFrame = GetNewFramesForCalledFrom((IMethodFrame)frame, null, allParents, sortedFrames, knownOriginalFrames);
+
+                    if (newFrame != null)
+                    {
+                        var originalRoot = frame.GetRoot();
+
+                        if (dict.TryGetValue(originalRoot, out var newRoot))
+                            newRoot.Children.Add(newFrame);
+                        else
+                        {
+                            newRoot = originalRoot.Clone();
+                            newRoot.Children.Add(newFrame);
+                            dict[originalRoot] = newRoot;
+                        }
+                    }
+                }
+
+                newRoots = dict.Values.Cast<IFrame>().ToList();
+            }
         }
 
         private void SortFrames<T>(List<T> frames) where T : IFrame
