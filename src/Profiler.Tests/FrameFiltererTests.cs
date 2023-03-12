@@ -1112,6 +1112,155 @@ void Methods.second(""bbb"")
             Assert.AreEqual(tree2, results[1]);
         }
 
+        [TestMethod]
+        public void FrameFilterer_Deterministic_NoArgs()
+        {
+            TestDeterministic(new FrameFilterOptions());
+        }
+
+        [TestMethod]
+        public void FrameFilterer_DeterministicRoot_NoArgs()
+        {
+            TestDeterministicRoot(new FrameFilterOptions());
+        }
+
+        [TestMethod]
+        public void FrameFilterer_Deterministic_Unique()
+        {
+            TestDeterministic(new FrameFilterOptions
+            {
+                Unique = true
+            });
+        }
+
+        [TestMethod]
+        public void FrameFilterer_DeterministicRoot_Unique()
+        {
+            //this is randomly failing even with 100 iterations
+
+            TestDeterministicRoot(new FrameFilterOptions
+            {
+                Unique = true
+            });
+        }
+
+        [TestMethod]
+        public void FrameFilterer_Deterministic_IncludeUnique()
+        {
+            TestDeterministic(new FrameFilterOptions
+            {
+                Include = new[] {"*"},
+                Unique = true
+            });
+        }
+
+        [TestMethod]
+        public void FrameFilterer_DeterministicRoot_IncludeUnique()
+        {
+            TestDeterministicRoot(new FrameFilterOptions
+            {
+                Include = new[] { "*" },
+                Unique = true
+            });
+        }
+
+        [TestMethod]
+        public void FrameFilterer_Deterministic_CalledFromUnique()
+        {
+            TestDeterministic(new FrameFilterOptions
+            {
+                CalledFrom = new[] {"*"},
+                Unique = true
+            });
+        }
+
+        [TestMethod]
+        public void FrameFilterer_DeterministicRoot_CalledFromUnique()
+        {
+            TestDeterministicRoot(new FrameFilterOptions
+            {
+                CalledFrom = new[] { "*" },
+                Unique = true
+            });
+        }
+
+        private void TestDeterministic(FrameFilterOptions options) =>
+            TestDeterministicInternal(options, f => f.GetSortedFilteredFrames());
+
+        private void TestDeterministicRoot(FrameFilterOptions options)
+        {
+            TestDeterministicInternal(options, f =>
+            {
+                var roots = f.GetSortedFilteredFrameRoots();
+
+                return roots.SelectMany(v => Flatten(v, true));
+            });
+        }
+
+        private void TestDeterministicInternal(FrameFilterOptions options, Func<FrameFilterer, IEnumerable<IFrame>> getFrames)
+        {
+            var settings = new ProfilerSetting[]
+            {
+                ProfilerSetting.IgnoreDefaultBlacklist
+            };
+
+            TestInternal(TestType.Profiler, ProfilerTestType.Async.ToString(), v =>
+            {
+                IFrame[] first = null;
+
+                for (var i = 0; i < 10; i++)
+                {
+                    var filterer = new FrameFilterer(options);
+
+                    foreach (var thread in v.ThreadStacks)
+                        filterer.ProcessFrame(thread.Root);
+
+                    var result = filterer.GetSortedFilteredFrames().ToArray();
+
+                    if (i == 0)
+                        first = result;
+                    else
+                    {
+                        Assert.AreEqual(first.Length, result.Length);
+
+                        for (var j = 0; j < first.Length; j++)
+                        {
+                            var a = first[j];
+                            var b = result[j];
+
+                            var isEqual = FrameEqualityComparer.Instance.Equals(a, b);
+
+                            if (!isEqual && a.Sequence == b.Sequence)
+                            {
+                                //The sequences are the same, the issue is just that we don't have the ability to sort by sequence and then thread. Get all adjacent frames of the same sequence, and check that one of them is the match
+
+                                var sameSequence = new List<IFrame>();
+
+                                for (var k = j - 1; k >= 0; k--)
+                                {
+                                    if (result[k].Sequence == b.Sequence)
+                                        sameSequence.Add(result[k]);
+                                    else
+                                        break;
+                                }
+
+                                for (var k = j + 1; k < first.Length; k++)
+                                {
+                                    if (result[k].Sequence == b.Sequence)
+                                        sameSequence.Add(result[k]);
+                                    else
+                                        break;
+                                }
+
+                                if (!sameSequence.Any(s => FrameEqualityComparer.Instance.Equals(a, s)))
+                                    Assert.Fail($"Frame {j} was not equal on iteration {i}");
+                            }
+                        }
+                    }
+                }
+            }, settings);
+        }
+
         private void TestStack(FrameFilterOptions options, IFrame tree, string expected)
         {
             var output = new StringColorOutputSource();

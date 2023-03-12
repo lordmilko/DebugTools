@@ -44,6 +44,20 @@ namespace DebugTools.PowerShell
 
                 SortFrames(sorted, false);
 
+                if (options.Unique)
+                {
+                    var hashSet = new HashSet<IFrame>(FrameEqualityComparer.Instance);
+
+                    foreach (var item in sorted)
+                        hashSet.Add(item);
+
+                    if (hashSet.Count != sorted.Count)
+                    {
+                        sorted = hashSet.ToList();
+                        SortFrames(sorted, false);
+                    }
+                }
+
                 return sorted;
             }
         }
@@ -82,10 +96,7 @@ namespace DebugTools.PowerShell
             if (options.HasValueFilter)
                 MatchedValues = new ConcurrentDictionary<object, byte>();
 
-            if (options.Unique)
-                includes = new ConcurrentDictionary<IFrame, byte>(FrameEqualityComparer.Instance);
-            else
-                includes = new ConcurrentDictionary<IFrame, byte>();
+            includes = new ConcurrentDictionary<IFrame, byte>();
         }
 
         private WildcardPattern[] MakeWildcard(string[] arr)

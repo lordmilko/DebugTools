@@ -99,16 +99,17 @@ namespace Profiler.Tests
             return newFrame;
         }
 
-        protected IFrame[] Flatten(IFrame frame) => FlattenInternal(frame).ToArray();
+        protected IFrame[] Flatten(IFrame frame, bool includeRoot = false) =>
+            FlattenInternal(frame, includeRoot).ToArray();
 
-        private IEnumerable<IFrame> FlattenInternal(IFrame frame)
+        private IEnumerable<IFrame> FlattenInternal(IFrame frame, bool includeRoot)
         {
-            if (!(frame is IRootFrame))
+            if (!(frame is IRootFrame) || includeRoot)
                 yield return frame;
 
             foreach (var child in frame.Children)
             {
-                foreach (var item in FlattenInternal(child))
+                foreach (var item in FlattenInternal(child, includeRoot))
                     yield return item;
             }
         }
