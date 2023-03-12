@@ -1082,6 +1082,36 @@ void Methods.second(""bbb"")
 ");
         }
 
+        [TestMethod]
+        public void FrameFilterer_SortThreads()
+        {
+            var options = new FrameFilterOptions();
+            var filter = new FrameFilterer(options);
+
+            var tree1 = MakeRoot(
+                MakeFrame("first", String("aaa"),
+                    MakeFrame("second", Boolean(true))
+                ),
+                1001
+            );
+
+            var tree2 = MakeRoot(
+                MakeFrame("third", String("aaa"),
+                    MakeFrame("fourth", Boolean(true))
+                ),
+                1002
+            );
+
+            filter.ProcessFrame(tree2);
+            filter.ProcessFrame(tree1);
+
+            var results = filter.GetSortedFilteredFrameRoots();
+
+            Assert.AreEqual(2, results.Count);
+            Assert.AreEqual(tree1, results[0]);
+            Assert.AreEqual(tree2, results[1]);
+        }
+
         private void TestStack(FrameFilterOptions options, IFrame tree, string expected)
         {
             var output = new StringColorOutputSource();
@@ -1090,7 +1120,7 @@ void Methods.second(""bbb"")
 
             filter.ProcessFrame(tree);
 
-            var frames = filter.GetSortedFilteredFrames();
+            var frames = filter.GetSortedFilteredFrameRoots();
 
             var methodFrameFormatter = new MethodFrameFormatter(true);
             var methodFrameWriter = new MethodFrameColorWriter(methodFrameFormatter, output, KnownModules)

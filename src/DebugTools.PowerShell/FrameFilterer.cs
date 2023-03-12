@@ -36,7 +36,17 @@ namespace DebugTools.PowerShell
         //private int? maxDegreesOfParallelism = 1;
 #endif
 
-        public List<IFrame> SortedFrames => includes.Keys.OrderBy(f => f.Sequence).ToList();
+        private List<IFrame> SortedIncludes
+        {
+            get
+            {
+                var sorted = includes.Keys.ToList();
+
+                SortFrames(sorted, false);
+
+                return sorted;
+            }
+        }
 
         public List<IFrame> HighlightFrames { get; } = new List<IFrame>();
 
@@ -88,6 +98,14 @@ namespace DebugTools.PowerShell
 
         public void ProcessFrame(IFrame frame)
         {
+            //Even if we have no filters, this has the side effect of adding all of the frames to the includes map
+
+            if (options.HasNoFilters)
+            {
+                includes[frame] = 0;
+                return;
+            }
+
             var queue = new ConcurrentQueue<IFrame>();
             queue.Enqueue(frame);
 
@@ -139,11 +157,38 @@ namespace DebugTools.PowerShell
 
         #region Update Frames
 
-        public List<IFrame> GetSortedFilteredFrames()
+        public IEnumerable<IFrame> GetSortedFilteredFrames()
+        {
+            var sortedIncludes = SortedIncludes;
+
+            //If we had no filters, SortedIncludes contains just the roots
+            if (options.HasNoFilters)
+                return YieldMethods(sortedIncludes);
+
+            //Otherwise, SortedIncludes contains all the frames that were matched
+            return sortedIncludes;
+        }
+
+        private IEnumerable<IFrame> YieldMethods<T>(IList<T> frames) where T : IFrame
+        {
+            foreach (var frame in frames)
+            {
+                if (!(frame is IRootFrame))
+                    yield return frame;
+
+                foreach (var child in YieldMethods(frame.Children))
+                    yield return child;
+            }
+        }
+
+        public List<IFrame> GetSortedFilteredFrameRoots()
         {
             var newRoots = new List<IFrame>();
 
-            var sortedFrames = SortedFrames;
+            var sortedIncludes = SortedIncludes;
+
+            if (options.HasNoFilters)
+                return sortedIncludes;
 
             if (options.CalledFrom == null)
             {
@@ -151,15 +196,15 @@ namespace DebugTools.PowerShell
 
                 if (options.Unique)
                 {
-                    GetUniqueNewRoots(sortedFrames, newRoots, knownOriginalFrames);
+                    GetUniqueNewRoots(sortedIncludes, newRoots, knownOriginalFrames);
                 }
                 else
                 {
-                    foreach (var frame in sortedFrames)
+                    foreach (var frame in sortedIncludes)
                     {
                         var originalStackTrace = GetOriginalStackTrace(frame);
 
-                        var newRoot = GetNewFrames(originalStackTrace, sortedFrames, knownOriginalFrames);
+                        var newRoot = GetNewFrames(originalStackTrace, sortedIncludes, knownOriginalFrames);
 
                         if (newRoot != null)
                             newRoots.Add(newRoot);
@@ -173,15 +218,15 @@ namespace DebugTools.PowerShell
             }
             else
             {
-                GetCalledFromNewRoots(ref newRoots, sortedFrames);
+                GetCalledFromNewRoots(ref newRoots, sortedIncludes);
             }
 
-            SortFrames(newRoots);
+            SortFrames(newRoots, false);
 
             return newRoots;
         }
 
-        private void GetUniqueNewRoots(IList<IFrame> sortedFrames, List<IFrame> newRoots, Dictionary<IFrame, IFrame> knownOriginalFrames)
+        private void GetUniqueNewRoots(IList<IFrame> sortedIncludes, List<IFrame> newRoots, Dictionary<IFrame, IFrame> knownOriginalFrames)
         {
             /* Consider the following stack trace
              *
@@ -191,13 +236,13 @@ namespace DebugTools.PowerShell
              *   └─Enumerator.MoveNext (36)
              *     └─Enumerator.MoveNextRare (37)
              *
-             * If we filter for methods containing "movenext", we're going to get MoveNext listed twice: SortedFrames will return MoveNext (4)
+             * If we filter for methods containing "movenext", we're going to get MoveNext listed twice: SortedIncludes will return MoveNext (4)
              * and MoveNextRare (37), however GetOriginalStackTrace will also add in MoveNext (36). To fix this, we call GetOriginalStackTrace on all matched
              * frames first, then look at all of the parents we recorded to see if a frame we matched will also exist as a parent of somebody else. MoveNext (4)
              * will now see that MoveNext (36) has been added, allowing us to swap MoveNext (4) for MoveNext (36)
              */
 
-            var pairs = sortedFrames.Select(f => new
+            var pairs = sortedIncludes.Select(f => new
             {
                 Frame = f,
                 OriginalTrace = GetOriginalStackTrace(f)
@@ -217,7 +262,7 @@ namespace DebugTools.PowerShell
             var toRemove = new HashSet<IFrame>();
             var toAdd = new HashSet<IFrame>();
 
-            foreach (var frame in sortedFrames)
+            foreach (var frame in sortedIncludes)
             {
                 if (allParents.TryGetValue(frame, out var existing))
                 {
@@ -230,19 +275,19 @@ namespace DebugTools.PowerShell
             if (toRemove.Count > 0)
             {
                 pairs = pairs.Where(p => !toRemove.Contains(p.Frame)).ToArray();
-                sortedFrames = sortedFrames.Union(toAdd).Except(toRemove).ToArray();
+                sortedIncludes = sortedIncludes.Union(toAdd).Except(toRemove).ToArray();
             }
 
             foreach (var pair in pairs)
             {
-                var newRoot = GetNewFrames(pair.OriginalTrace, sortedFrames, knownOriginalFrames);
+                var newRoot = GetNewFrames(pair.OriginalTrace, sortedIncludes, knownOriginalFrames);
 
                 if (newRoot != null)
                     newRoots.Add(newRoot);
             }
         }
 
-        private void GetCalledFromNewRoots(ref List<IFrame> newRoots, List<IFrame> sortedFrames)
+        private void GetCalledFromNewRoots(ref List<IFrame> newRoots, List<IFrame> sortedIncludes)
         {
             if (options.IsCalledFromOnly)
             {
@@ -282,7 +327,7 @@ namespace DebugTools.PowerShell
             {
                 var allParents = new HashSet<IFrame>();
 
-                foreach (var frame in sortedFrames)
+                foreach (var frame in sortedIncludes)
                 {
                     var p = frame.Parent;
 
@@ -315,7 +360,7 @@ namespace DebugTools.PowerShell
 
                 foreach (var frame in calledFromFrames.Keys)
                 {
-                    var newFrame = GetNewFramesForCalledFrom((IMethodFrame)frame, null, allParents, sortedFrames, knownOriginalFrames);
+                    var newFrame = GetNewFramesForCalledFrom((IMethodFrame)frame, null, allParents, sortedIncludes, knownOriginalFrames);
 
                     if (newFrame != null)
                     {
@@ -339,12 +384,21 @@ namespace DebugTools.PowerShell
                 HighlightFrames.Clear();
         }
 
-        private void SortFrames<T>(List<T> frames) where T : IFrame
+        internal static void SortFrames<T>(List<T> frames, bool recurse) where T : IFrame
         {
-            frames.Sort((a, b) => a.Sequence.CompareTo(b.Sequence));
+            frames.Sort((a, b) =>
+            {
+                if (a is IRootFrame r1 && b is IRootFrame r2)
+                    return r1.ThreadId.CompareTo(r2.ThreadId);
 
-            foreach (var frame in frames)
-                SortFrames(frame.Children);
+                return a.Sequence.CompareTo(b.Sequence);
+            });
+
+            if (recurse)
+            {
+                foreach (var frame in frames)
+                    SortFrames(frame.Children, true);
+            }
         }
 
         public bool CheckFrameAndClear(IFrame frame)
@@ -381,7 +435,7 @@ namespace DebugTools.PowerShell
 
         private IRootFrame GetNewFrames(
             List<IFrame> originalStackTrace,
-            IList<IFrame> originalSortedFrames,
+            IList<IFrame> originalSortedIncludes,
             Dictionary<IFrame, IFrame> knownOriginalFrames)
         {
             IFrame newParent = null;
@@ -423,7 +477,7 @@ namespace DebugTools.PowerShell
                 else
                     newParent = newItem;
 
-                if (originalSortedFrames.Contains(item, FrameEqualityComparer.Instance))
+                if (originalSortedIncludes.Contains(item, FrameEqualityComparer.Instance))
                     HighlightFrames.Add(newItem);
             }
 
@@ -434,7 +488,7 @@ namespace DebugTools.PowerShell
             IMethodFrame frame,
             IMethodFrame newParent,
             HashSet<IFrame> parents,
-            List<IFrame> originalSortedFrames,
+            List<IFrame> originalSortedIncludes,
             Dictionary<IFrame, IFrame> knownOriginalFrames)
         {
             if (!knownOriginalFrames.TryGetValue(frame, out var newItem))
@@ -443,9 +497,9 @@ namespace DebugTools.PowerShell
 
                 foreach (var child in frame.Children)
                 {
-                    if (parents.Contains(child) || originalSortedFrames.Contains(child))
+                    if (parents.Contains(child) || originalSortedIncludes.Contains(child))
                     {
-                        var newChild = GetNewFramesForCalledFrom(child, (IMethodFrame)newItem, parents, originalSortedFrames, knownOriginalFrames);
+                        var newChild = GetNewFramesForCalledFrom(child, (IMethodFrame)newItem, parents, originalSortedIncludes, knownOriginalFrames);
 
                         if (newChild != null)
                             newItem.Children.Add(newChild);
@@ -454,7 +508,7 @@ namespace DebugTools.PowerShell
 
                 knownOriginalFrames[frame] = newItem;
 
-                if (originalSortedFrames.Contains(frame, FrameEqualityComparer.Instance))
+                if (originalSortedIncludes.Contains(frame, FrameEqualityComparer.Instance))
                     HighlightFrames.Add(newItem);
             }
             else

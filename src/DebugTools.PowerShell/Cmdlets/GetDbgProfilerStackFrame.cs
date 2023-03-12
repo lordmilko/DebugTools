@@ -20,7 +20,7 @@ namespace DebugTools.PowerShell.Cmdlets
 
         protected override void EndProcessing()
         {
-            foreach (var item in filter.SortedFrames)
+            foreach (var item in filter.GetSortedFilteredFrames())
                 WriteObject(item);
         }
 

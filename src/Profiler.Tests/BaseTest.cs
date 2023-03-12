@@ -8,11 +8,17 @@ namespace Profiler.Tests
 {
     public class BaseTest
     {
-        protected RootFrame MakeRoot(params IMethodFrame[] children)
+        protected RootFrame MakeRoot(IMethodFrame child, int threadId) =>
+            MakeRoot(new[] {child}, threadId);
+
+        protected RootFrame MakeRoot(params IMethodFrame[] children) =>
+            MakeRoot(children, 1000);
+
+        protected RootFrame MakeRoot(IMethodFrame[] children, int threadId)
         {
             var newFrame = new RootFrame
             {
-                ThreadId = 1000,
+                ThreadId = threadId,
             };
 
             if (children != null)
@@ -91,6 +97,20 @@ namespace Profiler.Tests
             }
 
             return newFrame;
+        }
+
+        protected IFrame[] Flatten(IFrame frame) => FlattenInternal(frame).ToArray();
+
+        private IEnumerable<IFrame> FlattenInternal(IFrame frame)
+        {
+            if (!(frame is IRootFrame))
+                yield return frame;
+
+            foreach (var child in frame.Children)
+            {
+                foreach (var item in FlattenInternal(child))
+                    yield return item;
+            }
         }
 
         internal void TestInternal(TestType type, string subType, Action<Validator> validate, params ProfilerSetting[] settings)

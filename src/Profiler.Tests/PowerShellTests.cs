@@ -142,7 +142,32 @@ namespace Profiler.Tests
             }, tree, expected, ReferenceEquals);
         }
 
-        private void Test<T>(ProfilerSessionCmdlet instance, RootFrame root, T[] expected, params Func<T, T, bool>[] validate)
+        [TestMethod]
+        public void PowerShell_GetFrames_SortThreads()
+        {
+            var tree1 = MakeRoot(
+                MakeFrame("first", String("aaa"),
+                    MakeFrame("second", Boolean(true))
+                ),
+                1001
+            );
+
+            var tree2 = MakeRoot(
+                MakeFrame("third", String("aaa"),
+                    MakeFrame("fourth", Boolean(true))
+                ),
+                1002
+            );
+
+            var expected = Flatten(tree1).Union(Flatten(tree2)).ToArray();
+
+            Test(new GetDbgProfilerStackFrame(), new[] {tree2, tree1}, expected, ReferenceEquals);
+        }
+
+        private void Test<T>(ProfilerSessionCmdlet instance, RootFrame root, T[] expected, params Func<T, T, bool>[] validate) =>
+            Test(instance, new[] { root }, expected, validate);
+
+        private void Test<T>(ProfilerSessionCmdlet instance, RootFrame[] root, T[] expected, params Func<T, T, bool>[] validate)
         {
             var actual = Invoke(instance, root).Cast<T>().ToArray();
 
@@ -182,20 +207,6 @@ namespace Profiler.Tests
             endProcessing.Invoke(instance, null);
 
             return results.ToArray();
-        }
-
-        private IFrame[] Flatten(IFrame frame) => FlattenInternal(frame).ToArray();
-
-        private IEnumerable<IFrame> FlattenInternal(IFrame frame)
-        {
-            if (!(frame is IRootFrame))
-                yield return frame;
-
-            foreach (var child in frame.Children)
-            {
-                foreach (var item in FlattenInternal(child))
-                    yield return item;
-            }
         }
     }
 }

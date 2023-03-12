@@ -37,30 +37,17 @@ namespace DebugTools.PowerShell.Cmdlets
             if (HighlightMethod != null)
                 highlightMethodNameWildcards = HighlightMethod.Select(h => new WildcardPattern(h, WildcardOptions.IgnoreCase)).ToArray();
 
-            if (ParameterSetName == ParameterSet.Filter)
-            {
-                filter = new FrameFilterer(
-                    GetFrameFilterOptions()
-                );
-            }
+            filter = new FrameFilterer(GetFrameFilterOptions());
         }
 
         protected override void DoProcessRecordEx()
         {
-            if (filter != null)
-                filter.ProcessFrame(Frame);
-            else
-                frames.Add(Frame);
+            filter.ProcessFrame(Frame);
         }
 
         protected override void EndProcessing()
         {
-            List<IFrame> outputFrames;
-
-            if (filter != null)
-                outputFrames = filter.GetSortedFilteredFrames();
-            else
-                outputFrames = frames;
+            var outputFrames = filter.GetSortedFilteredFrameRoots();
 
             var methodFrameFormatter = new MethodFrameFormatter(ExcludeNamespace, IncludeSequence);
             var methodFrameWriter = new MethodFrameColorWriter(methodFrameFormatter, output, Session.Modules)

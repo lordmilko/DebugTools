@@ -195,6 +195,8 @@ namespace DebugTools.PowerShell
 
         public bool IsUniqueOnly => settings.Keys.Count == 1 && settings.ContainsKey(nameof(Unique));
 
+        public bool HasNoFilters => settings.Keys.Count == 0;
+
         private T GetSetting<T>(string name)
         {
             if (settings.TryGetValue(name, out var value))
