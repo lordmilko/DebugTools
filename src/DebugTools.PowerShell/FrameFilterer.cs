@@ -149,14 +149,21 @@ namespace DebugTools.PowerShell
             {
                 var knownOriginalFrames = new Dictionary<IFrame, IFrame>();
 
-                foreach (var frame in sortedFrames)
+                if (options.Unique)
                 {
-                    var originalStackTrace = GetOriginalStackTrace(frame);
+                    GetUniqueNewRoots(sortedFrames, newRoots, knownOriginalFrames);
+                }
+                else
+                {
+                    foreach (var frame in sortedFrames)
+                    {
+                        var originalStackTrace = GetOriginalStackTrace(frame);
 
-                    var newRoot = GetNewFrames(originalStackTrace, sortedFrames, knownOriginalFrames);
+                        var newRoot = GetNewFrames(originalStackTrace, sortedFrames, knownOriginalFrames);
 
-                    if (newRoot != null)
-                        newRoots.Add(newRoot);
+                        if (newRoot != null)
+                            newRoots.Add(newRoot);
+                    }
                 }
 
                 //If you did -Unique -Include *, everything will be highlighted. No point highlighting everything
@@ -172,6 +179,67 @@ namespace DebugTools.PowerShell
             SortFrames(newRoots);
 
             return newRoots;
+        }
+
+        private void GetUniqueNewRoots(IList<IFrame> sortedFrames, List<IFrame> newRoots, Dictionary<IFrame, IFrame> knownOriginalFrames)
+        {
+            /* Consider the following stack trace
+             *
+             * 30600
+             * └─System.Diagnostics.Tracing.EventListener.DisposeOnShutdown (1)
+             *   ├─Enumerator.MoveNext (4)
+             *   └─Enumerator.MoveNext (36)
+             *     └─Enumerator.MoveNextRare (37)
+             *
+             * If we filter for methods containing "movenext", we're going to get MoveNext listed twice: SortedFrames will return MoveNext (4)
+             * and MoveNextRare (37), however GetOriginalStackTrace will also add in MoveNext (36). To fix this, we call GetOriginalStackTrace on all matched
+             * frames first, then look at all of the parents we recorded to see if a frame we matched will also exist as a parent of somebody else. MoveNext (4)
+             * will now see that MoveNext (36) has been added, allowing us to swap MoveNext (4) for MoveNext (36)
+             */
+
+            var pairs = sortedFrames.Select(f => new
+            {
+                Frame = f,
+                OriginalTrace = GetOriginalStackTrace(f)
+            }).ToArray();
+
+            var allParents = new HashSet<IFrame>(FrameEqualityComparer.Instance);
+
+            foreach (var pair in pairs)
+            {
+                if (pair.OriginalTrace.Count > 1)
+                {
+                    foreach (var item in pair.OriginalTrace.Take(pair.OriginalTrace.Count - 1))
+                        allParents.Add(item);
+                }
+            }
+
+            var toRemove = new HashSet<IFrame>();
+            var toAdd = new HashSet<IFrame>();
+
+            foreach (var frame in sortedFrames)
+            {
+                if (allParents.TryGetValue(frame, out var existing))
+                {
+                    //Replace MoveNext (4) with MoveNext (36)
+                    toRemove.Add(frame);
+                    toAdd.Add(existing);
+                }
+            }
+
+            if (toRemove.Count > 0)
+            {
+                pairs = pairs.Where(p => !toRemove.Contains(p.Frame)).ToArray();
+                sortedFrames = sortedFrames.Union(toAdd).Except(toRemove).ToArray();
+            }
+
+            foreach (var pair in pairs)
+            {
+                var newRoot = GetNewFrames(pair.OriginalTrace, sortedFrames, knownOriginalFrames);
+
+                if (newRoot != null)
+                    newRoots.Add(newRoot);
+            }
         }
 
         private void GetCalledFromNewRoots(ref List<IFrame> newRoots, List<IFrame> sortedFrames)
@@ -280,7 +348,7 @@ namespace DebugTools.PowerShell
 
         private IRootFrame GetNewFrames(
             List<IFrame> originalStackTrace,
-            List<IFrame> originalSortedFrames,
+            IList<IFrame> originalSortedFrames,
             Dictionary<IFrame, IFrame> knownOriginalFrames)
         {
             IFrame newParent = null;

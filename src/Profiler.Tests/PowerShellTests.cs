@@ -81,6 +81,32 @@ namespace Profiler.Tests
         }
 
         [TestMethod]
+        public void PowerShell_GetFrames_IncludeUnique_FrameStandaloneAndParentOfAnother()
+        {
+            var type = typeof(List<>.Enumerator);
+
+            var moveNext = type.GetMethod("MoveNext");
+            var moveNextRare = type.GetMethod("MoveNextRare", BindingFlags.Instance | BindingFlags.NonPublic);
+
+            var tree = MakeRoot(
+                MakeFrame(moveNext, null),
+                MakeFrame(moveNext, null,
+                    MakeFrame(moveNextRare, null)
+                )
+            );
+
+            var flattened = Flatten(tree);
+
+            var expected = new[]
+            {
+                flattened.First(),
+                flattened.Last()
+            };
+
+            Test(new GetDbgProfilerStackFrame {Include = new[] {"*movenext*"}, Unique = true}, tree, expected, ReferenceEquals);
+        }
+
+        [TestMethod]
         public void PowerShell_GetFrames_CalledFrom()
         {
             var tree = MakeRoot(

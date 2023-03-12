@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Threading;
 using ClrDebug;
 using DebugTools.PowerShell;
@@ -101,6 +102,34 @@ namespace Profiler.Tests
 1000
 └─void Methods.first(""aaa"")
   └─void Methods.second(true)
+");
+        }
+
+        [TestMethod]
+        public void FrameFilterer_IncludeUnique_FrameStandaloneAndParentOfAnother()
+        {
+            var options = new FrameFilterOptions
+            {
+                Include = new[] { "*movenext*" },
+                Unique = true
+            };
+
+            var type = typeof(List<>.Enumerator);
+
+            var moveNext = type.GetMethod("MoveNext");
+            var moveNextRare = type.GetMethod("MoveNextRare", BindingFlags.Instance | BindingFlags.NonPublic);
+
+            var tree = MakeRoot(
+                MakeFrame(moveNext, null),
+                MakeFrame(moveNext, null,
+                    MakeFrame(moveNextRare, null)
+                )
+            );
+
+            TestStack(options, tree, @"
+1000
+└─void List`1+Enumerator.MoveNext()
+  └─void List`1+Enumerator.MoveNextRare()
 ");
         }
 
