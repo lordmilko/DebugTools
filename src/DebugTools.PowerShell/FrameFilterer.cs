@@ -275,7 +275,7 @@ namespace DebugTools.PowerShell
 
             foreach (var frame in sortedIncludes)
             {
-                if (allParents.TryGetValue(frame, out var existing))
+                if (allParents.TryGetValue(frame, out var existing) && !ReferenceEquals(frame, existing))
                 {
                     //Replace MoveNext (4) with MoveNext (36)
                     toRemove.Add(frame);
@@ -285,7 +285,11 @@ namespace DebugTools.PowerShell
 
             if (toRemove.Count > 0)
             {
-                pairs = pairs.Where(p => !toRemove.Contains(p.Frame)).ToArray();
+                pairs = pairs.Where(p => !toRemove.Contains(p.Frame)).Union(toAdd.Select(f => new
+                {
+                    Frame = f,
+                    OriginalTrace = GetOriginalStackTrace(f)
+                })).ToArray();
                 sortedIncludes = sortedIncludes.Union(toAdd).Except(toRemove).ToArray();
             }
 
@@ -374,7 +378,9 @@ namespace DebugTools.PowerShell
             var toRemove = new HashSet<IFrame>();
             var toAdd = new HashSet<IFrame>();
 
-            var keys = calledFromFrames.Keys.ToArray();
+            var keys = calledFromFrames.Keys.ToList();
+
+            SortFrames(keys, false);
 
             foreach (var key in keys)
             {
@@ -519,6 +525,8 @@ namespace DebugTools.PowerShell
             {
                 newItem = frame.CloneWithNewParent(newParent);
 
+                knownOriginalFrames[frame] = newItem;
+
                 foreach (var child in frame.Children)
                 {
                     if (parents.Contains(child) || originalSortedIncludes.Contains(child))
@@ -529,8 +537,6 @@ namespace DebugTools.PowerShell
                             newItem.Children.Add(newChild);
                     }
                 }
-
-                knownOriginalFrames[frame] = newItem;
 
                 if (originalSortedIncludes.Contains(frame, FrameEqualityComparer.Instance))
                     HighlightFrames.Add(newItem);

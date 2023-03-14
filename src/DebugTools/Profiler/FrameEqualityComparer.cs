@@ -11,6 +11,9 @@ namespace DebugTools.Profiler
             if (x is IMethodFrame m1 && y is IMethodFrame m2)
                 return m1.MethodInfo.Equals(m2.MethodInfo);
 
+            if (x is IRootFrame r1 && y is IRootFrame r2)
+                return r1.ThreadId.Equals(r2.ThreadId);
+
             return ReferenceEquals(x, y);
         }
 
