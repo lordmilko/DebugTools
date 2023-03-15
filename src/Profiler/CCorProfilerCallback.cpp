@@ -530,6 +530,7 @@ HRESULT CCorProfilerCallback::Shutdown()
 {
     HRESULT hr = S_OK;
     ValidateETW(EventWriteShutdownEvent());
+    ValidateETW(EventUnregisterDebugToolsProfiler());
     return hr;
 }
 

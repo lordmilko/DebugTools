@@ -68,7 +68,9 @@ namespace Profiler.Tests
                 ProfilerSetting.ModuleBlacklist(
                     new MatchCollection
                     {
-                        {MatchKind.ModuleName, "System.dll"}
+                        {MatchKind.ModuleName, "System.dll"},
+                        {MatchKind.ModuleName, "System.Configuration.dll"},
+                        {MatchKind.ModuleName, "System.Xml.dll"}
                     }
                 )
             };
@@ -77,9 +79,7 @@ namespace Profiler.Tests
             {
                 v.HasModules(
                     "DebugTools.TestHost.exe",
-                    "mscorlib.dll",
-                    "System.Configuration.dll",
-                    "System.Xml.dll"
+                    "mscorlib.dll"
                 );
             }, settings);
         }
@@ -116,7 +116,9 @@ namespace Profiler.Tests
                 ProfilerSetting.ModuleBlacklist(
                     new MatchCollection
                     {
-                        {MatchKind.ModuleName, "system.dll"}
+                        {MatchKind.ModuleName, "system.dll"},
+                        {MatchKind.ModuleName, "system.configuration.dll"},
+                        {MatchKind.ModuleName, "system.xml.dll"}
                     }
                 )
             };
@@ -125,9 +127,7 @@ namespace Profiler.Tests
             {
                 v.HasModules(
                     "DebugTools.TestHost.exe",
-                    "mscorlib.dll",
-                    "System.Configuration.dll",
-                    "System.Xml.dll"
+                    "mscorlib.dll"
                 );
             }, settings);
         }

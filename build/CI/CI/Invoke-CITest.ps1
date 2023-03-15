@@ -57,6 +57,8 @@ function Invoke-CICSharpTestFull($dll, $BuildFolder, $Configuration, $Additional
 
     Write-Verbose "Executing command $vstest $vsTestArgs"
 
+    # There seems to be an intermittent issue with vstest.console wherein it will just hang the PowerShell session
+    # even though the process isn't actually running anymore upon failure
     Invoke-Process {
         & $vstest $vsTestArgs
     } -WriteHost

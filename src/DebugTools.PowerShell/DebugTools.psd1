@@ -112,9 +112,7 @@ PrivateData = @{
 
 DebugTools is a PowerShell library for reverse engineering .NET applications. DebugTools contains a variety of cmdlets for performing deep introspection of .NET programs.
 
-DebugTools can record all methods called in a given process during a specified timeframe, allow you to search, filter and display stack traces of methods matching a certain set of criteria, record
-values passed to and from methods as they execute, perform live queries of core .NET data structures including method tables and method descs, identify the underlying type of all COM objects consumed in a process,
-and more.
+DebugTools can record all methods called in a given process during a specified timeframe, allow you to search, filter and display stack traces of methods matching a certain set of criteria, record values passed to and from methods as they execute, perform live queries of core .NET data structures including method tables and method descs, identify the underlying type of all COM objects consumed in a process, and more.
 '
 
     } # End of PSData hashtable

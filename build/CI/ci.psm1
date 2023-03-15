@@ -73,7 +73,7 @@ function Invoke-VSTest($vstestArgs)
 
 function Get-TestProject
 {
-    $folder = "Profiler.Tests"
+    $folder = Join-Path "src" "Profiler.Tests"
     $csproj = "Profiler.Tests.csproj"
     $powerShell = Join-Path $folder "PowerShell"
 

@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO.Pipes;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Text.RegularExpressions;
 using System.Threading;
 using ClrDebug;
@@ -358,7 +359,7 @@ namespace DebugTools.Profiler
                      ? null
                      : new TraceEventProviderOptions {ProcessIDFilter = new[] {p.Id}};
 
-                TraceEventSession.EnableProvider(ProfilerTraceEventParser.ProviderGuid, options: options);
+                 EnableProviderSafe(() => TraceEventSession.EnableProvider(ProfilerTraceEventParser.ProviderGuid, options: options));
 
                 Thread.Start();
                 cancelThread.Start();
@@ -439,7 +440,7 @@ namespace DebugTools.Profiler
             global = true;
             traceCTS = new CancellationTokenSource();
 
-            TraceEventSession.EnableProvider(ProfilerTraceEventParser.ProviderGuid);
+            EnableProviderSafe(() => TraceEventSession.EnableProvider(ProfilerTraceEventParser.ProviderGuid));
 
             Thread.Start();
             cancelThread.Start();
@@ -485,6 +486,23 @@ namespace DebugTools.Profiler
                 TraceEventSession.Dispose();
                 userCTS?.Cancel();
                 traceCTS?.Cancel();
+            }
+        }
+
+        private static object lockObj = new object();
+
+        private void EnableProviderSafe(Action action)
+        {
+            /* In our unit tests, we've seen an issue wherein EnableProvider might randomly fail with "The instance name passed was not recognized as valid by a WMI data provider."
+             * Our profiler is not a globally registered provider. It's not that you have to register the profiler first,
+             * you can call EnableProvider against a random GUID and it will still succeed. We can stress test running tests in a loop
+             * on Appveyor and eventually it will fail. Not sure if it occurs when not executing tests simultaneously; might not have tested one
+             * test at a time long enough. In any case, it does seem like not attempting to allow multiple people to call EnableProvider at
+             * once does increase the reliability of things
+             * */
+            lock (lockObj)
+            {
+                action();
             }
         }
 
