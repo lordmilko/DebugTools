@@ -6,7 +6,8 @@ namespace Profiler.Tests
         Profiler,
         Exception,
         Blacklist,
-        SOS
+        SOS,
+        StaticField
     }
 
     enum ValueTestType
@@ -222,5 +223,10 @@ namespace Profiler.Tests
     enum BlacklistTestType
     {
         Simple
+    }
+
+    enum StaticFieldTestType
+    {
+        Normal
     }
 }

@@ -379,6 +379,42 @@ $split = $_ -split ' '
     <HResult Name="PROFILER_E_UNKNOWN_METHOD">
         <HRValue>0x80041008</HRValue>
     </HResult>
+    <HResult Name="PROFILER_E_STATICFIELD_DETAILED_REQUIRED">
+        <HRValue>0x80041009</HRValue>
+    </HResult>
+    <HResult Name="PROFILER_E_STATICFIELD_INVALID_REQUEST">
+        <HRValue>0x8004100A</HRValue>
+    </HResult>
+    <HResult Name="PROFILER_E_STATICFIELD_CLASS_NOT_FOUND">
+        <HRValue>0x8004100B</HRValue>
+    </HResult>
+    <HResult Name="PROFILER_E_STATICFIELD_CLASS_AMBIGUOUS">
+        <HRValue>0x8004100C</HRValue>
+    </HResult>
+    <HResult Name="PROFILER_E_STATICFIELD_FIELD_NOT_FOUND">
+        <HRValue>0x8004100D</HRValue>
+    </HResult>
+    <HResult Name="PROFILER_E_STATICFIELD_NOT_STATIC">
+        <HRValue>0x8004100E</HRValue>
+    </HResult>
+    <HResult Name="PROFILER_E_STATICFIELD_FIELDTYPE_UNKNOWN">
+        <HRValue>0x8004100F</HRValue>
+    </HResult>
+    <HResult Name="PROFILER_E_STATICFIELD_FIELDTYPE_NOT_SUPPORTED">
+        <HRValue>0x80041010</HRValue>
+    </HResult>
+    <HResult Name="PROFILER_E_STATICFIELD_MULTIPLE_APPDOMAIN">
+        <HRValue>0x80041011</HRValue>
+    </HResult>
+    <HResult Name="PROFILER_E_STATICFIELD_NEED_THREADID">
+        <HRValue>0x80041012</HRValue>
+    </HResult>
+    <HResult Name="PROFILER_E_STATICFIELD_THREAD_NOT_FOUND">
+        <HRValue>0x80041013</HRValue>
+    </HResult>
+    <HResult Name="PROFILER_E_STATICFIELD_INVALID_MEMORY">
+        <HRValue>0x80041014</HRValue>
+    </HResult>
 
     <HResult Name="CEE_E_ENTRYPOINT">
         <HRValue>0x80131000</HRValue>

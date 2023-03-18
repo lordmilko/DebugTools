@@ -22,16 +22,18 @@ namespace DebugTools.Tracing
             public const int ExceptionFrameUnwind = 10;
             public const int ExceptionCompleted = 11;
 
-            public const int MethodInfo = 12;
-            public const int MethodInfoDetailed = 13;
+            public const int StaticFieldValue = 12;
 
-            public const int ModuleLoaded = 14;
+            public const int MethodInfo = 13;
+            public const int MethodInfoDetailed = 14;
 
-            public const int ThreadCreate = 15;
-            public const int ThreadDestroy = 16;
-            public const int ThreadName = 17;
+            public const int ModuleLoaded = 15;
 
-            public const int Shutdown = 18;
+            public const int ThreadCreate = 16;
+            public const int ThreadDestroy = 17;
+            public const int ThreadName = 18;
+
+            public const int Shutdown = 19;
         }
 
         /// <summary>
@@ -114,6 +116,12 @@ namespace DebugTools.Tracing
             remove => source.UnregisterEventTemplate(value, EventId.ExceptionCompleted, ProviderGuid);
         }
 
+        public event Action<StaticFieldValueArgs> StaticFieldValue
+        {
+            add => source.RegisterEventTemplate(StaticFieldValueTemplate(value));
+            remove => source.UnregisterEventTemplate(value, EventId.StaticFieldValue, ProviderGuid);
+        }
+
         public event Action<MethodInfoArgs> MethodInfo
         {
             add => source.RegisterEventTemplate(MethodInfoTemplate(value));
@@ -185,6 +193,8 @@ namespace DebugTools.Tracing
                     ExceptionFrameUnwindTemplate(null),
                     ExceptionCompletedTemplate(null),
 
+                    StaticFieldValueTemplate(null),
+
                     MethodInfoTemplate(null),
                     MethodInfoDetailedTemplate(null),
 
@@ -228,6 +238,8 @@ namespace DebugTools.Tracing
         private static CallArgs ExceptionFrameUnwindTemplate(Action<CallArgs> action) => new CallArgs(action, EventId.ExceptionFrameUnwind, 0, null, Guid.Empty, 0, null, ProviderGuid, ProviderName);
 
         private static ExceptionCompletedArgs ExceptionCompletedTemplate(Action<ExceptionCompletedArgs> action) => new ExceptionCompletedArgs(action, EventId.ExceptionCompleted, 0, null, Guid.Empty, 0, null, ProviderGuid, ProviderName);
+
+        private static StaticFieldValueArgs StaticFieldValueTemplate(Action<StaticFieldValueArgs> action) => new StaticFieldValueArgs(action, EventId.StaticFieldValue, 0, null, Guid.Empty, 0, null, ProviderGuid, ProviderName);
 
         private static MethodInfoArgs MethodInfoTemplate(Action<MethodInfoArgs> action) => new MethodInfoArgs(action, EventId.MethodInfo, 0, null, Guid.Empty, 0, null, ProviderGuid, ProviderName);
 

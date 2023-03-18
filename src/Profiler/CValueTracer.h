@@ -17,6 +17,11 @@ class ISigArrayType;
 
 #undef GetClassInfo
 
+#define VALUE_BUFFER_SIZE 62000 //ETW is limited to 64KB
+
+extern thread_local BYTE g_ValueBuffer[VALUE_BUFFER_SIZE];
+extern thread_local signed long g_ValueBufferPosition;
+
 //Stores a number that uniquely identifies each Enter/Leave/Tailcall event for the current thread.
 extern thread_local ULONG g_Sequence;
 
@@ -149,14 +154,16 @@ typedef struct _TraceValueContext {
     pParentType \
 }
 
+class CSigField;
+
 class CValueTracer
 {
 public:
     CValueTracer() :
-        m_NumGenericTypeArgs(0),
         m_TraceDepth(0),
         m_MethodGenericTypeArgs(nullptr)
     {
+        m_MaxTraceDepth = s_MaxTraceDepth;
     }
 
     ~CValueTracer()
@@ -165,12 +172,17 @@ public:
             delete[] m_MethodGenericTypeArgs;
     }
 
-    static HRESULT Initialize(ICorProfilerInfo3* pInfo);
+    static HRESULT Initialize(ICorProfilerInfo4* pInfo);
     static BOOL IsInvalidObject(ObjectID objectId);
 
     HRESULT EnterWithInfo(FunctionIDOrClientID functionId, COR_PRF_ELT_INFO eltInfo);
     HRESULT LeaveWithInfo(FunctionIDOrClientID functionId, COR_PRF_ELT_INFO eltInfo);
     HRESULT TailcallWithInfo(FunctionIDOrClientID functionId, COR_PRF_ELT_INFO eltInfo);
+
+    HRESULT GetFieldValue(
+        _In_ void* pAddress,
+        _In_ CClassInfo* pInfo,
+        _In_ CSigField* pField);
 
 private:
 
@@ -296,9 +308,9 @@ private:
     static ULONG s_StringBufferOffset;
     static ULONG s_MaxTraceDepth;
 
-    ULONG m_NumGenericTypeArgs;
     ULONG m_TraceDepth;
 
 public:
     IClassInfo** m_MethodGenericTypeArgs;
+    ULONG m_MaxTraceDepth;
 };

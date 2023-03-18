@@ -659,7 +659,7 @@ Remarks:
 #endif // MCGEN_DISABLE_PROVIDER_CODE_GENERATION
 
 //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-// Provider "DebugToolsProfiler" event count 18
+// Provider "DebugToolsProfiler" event count 19
 //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 // Provider GUID = c6f30827-dd2d-4fee-ad2e-bba0ce6cbd8f
@@ -678,6 +678,7 @@ EXTERN_C __declspec(selectany) const GUID DebugToolsProfiler = {0xc6f30827, 0xdd
 #define ThreadKeyword 0x4
 #define SystemKeyword 0x8
 #define ExceptionKeyword 0x10
+#define StaticFieldKeyword 0x20
 
 //
 // Event Descriptors
@@ -704,20 +705,22 @@ EXTERN_C __declspec(selectany) const EVENT_DESCRIPTOR ExceptionFrameUnwindEvent 
 #define ExceptionFrameUnwindEvent_value 0xa
 EXTERN_C __declspec(selectany) const EVENT_DESCRIPTOR ExceptionCompletedEvent = {0xb, 0x0, 0x0, 0x5, 0x0, 0x0, 0x10};
 #define ExceptionCompletedEvent_value 0xb
-EXTERN_C __declspec(selectany) const EVENT_DESCRIPTOR MethodInfoEvent = {0xc, 0x0, 0x0, 0x5, 0x0, 0x0, 0x1};
-#define MethodInfoEvent_value 0xc
-EXTERN_C __declspec(selectany) const EVENT_DESCRIPTOR MethodInfoDetailedEvent = {0xd, 0x0, 0x0, 0x5, 0x0, 0x0, 0x1};
-#define MethodInfoDetailedEvent_value 0xd
-EXTERN_C __declspec(selectany) const EVENT_DESCRIPTOR ModuleLoadedEvent = {0xe, 0x0, 0x0, 0x5, 0x0, 0x0, 0x2};
-#define ModuleLoadedEvent_value 0xe
-EXTERN_C __declspec(selectany) const EVENT_DESCRIPTOR ThreadCreateEvent = {0xf, 0x0, 0x0, 0x5, 0x0, 0x0, 0x4};
-#define ThreadCreateEvent_value 0xf
-EXTERN_C __declspec(selectany) const EVENT_DESCRIPTOR ThreadDestroyEvent = {0x10, 0x0, 0x0, 0x5, 0x0, 0x0, 0x4};
-#define ThreadDestroyEvent_value 0x10
-EXTERN_C __declspec(selectany) const EVENT_DESCRIPTOR ThreadNameEvent = {0x11, 0x0, 0x0, 0x5, 0x0, 0x0, 0x4};
-#define ThreadNameEvent_value 0x11
-EXTERN_C __declspec(selectany) const EVENT_DESCRIPTOR ShutdownEvent = {0x12, 0x0, 0x0, 0x5, 0x0, 0x0, 0x8};
-#define ShutdownEvent_value 0x12
+EXTERN_C __declspec(selectany) const EVENT_DESCRIPTOR StaticFieldValueEvent = {0xc, 0x0, 0x0, 0x5, 0x0, 0x0, 0x20};
+#define StaticFieldValueEvent_value 0xc
+EXTERN_C __declspec(selectany) const EVENT_DESCRIPTOR MethodInfoEvent = {0xd, 0x0, 0x0, 0x5, 0x0, 0x0, 0x1};
+#define MethodInfoEvent_value 0xd
+EXTERN_C __declspec(selectany) const EVENT_DESCRIPTOR MethodInfoDetailedEvent = {0xe, 0x0, 0x0, 0x5, 0x0, 0x0, 0x1};
+#define MethodInfoDetailedEvent_value 0xe
+EXTERN_C __declspec(selectany) const EVENT_DESCRIPTOR ModuleLoadedEvent = {0xf, 0x0, 0x0, 0x5, 0x0, 0x0, 0x2};
+#define ModuleLoadedEvent_value 0xf
+EXTERN_C __declspec(selectany) const EVENT_DESCRIPTOR ThreadCreateEvent = {0x10, 0x0, 0x0, 0x5, 0x0, 0x0, 0x4};
+#define ThreadCreateEvent_value 0x10
+EXTERN_C __declspec(selectany) const EVENT_DESCRIPTOR ThreadDestroyEvent = {0x11, 0x0, 0x0, 0x5, 0x0, 0x0, 0x4};
+#define ThreadDestroyEvent_value 0x11
+EXTERN_C __declspec(selectany) const EVENT_DESCRIPTOR ThreadNameEvent = {0x12, 0x0, 0x0, 0x5, 0x0, 0x0, 0x4};
+#define ThreadNameEvent_value 0x12
+EXTERN_C __declspec(selectany) const EVENT_DESCRIPTOR ShutdownEvent = {0x13, 0x0, 0x0, 0x5, 0x0, 0x0, 0x8};
+#define ShutdownEvent_value 0x13
 
 //
 // MCGEN_DISABLE_PROVIDER_CODE_GENERATION macro:
@@ -731,13 +734,13 @@ EXTERN_C __declspec(selectany) const EVENT_DESCRIPTOR ShutdownEvent = {0x12, 0x0
 // These variables are for use by MC-generated code and should not be used directly.
 //
 EXTERN_C __declspec(selectany) DECLSPEC_CACHEALIGN ULONG DebugToolsProfilerEnableBits[1];
-EXTERN_C __declspec(selectany) const ULONGLONG DebugToolsProfilerKeywords[6] = {0x8000000000, 0x10, 0x1, 0x2, 0x4, 0x8};
-EXTERN_C __declspec(selectany) const unsigned char DebugToolsProfilerLevels[6] = {5, 5, 5, 5, 5, 5};
+EXTERN_C __declspec(selectany) const ULONGLONG DebugToolsProfilerKeywords[7] = {0x8000000000, 0x10, 0x20, 0x1, 0x2, 0x4, 0x8};
+EXTERN_C __declspec(selectany) const unsigned char DebugToolsProfilerLevels[7] = {5, 5, 5, 5, 5, 5, 5};
 
 //
 // Provider context
 //
-EXTERN_C __declspec(selectany) MCGEN_TRACE_CONTEXT DebugToolsProfiler_Context = {0, (ULONG_PTR)DebugToolsProfiler_Traits, 0, 0, 0, 0, 0, 0, 6, DebugToolsProfilerEnableBits, DebugToolsProfilerKeywords, DebugToolsProfilerLevels};
+EXTERN_C __declspec(selectany) MCGEN_TRACE_CONTEXT DebugToolsProfiler_Context = {0, (ULONG_PTR)DebugToolsProfiler_Traits, 0, 0, 0, 0, 0, 0, 7, DebugToolsProfilerEnableBits, DebugToolsProfilerKeywords, DebugToolsProfilerLevels};
 
 //
 // Provider REGHANDLE
@@ -832,7 +835,7 @@ _mcgen_PASTE2(_mcgen_RegisterForContext_DebugToolsProfiler_, MCGEN_EVENTREGISTER
 {
     RtlZeroMemory(pContext, sizeof(*pContext));
     pContext->Context.Logger = (ULONG_PTR)DebugToolsProfiler_Traits;
-    pContext->Context.EnableBitsCount = 6;
+    pContext->Context.EnableBitsCount = 7;
     pContext->Context.EnableBitMask = pContext->EnableBits;
     pContext->Context.EnableKeyWords = DebugToolsProfilerKeywords;
     pContext->Context.EnableLevel = DebugToolsProfilerLevels;
@@ -1108,10 +1111,33 @@ _mcgen_CheckContextType_DebugToolsProfiler(_In_ McGenContext_DebugToolsProfiler*
 #define _mcgen_TEMPLATE_FOR_ExceptionCompletedEvent _mcgen_PASTE2(McTemplateU0xq_, MCGEN_EVENTWRITETRANSFER)
 
 //
+// Enablement check macro for event "StaticFieldValueEvent"
+//
+#define EventEnabledStaticFieldValueEvent() _mcgen_EVENT_BIT_SET(DebugToolsProfilerEnableBits, 2)
+#define EventEnabledStaticFieldValueEvent_ForContext(pContext) _mcgen_EVENT_BIT_SET(_mcgen_CheckContextType_DebugToolsProfiler(pContext)->EnableBits, 2)
+
+//
+// Event write macros for event "StaticFieldValueEvent"
+//
+#define EventWriteStaticFieldValueEvent(HRESULT, ValueLength, Value) \
+        MCGEN_EVENT_ENABLED(StaticFieldValueEvent) \
+        ? _mcgen_TEMPLATE_FOR_StaticFieldValueEvent(&DebugToolsProfiler_Context, &StaticFieldValueEvent, HRESULT, ValueLength, Value) : 0
+#define EventWriteStaticFieldValueEvent_AssumeEnabled(HRESULT, ValueLength, Value) \
+        _mcgen_TEMPLATE_FOR_StaticFieldValueEvent(&DebugToolsProfiler_Context, &StaticFieldValueEvent, HRESULT, ValueLength, Value)
+#define EventWriteStaticFieldValueEvent_ForContext(pContext, HRESULT, ValueLength, Value) \
+        MCGEN_EVENT_ENABLED_FORCONTEXT(pContext, StaticFieldValueEvent) \
+        ? _mcgen_TEMPLATE_FOR_StaticFieldValueEvent(&(pContext)->Context, &StaticFieldValueEvent, HRESULT, ValueLength, Value) : 0
+#define EventWriteStaticFieldValueEvent_ForContextAssumeEnabled(pContext, HRESULT, ValueLength, Value) \
+        _mcgen_TEMPLATE_FOR_StaticFieldValueEvent(&_mcgen_CheckContextType_DebugToolsProfiler(pContext)->Context, &StaticFieldValueEvent, HRESULT, ValueLength, Value)
+
+// This macro is for use by MC-generated code and should not be used directly.
+#define _mcgen_TEMPLATE_FOR_StaticFieldValueEvent _mcgen_PASTE2(McTemplateU0dqbr1_, MCGEN_EVENTWRITETRANSFER)
+
+//
 // Enablement check macro for event "MethodInfoEvent"
 //
-#define EventEnabledMethodInfoEvent() _mcgen_EVENT_BIT_SET(DebugToolsProfilerEnableBits, 2)
-#define EventEnabledMethodInfoEvent_ForContext(pContext) _mcgen_EVENT_BIT_SET(_mcgen_CheckContextType_DebugToolsProfiler(pContext)->EnableBits, 2)
+#define EventEnabledMethodInfoEvent() _mcgen_EVENT_BIT_SET(DebugToolsProfilerEnableBits, 3)
+#define EventEnabledMethodInfoEvent_ForContext(pContext) _mcgen_EVENT_BIT_SET(_mcgen_CheckContextType_DebugToolsProfiler(pContext)->EnableBits, 3)
 
 //
 // Event write macros for event "MethodInfoEvent"
@@ -1133,8 +1159,8 @@ _mcgen_CheckContextType_DebugToolsProfiler(_In_ McGenContext_DebugToolsProfiler*
 //
 // Enablement check macro for event "MethodInfoDetailedEvent"
 //
-#define EventEnabledMethodInfoDetailedEvent() _mcgen_EVENT_BIT_SET(DebugToolsProfilerEnableBits, 2)
-#define EventEnabledMethodInfoDetailedEvent_ForContext(pContext) _mcgen_EVENT_BIT_SET(_mcgen_CheckContextType_DebugToolsProfiler(pContext)->EnableBits, 2)
+#define EventEnabledMethodInfoDetailedEvent() _mcgen_EVENT_BIT_SET(DebugToolsProfilerEnableBits, 3)
+#define EventEnabledMethodInfoDetailedEvent_ForContext(pContext) _mcgen_EVENT_BIT_SET(_mcgen_CheckContextType_DebugToolsProfiler(pContext)->EnableBits, 3)
 
 //
 // Event write macros for event "MethodInfoDetailedEvent"
@@ -1156,8 +1182,8 @@ _mcgen_CheckContextType_DebugToolsProfiler(_In_ McGenContext_DebugToolsProfiler*
 //
 // Enablement check macro for event "ModuleLoadedEvent"
 //
-#define EventEnabledModuleLoadedEvent() _mcgen_EVENT_BIT_SET(DebugToolsProfilerEnableBits, 3)
-#define EventEnabledModuleLoadedEvent_ForContext(pContext) _mcgen_EVENT_BIT_SET(_mcgen_CheckContextType_DebugToolsProfiler(pContext)->EnableBits, 3)
+#define EventEnabledModuleLoadedEvent() _mcgen_EVENT_BIT_SET(DebugToolsProfilerEnableBits, 4)
+#define EventEnabledModuleLoadedEvent_ForContext(pContext) _mcgen_EVENT_BIT_SET(_mcgen_CheckContextType_DebugToolsProfiler(pContext)->EnableBits, 4)
 
 //
 // Event write macros for event "ModuleLoadedEvent"
@@ -1179,8 +1205,8 @@ _mcgen_CheckContextType_DebugToolsProfiler(_In_ McGenContext_DebugToolsProfiler*
 //
 // Enablement check macro for event "ThreadCreateEvent"
 //
-#define EventEnabledThreadCreateEvent() _mcgen_EVENT_BIT_SET(DebugToolsProfilerEnableBits, 4)
-#define EventEnabledThreadCreateEvent_ForContext(pContext) _mcgen_EVENT_BIT_SET(_mcgen_CheckContextType_DebugToolsProfiler(pContext)->EnableBits, 4)
+#define EventEnabledThreadCreateEvent() _mcgen_EVENT_BIT_SET(DebugToolsProfilerEnableBits, 5)
+#define EventEnabledThreadCreateEvent_ForContext(pContext) _mcgen_EVENT_BIT_SET(_mcgen_CheckContextType_DebugToolsProfiler(pContext)->EnableBits, 5)
 
 //
 // Event write macros for event "ThreadCreateEvent"
@@ -1197,13 +1223,13 @@ _mcgen_CheckContextType_DebugToolsProfiler(_In_ McGenContext_DebugToolsProfiler*
         _mcgen_TEMPLATE_FOR_ThreadCreateEvent(&_mcgen_CheckContextType_DebugToolsProfiler(pContext)->Context, &ThreadCreateEvent, ThreadSequence, ThreadID)
 
 // This macro is for use by MC-generated code and should not be used directly.
-#define _mcgen_TEMPLATE_FOR_ThreadCreateEvent _mcgen_PASTE2(McTemplateU0qx_, MCGEN_EVENTWRITETRANSFER)
+#define _mcgen_TEMPLATE_FOR_ThreadCreateEvent _mcgen_PASTE2(McTemplateU0qq_, MCGEN_EVENTWRITETRANSFER)
 
 //
 // Enablement check macro for event "ThreadDestroyEvent"
 //
-#define EventEnabledThreadDestroyEvent() _mcgen_EVENT_BIT_SET(DebugToolsProfilerEnableBits, 4)
-#define EventEnabledThreadDestroyEvent_ForContext(pContext) _mcgen_EVENT_BIT_SET(_mcgen_CheckContextType_DebugToolsProfiler(pContext)->EnableBits, 4)
+#define EventEnabledThreadDestroyEvent() _mcgen_EVENT_BIT_SET(DebugToolsProfilerEnableBits, 5)
+#define EventEnabledThreadDestroyEvent_ForContext(pContext) _mcgen_EVENT_BIT_SET(_mcgen_CheckContextType_DebugToolsProfiler(pContext)->EnableBits, 5)
 
 //
 // Event write macros for event "ThreadDestroyEvent"
@@ -1220,13 +1246,13 @@ _mcgen_CheckContextType_DebugToolsProfiler(_In_ McGenContext_DebugToolsProfiler*
         _mcgen_TEMPLATE_FOR_ThreadDestroyEvent(&_mcgen_CheckContextType_DebugToolsProfiler(pContext)->Context, &ThreadDestroyEvent, ThreadSequence, ThreadID)
 
 // This macro is for use by MC-generated code and should not be used directly.
-#define _mcgen_TEMPLATE_FOR_ThreadDestroyEvent _mcgen_PASTE2(McTemplateU0qx_, MCGEN_EVENTWRITETRANSFER)
+#define _mcgen_TEMPLATE_FOR_ThreadDestroyEvent _mcgen_PASTE2(McTemplateU0qq_, MCGEN_EVENTWRITETRANSFER)
 
 //
 // Enablement check macro for event "ThreadNameEvent"
 //
-#define EventEnabledThreadNameEvent() _mcgen_EVENT_BIT_SET(DebugToolsProfilerEnableBits, 4)
-#define EventEnabledThreadNameEvent_ForContext(pContext) _mcgen_EVENT_BIT_SET(_mcgen_CheckContextType_DebugToolsProfiler(pContext)->EnableBits, 4)
+#define EventEnabledThreadNameEvent() _mcgen_EVENT_BIT_SET(DebugToolsProfilerEnableBits, 5)
+#define EventEnabledThreadNameEvent_ForContext(pContext) _mcgen_EVENT_BIT_SET(_mcgen_CheckContextType_DebugToolsProfiler(pContext)->EnableBits, 5)
 
 //
 // Event write macros for event "ThreadNameEvent"
@@ -1248,8 +1274,8 @@ _mcgen_CheckContextType_DebugToolsProfiler(_In_ McGenContext_DebugToolsProfiler*
 //
 // Enablement check macro for event "ShutdownEvent"
 //
-#define EventEnabledShutdownEvent() _mcgen_EVENT_BIT_SET(DebugToolsProfilerEnableBits, 5)
-#define EventEnabledShutdownEvent_ForContext(pContext) _mcgen_EVENT_BIT_SET(_mcgen_CheckContextType_DebugToolsProfiler(pContext)->EnableBits, 5)
+#define EventEnabledShutdownEvent() _mcgen_EVENT_BIT_SET(DebugToolsProfilerEnableBits, 6)
+#define EventEnabledShutdownEvent_ForContext(pContext) _mcgen_EVENT_BIT_SET(_mcgen_CheckContextType_DebugToolsProfiler(pContext)->EnableBits, 6)
 
 //
 // Event write macros for event "ShutdownEvent"
@@ -1303,31 +1329,61 @@ _mcgen_PASTE2(McTemplateU0_, MCGEN_EVENTWRITETRANSFER)(
 #endif // McTemplateU0_def
 
 //
+// Function for template "StaticFieldValueArgs" (and possibly others).
+// This function is for use by MC-generated code and should not be used directly.
+//
+#ifndef McTemplateU0dqbr1_def
+#define McTemplateU0dqbr1_def
+ETW_INLINE
+ULONG
+_mcgen_PASTE2(McTemplateU0dqbr1_, MCGEN_EVENTWRITETRANSFER)(
+    _In_ PMCGEN_TRACE_CONTEXT Context,
+    _In_ PCEVENT_DESCRIPTOR Descriptor,
+    _In_ const signed int  _Arg0,
+    _In_ const unsigned int  _Arg1,
+    _In_reads_(_Arg1) const unsigned char*  _Arg2
+    )
+{
+#define McTemplateU0dqbr1_ARGCOUNT 3
+
+    EVENT_DATA_DESCRIPTOR EventData[McTemplateU0dqbr1_ARGCOUNT + 1];
+
+    EventDataDescCreate(&EventData[1],&_Arg0, sizeof(const signed int)  );
+
+    EventDataDescCreate(&EventData[2],&_Arg1, sizeof(const unsigned int)  );
+
+    EventDataDescCreate(&EventData[3],_Arg2, (ULONG)sizeof(char)*_Arg1);
+
+    return McGenEventWrite(Context, Descriptor, NULL, McTemplateU0dqbr1_ARGCOUNT + 1, EventData);
+}
+#endif // McTemplateU0dqbr1_def
+
+//
 // Function for template "ThreadArgs" (and possibly others).
 // This function is for use by MC-generated code and should not be used directly.
 //
-#ifndef McTemplateU0qx_def
-#define McTemplateU0qx_def
+#ifndef McTemplateU0qq_def
+#define McTemplateU0qq_def
 ETW_INLINE
 ULONG
-_mcgen_PASTE2(McTemplateU0qx_, MCGEN_EVENTWRITETRANSFER)(
+_mcgen_PASTE2(McTemplateU0qq_, MCGEN_EVENTWRITETRANSFER)(
     _In_ PMCGEN_TRACE_CONTEXT Context,
     _In_ PCEVENT_DESCRIPTOR Descriptor,
     _In_ const unsigned int  _Arg0,
-    _In_ const unsigned __int64  _Arg1
+    _In_ const unsigned int  _Arg1
     )
 {
-#define McTemplateU0qx_ARGCOUNT 2
+#define McTemplateU0qq_ARGCOUNT 2
 
-    EVENT_DATA_DESCRIPTOR EventData[McTemplateU0qx_ARGCOUNT + 1];
+    EVENT_DATA_DESCRIPTOR EventData[McTemplateU0qq_ARGCOUNT + 1];
 
     EventDataDescCreate(&EventData[1],&_Arg0, sizeof(const unsigned int)  );
 
-    EventDataDescCreate(&EventData[2],&_Arg1, sizeof(const unsigned __int64)  );
+    EventDataDescCreate(&EventData[2],&_Arg1, sizeof(const unsigned int)  );
 
-    return McGenEventWrite(Context, Descriptor, NULL, McTemplateU0qx_ARGCOUNT + 1, EventData);
+    return McGenEventWrite(Context, Descriptor, NULL, McTemplateU0qq_ARGCOUNT + 1, EventData);
 }
-#endif // McTemplateU0qx_def
+#endif // McTemplateU0qq_def
 
 //
 // Function for template "ModuleArgs" (and possibly others).

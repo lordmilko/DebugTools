@@ -45,6 +45,10 @@ namespace DebugTools.TestHost
                     ProcessBlacklistTest(args[1]);
                     break;
 
+                case TestType.StaticField:
+                    ProcessStaticFieldTest(args[1]);
+                    break;
+
                 case TestType.SOS:
                     var parentProcess = Process.GetProcessById(Convert.ToInt32(args[1]));
                     parentProcess.EnableRaisingEvents = true;
@@ -980,6 +984,27 @@ namespace DebugTools.TestHost
             switch (test)
             {
                 case BlacklistTestType.Simple:
+                    break;
+
+                default:
+                    Debug.WriteLine($"Don't know how to run profiler test '{test}'");
+                    Environment.Exit(2);
+                    break;
+            }
+        }
+
+        private static void ProcessStaticFieldTest(string subType)
+        {
+            var test = (StaticFieldTestType)Enum.Parse(typeof(StaticFieldTestType), subType);
+
+            Trace.WriteLine($"Running test '{test}'");
+
+            var instance = new StaticFieldType();
+
+            switch (test)
+            {
+                case StaticFieldTestType.Normal:
+                    instance.Normal();
                     break;
 
                 default:

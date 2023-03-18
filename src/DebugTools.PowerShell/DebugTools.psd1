@@ -30,7 +30,7 @@ CompanyName = 'Unknown'
 Copyright = '(c) 2023 lordmilko. All rights reserved.'
 
 # Description of the functionality provided by this module
-Description = 'Debugging Tools for .NET Framework / .NET Core'
+Description = '.NET Debugging/Reverse Engineering Toolkit'
 
 # Minimum version of the Windows PowerShell engine required by this module
 # PowerShellVersion = ''
@@ -95,7 +95,7 @@ PrivateData = @{
     PSData = @{
 
         # Tags applied to this module. These help with module discovery in online galleries.
-        # Tags = @()
+        Tags = @('NET', 'COM', 'Debug', 'Debugging', 'Reverse Engineering', 'Profile')
 
         # A URL to the license for this module.
         # LicenseUri = ''

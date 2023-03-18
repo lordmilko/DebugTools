@@ -1,5 +1,7 @@
 #include "pch.h"
 #include "CCommunication.h"
+#include "CStaticTracer.h"
+#include "CCorProfilerCallback.h"
 
 #define MESSAGE_DATA_SIZE 1000
 
@@ -8,7 +10,8 @@ bool g_TracingEnabled = FALSE;
 //Keep in sync with MessageType.cs
 enum class MessageType
 {
-    EnableTracing
+    EnableTracing,
+    GetStaticField
 };
 
 typedef struct _Message {
@@ -26,6 +29,12 @@ DWORD WINAPI PipeThreadProc(LPVOID lpParameter)
 
     //Wait for the client to connect
     ConnectNamedPipe(communication->m_hPipe, NULL);
+
+    //Unfortunately, this is not enough to prevent GetClassFromObject() returning
+    //CORPROF_E_NOT_MANAGED_THREAD. In order for AllowObjectInspection() to succeed,
+    //gCurrentThreadInfo.m_pThread must have a value. All InitializeCurrentThread() does
+    //however is set other properties on gCurrentThreadInfo.
+    g_pProfiler->m_pInfo->InitializeCurrentThread();
 
     while (true)
     {
@@ -48,6 +57,10 @@ DWORD WINAPI PipeThreadProc(LPVOID lpParameter)
             {
             case MessageType::EnableTracing:
                 g_TracingEnabled = *(bool*)message->Data;
+                break;
+
+            case MessageType::GetStaticField:
+                CStaticTracer::Trace((LPWSTR)message->Data);
                 break;
 
             default:

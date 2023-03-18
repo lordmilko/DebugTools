@@ -5,6 +5,7 @@ using System.Diagnostics;
 using System.IO.Pipes;
 using System.Linq;
 using System.Runtime.InteropServices;
+using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
 using ClrDebug;
@@ -31,6 +32,8 @@ namespace DebugTools.Profiler
 
         public bool HasExited => Process?.HasExited ?? true;
 
+        public ProfilerTraceEventParser Parser { get; }
+
         private NamedPipeClientStream pipe;
 
         public Dictionary<int, ThreadStack> ThreadCache { get; } = new Dictionary<int, ThreadStack>();
@@ -43,6 +46,7 @@ namespace DebugTools.Profiler
         private bool stopping;
         private bool cancelIfTimeoutNoEvents;
         private DateTime stopTime;
+        private bool isDebugged;
 
         private CancellationTokenSource traceCTS;
         private CancellationTokenSource userCTS;
@@ -54,6 +58,9 @@ namespace DebugTools.Profiler
         private BlockingCollection<IFrame> watchQueue;
         private bool global;
         private bool disposing;
+        private object staticFieldLock = new object();
+        private Either<object, HRESULT> staticFieldValue;
+        private AutoResetEvent staticFieldValueEvent = new AutoResetEvent(false);
 
         public ThreadStack[] LastTrace { get; protected set; }
 
@@ -90,6 +97,8 @@ namespace DebugTools.Profiler
             parser.ExceptionFrameUnwind += Parser_ExceptionFrameUnwind;
             parser.ExceptionCompleted += Parser_ExceptionCompleted;
 
+            parser.StaticFieldValue += Parser_StaticFieldValue;
+
             parser.ThreadCreate += Parser_ThreadCreate;
             parser.ThreadDestroy += Parser_ThreadDestroy;
             parser.ThreadName += Parser_ThreadName;
@@ -107,6 +116,8 @@ namespace DebugTools.Profiler
                     userCTS?.Cancel();
                 }
             };
+
+            Parser = parser;
 
             Thread = new Thread(ThreadProc) {Name = "ETWThreadProc"};
             cancelThread = new Thread(CancelTraceThreadProc) {Name = "CancelThreadProc"};
@@ -254,7 +265,7 @@ namespace DebugTools.Profiler
             if ((uint) args.HRESULT == (uint) PROFILER_HRESULT.PROFILER_E_UNKNOWN_FRAME)
                 throw new ProfilerException("Profiler encountered an unexpected function while processing a Leave/Tailcall. Current stack frame is unknown, profiler cannot continue.", (PROFILER_HRESULT) args.HRESULT);
 
-            if ((uint) args.HRESULT >= 0x80041001 && (uint) args.HRESULT <= 0x80042000)
+            if (args.HRESULT.IsProfilerHRESULT())
             {
                 switch((PROFILER_HRESULT) args.HRESULT)
                 {
@@ -316,6 +327,16 @@ namespace DebugTools.Profiler
 
         #endregion
 
+        public void Parser_StaticFieldValue(StaticFieldValueArgs args)
+        {
+            if (args.HRESULT == HRESULT.S_OK)
+                staticFieldValue = ValueSerializer.FromReturnValue(args.Value);
+            else
+                staticFieldValue = args.HRESULT;
+
+            staticFieldValueEvent.Set();
+        }
+
         private void ProcessStopping(DateTime timeStamp)
         {
             if (stopping)
@@ -331,7 +352,7 @@ namespace DebugTools.Profiler
             }
         }
 
-        private IMethodInfoInternal GetMethodSafe(long functionId)
+        internal IMethodInfoInternal GetMethodSafe(long functionId)
         {
             if (Methods.TryGetValue(functionId, out var value))
                 return value;
@@ -351,6 +372,7 @@ namespace DebugTools.Profiler
 
             var pipeCTS = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
             traceCTS = new CancellationTokenSource();
+            isDebugged = Debugger.IsAttached && settings?.Any(s => s.Flag == ProfilerEnvFlags.WaitForDebugger) == true;
 
             Process = ProfilerInfo.CreateProcess(processName, p =>
             {
@@ -676,6 +698,38 @@ namespace DebugTools.Profiler
                 throw threadProcException;
         }
 
+        public object GetStaticField(string name, int threadId = 0, int maxTraceDepth = 0)
+        {
+            if (name == null)
+                throw new ArgumentNullException(nameof(name));
+
+            if (string.IsNullOrWhiteSpace(name))
+                throw new ArgumentException($"A type and name must be specified however was an empty string was provided.", nameof(name));
+
+            if (name.IndexOf('.') == -1)
+                throw new ArgumentException("A type and name should be specified, separated by a period. e.g. 'Foo.bar'", nameof(name));
+
+            lock (staticFieldLock)
+            {
+                ExecuteCommand(MessageType.GetStaticField, $"{name}|{threadId}|{maxTraceDepth}");
+
+                if (!staticFieldValueEvent.WaitOne(isDebugged ? -1 : (int) TimeSpan.FromSeconds(5).TotalMilliseconds))
+                    throw new TimeoutException("Timed out waiting for profiler to read static field");
+
+                var value = staticFieldValue;
+
+                if (value.IsLeft)
+                    return value.Left;
+
+                if (value.Right.IsProfilerHRESULT())
+                    throw new ProfilerException((PROFILER_HRESULT) value.Right);
+
+                value.Right.ThrowOnNotOK();
+            }
+
+            throw new InvalidOperationException("This code should be unreachable.");
+        }
+
         public void ExecuteCommand(MessageType messageType, object value)
         {
             if (pipe == null)
@@ -715,9 +769,16 @@ namespace DebugTools.Profiler
                     bytes = BitConverter.GetBytes(b);
                     break;
 
+                case string s:
+                    bytes = Encoding.Unicode.GetBytes(s);
+                    break;
+
                 default:
                     throw new NotImplementedException($"Don't know how to handle value of type '{value.GetType().Name}'.");
             }
+
+            if (bytes.Length > buffer.Length - pos)
+                throw new InvalidOperationException($"Cannot invoke command {messageType}: value '{value}' was too large.");
 
             for (var i = 0; i < bytes.Length && pos < buffer.Length; pos++, i++)
                 buffer[pos] = bytes[i];

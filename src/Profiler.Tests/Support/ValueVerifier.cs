@@ -51,6 +51,17 @@ namespace Profiler.Tests
             Assert.AreEqual(value, valueObj.Value);
         }
 
+        public void HasFieldValue(MaxTraceDepth value)
+        {
+            var fields = GetFields();
+
+            Assert.AreEqual(1, fields.Count, "Expected number of fields was incorrect");
+
+            var field = fields[0];
+
+            Assert.AreEqual(value, field);
+        }
+
         public void HasFieldValue(Action<ValueVerifier> action)
         {
             var fields = GetFields();

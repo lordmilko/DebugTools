@@ -200,7 +200,7 @@ public:
     HRESULT STDMETHODCALLTYPE ProfilerDetachSucceeded(void) override { return S_OK; }
 #pragma endregion
 
-    ICorProfilerInfo3* m_pInfo;
+    ICorProfilerInfo4* m_pInfo;
     BOOL m_Detailed;
 
     std::unordered_map<AssemblyID, CAssemblyInfo*> m_AssemblyInfoMap;

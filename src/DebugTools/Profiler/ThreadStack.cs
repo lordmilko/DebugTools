@@ -11,7 +11,7 @@ namespace DebugTools.Profiler
 
         public IFrame Current { get; set; }
 
-        public IRootFrame Root => Current.GetRoot();
+        public IRootFrame Root => Current?.GetRoot();
 
         public Dictionary<long, ExceptionInfo> Exceptions { get; } = new Dictionary<long, ExceptionInfo>();
 

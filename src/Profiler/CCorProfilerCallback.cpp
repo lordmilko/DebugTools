@@ -492,6 +492,8 @@ HRESULT CCorProfilerCallback::Initialize(IUnknown* pICorProfilerInfoUnk)
 
     HRESULT hr = S_OK;
 
+    g_pProfiler = this;
+
     BindLifetimeToParentProcess();
     IfFailGo(m_Communication.Initialize());
 
@@ -512,8 +514,6 @@ HRESULT CCorProfilerCallback::Initialize(IUnknown* pICorProfilerInfoUnk)
         IfFailGo(InstallHooks());
 
     IfFailWin32Go(EventRegisterDebugToolsProfiler());
-
-    g_pProfiler = this;
 
 ErrExit:
     return hr;
@@ -763,7 +763,7 @@ UINT_PTR __stdcall CCorProfilerCallback::RecordFunction(FunctionID funcId, void*
 {
     HRESULT hr = S_OK;
 
-    ICorProfilerInfo3* pInfo = g_pProfiler->m_pInfo;
+    ICorProfilerInfo4* pInfo = g_pProfiler->m_pInfo;
     IMetaDataImport2* pMDI = nullptr;
 
     mdMethodDef methodDef;

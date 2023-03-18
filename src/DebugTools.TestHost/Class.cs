@@ -9,6 +9,11 @@
         public int field1;
     }
 
+    class Class1WithFieldWithField
+    {
+        public Class1WithField field1;
+    }
+
     class Class1WithProperty
     {
         public int Property1 { get; set; }

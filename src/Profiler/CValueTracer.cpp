@@ -6,8 +6,6 @@
 #include "CTypeIdentifier.h"
 #include <unordered_set>
 
-#define VALUE_BUFFER_SIZE 62000 //ETW is limited to 64KB
-
 thread_local ULONG g_Sequence = 0;
 thread_local std::stack<Frame> g_CallStack;
 thread_local BOOL g_CheckM2UUnwind = FALSE;
@@ -23,7 +21,7 @@ ULONG CValueTracer::s_StringLengthOffset;
 ULONG CValueTracer::s_StringBufferOffset;
 ULONG CValueTracer::s_MaxTraceDepth;
 
-HRESULT CValueTracer::Initialize(ICorProfilerInfo3* pInfo)
+HRESULT CValueTracer::Initialize(ICorProfilerInfo4* pInfo)
 {
 #define BUFFER_SIZE 100
 
@@ -309,7 +307,7 @@ HRESULT CValueTracer::TraceValue(
         return hr;
     }
 
-    if (s_MaxTraceDepth != (ULONG)-1 && m_TraceDepth >= s_MaxTraceDepth)
+    if (m_MaxTraceDepth != (ULONG)-1 && m_TraceDepth >= m_MaxTraceDepth)
     {
         DebugBlob(L"MaxTraceDepth");
         WriteMaxTraceDepth();
@@ -1868,4 +1866,40 @@ HRESULT CValueTracer::GetMethodInfoNoLock(FunctionIDOrClientID functionId, _Out_
 
     *ppMethod = pMethod;
     return S_OK;
+}
+
+HRESULT CValueTracer::GetFieldValue(
+    _In_ void* pAddress,
+    _In_ CClassInfo* pInfo,
+    _In_ CSigField* pField)
+{
+    HRESULT hr = S_OK;
+    mdToken typeToken = GetTypeToken(pField->m_pType);
+
+    long genericIndex = -1;
+    GetGenericInfo(pField->m_pType, &genericIndex);
+
+    CClassInfoResolver resolver(pInfo);
+
+    TraceValueContext ctx = MakeTraceValueContext(
+        typeToken,
+        pInfo->m_ModuleID,
+        genericIndex,
+        &resolver,
+        pField->m_pType,
+        nullptr
+    );
+
+    ULONG bytesRead = 0;
+
+    __try
+    {
+        hr = TraceValue((UINT_PTR) pAddress, pField->m_pType->m_Type, &ctx, bytesRead);
+    }
+    __except (GetExceptionCode() == EXCEPTION_ACCESS_VIOLATION ? EXCEPTION_EXECUTE_HANDLER : EXCEPTION_CONTINUE_SEARCH)
+    {
+        hr = PROFILER_E_STATICFIELD_INVALID_MEMORY;
+    }
+
+    return hr;
 }
