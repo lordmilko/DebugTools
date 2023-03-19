@@ -187,7 +187,7 @@ namespace DebugTools.Profiler
             var expectedNextSequence = lastSequence + 1;
 
             if (lastSequence != 0 && expectedNextSequence != args.Sequence)
-                throw new InvalidOperationException($"Expected sequence: {expectedNextSequence}. Actual: {args.Sequence}");
+                throw new InvalidOperationException($"Expected sequence: {expectedNextSequence}. Actual: {args.Sequence}. This indicates a general bug in the profiler's bookkeeping that somehow didn't trigger {PROFILER_HRESULT.PROFILER_E_UNKNOWN_FRAME}, an exception occurred in the profiler that messed up the bookkeeping, or ETW dropped an event due to too many events being generated.");
 
             lastSequence = args.Sequence;
         }

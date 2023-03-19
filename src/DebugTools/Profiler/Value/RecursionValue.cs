@@ -12,6 +12,8 @@ namespace DebugTools.Profiler
 
         public static readonly RecursionValue SZArray = new RecursionValue(CorElementType.SZArray);
 
+        public static readonly RecursionValue Object = new RecursionValue(CorElementType.Object);
+
         public CorElementType Type { get; }
 
         private RecursionValue(CorElementType type)

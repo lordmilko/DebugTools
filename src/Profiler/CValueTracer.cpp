@@ -58,8 +58,6 @@ HRESULT CValueTracer::EnterWithInfo(FunctionIDOrClientID functionId, COR_PRF_ELT
     ULONG cbArgumentInfo = 0;
     COR_PRF_FUNCTION_ARGUMENT_INFO* argumentInfo = nullptr;
 
-    IClassInfo* pMethodClassInfo = nullptr;
-
     CLock methodLock(&g_pProfiler->m_MethodMutex);
     IfFailGo(GetMethodInfoNoLock(functionId, &pMethod));
 
@@ -129,7 +127,6 @@ HRESULT CValueTracer::LeaveWithInfo(FunctionIDOrClientID functionId, COR_PRF_ELT
     g_ValueBufferPosition = 0;
 
     CSigMethodDef* pMethod = nullptr;
-    IClassInfo* pMethodClassInfo = nullptr;
 
     COR_PRF_FRAME_INFO frameInfo;
     COR_PRF_FUNCTION_ARGUMENT_RANGE retvalRange;
@@ -298,7 +295,7 @@ HRESULT CValueTracer::TraceValue(
     HRESULT hr = S_OK;
     BOOL needDecrease = FALSE;
 
-    BOOL needSeenMap = elementType == ELEMENT_TYPE_CLASS || elementType == ELEMENT_TYPE_GENERICINST || elementType == ELEMENT_TYPE_SZARRAY || elementType == ELEMENT_TYPE_ARRAY;
+    BOOL needSeenMap = elementType == ELEMENT_TYPE_OBJECT || elementType == ELEMENT_TYPE_CLASS || elementType == ELEMENT_TYPE_GENERICINST || elementType == ELEMENT_TYPE_SZARRAY || elementType == ELEMENT_TYPE_ARRAY;
 
     if (needSeenMap && g_SeenMap.find(startAddress) != g_SeenMap.end())
     {

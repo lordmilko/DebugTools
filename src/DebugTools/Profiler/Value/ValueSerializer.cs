@@ -144,6 +144,9 @@ namespace DebugTools.Profiler
                         case CorElementType.SZArray:
                             return RecursionValue.SZArray;
 
+                        case CorElementType.Object:
+                            return RecursionValue.Object;
+
                         default:
                             throw new NotImplementedException($"Don't know how to handle end reason of type '{reason}'.");
                     }

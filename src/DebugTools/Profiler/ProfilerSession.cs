@@ -437,10 +437,10 @@ namespace DebugTools.Profiler
                     pipe.ConnectAsync(10000, pipeCTS.Token).GetAwaiter().GetResult();
                 }
             }
-            catch (OperationCanceledException)
+            catch (OperationCanceledException ex)
             {
                 if (!Process.HasExited)
-                    throw;
+                    throw new TimeoutException("Timed out waiting for named pipe to connect to profiler. Was the profiler correctly loaded into the target process?", ex);
             }
         }
 

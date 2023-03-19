@@ -37,7 +37,7 @@ namespace DebugTools.Profiler
             DebugHostx86 = Path.Combine(InstallationRoot, string.Format(DebugHostName, "x86"));
             DebugHostx64 = Path.Combine(InstallationRoot, string.Format(DebugHostName, "x64"));
 
-            if (!File.Exists(Profilerx86) || !File.Exists(Profilerx64))
+            if (!File.Exists(Profilerx86) && !File.Exists(Profilerx64))
             {
                 //Maybe it's a unit test; look inside the DebugTools folder instead
                 Profilerx86 = Path.Combine(InstallationRoot, "DebugTools", "x86", string.Format(profilerName, "x86"));
@@ -45,6 +45,15 @@ namespace DebugTools.Profiler
                 DebugHostx86 = Path.Combine(InstallationRoot, "DebugTools", string.Format(DebugHostName, "x86"));
                 DebugHostx64 = Path.Combine(InstallationRoot, "DebugTools", string.Format(DebugHostName, "x64"));
             }
+
+            if (!File.Exists(Profilerx86))
+                Profilerx86 = null;
+
+            if (!File.Exists(Profilerx64))
+                Profilerx64 = null;
+
+            if (Profilerx86 == null && Profilerx64 == null)
+                throw new InvalidOperationException("No profiler DLLs could be found.");
 
             TestHost = Path.Combine(InstallationRoot, "DebugTools.TestHost.exe");
         }
@@ -55,16 +64,24 @@ namespace DebugTools.Profiler
             {
                 { "COR_ENABLE_PROFILING", "1" },
                 { "COR_PROFILER", Guid.ToString("B") },
-                { "COR_PROFILER_PATH_32", Profilerx86 },
-                { "COR_PROFILER_PATH_64", Profilerx64 },
 
                 { "CORECLR_ENABLE_PROFILING", "1" },
                 { "CORECLR_PROFILER", Guid.ToString("B") },
-                { "CORECLR_PROFILER_PATH_32", Profilerx86 },
-                { "CORECLR_PROFILER_PATH_64", Profilerx64 },
 
                 { "DEBUGTOOLS_PARENT_PID", Process.GetCurrentProcess().Id.ToString() }
             };
+
+            if (Profilerx86 != null)
+            {
+                envVariables["COR_PROFILER_PATH_32"] = Profilerx86;
+                envVariables["CORECLR_PROFILER_PATH_32"] = Profilerx86;
+            }
+
+            if (Profilerx64 != null)
+            {
+                envVariables["COR_PROFILER_PATH_64"] = Profilerx64;
+                envVariables["CORECLR_PROFILER_PATH_64"] = Profilerx64;
+            }
 
             bool needDebug = false;
             bool ignoreDefaultBlacklist = false;

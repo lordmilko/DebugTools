@@ -159,7 +159,7 @@ namespace DebugTools.PowerShell
             }
             else if (item is IMethodFrame m)
             {
-                if (ShouldInclude(m, (f, w) => w.IsMatch(f.MethodInfo.MethodName) || w.IsMatch(f.MethodInfo.TypeName)) && !ShouldExclude(m))
+                if (ShouldInclude(m, (f, w) => w.IsMatch(f.MethodInfo.MethodName) || w.IsMatch(f.MethodInfo.TypeName)) && !options.HasValueFilter && !ShouldExclude(m))
                     return true;
             }
 
