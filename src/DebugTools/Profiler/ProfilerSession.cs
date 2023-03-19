@@ -279,15 +279,20 @@ namespace DebugTools.Profiler
                         throw new ProfilerException((PROFILER_HRESULT)(uint)args.HRESULT);
                 }
             }
-
-            switch (args.HRESULT)
+            else
             {
-                case HRESULT.CORPROF_E_CLASSID_IS_COMPOSITE:
-                case HRESULT.COR_E_TYPELOAD:
-                    return;
-            }
+                switch (args.HRESULT)
+                {
+                    case HRESULT.CORPROF_E_CLASSID_IS_COMPOSITE:
+                    case HRESULT.COR_E_TYPELOAD:
+                        break;
 
-            args.HRESULT.ThrowOnNotOK();
+                    default:
+                        args.HRESULT.ThrowOnNotOK();
+                        break;
+
+                }
+            }
         }
 
         #endregion
@@ -633,6 +638,9 @@ namespace DebugTools.Profiler
 
         private void WithTracing(Action action)
         {
+            if (threadProcException != null)
+                throw new InvalidOperationException("Cannot trace as ETW ThreadProc has already terminated due to previous exception.", threadProcException);
+
             if (Process != null && Process.HasExited)
                 return;
 
