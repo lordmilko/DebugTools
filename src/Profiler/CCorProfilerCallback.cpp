@@ -1275,6 +1275,8 @@ HRESULT CCorProfilerCallback::GetModuleInfo(_In_ ModuleID moduleId, _Out_ CModul
 {
     HRESULT hr = S_OK;
 
+    CLock moduleMutex(&g_pProfiler->m_ModuleMutex);
+
     auto match = g_pProfiler->m_ModuleInfoMap.find(moduleId);
 
     if (match == g_pProfiler->m_ModuleInfoMap.end())

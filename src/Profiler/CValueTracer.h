@@ -277,12 +277,19 @@ private:
         _In_ ULONG curGenericArg,
         _Out_ ClassID* classId);
 
-    BOOL GetCachedGenericType(
+    HRESULT GetCachedGenericType(
         _In_ ModuleID moduleId,
         _In_ mdTypeDef typeDef,
         _In_ ULONG numGenericArgs,
         _In_ ClassID* typeArgs,
         _Out_ ClassID* pClassId);
+
+    HRESULT GetAndCacheNewGenericType(
+        _In_ ModuleID outerModuleId,
+        _In_ mdTypeDef outerTypeDef,
+        _In_ CSigGenericType* pGenericType,
+        _In_ ClassID* typeArgIds,
+        _Out_ ClassID* classId);
 
     BOOL IsArrayMatch(ISigArrayType* arr, CArrayInfo* info);
 

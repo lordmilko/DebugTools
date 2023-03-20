@@ -9,7 +9,6 @@ HRESULT CTypeRefResolver::Resolve(
     HRESULT hr = S_OK;
     mdToken tkResolutionScope;
     CorTokenType resolutionScopeType;
-    CLock moduleMutex(&g_pProfiler->m_ModuleMutex);
     WCHAR typeName[NAME_BUFFER_SIZE];
 
     auto match = g_pProfiler->m_ModuleInfoMap.find(m_ModuleID);

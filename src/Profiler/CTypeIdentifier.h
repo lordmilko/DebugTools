@@ -20,6 +20,7 @@ public:
             m_TypeArgs = typeArgs;
 
         m_OwnsArray = ownsArray;
+        m_Failed = FALSE;
     }
 
     //Move constructor
@@ -31,6 +32,7 @@ public:
         m_NumGenericArgs = other.m_NumGenericArgs;
         m_TypeArgs = other.m_TypeArgs;
         m_OwnsArray = other.m_OwnsArray;
+        m_Failed = other.m_Failed;
 
         other.m_TypeArgs = nullptr;
         other.m_OwnsArray = FALSE;
@@ -49,6 +51,7 @@ public:
             m_TypeArgs[i] = other.m_TypeArgs[i];
 
         m_OwnsArray = TRUE;
+        m_Failed = other.m_Failed;
     }
 
     ~CTypeIdentifier()
@@ -61,6 +64,7 @@ public:
     mdTypeDef m_TypeDef;
     ULONG m_NumGenericArgs;
     ClassID* m_TypeArgs;
+    BOOL m_Failed;
 
 private:
     BOOL m_OwnsArray;

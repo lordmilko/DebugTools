@@ -1117,48 +1117,12 @@ HRESULT CValueTracer::GetClassId(
 
         moduleInfo->m_pMDI->GetTypeDefProps(outerTypeDef, typeName, NAME_BUFFER_SIZE, NULL, NULL, NULL);
 
-        if (!GetCachedGenericType(outerModuleId, outerTypeDef, pGenericType->m_NumGenericArgs, typeArgIds, classId))
+        IfFailGo(GetCachedGenericType(outerModuleId, outerTypeDef, pGenericType->m_NumGenericArgs, typeArgIds, classId));
+
+        //GetCachedGenericType returns S_OK on success, S_FALSE on failure and COR_E_TYPELOAD if we couldn't resolve the type to use below
+        if (hr == S_FALSE)
         {
-            hr = g_pProfiler->m_pInfo->GetClassFromTokenAndTypeArgs(
-                outerModuleId,
-                outerTypeDef,
-                pGenericType->m_NumGenericArgs,
-                typeArgIds,
-                classId
-            );
-
-            if (hr == COR_E_TYPELOAD)
-            {
-                /* We failed to load the generic type. Each time a COR_E_TYPELOAD occurs, an EETypeLoadException is
-                 * thrown within the CLR. In a large program like Visual Studio you can easily generate close to 100,000
-                 * exceptions simply trying to start the program, drastically slowing things down. As such, we
-                 * attempt to fallback to using the generic type's canonical type instead. In many cases,
-                 * it may not matter what the generic type args were, or it will matter but we'll end up
-                 * being able to query this info later on (e.g. an array is of type T[] and we can simply
-                 * ask what the array's element type is). Worst case scenario we'll attempt to trace System.__Canon
-                 * which you'd _think_ behaves just like a regular object */
-
-                dprintf(L"Type Load Error with module 0x" FORMAT_PTR ", type 0x" FORMAT_PTR "\n", outerModuleId, outerTypeDef);
-
-                CLock classLock(&g_pProfiler->m_ClassMutex);
-
-                for (auto& item : g_pProfiler->m_CanonicalGenericTypes)
-                {
-                    if (item->m_ModuleID == outerModuleId && item->m_TypeDef == outerTypeDef)
-                    {
-                        *classId = item->m_ClassID;
-
-                        //No point owning the array because a copy will be made upon inserting it into the map anyway
-                        CTypeIdentifier identifier(outerModuleId, outerTypeDef, pGenericType->m_NumGenericArgs, typeArgIds, FALSE);
-
-                        CLock typeLock(&g_pProfiler->m_TypeIdMutex, true);
-                        g_pProfiler->m_TypeIdMap[identifier] = item->m_ClassID;
-
-                        hr = S_OK;
-                        break;
-                    }
-                }
-            }
+            hr = GetAndCacheNewGenericType(outerModuleId, outerTypeDef, pGenericType, typeArgIds, classId);
         }
 
         IfFailGo(hr);
@@ -1269,7 +1233,7 @@ ErrExit:
     return hr;
 }
 
-BOOL CValueTracer::GetCachedGenericType(
+HRESULT CValueTracer::GetCachedGenericType(
     _In_ ModuleID moduleId,
     _In_ mdTypeDef typeDef,
     _In_ ULONG numGenericArgs,
@@ -1288,11 +1252,89 @@ BOOL CValueTracer::GetCachedGenericType(
 
     if (match != g_pProfiler->m_TypeIdMap.end())
     {
+        if (match->first.m_Failed)
+            return COR_E_TYPELOAD;
+
         *pClassId = match->second;
-        return TRUE;
+        return S_OK;
     }
 
-    return FALSE;
+    return S_FALSE;
+}
+
+HRESULT CValueTracer::GetAndCacheNewGenericType(
+    _In_ ModuleID outerModuleId,
+    _In_ mdTypeDef outerTypeDef,
+    _In_ CSigGenericType* pGenericType,
+    _In_ ClassID* typeArgIds,
+    _Out_ ClassID* classId)
+{
+    HRESULT hr = g_pProfiler->m_pInfo->GetClassFromTokenAndTypeArgs(
+        outerModuleId,
+        outerTypeDef,
+        pGenericType->m_NumGenericArgs,
+        typeArgIds,
+        classId
+    );
+
+    if (hr == COR_E_TYPELOAD)
+    {
+        /* We failed to load the generic type. Each time a COR_E_TYPELOAD occurs, an EETypeLoadException is
+         * thrown within the CLR. In a large program like Visual Studio you can easily generate close to 100,000
+         * exceptions simply trying to start the program, drastically slowing things down. As such, we
+         * attempt to fallback to using the generic type's canonical type instead. In many cases,
+         * it may not matter what the generic type args were, or it will matter but we'll end up
+         * being able to query this info later on (e.g. an array is of type T[] and we can simply
+         * ask what the array's element type is). Worst case scenario we'll attempt to trace System.__Canon
+         * which you'd _think_ behaves just like a regular object */
+
+        dprintf(L"Type Load Error with module 0x" FORMAT_PTR ", type 0x" FORMAT_PTR "\n", outerModuleId, outerTypeDef);
+
+        CLock classLock(&g_pProfiler->m_ClassMutex);
+
+        for (auto& item : g_pProfiler->m_CanonicalGenericTypes)
+        {
+            if (item->m_ModuleID == outerModuleId && item->m_TypeDef == outerTypeDef)
+            {
+                *classId = item->m_ClassID;
+
+                //No point owning the array because a copy will be made upon inserting it into the map anyway
+                CTypeIdentifier identifier(outerModuleId, outerTypeDef, pGenericType->m_NumGenericArgs, typeArgIds, FALSE);
+
+                CLock typeLock(&g_pProfiler->m_TypeIdMutex, true);
+                g_pProfiler->m_TypeIdMap[identifier] = item->m_ClassID;
+
+                hr = S_OK;
+                break;
+            }
+        }
+
+        if (hr != S_OK)
+        {
+            dprintf(L"Failed to resolve module 0x" FORMAT_PTR ", type 0x" FORMAT_PTR ". Flagging as failed\n", outerModuleId, outerTypeDef);
+
+            CTypeIdentifier identifier(outerModuleId, outerTypeDef, pGenericType->m_NumGenericArgs, typeArgIds, FALSE);
+            identifier.m_Failed = TRUE;
+
+            CLock typeLock(&g_pProfiler->m_TypeIdMutex, true);
+            g_pProfiler->m_TypeIdMap[identifier] = 0;
+        }
+    }
+
+    CLock typeLock(&g_pProfiler->m_TypeIdMutex, true);
+
+    CTypeIdentifier identifier(outerModuleId, outerTypeDef, pGenericType->m_NumGenericArgs, typeArgIds, FALSE);
+
+    if (hr == S_OK)
+    {
+        g_pProfiler->m_TypeIdMap[identifier] = *classId;
+    }
+    else
+    {
+        g_pProfiler->m_TypeIdMap[identifier] = 0;
+    }
+
+    return hr;
 }
 
 HRESULT CValueTracer::GetArrayClassId(
