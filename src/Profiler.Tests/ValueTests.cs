@@ -88,7 +88,7 @@ namespace Profiler.Tests
 
         [TestMethod]
         public void Value_PtrStructArg() =>
-            Test(ValueTestType.PtrStructArg, v => v.HasPtrDisplay("Struct1WithField*").HasPtrValue(e => e.HasFieldValue(1001)));
+            Test(ValueTestType.PtrStructArg, v => v.HasPtrDisplay("StructWithPrimitiveField*").HasPtrValue(e => e.HasFieldValue(1001)));
 
         [TestMethod]
         public void Value_PtrComplexStruct() =>
@@ -103,15 +103,15 @@ namespace Profiler.Tests
 
                 e1.HasFieldValue(2, f =>
                 {
-                    f.HasValueType("DebugTools.TestHost.Struct1WithField");
+                    f.HasValueType("DebugTools.TestHost.StructWithPrimitiveField");
 
                     f.HasFieldValue(1001);
                 });
 
                 e1.HasFieldValue(3, f =>
                 {
-                    f.HasPtrDisplay("Struct1WithField*").HasPtrValue(e2 =>
-                        e2.HasValueType("DebugTools.TestHost.Struct1WithField").HasFieldValue(1002)
+                    f.HasPtrDisplay("StructWithPrimitiveField*").HasPtrValue(e2 =>
+                        e2.HasValueType("DebugTools.TestHost.StructWithPrimitiveField").HasFieldValue(1002)
                     );
                 });
             }));
@@ -133,7 +133,7 @@ namespace Profiler.Tests
 
         [TestMethod]
         public void Value_PtrPtrStructArg() =>
-            Test(ValueTestType.PtrPtrStructArg, v => v.HasPtrDisplay("Struct1WithField**").HasPtrValue(e1 => e1.HasPtrValue(e2 => e2.HasFieldValue(1001))));
+            Test(ValueTestType.PtrPtrStructArg, v => v.HasPtrDisplay("StructWithPrimitiveField**").HasPtrValue(e1 => e1.HasPtrValue(e2 => e2.HasFieldValue(1001))));
 
         [TestMethod]
         public void Value_PtrPtrComplexStruct() =>
@@ -150,15 +150,15 @@ namespace Profiler.Tests
 
                     e2.HasFieldValue(2, f =>
                     {
-                        f.HasValueType("DebugTools.TestHost.Struct1WithField");
+                        f.HasValueType("DebugTools.TestHost.StructWithPrimitiveField");
 
                         f.HasFieldValue(1001);
                     });
 
                     e2.HasFieldValue(3, f =>
                     {
-                        f.HasPtrDisplay("Struct1WithField*").HasPtrValue(e3 =>
-                            e3.HasValueType("DebugTools.TestHost.Struct1WithField").HasFieldValue(1002)
+                        f.HasPtrDisplay("StructWithPrimitiveField*").HasPtrValue(e3 =>
+                            e3.HasValueType("DebugTools.TestHost.StructWithPrimitiveField").HasFieldValue(1002)
                         );
                     });
                 });
@@ -380,7 +380,7 @@ namespace Profiler.Tests
         public void Value_GenericValueTypeArg() =>
             Test(ValueTestType.GenericValueTypeArg, v =>
                 v.HasValueType("DebugTools.TestHost.GenericValueTypeType`1")
-                 .HasFieldValue(f => f.HasValueType("DebugTools.TestHost.Struct1WithField").HasFieldValue(1)));
+                 .HasFieldValue(f => f.HasValueType("DebugTools.TestHost.StructWithPrimitiveField").HasFieldValue(1)));
 
         [TestMethod]
         public void Value_GenericClass_ToObjectArg() =>
@@ -392,7 +392,7 @@ namespace Profiler.Tests
         public void Value_GenericValueType_ToObjectArg() =>
             Test(ValueTestType.GenericValueType_ToObjectArg, v =>
                 v.HasValueType("DebugTools.TestHost.GenericValueTypeType`1")
-                    .HasFieldValue(f => f.HasValueType("DebugTools.TestHost.Struct1WithField").HasFieldValue(1)));
+                    .HasFieldValue(f => f.HasValueType("DebugTools.TestHost.StructWithPrimitiveField").HasFieldValue(1)));
 
         #region Generic
         #region MethodVar
@@ -403,7 +403,7 @@ namespace Profiler.Tests
 
         [TestMethod]
         public void Value_Generic_MethodVar_ElementTypeValueTypeArg() =>
-            Test(ValueTestType.Generic_MethodVar_ElementTypeValueTypeArg, v => v.HasValueType("DebugTools.TestHost.Struct1WithField").HasFieldValue(1));
+            Test(ValueTestType.Generic_MethodVar_ElementTypeValueTypeArg, v => v.HasValueType("DebugTools.TestHost.StructWithPrimitiveField").HasFieldValue(1));
 
         [TestMethod]
         public void Value_Generic_MethodVar_ElementTypeSimpleArg() =>
@@ -428,7 +428,7 @@ namespace Profiler.Tests
         public void Value_Generic_MethodVar_ElementTypeValueTypeArrayArg() =>
             Test(ValueTestType.Generic_MethodVar_ElementTypeValueTypeArrayArg, v =>
             {
-                v.HasArrayStructValues(CorElementType.ValueType, "DebugTools.TestHost.Struct1WithField", "DebugTools.TestHost.Struct1WithField");
+                v.HasArrayStructValues(CorElementType.ValueType, "DebugTools.TestHost.StructWithPrimitiveField", "DebugTools.TestHost.StructWithPrimitiveField");
 
                 v.VerifyArray(
                     e => e.HasFieldValue(1),
@@ -504,8 +504,8 @@ namespace Profiler.Tests
                 v.HasValueType("DebugTools.TestHost.GenericValueTypeType`1");
                 v.HasFieldValue(
                     f1 => f1.VerifyArray(
-                        e => e.HasValueType("DebugTools.TestHost.Struct1WithField").HasFieldValue(1),
-                        e => e.HasValueType("DebugTools.TestHost.Struct1WithField").HasFieldValue(2)
+                        e => e.HasValueType("DebugTools.TestHost.StructWithPrimitiveField").HasFieldValue(1),
+                        e => e.HasValueType("DebugTools.TestHost.StructWithPrimitiveField").HasFieldValue(2)
                     )
                 );
             });
@@ -516,17 +516,17 @@ namespace Profiler.Tests
             {
                 v.VerifyMultiArray(
                     e1 => e1.HasValueType("DebugTools.TestHost.GenericValueTypeType`1").HasFieldValue(
-                        f1 => f1.HasValueType("DebugTools.TestHost.Struct1WithField").HasFieldValue(1)
+                        f1 => f1.HasValueType("DebugTools.TestHost.StructWithPrimitiveField").HasFieldValue(1)
                     ),
                     e1 => e1.HasValueType("DebugTools.TestHost.GenericValueTypeType`1").HasFieldValue(
-                        f1 => f1.HasValueType("DebugTools.TestHost.Struct1WithField").HasFieldValue(2)
+                        f1 => f1.HasValueType("DebugTools.TestHost.StructWithPrimitiveField").HasFieldValue(2)
                     ),
 
                     e1 => e1.HasValueType("DebugTools.TestHost.GenericValueTypeType`1").HasFieldValue(
-                        f1 => f1.HasValueType("DebugTools.TestHost.Struct1WithField").HasFieldValue(3)
+                        f1 => f1.HasValueType("DebugTools.TestHost.StructWithPrimitiveField").HasFieldValue(3)
                     ),
                     e1 => e1.HasValueType("DebugTools.TestHost.GenericValueTypeType`1").HasFieldValue(
-                        f1 => f1.HasValueType("DebugTools.TestHost.Struct1WithField").HasFieldValue(4)
+                        f1 => f1.HasValueType("DebugTools.TestHost.StructWithPrimitiveField").HasFieldValue(4)
                     )
                 );
             });
@@ -538,11 +538,11 @@ namespace Profiler.Tests
                 v.HasValueType("DebugTools.TestHost.GenericValueTypeType`1");
                 v.HasFieldValue(
                     f1 => f1.VerifyMultiArray(
-                        e1 => e1.HasValueType("DebugTools.TestHost.Struct1WithField").HasFieldValue(1),
-                        e1 => e1.HasValueType("DebugTools.TestHost.Struct1WithField").HasFieldValue(2),
+                        e1 => e1.HasValueType("DebugTools.TestHost.StructWithPrimitiveField").HasFieldValue(1),
+                        e1 => e1.HasValueType("DebugTools.TestHost.StructWithPrimitiveField").HasFieldValue(2),
 
-                        e1 => e1.HasValueType("DebugTools.TestHost.Struct1WithField").HasFieldValue(3),
-                        e1 => e1.HasValueType("DebugTools.TestHost.Struct1WithField").HasFieldValue(4)
+                        e1 => e1.HasValueType("DebugTools.TestHost.StructWithPrimitiveField").HasFieldValue(3),
+                        e1 => e1.HasValueType("DebugTools.TestHost.StructWithPrimitiveField").HasFieldValue(4)
                     )
                 );
             });
@@ -615,7 +615,7 @@ namespace Profiler.Tests
 
         [TestMethod]
         public void Value_ClassArg() =>
-            Test(ValueTestType.ClassArg, v => v.HasClassType("DebugTools.TestHost.Class1"), ProfilerSetting.WaitForDebugger);
+            Test(ValueTestType.ClassArg, v => v.HasClassType("DebugTools.TestHost.Class1"));
 
         [TestMethod]
         public void Value_ClassWithFieldArg() =>
@@ -685,16 +685,24 @@ namespace Profiler.Tests
             Test(ValueTestType.StructArg, v => v.HasValueType("DebugTools.TestHost.Struct1"));
 
         [TestMethod]
-        public void Value_StructWithFieldArg() =>
-            Test(ValueTestType.StructWithFieldArg, v => v.HasFieldValue(1));
+        public void Value_StructWithPrimitiveFieldArg() =>
+            Test(ValueTestType.StructWithPrimitiveFieldArg, v => v.HasFieldValue(1));
 
         [TestMethod]
-        public void Value_StructWithPropertyArg() =>
-            Test(ValueTestType.StructWithPropertyArg, v => v.HasFieldValue(1));
+        public void Value_StructWithReferenceFieldArg() =>
+            Test(ValueTestType.StructWithReferenceFieldArg, v => v.HasFieldValue("foo"));
+
+        [TestMethod]
+        public void Value_StructWithPrimitivePropertyArg() =>
+            Test(ValueTestType.StructWithPrimitivePropertyArg, v => v.HasFieldValue(1));
+
+        [TestMethod]
+        public void Value_StructWithReferencePropertyArg() =>
+            Test(ValueTestType.StructWithReferencePropertyArg, v => v.HasFieldValue("foo"));
 
         [TestMethod]
         public void Value_ExternalStruct() =>
-            Test(ValueTestType.ExternalStruct, v => v.HasFieldValue((ulong) 637949198450000000));
+            Test(ValueTestType.ExternalStruct, v => v.HasFieldValue((ulong)637949198450000000));
 
         #endregion
         #region Struct Array
@@ -702,14 +710,50 @@ namespace Profiler.Tests
         //todo: externalstruct (resolving datetime) isnt working when we're targeting net5.0
 
         [TestMethod]
-        public void Value_StructArrayArg() =>
-            Test(ValueTestType.StructArrayArg, v =>
+        public void Value_StructWithPrimitiveFieldArrayArg() =>
+            Test(ValueTestType.StructWithPrimitiveFieldArrayArg, v =>
             {
-                v.HasArrayStructValues(CorElementType.ValueType, "DebugTools.TestHost.Struct1WithProperty", "DebugTools.TestHost.Struct1WithProperty");
+                v.HasArrayStructValues(CorElementType.ValueType, "DebugTools.TestHost.StructWithPrimitiveField", "DebugTools.TestHost.StructWithPrimitiveField");
 
                 v.VerifyArray(
                     e => e.HasFieldValue(1),
                     e => e.HasFieldValue(2)
+                );
+            });
+
+        [TestMethod]
+        public void Value_StructWithReferenceFieldArrayArg() =>
+            Test(ValueTestType.StructWithReferenceFieldArrayArg, v =>
+            {
+                v.HasArrayStructValues(CorElementType.ValueType, "DebugTools.TestHost.StructWithReferenceField", "DebugTools.TestHost.StructWithReferenceField");
+
+                v.VerifyArray(
+                    e => e.HasFieldValue("foo"),
+                    e => e.HasFieldValue("bar")
+                );
+            });
+
+        [TestMethod]
+        public void Value_StructWithPrimitivePropertyArrayArg() =>
+            Test(ValueTestType.StructWithPrimitivePropertyArrayArg, v =>
+            {
+                v.HasArrayStructValues(CorElementType.ValueType, "DebugTools.TestHost.StructWithPrimitiveProperty", "DebugTools.TestHost.StructWithPrimitiveProperty");
+
+                v.VerifyArray(
+                    e => e.HasFieldValue(1),
+                    e => e.HasFieldValue(2)
+                );
+            });
+
+        [TestMethod]
+        public void Value_StructWithReferencePropertyArrayArg() =>
+            Test(ValueTestType.StructWithReferencePropertyArrayArg, v =>
+            {
+                v.HasArrayStructValues(CorElementType.ValueType, "DebugTools.TestHost.StructWithReferenceProperty", "DebugTools.TestHost.StructWithReferenceProperty");
+
+                v.VerifyArray(
+                    e => e.HasFieldValue("foo"),
+                    e => e.HasFieldValue("bar")
                 );
             });
 
@@ -725,9 +769,60 @@ namespace Profiler.Tests
                 );
             });
 
+        #endregion
+        #region Boxed Struct Array
+
         [TestMethod]
-        public void Value_BoxedStructArrayArg() =>
-            Test(ValueTestType.BoxedStructArrayArg, v =>
+        public void Value_BoxedStructWithPrimitiveFieldArrayArg() =>
+            Test(ValueTestType.BoxedStructWithPrimitiveFieldArrayArg, v =>
+            {
+                v.HasArrayStructValues(CorElementType.Class, "DebugTools.TestHost.StructWithPrimitiveField", "DebugTools.TestHost.StructWithPrimitiveField");
+
+                v.VerifyArray(
+                    e => e.HasFieldValue(1),
+                    e => e.HasFieldValue(2)
+                );
+            });
+
+        [TestMethod]
+        public void Value_BoxedStructWithReferenceFieldArrayArg() =>
+            Test(ValueTestType.BoxedStructWithReferenceFieldArrayArg, v =>
+            {
+                v.HasArrayStructValues(CorElementType.Class, "DebugTools.TestHost.StructWithReferenceField", "DebugTools.TestHost.StructWithReferenceField");
+
+                v.VerifyArray(
+                    e => e.HasFieldValue("foo"),
+                    e => e.HasFieldValue("bar")
+                );
+            });
+
+        [TestMethod]
+        public void Value_BoxedStructWithPrimitivePropertyArrayArg() =>
+            Test(ValueTestType.BoxedStructWithPrimitivePropertyArrayArg, v =>
+            {
+                v.HasArrayStructValues(CorElementType.Class, "DebugTools.TestHost.StructWithPrimitiveProperty", "DebugTools.TestHost.StructWithPrimitiveProperty");
+
+                v.VerifyArray(
+                    e => e.HasFieldValue(1),
+                    e => e.HasFieldValue(2)
+                );
+            });
+
+        [TestMethod]
+        public void Value_BoxedStructWithReferencePropertyArrayArg() =>
+            Test(ValueTestType.BoxedStructWithReferencePropertyArrayArg, v =>
+            {
+                v.HasArrayStructValues(CorElementType.Class, "DebugTools.TestHost.StructWithReferenceProperty", "DebugTools.TestHost.StructWithReferenceProperty");
+
+                v.VerifyArray(
+                    e => e.HasFieldValue("foo"),
+                    e => e.HasFieldValue("bar")
+                );
+            });
+
+        [TestMethod]
+        public void Value_BoxedStructAndStringArrayArg() =>
+            Test(ValueTestType.BoxedStructAndStringArrayArg, v =>
             {
                 v.VerifyArray(
                     e => e.HasFieldValue(1),
@@ -736,11 +831,9 @@ namespace Profiler.Tests
             });
 
         [TestMethod]
-        public void Value_BoxedExternalStructArrayArg() =>
-            Test(ValueTestType.BoxedExternalStructArrayArg, v =>
+        public void Value_BoxedExternalStructAndStringArrayArg() =>
+            Test(ValueTestType.BoxedExternalStructAndStringArrayArg, v =>
             {
-                var parameter = (SZArrayValue)v.GetParameter();
-
                 v.VerifyArray(
                     e => e.HasFieldValue((ulong)637949198450000000),
                     e => e.HasValue("b")

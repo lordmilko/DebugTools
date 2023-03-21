@@ -158,15 +158,38 @@ namespace Profiler.Tests
         ValueTypeArrayArg,
         EmptyValueTypeArrayArg,
 
+        #region Struct
+
         StructArg,
-        StructWithFieldArg,
-        StructWithPropertyArg,
+        StructWithPrimitiveFieldArg,
+        StructWithReferenceFieldArg,
+        StructWithPrimitivePropertyArg,
+        StructWithReferencePropertyArg,
+
         ExternalStruct,
 
-        StructArrayArg,
+        #endregion
+        #region Struct Array
+
+        StructWithPrimitiveFieldArrayArg,
+        StructWithReferenceFieldArrayArg,
+        StructWithPrimitivePropertyArrayArg,
+        StructWithReferencePropertyArrayArg,
+
         ExternalStructArrayArg,
-        BoxedStructArrayArg,
-        BoxedExternalStructArrayArg
+
+        #endregion
+        #region Boxed Struct Array
+
+        BoxedStructWithPrimitiveFieldArrayArg,
+        BoxedStructWithReferenceFieldArrayArg,
+        BoxedStructWithPrimitivePropertyArrayArg,
+        BoxedStructWithReferencePropertyArrayArg,
+
+        BoxedStructAndStringArrayArg,
+        BoxedExternalStructAndStringArrayArg
+
+        #endregion
     }
 
     enum ProfilerTestType

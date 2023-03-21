@@ -6,19 +6,29 @@ namespace DebugTools.TestHost
     {
     }
 
-    struct Struct1WithField
+    struct StructWithPrimitiveField
     {
         public int field1;
     }
 
-    struct Struct1WithFieldWithField
+    struct StructWithReferenceField
     {
-        public Struct1WithField field1;
+        public string field1;
     }
 
-    struct Struct1WithProperty
+    struct StructWithFieldWithPrimitiveField
+    {
+        public StructWithPrimitiveField field1;
+    }
+
+    struct StructWithPrimitiveProperty
     {
         public int Property1 { get; set; }
+    }
+
+    struct StructWithReferenceProperty
+    {
+        public string Property1 { get; set; }
     }
 
     struct GenericStructType<T>
@@ -44,8 +54,8 @@ namespace DebugTools.TestHost
     {
         public char* CharPtr;
         public char CharVal;
-        public Struct1WithField Struct;
-        public Struct1WithField* StructPtr;
+        public StructWithPrimitiveField Struct;
+        public StructWithPrimitiveField* StructPtr;
     }
 
     namespace Duplicate

@@ -24,9 +24,9 @@ namespace DebugTools.TestHost
             }
         };
 
-        private static Struct1WithFieldWithField complexStructType = new Struct1WithFieldWithField
+        private static StructWithFieldWithPrimitiveField complexStructType = new StructWithFieldWithPrimitiveField
         {
-            field1 = new Struct1WithField
+            field1 = new StructWithPrimitiveField
             {
                 field1 = 5
             }

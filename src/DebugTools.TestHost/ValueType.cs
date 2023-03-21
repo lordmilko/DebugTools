@@ -146,7 +146,7 @@ namespace DebugTools.TestHost
         }
 
         [MethodImpl(MethodImplOptions.NoInlining)]
-        public unsafe void PtrStructArg(Struct1WithField* a)
+        public unsafe void PtrStructArg(StructWithPrimitiveField* a)
         {
         }
 
@@ -174,7 +174,7 @@ namespace DebugTools.TestHost
         }
 
         [MethodImpl(MethodImplOptions.NoInlining)]
-        public unsafe void PtrPtrStructArg(Struct1WithField** a)
+        public unsafe void PtrPtrStructArg(StructWithPrimitiveField** a)
         {
         }
 
@@ -202,7 +202,7 @@ namespace DebugTools.TestHost
         }
 
         [MethodImpl(MethodImplOptions.NoInlining)]
-        public unsafe void PtrStructArrayArg(Struct1WithField*[] a)
+        public unsafe void PtrStructArrayArg(StructWithPrimitiveField*[] a)
         {
         }
 
@@ -391,7 +391,7 @@ namespace DebugTools.TestHost
         }
 
         [MethodImpl(MethodImplOptions.NoInlining)]
-        public void GenericValueTypeArg(GenericValueTypeType<Struct1WithField> a)
+        public void GenericValueTypeArg(GenericValueTypeType<StructWithPrimitiveField> a)
         {
         }
 
@@ -585,18 +585,30 @@ namespace DebugTools.TestHost
         {
         }
 
+        #region Struct
+
         [MethodImpl(MethodImplOptions.NoInlining)]
         public void StructArg(Struct1 a)
         {
         }
 
         [MethodImpl(MethodImplOptions.NoInlining)]
-        public void StructWithFieldArg(Struct1WithField a)
+        public void StructWithPrimitiveFieldArg(StructWithPrimitiveField a)
         {
         }
 
         [MethodImpl(MethodImplOptions.NoInlining)]
-        public void StructWithPropertyArg(Struct1WithProperty a)
+        public void StructWithReferenceFieldArg(StructWithReferenceField a)
+        {
+        }
+
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        public void StructWithPrimitivePropertyArg(StructWithPrimitiveProperty a)
+        {
+        }
+
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        public void StructWithReferencePropertyArg(StructWithReferenceProperty a)
         {
         }
 
@@ -605,8 +617,26 @@ namespace DebugTools.TestHost
         {
         }
 
+        #endregion
+        #region Struct Array
+
         [MethodImpl(MethodImplOptions.NoInlining)]
-        public void StructArrayArg(Struct1WithProperty[] a)
+        public void StructWithPrimitiveFieldArrayArg(StructWithPrimitiveField[] a)
+        {
+        }
+
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        public void StructWithReferenceFieldArrayArg(StructWithReferenceField[] a)
+        {
+        }
+
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        public void StructWithPrimitivePropertyArrayArg(StructWithPrimitiveProperty[] a)
+        {
+        }
+
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        public void StructWithReferencePropertyArrayArg(StructWithReferenceProperty[] a)
         {
         }
 
@@ -615,15 +645,40 @@ namespace DebugTools.TestHost
         {
         }
 
+        #endregion
+        #region Boxed Struct Array
+
         [MethodImpl(MethodImplOptions.NoInlining)]
-        public void BoxedStructArrayArg(object[] a)
+        public void BoxedStructWithPrimitiveFieldArrayArg(object[] a)
         {
         }
 
         [MethodImpl(MethodImplOptions.NoInlining)]
-        public void BoxedExternalStructArrayArg(object[] a)
+        public void BoxedStructWithReferenceFieldArrayArg(object[] a)
         {
         }
+
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        public void BoxedStructWithPrimitivePropertyArrayArg(object[] a)
+        {
+        }
+
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        public void BoxedStructWithReferencePropertyArrayArg(object[] a)
+        {
+        }
+
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        public void BoxedStructAndStringArrayArg(object[] a)
+        {
+        }
+
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        public void BoxedExternalStructAndStringArrayArg(object[] a)
+        {
+        }
+
+        #endregion
 
         [MethodImpl(MethodImplOptions.NoInlining)]
         public void VarArg1(string a, __arglist)

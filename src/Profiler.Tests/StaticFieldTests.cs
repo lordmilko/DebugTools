@@ -85,7 +85,7 @@ namespace Profiler.Tests
             {
                 var verifier = new ValueVerifier(s.GetStaticField("StaticFieldType.complexStructType"));
 
-                verifier.HasValueType("DebugTools.TestHost.Struct1WithFieldWithField").HasFieldValue(MaxTraceDepth.Instance);
+                verifier.HasValueType("DebugTools.TestHost.StructWithFieldWithPrimitiveField").HasFieldValue(MaxTraceDepth.Instance);
             }, ProfilerSetting.Detailed, ProfilerSetting.TraceValueDepth(1));
         }
 
@@ -96,9 +96,9 @@ namespace Profiler.Tests
             {
                 var verifier = new ValueVerifier(s.GetStaticField("StaticFieldType.complexStructType", maxTraceDepth: 3));
 
-                verifier.HasValueType("DebugTools.TestHost.Struct1WithFieldWithField").HasFieldValue(v =>
+                verifier.HasValueType("DebugTools.TestHost.StructWithFieldWithPrimitiveField").HasFieldValue(v =>
                 {
-                    v.HasValueType("DebugTools.TestHost.Struct1WithField").HasFieldValue(5);
+                    v.HasValueType("DebugTools.TestHost.StructWithPrimitiveField").HasFieldValue(5);
                 });
             }, ProfilerSetting.Detailed, ProfilerSetting.TraceValueDepth(1));
         }

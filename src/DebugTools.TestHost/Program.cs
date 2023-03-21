@@ -169,19 +169,19 @@ namespace DebugTools.TestHost
                     break;
 
                 case ValueTestType.PtrStructArg:
-                    fixed (Struct1WithField* ptr = &new[] { new Struct1WithField { field1 = 1001 } }[0])
+                    fixed (StructWithPrimitiveField* ptr = &new[] { new StructWithPrimitiveField { field1 = 1001 } }[0])
                         instance.PtrStructArg(ptr);
                     break;
 
                 case ValueTestType.PtrComplexStructArg:
                 {
                     fixed (char* charPtr = "String Value")
-                    fixed (Struct1WithField* structPtr = new[] { new Struct1WithField { field1 = 1002 } })
+                    fixed (StructWithPrimitiveField* structPtr = new[] { new StructWithPrimitiveField { field1 = 1002 } })
                     fixed (ComplexPtrStruct* complexPtr = new[] {new ComplexPtrStruct
                     {
                         CharPtr = charPtr,
                         CharVal = 'X',
-                        Struct = new Struct1WithField { field1 = 1001 },
+                        Struct = new StructWithPrimitiveField { field1 = 1001 },
                         StructPtr = structPtr
                     }})
                     {
@@ -211,19 +211,19 @@ namespace DebugTools.TestHost
                 }
 
                 case ValueTestType.PtrPtrStructArg:
-                    fixed (Struct1WithField* ptr = &new[] { new Struct1WithField { field1 = 1001 } }[0])
+                    fixed (StructWithPrimitiveField* ptr = &new[] { new StructWithPrimitiveField { field1 = 1001 } }[0])
                         instance.PtrPtrStructArg(&ptr);
                     break;
 
                 case ValueTestType.PtrPtrComplexStructArg:
                 {
                     fixed (char* charPtr = "String Value")
-                    fixed (Struct1WithField* structPtr = new[] { new Struct1WithField { field1 = 1002 } })
+                    fixed (StructWithPrimitiveField* structPtr = new[] { new StructWithPrimitiveField { field1 = 1002 } })
                     fixed (ComplexPtrStruct* complexPtr = new[] {new ComplexPtrStruct
                     {
                         CharPtr = charPtr,
                         CharVal = 'X',
-                        Struct = new Struct1WithField { field1 = 1001 },
+                        Struct = new StructWithPrimitiveField { field1 = 1001 },
                         StructPtr = structPtr
                     }})
                     {
@@ -267,12 +267,12 @@ namespace DebugTools.TestHost
                 {
                     var arr = new[]
                     {
-                        new Struct1WithField {field1 = 1001},
-                        new Struct1WithField {field1 = 1002}
+                        new StructWithPrimitiveField {field1 = 1001},
+                        new StructWithPrimitiveField {field1 = 1002}
                     };
 
-                    fixed (Struct1WithField* ptr1 = &arr[0])
-                    fixed (Struct1WithField* ptr2 = &arr[1])
+                    fixed (StructWithPrimitiveField* ptr1 = &arr[0])
+                    fixed (StructWithPrimitiveField* ptr2 = &arr[1])
                     {
                         instance.PtrStructArrayArg(new[]{ptr1, ptr2});
                     }
@@ -284,8 +284,8 @@ namespace DebugTools.TestHost
                 {
                     fixed (char* charPtr1 = "First")
                     fixed (char* charPtr2 = "Second")
-                    fixed (Struct1WithField* structPtr1 = new[] { new Struct1WithField { field1 = 2001 } })
-                    fixed (Struct1WithField* structPtr2 = new[] { new Struct1WithField { field1 = 2002 } })
+                    fixed (StructWithPrimitiveField* structPtr1 = new[] { new StructWithPrimitiveField { field1 = 2001 } })
+                    fixed (StructWithPrimitiveField* structPtr2 = new[] { new StructWithPrimitiveField { field1 = 2002 } })
                     {
                         var arr = new[]
                         {
@@ -293,14 +293,14 @@ namespace DebugTools.TestHost
                             {
                                 CharPtr = charPtr1,
                                 CharVal = 'X',
-                                Struct = new Struct1WithField {field1 = 1001},
+                                Struct = new StructWithPrimitiveField {field1 = 1001},
                                 StructPtr = structPtr1
                             },
                             new ComplexPtrStruct
                             {
                                 CharPtr = charPtr2,
                                 CharVal = 'Y',
-                                Struct = new Struct1WithField {field1 = 1002},
+                                Struct = new StructWithPrimitiveField {field1 = 1002},
                                 StructPtr = structPtr2
                             }
                         };
@@ -481,9 +481,9 @@ namespace DebugTools.TestHost
                     break;
 
                 case ValueTestType.GenericValueTypeArg:
-                    instance.GenericValueTypeArg(new GenericValueTypeType<Struct1WithField>
+                    instance.GenericValueTypeArg(new GenericValueTypeType<StructWithPrimitiveField>
                     {
-                        field1 = new Struct1WithField
+                        field1 = new StructWithPrimitiveField
                         {
                             field1 = 1
                         }
@@ -501,9 +501,9 @@ namespace DebugTools.TestHost
                     break;
 
                 case ValueTestType.GenericValueType_ToObjectArg:
-                    instance.GenericValueType_ToObjectArg(new GenericValueTypeType<Struct1WithField>
+                    instance.GenericValueType_ToObjectArg(new GenericValueTypeType<StructWithPrimitiveField>
                     {
-                        field1 = new Struct1WithField
+                        field1 = new StructWithPrimitiveField
                         {
                             field1 = 1
                         }
@@ -517,7 +517,7 @@ namespace DebugTools.TestHost
                     break;
 
                 case ValueTestType.Generic_MethodVar_ElementTypeValueTypeArg:
-                    instance.Generic_MethodVar_ElementTypeValueTypeArg(new Struct1WithField { field1 = 1 });
+                    instance.Generic_MethodVar_ElementTypeValueTypeArg(new StructWithPrimitiveField { field1 = 1 });
                     break;
 
                 case ValueTestType.Generic_MethodVar_ElementTypeSimpleArg:
@@ -532,7 +532,7 @@ namespace DebugTools.TestHost
                     break;
 
                 case ValueTestType.Generic_MethodVar_ElementTypeValueTypeArrayArg:
-                    instance.Generic_MethodVar_ElementTypeValueTypeArrayArg(new []{new Struct1WithField { field1 = 1 }, new Struct1WithField { field1 = 2 }});
+                    instance.Generic_MethodVar_ElementTypeValueTypeArrayArg(new []{new StructWithPrimitiveField { field1 = 1 }, new StructWithPrimitiveField { field1 = 2 }});
                     break;
 
                 case ValueTestType.Generic_MethodVar_ElementTypeSimpleArrayArg:
@@ -567,9 +567,9 @@ namespace DebugTools.TestHost
                     break;
 
                 case ValueTestType.Generic_MethodVar_ElementTypeGenericValueTypeArg:
-                    instance.Generic_MethodVar_ElementTypeGenericValueTypeArg(new GenericValueTypeType<Struct1WithField>
+                    instance.Generic_MethodVar_ElementTypeGenericValueTypeArg(new GenericValueTypeType<StructWithPrimitiveField>
                     {
-                        field1 = new Struct1WithField
+                        field1 = new StructWithPrimitiveField
                         {
                             field1 = 1
                         }
@@ -577,15 +577,15 @@ namespace DebugTools.TestHost
                     break;
 
                 case ValueTestType.Generic_MethodVar_ElementTypeGenericValueTypeArrayArg:
-                    instance.Generic_MethodVar_ElementTypeGenericValueTypeArrayArg(new GenericValueTypeType<Struct1WithField[]>
+                    instance.Generic_MethodVar_ElementTypeGenericValueTypeArrayArg(new GenericValueTypeType<StructWithPrimitiveField[]>
                     {
                         field1 = new[]
                         {
-                            new Struct1WithField
+                            new StructWithPrimitiveField
                             {
                                 field1 = 1
                             },
-                            new Struct1WithField
+                            new StructWithPrimitiveField
                             {
                                 field1 = 2
                             }
@@ -611,18 +611,18 @@ namespace DebugTools.TestHost
                 case ValueTestType.Generic_MethodVar_ElementTypeGenericValueType_SZArrayValueArg:
                     instance.Generic_MethodVar_ElementTypeGenericValueType_SZArrayValueArg(new[]
                     {
-                        new GenericValueTypeType<Struct1WithField>{field1 = new Struct1WithField{field1 = 1}},
-                        new GenericValueTypeType<Struct1WithField>{field1 = new Struct1WithField{field1 = 2}}
+                        new GenericValueTypeType<StructWithPrimitiveField>{field1 = new StructWithPrimitiveField{field1 = 1}},
+                        new GenericValueTypeType<StructWithPrimitiveField>{field1 = new StructWithPrimitiveField{field1 = 2}}
                     });
                     break;
 
                 case ValueTestType.Generic_MethodVar_ElementTypeGenericValueType_SZArrayArg:
-                    instance.Generic_MethodVar_ElementTypeGenericValueType_SZArrayArg(new GenericValueTypeType<Struct1WithField[]>
+                    instance.Generic_MethodVar_ElementTypeGenericValueType_SZArrayArg(new GenericValueTypeType<StructWithPrimitiveField[]>
                     {
                         field1 = new[]
                         {
-                            new Struct1WithField{field1 = 1},
-                            new Struct1WithField{field1 = 2}
+                            new StructWithPrimitiveField{field1 = 1},
+                            new StructWithPrimitiveField{field1 = 2}
                         }
                     });
                     break;
@@ -631,23 +631,23 @@ namespace DebugTools.TestHost
                     instance.Generic_MethodVar_ElementTypeGenericValueType_MultiArrayValueArg(new[,]
                     {
                         {
-                            new GenericValueTypeType<Struct1WithField>{field1 = new Struct1WithField{field1 = 1}},
-                            new GenericValueTypeType<Struct1WithField>{field1 = new Struct1WithField{field1 = 2}}
+                            new GenericValueTypeType<StructWithPrimitiveField>{field1 = new StructWithPrimitiveField{field1 = 1}},
+                            new GenericValueTypeType<StructWithPrimitiveField>{field1 = new StructWithPrimitiveField{field1 = 2}}
                         },
                         {
-                            new GenericValueTypeType<Struct1WithField>{field1 = new Struct1WithField{field1 = 3}},
-                            new GenericValueTypeType<Struct1WithField>{field1 = new Struct1WithField{field1 = 4}}
+                            new GenericValueTypeType<StructWithPrimitiveField>{field1 = new StructWithPrimitiveField{field1 = 3}},
+                            new GenericValueTypeType<StructWithPrimitiveField>{field1 = new StructWithPrimitiveField{field1 = 4}}
                         }
                     });
                     break;
 
                 case ValueTestType.Generic_MethodVar_ElementTypeGenericValueType_MultiArrayArg:
-                    instance.Generic_MethodVar_ElementTypeGenericValueType_MultiArrayArg(new GenericValueTypeType<Struct1WithField[,]>
+                    instance.Generic_MethodVar_ElementTypeGenericValueType_MultiArrayArg(new GenericValueTypeType<StructWithPrimitiveField[,]>
                     {
                         field1 = new[,]
                         {
-                            { new Struct1WithField{field1 = 1}, new Struct1WithField{field1 = 2} },
-                            { new Struct1WithField{field1 = 3}, new Struct1WithField{field1 = 4} }
+                            { new StructWithPrimitiveField{field1 = 1}, new StructWithPrimitiveField{field1 = 2} },
+                            { new StructWithPrimitiveField{field1 = 3}, new StructWithPrimitiveField{field1 = 4} }
                         }
                     });
                     break;
@@ -660,7 +660,7 @@ namespace DebugTools.TestHost
                     break;
 
                 case ValueTestType.Generic_TypeVar_ElementTypeValueTypeArg:
-                    new GenericValueType<Struct1WithField>().Generic_TypeVar_ElementTypeValueTypeArg(new Struct1WithField { field1 = 1 });
+                    new GenericValueType<StructWithPrimitiveField>().Generic_TypeVar_ElementTypeValueTypeArg(new StructWithPrimitiveField { field1 = 1 });
                     break;
 
                 case ValueTestType.Generic_TypeVar_ElementTypeSimpleArg:
@@ -675,7 +675,7 @@ namespace DebugTools.TestHost
                     break;
 
                 case ValueTestType.Generic_TypeVar_ElementTypeValueTypeArrayArg:
-                    new GenericValueType<Struct1WithField[]>().Generic_TypeVar_ElementTypeValueTypeArrayArg(new[]{new Struct1WithField { field1 = 1 },new Struct1WithField { field1 = 2 }});
+                    new GenericValueType<StructWithPrimitiveField[]>().Generic_TypeVar_ElementTypeValueTypeArrayArg(new[]{new StructWithPrimitiveField { field1 = 1 },new StructWithPrimitiveField { field1 = 2 }});
                     break;
 
                 case ValueTestType.Generic_TypeVar_ElementTypeSimpleArrayArg:
@@ -775,37 +775,115 @@ namespace DebugTools.TestHost
                     instance.EmptyValueTypeArrayArg(new int[0]);
                     break;
 
+                #region Struct
+
                 case ValueTestType.StructArg:
                     instance.StructArg(new Struct1());
                     break;
 
-                case ValueTestType.StructWithFieldArg:
-                    instance.StructWithFieldArg(new Struct1WithField {field1 = 1});
+                case ValueTestType.StructWithPrimitiveFieldArg:
+                    instance.StructWithPrimitiveFieldArg(new StructWithPrimitiveField {field1 = 1});
                     break;
 
-                case ValueTestType.StructWithPropertyArg:
-                    instance.StructWithPropertyArg(new Struct1WithProperty {Property1 = 1});
+                case ValueTestType.StructWithReferenceFieldArg:
+                    instance.StructWithReferenceFieldArg(new StructWithReferenceField {field1 = "foo"});
+                    break;
+
+                case ValueTestType.StructWithPrimitivePropertyArg:
+                    instance.StructWithPrimitivePropertyArg(new StructWithPrimitiveProperty { Property1 = 1});
+                    break;
+
+                case ValueTestType.StructWithReferencePropertyArg:
+                    instance.StructWithReferencePropertyArg(new StructWithReferenceProperty {Property1 = "foo"});
                     break;
 
                 case ValueTestType.ExternalStruct:
                     instance.ExternalStruct(new DateTime(2022, 8, 1, 3, 4, 5));
                     break;
 
-                case ValueTestType.StructArrayArg:
-                    instance.StructArrayArg(new[]{new Struct1WithProperty { Property1 = 1 }, new Struct1WithProperty { Property1 = 2 }});
+                #endregion
+                #region Struct Array
+
+                case ValueTestType.StructWithPrimitiveFieldArrayArg:
+                    instance.StructWithPrimitiveFieldArrayArg(new[]
+                    {
+                        new StructWithPrimitiveField { field1 = 1 },
+                        new StructWithPrimitiveField { field1 = 2 }
+                    });
+                    break;
+
+                case ValueTestType.StructWithReferenceFieldArrayArg:
+                    instance.StructWithReferenceFieldArrayArg(new[]
+                    {
+                        new StructWithReferenceField { field1 = "foo" },
+                        new StructWithReferenceField { field1 = "bar" }
+                    });
+                    break;
+
+                case ValueTestType.StructWithPrimitivePropertyArrayArg:
+                    instance.StructWithPrimitivePropertyArrayArg(new[]
+                    {
+                        new StructWithPrimitiveProperty { Property1 = 1 },
+                        new StructWithPrimitiveProperty { Property1 = 2 }
+                    });
+                    break;
+
+                case ValueTestType.StructWithReferencePropertyArrayArg:
+                    instance.StructWithReferencePropertyArrayArg(new[]
+                    {
+                        new StructWithReferenceProperty { Property1 = "foo" },
+                        new StructWithReferenceProperty { Property1 = "bar" }
+                    });
                     break;
 
                 case ValueTestType.ExternalStructArrayArg:
-                    instance.ExternalStructArrayArg(new[]{ new DateTime(2022, 8, 1, 3, 4, 5) , new DateTime(2000, 8, 1, 3, 4, 5) });
+                    instance.ExternalStructArrayArg(new[] { new DateTime(2022, 8, 1, 3, 4, 5), new DateTime(2000, 8, 1, 3, 4, 5) });
                     break;
 
-                case ValueTestType.BoxedStructArrayArg:
-                    instance.BoxedStructArrayArg(new object[] { new Struct1WithProperty { Property1 = 1 }, "b" });
+                #endregion
+                #region Boxed Struct Array
+
+                case ValueTestType.BoxedStructWithPrimitiveFieldArrayArg:
+                    instance.BoxedStructWithPrimitiveFieldArrayArg(new object[]
+                    {
+                        new StructWithPrimitiveField { field1 = 1 },
+                        new StructWithPrimitiveField { field1 = 2 }
+                    });
                     break;
 
-                case ValueTestType.BoxedExternalStructArrayArg:
-                    instance.BoxedExternalStructArrayArg(new object[] { new DateTime(2022, 8, 1, 3, 4, 5), "b" });
+                case ValueTestType.BoxedStructWithReferenceFieldArrayArg:
+                    instance.BoxedStructWithReferenceFieldArrayArg(new object[]
+                    {
+                        new StructWithReferenceField { field1 = "foo" },
+                        new StructWithReferenceField { field1 = "bar" }
+                    });
                     break;
+
+                case ValueTestType.BoxedStructWithPrimitivePropertyArrayArg:
+                    instance.BoxedStructWithPrimitivePropertyArrayArg(new object[]
+                    {
+                        new StructWithPrimitiveProperty { Property1 = 1 },
+                        new StructWithPrimitiveProperty { Property1 = 2 }
+                    });
+                    break;
+
+                case ValueTestType.BoxedStructWithReferencePropertyArrayArg:
+                    instance.BoxedStructWithReferencePropertyArrayArg(new object[]
+                    {
+                        new StructWithReferenceProperty { Property1 = "foo" },
+                        new StructWithReferenceProperty { Property1 = "bar" }
+                    });
+                    break;
+
+                case ValueTestType.BoxedStructAndStringArrayArg:
+                    instance.BoxedStructAndStringArrayArg(new object[] { new StructWithPrimitiveProperty { Property1 = 1 }, "b" });
+                    break;
+
+                case ValueTestType.BoxedExternalStructAndStringArrayArg:
+                    instance.BoxedExternalStructAndStringArrayArg(new object[] { new DateTime(2022, 8, 1, 3, 4, 5), "b" });
+                    break;
+
+                #endregion
 
                 default:
                     Debug.WriteLine($"Don't know how to run profiler test '{test}'");
