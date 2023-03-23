@@ -4,7 +4,7 @@
 #include "CValueTracer.h"
 
 HRESULT CClassInfoResolver::Resolve(
-    _In_ CClassInfo** ppClassInfo)
+    _Out_ CClassInfo** ppClassInfo)
 {
     if (m_pClassInfo != nullptr)
     {
@@ -75,7 +75,7 @@ HRESULT CClassInfoResolver::GetMethodTypeArgsAndContainingClass(
 
     if (classId == 0)
     {
-        /* GetFunctionInfo2() can set the classId to 0 if no class information is available.In this case, you'd think a good
+        /* GetFunctionInfo2() can set the classId to 0 if no class information is available. In this case, you'd think a good
          * strategy to try next might to be get the function's mdTypeDef and resolve the classId using a ModuleID + mdTypeDef.
          * Ostensibly we could give it a go trying to load the class using the ModuleID + mdTypeDef via GetClassFromToken,
          * however this scenario has been seen to occur with generic types, meaning we need to call GetClassFromTokenAndTypeArgs,

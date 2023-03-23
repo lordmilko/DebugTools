@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Runtime.InteropServices;
 
 namespace DebugTools.TestHost
 {
@@ -56,6 +57,33 @@ namespace DebugTools.TestHost
         public char CharVal;
         public StructWithPrimitiveField Struct;
         public StructWithPrimitiveField* StructPtr;
+    }
+
+    [StructLayout(LayoutKind.Explicit)]
+    public struct StructWithExplicitFields
+    {
+        [FieldOffset(0)]
+        public short field1_0;
+
+        [FieldOffset(2)]
+        public short field1_2;
+
+        [FieldOffset(0)]
+        public int field2_0;
+    }
+
+    public struct StructWithExplicitBetweenStringAndInt
+    {
+        public string stringField;
+        public StructWithExplicitFields explicitField;
+        public int intField;
+
+        public StructWithExplicitBetweenStringAndInt(string stringValue, StructWithExplicitFields explicitValue, int intValue)
+        {
+            stringField = stringValue;
+            explicitField = explicitValue;
+            intField = intValue;
+        }
     }
 
     namespace Duplicate

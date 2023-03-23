@@ -29,7 +29,7 @@ public:
     }
 
     HRESULT Resolve(
-        _In_ CClassInfo** ppClassInfo);
+        _Out_ CClassInfo** ppClassInfo);
 
 private:
     HRESULT GetMethodTypeArgsAndContainingClass(

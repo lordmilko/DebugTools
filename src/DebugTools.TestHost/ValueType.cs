@@ -679,6 +679,14 @@ namespace DebugTools.TestHost
         }
 
         #endregion
+        #region Explicit Struct
+
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        public void ExplicitStructArrayArg(StructWithExplicitBetweenStringAndInt[] a)
+        {
+        }
+
+        #endregion
 
         [MethodImpl(MethodImplOptions.NoInlining)]
         public void VarArg1(string a, __arglist)

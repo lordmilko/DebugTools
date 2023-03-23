@@ -187,7 +187,12 @@ namespace Profiler.Tests
         BoxedStructWithReferencePropertyArrayArg,
 
         BoxedStructAndStringArrayArg,
-        BoxedExternalStructAndStringArrayArg
+        BoxedExternalStructAndStringArrayArg,
+
+        #endregion
+        #region Explicit Struct
+
+        ExplicitStructArrayArg
 
         #endregion
     }

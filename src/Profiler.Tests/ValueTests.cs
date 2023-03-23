@@ -841,6 +841,22 @@ namespace Profiler.Tests
             });
 
         #endregion
+        #region Explicit Struct
+
+        [TestMethod]
+        public void Value_ExplicitStructArrayArg() =>
+            Test(ValueTestType.ExplicitStructArrayArg, v => v.VerifyArray(
+                e => e.HasValueType("DebugTools.TestHost.StructWithExplicitBetweenStringAndInt")
+                    .HasFieldValue(0, "a")
+                    .HasFieldValue(1, f => f.HasValueType("DebugTools.TestHost.StructWithExplicitFields").HasFieldValue<short>(0, 30).HasFieldValue<short>(1, 0).HasFieldValue(2, 30))
+                    .HasFieldValue(2, 1),
+                e => e.HasValueType("DebugTools.TestHost.StructWithExplicitBetweenStringAndInt")
+                    .HasFieldValue(0, "b")
+                    .HasFieldValue(1, f => f.HasValueType("DebugTools.TestHost.StructWithExplicitFields").HasFieldValue<short>(0, 60).HasFieldValue<short>(1, 0).HasFieldValue(2, 60))
+                    .HasFieldValue(2, 2)
+            ));
+
+        #endregion
 
         internal void Test(ValueTestType type, Action<FrameVerifier> validate, params ProfilerSetting[] settings)
         {

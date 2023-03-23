@@ -35,7 +35,8 @@ public:
         CSigField** fields,
         COR_FIELD_OFFSET* fieldOffsets,
         ULONG32 numGenericTypeArgs,
-        ClassID* genericTypeArgs) : IClassInfo(ClassInfoType::Class, classId)
+        ClassID* genericTypeArgs,
+        ULONG classSize) : IClassInfo(ClassInfoType::Class, classId)
     {
         m_szName = _wcsdup(szName);
         m_ModuleID = moduleId;
@@ -46,6 +47,7 @@ public:
         m_FieldOffsets = fieldOffsets;
         m_NumGenericTypeArgs = numGenericTypeArgs;
         m_GenericTypeArgs = genericTypeArgs;
+        m_ClassSize = classSize;
 
         m_IsCanonical = FALSE;
     }
@@ -79,6 +81,7 @@ public:
     COR_FIELD_OFFSET* m_FieldOffsets;
     ULONG32 m_NumGenericTypeArgs;
     ClassID* m_GenericTypeArgs;
+    ULONG m_ClassSize;
 
     bool m_IsCanonical;
 };

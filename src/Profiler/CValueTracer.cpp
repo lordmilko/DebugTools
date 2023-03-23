@@ -1768,24 +1768,15 @@ HRESULT CValueTracer::TraceClassOrStruct(CClassInfo* pClassInfo, ObjectID object
          * 
          * On x64, the size of this structure would be 20 bytes. If you have two entries in this dictionary, things will explode upon trying to read the second entry, because we only looked 20 bytes ahead for the second element, when in fact
          * we needed to look 24 bytes ahead. We would similarly have an issue if the structure was less than a pointer large. The following alignment logic is taken from MethodTableBuilder::PlaceInstanceFields()
+         *
+         * Fortunately, GetClassLayout returns the properly aligned size, so we don't have to manually align it ourselves. One potential challenge is the fact that according to the CLR,
+         * when a value type is boxed its true size is in fact 12 bytes. See SetupMethodTable2 in methodtablebuilder.cpp which calls pMT->SetBaseSize.
          */
 
         // The JITs like to copy full machine words,
         // so if the size is bigger than a void* round it up to minAlign
         // and if the size is smaller than void* round it up to next power of two
-        unsigned minAlign;
-
-        if (innerBytesRead > sizeof(void*)) {
-            minAlign = sizeof(void*);
-        }
-        else {
-            minAlign = 1;
-            while (minAlign < innerBytesRead)
-                minAlign *= 2;
-        }
-
-        ULONG alignedBytesRead = (innerBytesRead + minAlign-1) & ~(minAlign-1);
-        innerBytesRead = alignedBytesRead;
+        innerBytesRead = pClassInfo->m_ClassSize;
     }
 
     bytesRead += innerBytesRead;

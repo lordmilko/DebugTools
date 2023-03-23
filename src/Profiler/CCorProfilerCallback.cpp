@@ -1063,6 +1063,7 @@ HRESULT CCorProfilerCallback::CreateClassInfo(
 
     ULONG cFieldOffset = 0;
     COR_FIELD_OFFSET* rFieldOffset = nullptr;
+    ULONG ulClassSize = 0;
 
     PCCOR_SIGNATURE pSigBlob;
     ULONG cbSigBlob;
@@ -1143,13 +1144,13 @@ HRESULT CCorProfilerCallback::CreateClassInfo(
             goto ErrExit;
         }
 
-        IfFailGo(m_pInfo->GetClassLayout(classId, NULL, 0, &cFieldOffset, NULL));
+        IfFailGo(m_pInfo->GetClassLayout(classId, NULL, 0, &cFieldOffset, &ulClassSize));
 
         if (cFieldOffset)
         {
             rFieldOffset = new COR_FIELD_OFFSET[cFieldOffset];
 
-            IfFailGo(m_pInfo->GetClassLayout(classId, rFieldOffset, cFieldOffset, &cFieldOffset, NULL));
+            IfFailGo(m_pInfo->GetClassLayout(classId, rFieldOffset, cFieldOffset, &cFieldOffset, &ulClassSize));
 
             fields = new CSigField*[cFieldOffset];
 
@@ -1194,7 +1195,8 @@ HRESULT CCorProfilerCallback::CreateClassInfo(
             fields,
             rFieldOffset,
             cNumTypeArgs,
-            typeArgs
+            typeArgs,
+            ulClassSize
         );
 
         typeArgs = nullptr; //Clear this out in case there's an error after this so we don't double free it (CClassInfo will free it in its destructor)

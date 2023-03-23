@@ -884,6 +884,27 @@ namespace DebugTools.TestHost
                     break;
 
                 #endregion
+                #region Explicit Struct
+
+                case ValueTestType.ExplicitStructArrayArg:
+                    instance.ExplicitStructArrayArg(new[]
+                    {
+                        new StructWithExplicitBetweenStringAndInt("a", new StructWithExplicitFields
+                        {
+                            field1_0 = 10, //effective value: 30
+                            field1_2 = 20, //effective value: 0
+                            field2_0 = 30  //effective value: 30
+                        }, 1),
+                        new StructWithExplicitBetweenStringAndInt("b", new StructWithExplicitFields
+                        {
+                            field1_0 = 40, //effective value: 30
+                            field1_2 = 50, //effective value: 0
+                            field2_0 = 60  //effective value: 30
+                        }, 2)
+                    });
+                    break;
+
+                #endregion
 
                 default:
                     Debug.WriteLine($"Don't know how to run profiler test '{test}'");
