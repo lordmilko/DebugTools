@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Runtime.InteropServices;
 using ClrDebug;
 using DebugTools.SOS;
 using static ClrDebug.HRESULT;
@@ -229,6 +230,62 @@ namespace DebugTools.Host
             }
 
             return hr;
+        }
+
+        #endregion
+        #region
+
+        public MethodTable GetRawMethodTable(SOSProcessHandle handle, CLRDATA_ADDRESS address)
+        {
+            var dataTarget = GetSOSProcess(handle).DataTarget;
+
+            var result = dataTarget.ReadVirtual<MethodTable>(address);
+
+            return result;
+        }
+
+        public unsafe MethodDesc GetRawMethodDesc(SOSProcessHandle handle, CLRDATA_ADDRESS address)
+        {
+            var dataTarget = GetSOSProcess(handle).DataTarget;
+
+            var methodDescBuffer = Marshal.AllocHGlobal(Marshal.SizeOf<MethodDesc>());
+            NativeMethods.ZeroMemory(methodDescBuffer, Marshal.SizeOf<MethodDesc>());
+
+            try
+            {
+                dataTarget.ReadVirtual(address, methodDescBuffer, MethodDesc.MethodDescSize, out var bytesRead).ThrowOnNotOK();
+
+                if (bytesRead != MethodDesc.MethodDescSize)
+                    throw new InvalidOperationException($"Expected to read {MethodDesc.MethodDescSize} bytes however only {bytesRead} were read.");
+
+                MethodDesc* methodDescPtr = (MethodDesc*) methodDescBuffer;
+
+                //We've got a MethodDesc, but maybe it's a specific subtype of MethodDesc? If so there'll be additional fields in that subtype
+                if (methodDescPtr->Classification == MethodClassification.mcInstantiated)
+                {
+                    //It's an InstantiatedMethodDesc. Read just the fields that are unique to InstantiatedMethodDesc
+
+                    var toRead = Marshal.SizeOf<InstantiatedMethodDesc_Fragment>();
+
+                    dataTarget.ReadVirtual(
+                        address + MethodDesc.MethodDescSize,
+                        methodDescBuffer + MethodDesc.MethodDescSize,
+                        toRead,
+                        out bytesRead
+                    ).ThrowOnNotOK();
+
+                    if (bytesRead != toRead)
+                        throw new InvalidOperationException($"Expected to read {toRead} bytes however only {bytesRead} were read.");
+                }
+
+                var methodDesc = Marshal.PtrToStructure<MethodDesc>(methodDescBuffer);
+
+                return methodDesc;
+            }
+            finally
+            {
+                Marshal.FreeHGlobal(methodDescBuffer);
+            }
         }
 
         #endregion

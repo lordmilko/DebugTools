@@ -17,16 +17,29 @@ namespace DebugTools.PowerShell.Cmdlets
         [Parameter(Mandatory = true, Position = 0, ParameterSetName = ParameterSet.Address)]
         public CLRDATA_ADDRESS Address { get; set; }
 
+        [Parameter(Mandatory = false)]
+        public SwitchParameter Raw { get; set; }
+
         protected override void ProcessRecordEx()
         {
             if (ParameterSetName == ParameterSet.Address)
             {
-                var assembly = HostApp.GetSOSMethodTable(Process, Address);
+                var methodTable = HostApp.GetSOSMethodTable(Process, Address);
 
-                if (assembly == null)
+                if (methodTable == null)
                     WriteWarning($"{Address} is not a valid MethodTable");
                 else
-                    WriteObject(assembly);
+                {
+                    if (Raw)
+                    {
+                        //Read the SOSMethodTable above first to validate that the specified address is even valid
+                        var raw = HostApp.GetRawMethodTable(Process, methodTable.Address);
+
+                        WriteObject(raw);
+                    }
+                    else
+                        WriteObject(methodTable);
+                }
             }
             else
             {
@@ -37,7 +50,18 @@ namespace DebugTools.PowerShell.Cmdlets
                     var methodTables = HostApp.GetSOSMethodTables(Process, module);
 
                     foreach (var methodTable in methodTables)
-                        WriteObject(methodTable);
+                    {
+                        if (Raw)
+                        {
+                            var raw = HostApp.GetRawMethodTable(Process, methodTable.Address);
+
+                            WriteObject(raw);
+                        }
+                        else
+                        {
+                            WriteObject(methodTable);
+                        }
+                    }
                 }
             }
         }

@@ -17,12 +17,12 @@ namespace DebugTools.PowerShell.Cmdlets
         {
             if (ParameterSetName == ParameterSet.Address)
             {
-                var assembly = HostApp.GetSOSModule(Process, Address);
+                var module = HostApp.GetSOSModule(Process, Address);
 
-                if (assembly == null)
+                if (module == null)
                     WriteWarning($"{Address} is not a valid Module");
                 else
-                    WriteObject(assembly);
+                    WriteObject(module);
             }
             else
             {

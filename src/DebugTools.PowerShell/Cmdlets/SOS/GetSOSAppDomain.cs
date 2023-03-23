@@ -19,12 +19,12 @@ namespace DebugTools.PowerShell.Cmdlets
         {
             if (ParameterSetName == ParameterSet.Address)
             {
-                var assembly = HostApp.GetSOSAppDomain(Process, Address);
+                var appDomain = HostApp.GetSOSAppDomain(Process, Address);
 
-                if (assembly == null)
+                if (appDomain == null)
                     WriteWarning($"{Address} is not a valid AppDomain");
                 else
-                    WriteObject(assembly);
+                    WriteObject(appDomain);
             }
             else
             {

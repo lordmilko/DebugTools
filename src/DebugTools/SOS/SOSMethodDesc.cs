@@ -48,6 +48,8 @@ namespace DebugTools.SOS
 
         public string Name { get; }
 
+        public SOSMethodTable ParentMethodTable { get; }
+
         /// <summary>
         /// Indicates if the runtime has native code available for the given instantiation of the method.
         /// </summary>
@@ -106,6 +108,7 @@ namespace DebugTools.SOS
         private SOSMethodDesc(SOSMethodTable methodTable, string name, DacpMethodDescData data)
         {
             Name = name;
+            ParentMethodTable = methodTable;
 
             bHasNativeCode = data.bHasNativeCode;
             bIsDynamic = data.bIsDynamic;

@@ -18,12 +18,12 @@ namespace DebugTools.PowerShell.Cmdlets
         {
             if (ParameterSetName == ParameterSet.Address)
             {
-                var assembly = HostApp.GetSOSFieldDesc(Process, Address);
+                var fieldDesc = HostApp.GetSOSFieldDesc(Process, Address);
 
-                if (assembly == null)
+                if (fieldDesc == null)
                     WriteWarning($"{Address} is not a valid FieldDesc");
                 else
-                    WriteObject(assembly);
+                    WriteObject(fieldDesc);
             }
             else
             {

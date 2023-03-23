@@ -42,7 +42,7 @@ namespace DebugTools.SOS
 
         public string Name { get; }
         public CLRDATA_ADDRESS Address { get; }
-        public SOSMethodTable MethodTable { get; }
+        public SOSMethodTable ParentMethodTable { get; }
 
         public CorElementType Type { get; }
         public CorElementType sigType { get; }
@@ -60,7 +60,7 @@ namespace DebugTools.SOS
         public SOSFieldDesc(CLRDATA_ADDRESS address, SOSMethodTable methodTable, DacpFieldDescData data, SOSDacInterface sos)
         {
             Address = address;
-            MethodTable = methodTable;
+            ParentMethodTable = methodTable;
 
             var import = methodTable.Module.GetImport(sos);
 
