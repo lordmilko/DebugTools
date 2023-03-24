@@ -3,6 +3,7 @@
 void dprintf(LPCWSTR format, ...);
 
 //#define LOG_CALL 1
+//#define LOG_HIERARCHY 1
 //#define LOG_HRESULT 1 //And break on error
 //#define LOG_EXCEPTION 1
 //#define LOG_SHOULDHOOK 1
@@ -25,7 +26,10 @@ void dprintf(LPCWSTR format, ...);
 
 #define LogError(EXPR) dprintf(L"Error 0x%X occurred calling %S at %S(%d)\n", hr, #EXPR, __FILE__, __LINE__); if (BreakCondition) DebugBreakSafe()
 #endif //LOG_HRESULT
-
+#ifdef LOG_HIERARCHY
+void EnterLevel(LPCWSTR format, ...);
+void ExitLevel(LPCWSTR format, ...);
+#endif //LOG_HIERARCHY
 #ifdef LOG_EXCEPTION
 #define LogException dprintf
 #endif //LOG_EXCEPTION
@@ -73,6 +77,10 @@ extern thread_local BOOL g_DebugBlob;
 
 #define DO_NOTHING do { } while(0)
 
+#ifndef LOG_HIERARCHY
+#define EnterLevel(format, ...) DO_NOTHING
+#define ExitLevel(format, ...) DO_NOTHING
+#endif
 #ifndef LogCall
 #define LogCall(...) DO_NOTHING
 #endif

@@ -969,6 +969,8 @@ HRESULT CValueTracer::TraceArrayInternal(
         {
             UINT_PTR elmAddress = (UINT_PTR)(pData + arrBytesRead);
 
+            EnterLevel(L"%s[%d] (ObjectId: 0x" FORMAT_PTR L", ElmAddress: " FORMAT_PTR ") !dumparray " FORMAT_PTR, pElementType->m_szName, i, objectId, elmAddress, objectId);
+
             if (pArrayInfo->m_CorElementType == ELEMENT_TYPE_VALUETYPE)
             {
                 IfFailGo(TraceClassOrStruct(
@@ -991,6 +993,8 @@ HRESULT CValueTracer::TraceArrayInternal(
                     arrBytesRead
                 ));
             }
+
+            ExitLevel(L"Exit Array");
         }
     }
 
@@ -1710,6 +1714,8 @@ HRESULT CValueTracer::TraceClassOrStruct(CClassInfo* pClassInfo, ObjectID object
     long genericIndex = -1;
     ULONG innerBytesRead = 0;
 
+    EnterLevel(L"%s (ObjectId: " FORMAT_PTR L") !DumpVC 0x" FORMAT_PTR L" 0x" FORMAT_PTR, pClassInfo->m_szName, objectId, pClassInfo->m_ClassID, objectId);
+
     DebugBlob(L"Class Or Struct Type");
     WriteType(elementType);
 
@@ -1752,12 +1758,16 @@ HRESULT CValueTracer::TraceClassOrStruct(CClassInfo* pClassInfo, ObjectID object
             nullptr
         );
 
+        EnterLevel(L".%s (FieldAddress: 0x" FORMAT_PTR L", mdFieldDef: 0x" FORMAT_PTR L", ObjectId: 0x" FORMAT_PTR L", Offset: %d, InnerBytesRead: %d)", field->m_szName, fieldAddress, offset.ridOfField, objectId, offset.ulOffset, innerBytesRead);
+
         IfFailGo(TraceValue(
             fieldAddress,
             field->m_pType->m_Type,
             &ctx,
             innerBytesRead //todo: we should store an inner bytes read and then assign it to bytesread after alignment
         ));
+
+        ExitLevel(L"Exit Field InnerBytesRead: %d", innerBytesRead);
     }
 
     _ASSERTE(elementType == ELEMENT_TYPE_CLASS || elementType == ELEMENT_TYPE_OBJECT || elementType == ELEMENT_TYPE_VALUETYPE);
@@ -1784,7 +1794,9 @@ HRESULT CValueTracer::TraceClassOrStruct(CClassInfo* pClassInfo, ObjectID object
         innerBytesRead = pClassInfo->m_ClassSize;
     }
 
-    bytesRead += innerBytesRead;
+    ExitLevel(L"Exit Class/Struct %d -> %d", bytesRead, (bytesRead + innerBytesRead));
+
+    bytesRead += innerBytesRead; //If this is a class, the bytesRead reported from this method will be ignored and sizeof(void*) will be used instead
 
 ErrExit:
     return hr;
