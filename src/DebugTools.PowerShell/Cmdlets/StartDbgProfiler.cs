@@ -27,6 +27,9 @@ namespace DebugTools.PowerShell.Cmdlets
         public string TargetProcess { get; set; }
 
         [Parameter(Mandatory = false)]
+        public SwitchParameter IgnorePointerValue { get; set; }
+
+        [Parameter(Mandatory = false)]
         public SwitchParameter IgnoreDefaultBlacklist { get; set; }
 
         [Parameter(Mandatory = false)]
@@ -75,6 +78,9 @@ namespace DebugTools.PowerShell.Cmdlets
 
             if (Minimized)
                 settings.Add(ProfilerSetting.Minimized);
+
+            if (IgnorePointerValue)
+                settings.Add(ProfilerSetting.IgnorePointerValue);
 
             if (IgnoreDefaultBlacklist)
                 settings.Add(ProfilerSetting.IgnoreDefaultBlacklist);

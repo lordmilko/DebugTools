@@ -35,6 +35,7 @@ namespace Profiler.Tests
         PtrVoidArg,
         PtrStructArg,
         PtrComplexStructArg,
+        PtrAddressOnly,
 
         PtrPtrArg,
         PtrPtrCharArg,

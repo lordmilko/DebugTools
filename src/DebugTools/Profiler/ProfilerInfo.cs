@@ -127,6 +127,10 @@ namespace DebugTools.Profiler
                             envVariables.Add("DEBUGTOOLS_MODULEWHITELIST", setting.StringValue);
                             break;
 
+                        case ProfilerEnvFlags.IgnorePointerValue:
+                            envVariables.Add("DEBUGTOOLS_IGNORE_POINTERVALUE", "1");
+                            break;
+
                         case ProfilerEnvFlags.IgnoreDefaultBlacklist:
                             ignoreDefaultBlacklist = true;
                             break;

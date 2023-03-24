@@ -116,6 +116,10 @@ namespace Profiler.Tests
                 });
             }));
 
+        [TestMethod]
+        public void Value_PtrAddressOnly() =>
+            Test(ValueTestType.PtrAddressOnly, v => Assert.IsTrue(v.GetParameter().ToString().StartsWith("?* (0x")), ProfilerSetting.IgnorePointerValue);
+
         #endregion
         #region PtrPtr
 

@@ -9,6 +9,7 @@
         TargetProcess,
         ModuleBlacklist,
         ModuleWhitelist,
+        IgnorePointerValue,
         IgnoreDefaultBlacklist,
 
         DisablePipe,

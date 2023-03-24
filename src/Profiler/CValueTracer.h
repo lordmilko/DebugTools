@@ -314,6 +314,7 @@ private:
     static ULONG s_StringLengthOffset;
     static ULONG s_StringBufferOffset;
     static ULONG s_MaxTraceDepth;
+    static BOOL s_IgnorePointerValue;
 
     ULONG m_TraceDepth;
 

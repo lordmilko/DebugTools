@@ -68,12 +68,10 @@ namespace DebugTools.Profiler
                 value = v.Value;
             }
 
-            switch (elmType)
+            if (value is ComplexTypeValue c)
             {
-                case CorElementType.Class:
-                case CorElementType.ValueType:
-                    builder.Insert(0, GetTypeName(((ComplexTypeValue) value).Name));
-                    return builder.ToString();
+                builder.Insert(0, GetTypeName(c.Name));
+                return builder.ToString();
             }
 
             builder.Insert(0, GetPtrType(elmType));

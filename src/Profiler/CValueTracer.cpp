@@ -20,6 +20,7 @@ thread_local signed long g_ValueBufferPosition = 0;
 ULONG CValueTracer::s_StringLengthOffset;
 ULONG CValueTracer::s_StringBufferOffset;
 ULONG CValueTracer::s_MaxTraceDepth;
+BOOL CValueTracer::s_IgnorePointerValue;
 
 HRESULT CValueTracer::Initialize(ICorProfilerInfo4* pInfo)
 {
@@ -37,6 +38,8 @@ HRESULT CValueTracer::Initialize(ICorProfilerInfo4* pInfo)
         s_MaxTraceDepth = strtol(envBuffer, NULL, 10);
     else
         s_MaxTraceDepth = -1;
+
+    s_IgnorePointerValue = GetBoolEnv("DEBUGTOOLS_IGNORE_POINTERVALUE");
 
 ErrExit:
     return hr;
@@ -1656,7 +1659,7 @@ HRESULT CValueTracer::TracePtrType(
     DebugBlob(L"Ptr");
     WriteType(ELEMENT_TYPE_PTR);
 
-    if (IsInvalidObject(innerAddress))
+    if (s_IgnorePointerValue || IsInvalidObject(innerAddress))
     {
         WriteType(ELEMENT_TYPE_END);
         WriteType(elmType);

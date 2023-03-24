@@ -155,6 +155,11 @@ namespace DebugTools.TestHost
         {
         }
 
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        public unsafe void PtrAddressOnly(StructWithPrimitiveField* a)
+        {
+        }
+
         #endregion
         #region PtrPtr
 

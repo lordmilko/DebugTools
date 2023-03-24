@@ -190,6 +190,11 @@ namespace DebugTools.TestHost
                     break;
                 }
 
+                case ValueTestType.PtrAddressOnly:
+                    fixed (StructWithPrimitiveField* ptr = &new[] { new StructWithPrimitiveField { field1 = 1001 } }[0])
+                        instance.PtrAddressOnly(ptr);
+                    break;
+
                 #endregion
                 #region PtrPtr
 
