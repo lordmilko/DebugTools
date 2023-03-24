@@ -11,7 +11,4 @@ CSigMethodDef::~CSigMethodDef()
 
         free(m_GenericTypeArgNames);
     }
-
-    if (m_CanonicalType)
-        m_CanonicalType->Release();
 }

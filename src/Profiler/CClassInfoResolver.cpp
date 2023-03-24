@@ -75,31 +75,26 @@ HRESULT CClassInfoResolver::GetMethodTypeArgsAndContainingClass(
 
     if (classId == 0)
     {
-        /* GetFunctionInfo2() can set the classId to 0 if no class information is available. In this case, you'd think a good
-         * strategy to try next might to be get the function's mdTypeDef and resolve the classId using a ModuleID + mdTypeDef.
-         * Ostensibly we could give it a go trying to load the class using the ModuleID + mdTypeDef via GetClassFromToken,
-         * however this scenario has been seen to occur with generic types, meaning we need to call GetClassFromTokenAndTypeArgs,
-         * but we don't have a way to get the typearg class IDs. We could simply forgo getting an IClassInfo at all
-         * (it only affects ELEMENT_TYPE_VAR) however this has been seen to affect a GenericInst with typeargs including ELEMENT_TYPE_VAR.
+        /* The CLR uses special code sharing techniques to represent generic types in certain scenarios. In order to resolve the meaning of an ELEMENT_TYPE_VAR, there are three
+         * potential resolution mechanisms the CLR might use: Inspect the "this" parameter, inspect the InstantiatedMethodDesc or inspect the MethodTable (https://yizhang82.dev/dotnet-generics-typeof-t).
+         * Pointers to these items are passed in CPU registers so that they may be accessed if need be, such as the thisArg and extraArg parameters of COR_PRF_FRAME_INFO_INTERNAL.
+         * In certain scenarios however this can present a problem: consider the method Microsoft.VisualStudio.Utilities.dll!GlobalBrokeredServiceContainer+View.TryGetProfferingSourceAsync,
+         * which returns a ValueTask<ValueTuple<>>.
          *
-         * In most scenarios we don't actually even need to know our parent type; a method that returns a T[] can get the value of T
-         * by asking the array what its element type is. Other methods don't even appear to need this info at all. As such, we give it a go
-         * attempting to get the canonical parent type (if possible) based on the ModuleID and mdTypeDef. */
+         * As part of the awaiting process, AsyncValueTaskMethodBuilder<T>.Task is accessed, which returns ValueTask<T>. Normally GetFunctionInfo2 would be able to resolve that
+         * the T in ValueTask<T> is ValueTuple<>, however when we are in a leave callback, the CPU registers that thisArg and extraArg will probably have been overwritten as a result of
+         * the method's normal course of action. As such, ProfilingGetFunctionLeave3Info() (called by GetFunctionLeave3Info()) sets thisArg and extraArg to null. When GetFunctionInfo2 executes,
+         * MethodDesc::IsSharedByGenericInstantiations() will report TRUE, however GetExactInstantiationsOfMethodAndItsClassFromCallInformation() will return FALSE when AcquiresInstMethodTableFromThis() is TRUE
+         * since our thisArg was null.
+         *
+         * In theory, we could inspect all our m_CanonicalGenericTypes to find one with a matching mdTypeDef and ModuleID, however this is not a good idea: the generic type args on this type will simply
+         * be listed as System.__Canon, which is considered to be a reference type. As such, in the case of ValueTask<T>, it contains some field of type ValueTuple<> which we'll incorrectly treat as a reference
+         * type and attempt to perform an indirection against the structure in an attempt to read the ObjectID. Furthermore, returning the canonical type can cause faulty information to be trickled down multiple levels.
+         * If we failed to resolve the true implementation of AsyncValueTaskMethodBuilder<T>, we're going to pass T as being System.__Canon onto our field of type ValueTuple<T> which will in turn pass System.__Canon on to its
+         * field of type T which is meant to be ValueTuple<> but is now being incorrectly treated as a reference type. */
 
-        //Retrieving the canonical type of a method isn't cheap, so cache it if we've ever seen it. We can't make any assumptions
-        //as to whether we'll have to fallback to using the canonical type on enter/leave or not, so we can only fallback after
-        //we've confirmed we couldn't get the ClassID for a concrete type.
-        if (m_pMethod->m_CanonicalType == nullptr)
-        {
-            IfFailGo(GetMethodCanonicalType(moduleId, funcToken, &pMethodClassInfo));
-
-            m_pMethod->m_CanonicalType = pMethodClassInfo;
-            pMethodClassInfo->AddRef();
-        }
-        else
-        {
-            pMethodClassInfo = m_pMethod->m_CanonicalType;
-        }
+        hr = PROFILER_E_NO_CLASSID;
+        goto ErrExit;
     }
     else
     {
@@ -112,50 +107,6 @@ HRESULT CClassInfoResolver::GetMethodTypeArgsAndContainingClass(
 ErrExit:
     if (typeArgs)
         delete[] typeArgs;
-
-    return hr;
-}
-
-HRESULT CClassInfoResolver::GetMethodCanonicalType(
-    _In_ ModuleID moduleId,
-    _In_ mdToken token,
-    _Out_ IClassInfo** ppMethodClassInfo)
-{
-    if (moduleId == 0)
-        return PROFILER_E_NO_CLASSID;
-
-    CorTokenType type = (CorTokenType)TypeFromToken(token);
-
-    if (type != mdtMethodDef)
-        return PROFILER_E_NO_CLASSID;
-
-    HRESULT hr = S_OK;
-    CModuleInfo* pModuleInfo;
-    mdTypeDef typeDef;
-
-    IfFailGo(g_pProfiler->GetModuleInfo(moduleId, &pModuleInfo));
-
-    IfFailGo(pModuleInfo->m_pMDI->GetMethodProps(token, &typeDef, NULL, NULL, 0, NULL, NULL, NULL, NULL, NULL));
-
-    //Lock scope
-    {
-        CLock classLock(&g_pProfiler->m_ClassMutex);
-
-        for (auto& item : g_pProfiler->m_CanonicalGenericTypes)
-        {
-            if (item->m_ModuleID == moduleId && item->m_TypeDef == typeDef)
-            {
-                //dprintf(L"Got canonical type %I64X %s\n", item->m_ClassID, item->m_szName);
-                *ppMethodClassInfo = item;
-                hr = S_OK;
-                goto ErrExit;
-            }
-        }
-    }
-
-ErrExit:
-    if (*ppMethodClassInfo == nullptr)
-        return PROFILER_E_NO_CLASSID;
 
     return hr;
 }

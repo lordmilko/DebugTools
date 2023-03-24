@@ -64,8 +64,6 @@ public:
     {
         m_NumGenericTypeArgNames = numGenericArgNames;
         m_GenericTypeArgNames = genericTypeArgNames;
-
-        m_CanonicalType = nullptr;
     }
 
     ~CSigMethodDef();
@@ -74,8 +72,6 @@ public:
     LPWSTR* m_GenericTypeArgNames;
 
     ModuleID m_ModuleID;
-
-    IClassInfo* m_CanonicalType;
 };
 
 class CSigMethodRef : public CSigMethod

@@ -31,7 +31,9 @@ namespace DebugTools.Profiler
         PROFILER_E_UNKNOWN_GENERIC_ARRAY = 0x80041003,
 
         /// <summary>
-        /// Could not get the ClassID of a type from the runtime or any fallback strategy.
+        /// Could not get the ClassID of a type from the runtime or any fallback strategy.<para/>
+        /// This can commonly occur when attempting to resolve a value of type <see cref="CorElementType.Var"/> in a leave callback where the "this" arg is required
+        /// to resolve the generic type parameter but most likely no longer exists in its CPU register.
         /// </summary>
         PROFILER_E_NO_CLASSID = 0x80041004,
 
