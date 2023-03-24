@@ -259,8 +259,6 @@ HRESULT CValueTracer::TraceParameter(
 {
     HRESULT hr = S_OK;
 
-    UINT_PTR pAddress = pParameter->m_pType->m_IsByRef ? *(UINT_PTR*)range->startAddress : range->startAddress;
-
     ULONG bytesRead = 0;
     
     CSigType* pType = pParameter->m_pType;
@@ -273,7 +271,7 @@ HRESULT CValueTracer::TraceParameter(
     TraceValueContext ctx = MakeTraceValueContext(typeToken, typeTokenModule, genericIndex, resolver, pType, nullptr);
 
     IfFailGo(TraceValue(
-        pAddress,
+        range->startAddress,
         pType->m_Type,
         &ctx,
         bytesRead
@@ -319,9 +317,23 @@ HRESULT CValueTracer::TraceValue(
         return hr;
     }
 
+    /* pContext is only ever null when tracing a simple value.Is it possible we could end up with a byref value without the pContext we need to unwrap it? No.
+     *
+     * - ref values cannot be stored inside arrays
+     * - If we have a struct ref struct a { ref object b = 1 }, ELEMENT_TYPE_OBJECT will be reported as byref, and upon unwrapping it we'll see it has an ELEMENT_TYPE_I4 - but
+     *   at that point we're already unwrapped.
+     * - If we have an ELEMENT_TYPE_VAR or ELEMENT_TYPE_MVAR (e.g. foo<int>), the VAR/MVAR element will be be passed to TraceValue first, we'll see its byref and unwrap it, and then
+     *   and then TraceGenericTypeInternal() will pass the real I4 to us - but its no longer byref at that point so there's no problems */
+    if (pContext != nullptr && pContext->SigType != nullptr && pContext->SigType->m_IsByRef)
+    {
+        //A ByRef value can come in many forms. It could be foo(ref value), foo() { return ref value } and even ref struct foo { ref int bar }.
+        //In all 3 of these scenarios, the sigtype reports IsByRef and we indirect it here
+        startAddress = *(UINT_PTR*)startAddress;
+    }
+
     if (startAddress == 0)
     {
-        /* There are some scenarios where the location of a ByRef value is null.For example, Unsafe.IsNullRef(), as well as some COM interfaces called by Visual Studio.
+        /* There are some scenarios where the location of a ByRef value is null. For example, Unsafe.IsNullRef(), as well as some COM interfaces called by Visual Studio.
          * A ByRef parameter should always point to a valid stack or heap location, so it seems impossible that an address of 0 would be returned. There isn't any error occurring
          * while retrieving the args for the profiler - the address really is 0.
          * Per https://github.com/dotnet/runtime/issues/31170, in IL it is perfectly valid for a "ref" to point to null. That is, the "ref" itself is null,
@@ -1659,7 +1671,7 @@ HRESULT CValueTracer::TracePtrType(
     DebugBlob(L"Ptr");
     WriteType(ELEMENT_TYPE_PTR);
 
-    if (s_IgnorePointerValue || IsInvalidObject(innerAddress))
+    if (s_IgnorePointerValue || IsInvalidPointer(innerAddress))
     {
         WriteType(ELEMENT_TYPE_END);
         WriteType(elmType);
@@ -1845,6 +1857,11 @@ void CValueTracer::GetGenericInfo(
 
 BOOL CValueTracer::IsInvalidObject(ObjectID objectId)
 {
+    return objectId == NULL;
+}
+
+BOOL CValueTracer::IsInvalidPointer(ObjectID objectId)
+{
     if (objectId == NULL)
         return TRUE;
 
@@ -1870,14 +1887,7 @@ BOOL CValueTracer::IsInvalidObject(ObjectID objectId)
 
     __try
     {
-        /* PowerShell's LanguagePrimitives+ConversionTypePair type had an illegal ObjectID on the "to" field (its two fields "from" and "to" are both System.Type).
-         * SOS confirmed it was illegal as well, so evidently we can't assume all ObjectIDs are valid. We can't simply __try/__except around calling GetClassFromObject(),
-         * because for some reason our __except handler won't catch the exception if it occurs in Object::GetGCSafeTypeHandleIfPossible, so we have to validate the pointer
-         * ourselves. The .NET Framework has mechanisms available to test whether a given ObjectID is valid, however they rely on the debugging APIs, and we probably
-         * shouldn't be loading mscordacwks.dll into the target process just so we can play around with ISOSDacInterface (ISOSDacInterface::GetObjectData() looks like
-         * it would do the trick).
-         * 
-         * This is marked as volatile so that in Release builds the entire dereference on objectId isn't optimized away */
+         //This is marked as volatile so that in Release builds the entire dereference on objectId isn't optimized away
         volatile UINT_PTR val = *(UINT_PTR*)objectId;
     }
     __except (GetExceptionCode() == EXCEPTION_ACCESS_VIOLATION ? EXCEPTION_EXECUTE_HANDLER : EXCEPTION_CONTINUE_SEARCH)

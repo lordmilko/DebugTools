@@ -39,6 +39,8 @@ namespace Profiler.Tests
                 Assert.AreEqual(names[i], frame.Children[i].MethodInfo.MethodName);
         }
 
+        public ValueVerifier Return => GetReturn().VerifyValue();
+
         public void HasValue<T>(T value) => GetParameter().VerifyValue().HasValue(value);
 
         public void HasPtrValue<T>(T value) => GetParameter().VerifyValue().HasPtrValue(value);
@@ -142,6 +144,13 @@ namespace Profiler.Tests
             Assert.AreEqual(1, parameters.Count, "Expected number of parameters was incorrect");
 
             return parameters[0];
+        }
+
+        public object GetReturn()
+        {
+            var detailed = (IMethodFrameDetailed)frame;
+
+            return detailed.GetExitResult();
         }
 
         private List<object> GetFields(object parameter)

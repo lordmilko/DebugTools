@@ -7,6 +7,8 @@ namespace DebugTools.TestHost
 {
     class GenericValueType<TType>
     {
+        public TType field1;
+
         [MethodImpl(MethodImplOptions.NoInlining)]
         public void Generic_TypeVar_ElementTypeClassArg(TType a)
         {
@@ -36,6 +38,55 @@ namespace DebugTools.TestHost
         public void Generic_TypeVar_ElementTypeSimpleArrayArg(TType a)
         {
         }
+
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        public GenericStructType<TType> Generic_TypeVar_ReturnGenericTypeWithTypeArg(TType fieldValue)
+        {
+            return new GenericStructType<TType> {field1 = fieldValue};
+        }
+
+        #region ByRef Var
+
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        public ref TType ByRef_RefReturn_Generic_Var_PrimitiveValue(ref TType a)
+        {
+            return ref a;
+        }
+
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        public ref TType ByRef_RefReturn_Generic_Var_NullablePrimitiveValue(ref TType a)
+        {
+            return ref a;
+        }
+
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        public ref TType ByRef_RefReturn_Generic_Var_StructWithPrimitiveField(ref TType a)
+        {
+            return ref a;
+        }
+
+        #endregion
+        #region ByRef Var Field
+
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        public ref TType ByRef_RefReturn_Generic_VarField_PrimitiveValue()
+        {
+            return ref field1;
+        }
+
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        public ref TType ByRef_RefReturn_Generic_VarField_NullablePrimitiveValue()
+        {
+            return ref field1;
+        }
+
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        public ref TType ByRef_RefReturn_Generic_VarField_StructWithPrimitiveField()
+        {
+            return ref field1;
+        }
+
+        #endregion
     }
 
     class ValueType
@@ -224,7 +275,7 @@ namespace DebugTools.TestHost
         {
         }
 
-        #region Null
+        #region ByRef Null
 
         [MethodImpl(MethodImplOptions.NoInlining)]
         public void ByRef_Ref_InNull_OutNull(ref string a)
@@ -263,7 +314,7 @@ namespace DebugTools.TestHost
         }
 
         #endregion
-        #region Number
+        #region ByRef Number
 
         [MethodImpl(MethodImplOptions.NoInlining)]
         public void ByRef_Ref_InZero_OutZero(ref int a)
@@ -302,7 +353,7 @@ namespace DebugTools.TestHost
         }
 
         #endregion
-        #region Ptr
+        #region ByRef Ptr
 
         [MethodImpl(MethodImplOptions.NoInlining)]
         public unsafe void ByRef_Ref_InPtrZero_OutZero(ref int* a)
@@ -338,6 +389,45 @@ namespace DebugTools.TestHost
         public unsafe void ByRef_Out_NonZeroPtr_NonWithZero(out int* a)
         {
             a = (int*) 2;
+        }
+
+        #endregion
+        #region Ref Return
+
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        public ref Struct1 ByRef_RefReturn_Struct(ref Struct1 a)
+        {
+            return ref a;
+        }
+
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        public ref StructWithPrimitiveField ByRef_RefReturn_StructWithPrimitiveField(ref StructWithPrimitiveField a)
+        {
+            return ref a;
+        }
+
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        public ref StructWithReferenceField ByRef_RefReturn_StructWithReferenceField(ref StructWithReferenceField a)
+        {
+            return ref a;
+        }
+
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        public ref T ByRef_RefReturn_Generic_MVar_PrimitiveValue<T>(ref T a)
+        {
+            return ref a;
+        }
+
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        public ref T ByRef_RefReturn_Generic_MVar_NullablePrimitiveValue<T>(ref T a)
+        {
+            return ref a;
+        }
+
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        public ref T ByRef_RefReturn_Generic_MVar_StructWithPrimitiveField<T>(ref T a)
+        {
+            return ref a;
         }
 
         #endregion

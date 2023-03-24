@@ -72,6 +72,19 @@ namespace Profiler.Tests
         ByRef_Out_Ptr_NonWithZero,
         ByRef_Out_NonZeroPtr_NonWithZero,
 
+        ByRef_RefReturn_Struct,
+        ByRef_RefReturn_StructWithPrimitiveField,
+        ByRef_RefReturn_StructWithReferenceField,
+        ByRef_RefReturn_Generic_MVar_PrimitiveValue,
+        ByRef_RefReturn_Generic_MVar_NullablePrimitiveValue,
+        ByRef_RefReturn_Generic_MVar_StructWithPrimitiveField,
+        ByRef_RefReturn_Generic_Var_PrimitiveValue,
+        ByRef_RefReturn_Generic_Var_NullablePrimitiveValue,
+        ByRef_RefReturn_Generic_Var_StructWithPrimitiveField,
+        ByRef_RefReturn_Generic_VarField_PrimitiveValue,
+        ByRef_RefReturn_Generic_VarField_NullablePrimitiveValue,
+        ByRef_RefReturn_Generic_VarField_StructWithPrimitiveField,
+
         FnPtrArg,
         FnPtrNullArg,
 
@@ -134,6 +147,7 @@ namespace Profiler.Tests
         Generic_TypeVar_ElementTypeClassArrayArg,
         Generic_TypeVar_ElementTypeValueTypeArrayArg,
         Generic_TypeVar_ElementTypeSimpleArrayArg,
+        Generic_TypeVar_ReturnGenericTypeWithTypeArg,
 
         #endregion
 

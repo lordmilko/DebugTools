@@ -173,7 +173,8 @@ public:
     }
 
     static HRESULT Initialize(ICorProfilerInfo4* pInfo);
-    static BOOL IsInvalidObject(ObjectID objectId);
+    FORCEINLINE static BOOL IsInvalidObject(ObjectID objectId);
+    static BOOL IsInvalidPointer(ObjectID objectId);
 
     HRESULT EnterWithInfo(FunctionIDOrClientID functionId, COR_PRF_ELT_INFO eltInfo);
     HRESULT LeaveWithInfo(FunctionIDOrClientID functionId, COR_PRF_ELT_INFO eltInfo);

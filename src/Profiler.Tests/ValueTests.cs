@@ -200,7 +200,7 @@ namespace Profiler.Tests
         public void Value_ByRef_Ref_BoxedValue() =>
             Test(ValueTestType.ByRef_Ref_BoxedValue, v => v.HasValue(1));
 
-        #region Null
+        #region ByRef Null
 
         [TestMethod]
         public void Value_ByRef_Ref_InNull_OutNull() =>
@@ -227,7 +227,7 @@ namespace Profiler.Tests
             Test(ValueTestType.ByRef_Out_NonNullNullable_WithNull, v => v.HasValue("value"));
 
         #endregion
-        #region Number
+        #region ByRef Number
 
         [TestMethod]
         public void Value_ByRef_Ref_InZero_OutZero() =>
@@ -254,7 +254,7 @@ namespace Profiler.Tests
             Test(ValueTestType.ByRef_Out_NonZeroNumber_WithNonZero, v => v.HasValue(1));
 
         #endregion
-        #region Ptr
+        #region ByRef Ptr
 
         [TestMethod]
         public void Value_ByRef_Ref_InPtrZero_OutZero() =>
@@ -280,6 +280,66 @@ namespace Profiler.Tests
         public void Value_ByRef_Out_NonZeroPtr_NonWithZero() =>
             Test(ValueTestType.ByRef_Out_NonZeroPtr_NonWithZero, v => v.HasPtrValue(new IntPtr(1)));
 
+        #endregion
+        #region Ref Return
+
+        [TestMethod]
+        public void Value_ByRef_RefReturn_Struct() =>
+            Test(ValueTestType.ByRef_RefReturn_Struct, v => v.Return.HasValueType("DebugTools.TestHost.Struct1"));
+
+        [TestMethod]
+        public void Value_ByRef_RefReturn_StructWithPrimitiveField() =>
+            Test(ValueTestType.ByRef_RefReturn_StructWithPrimitiveField, v => v.Return.HasValueType("DebugTools.TestHost.StructWithPrimitiveField").HasFieldValue(1));
+
+        [TestMethod]
+        public void Value_ByRef_RefReturn_StructWithReferenceField() =>
+            Test(ValueTestType.ByRef_RefReturn_StructWithReferenceField, v => v.Return.HasValueType("DebugTools.TestHost.StructWithReferenceField").HasFieldValue("foo"));
+
+        #region MVar
+
+        [TestMethod]
+        public void Value_ByRef_RefReturn_Generic_MVar_PrimitiveValue() =>
+            Test(ValueTestType.ByRef_RefReturn_Generic_MVar_PrimitiveValue, v => v.Return.HasValue(1));
+
+        [TestMethod]
+        public void Value_ByRef_RefReturn_Generic_MVar_NullablePrimitiveValue() =>
+            Test(ValueTestType.ByRef_RefReturn_Generic_MVar_NullablePrimitiveValue, v => v.Return.HasValueType("System.Nullable`1").HasFieldValue(1, 1));
+
+        [TestMethod]
+        public void Value_ByRef_RefReturn_Generic_MVar_StructWithPrimitiveField() =>
+            Test(ValueTestType.ByRef_RefReturn_Generic_MVar_StructWithPrimitiveField, v => v.Return.HasValueType("DebugTools.TestHost.StructWithPrimitiveField").HasFieldValue(1));
+
+        #endregion
+        #region Var
+
+        [TestMethod]
+        public void Value_ByRef_RefReturn_Generic_Var_PrimitiveValue() =>
+            Test(ValueTestType.ByRef_RefReturn_Generic_Var_PrimitiveValue, v => v.Return.HasValue(1));
+
+        [TestMethod]
+        public void Value_ByRef_RefReturn_Generic_Var_NullablePrimitiveValue() =>
+            Test(ValueTestType.ByRef_RefReturn_Generic_Var_NullablePrimitiveValue, v => v.Return.HasValueType("System.Nullable`1").HasFieldValue(1, 1));
+
+        [TestMethod]
+        public void Value_ByRef_RefReturn_Generic_Var_StructWithPrimitiveField() =>
+            Test(ValueTestType.ByRef_RefReturn_Generic_Var_StructWithPrimitiveField, v => v.Return.HasValueType("DebugTools.TestHost.StructWithPrimitiveField").HasFieldValue(1));
+
+        #endregion
+        #region Var Field
+
+        [TestMethod]
+        public void Value_ByRef_RefReturn_Generic_VarField_PrimitiveValue() =>
+            Test(ValueTestType.ByRef_RefReturn_Generic_VarField_PrimitiveValue, v => v.Return.HasValue(1));
+
+        [TestMethod]
+        public void Value_ByRef_RefReturn_Generic_VarField_NullablePrimitiveValue() =>
+            Test(ValueTestType.ByRef_RefReturn_Generic_VarField_NullablePrimitiveValue, v => v.Return.HasValueType("System.Nullable`1").HasFieldValue(1, 1));
+
+        [TestMethod]
+        public void Value_ByRef_RefReturn_Generic_VarField_StructWithPrimitiveField() =>
+            Test(ValueTestType.ByRef_RefReturn_Generic_VarField_StructWithPrimitiveField, v => v.Return.HasValueType("DebugTools.TestHost.StructWithPrimitiveField").HasFieldValue(1));
+
+        #endregion
         #endregion
         #endregion
 
@@ -586,6 +646,14 @@ namespace Profiler.Tests
         [TestMethod]
         public void Value_Generic_TypeVar_ElementTypeSimpleArrayArg() =>
             Test(ValueTestType.Generic_TypeVar_ElementTypeSimpleArrayArg, v => v.HasArrayValues(CorElementType.I4, 1, 2));
+
+        [TestMethod]
+        public void Value_Generic_TypeVar_ReturnGenericTypeWithTypeArg() =>
+            Test(ValueTestType.Generic_TypeVar_ReturnGenericTypeWithTypeArg,
+                v => v.Return.HasValueType("DebugTools.TestHost.GenericStructType`1").HasFieldValue(
+                    f => f.HasValueType("DebugTools.TestHost.StructWithPrimitiveField").HasFieldValue(1)
+                )
+            );
 
         #endregion
         #endregion

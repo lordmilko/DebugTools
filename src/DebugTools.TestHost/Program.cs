@@ -328,7 +328,7 @@ namespace DebugTools.TestHost
                     instance.ByRef_Ref_BoxedValue(ref objRef);
                     break;
 
-                #region Null
+                #region ByRef Null
 
                 case ValueTestType.ByRef_Ref_InNull_OutNull:
                     strRef = null;
@@ -361,7 +361,7 @@ namespace DebugTools.TestHost
                     break;
 
                 #endregion
-                #region Zero
+                #region ByRef Number
 
                 case ValueTestType.ByRef_Ref_InZero_OutZero:
                     intRef = 0;
@@ -394,7 +394,7 @@ namespace DebugTools.TestHost
                     break;
 
                 #endregion
-                #region Ptr
+                #region ByRef Ptr
 
                 case ValueTestType.ByRef_Ref_InPtrZero_OutZero:
                     ptrRef = (int*) 0;
@@ -426,6 +426,93 @@ namespace DebugTools.TestHost
                     instance.ByRef_Out_NonZeroPtr_NonWithZero(out ptrRef);
                     break;
 
+                #endregion
+                #region Ref Return
+
+                case ValueTestType.ByRef_RefReturn_Struct:
+                {
+                    var value = new Struct1();
+                    instance.ByRef_RefReturn_Struct(ref value);
+                    break;
+                }
+
+                case ValueTestType.ByRef_RefReturn_StructWithPrimitiveField:
+                {
+                    var value = new StructWithPrimitiveField{field1 = 1};
+                    instance.ByRef_RefReturn_StructWithPrimitiveField(ref value);
+                    break;
+                }
+
+                case ValueTestType.ByRef_RefReturn_StructWithReferenceField:
+                {
+                    var value = new StructWithReferenceField{field1 = "foo"};
+                    instance.ByRef_RefReturn_StructWithReferenceField(ref value);
+                    break;
+                }
+
+                #region MVar
+
+                case ValueTestType.ByRef_RefReturn_Generic_MVar_PrimitiveValue:
+                {
+                    var value = 1;
+                    instance.ByRef_RefReturn_Generic_MVar_PrimitiveValue(ref value);
+                    break;
+                }
+
+                case ValueTestType.ByRef_RefReturn_Generic_MVar_NullablePrimitiveValue:
+                {
+                    int? value = 1;
+                    instance.ByRef_RefReturn_Generic_MVar_NullablePrimitiveValue(ref value);
+                    break;
+                }
+
+                case ValueTestType.ByRef_RefReturn_Generic_MVar_StructWithPrimitiveField:
+                {
+                    var value = new StructWithPrimitiveField { field1 = 1 };
+                    instance.ByRef_RefReturn_Generic_MVar_StructWithPrimitiveField(ref value);
+                    break;
+                }
+
+                #endregion
+                #region Var
+
+                case ValueTestType.ByRef_RefReturn_Generic_Var_PrimitiveValue:
+                {
+                    var value = 1;
+                    new GenericValueType<int>().ByRef_RefReturn_Generic_Var_PrimitiveValue(ref value);
+                    break;
+                }
+
+                case ValueTestType.ByRef_RefReturn_Generic_Var_NullablePrimitiveValue:
+                {
+                    int? value = 1;
+                    new GenericValueType<int?>().ByRef_RefReturn_Generic_Var_NullablePrimitiveValue(ref value);
+                    break;
+                }
+
+                case ValueTestType.ByRef_RefReturn_Generic_Var_StructWithPrimitiveField:
+                {
+                    var value = new StructWithPrimitiveField { field1 = 1 };
+                    new GenericValueType<StructWithPrimitiveField>().ByRef_RefReturn_Generic_Var_StructWithPrimitiveField(ref value);
+                    break;
+                }
+
+                #endregion
+                #region Var Field
+
+                case ValueTestType.ByRef_RefReturn_Generic_VarField_PrimitiveValue:
+                    new GenericValueType<int>{ field1 = 1 }.ByRef_RefReturn_Generic_VarField_PrimitiveValue();
+                    break;
+
+                case ValueTestType.ByRef_RefReturn_Generic_VarField_NullablePrimitiveValue:
+                    new GenericValueType<int?>{ field1 = 1 }.ByRef_RefReturn_Generic_VarField_NullablePrimitiveValue();
+                    break;
+
+                case ValueTestType.ByRef_RefReturn_Generic_VarField_StructWithPrimitiveField:
+                    new GenericValueType<StructWithPrimitiveField>{ field1 = new StructWithPrimitiveField {field1 = 1} }.ByRef_RefReturn_Generic_VarField_StructWithPrimitiveField();
+                    break;
+
+                #endregion
                 #endregion
                 #endregion
 
@@ -685,6 +772,13 @@ namespace DebugTools.TestHost
 
                 case ValueTestType.Generic_TypeVar_ElementTypeSimpleArrayArg:
                     new GenericValueType<int[]>().Generic_TypeVar_ElementTypeSimpleArrayArg(new[] {1,2});
+                    break;
+
+                case ValueTestType.Generic_TypeVar_ReturnGenericTypeWithTypeArg:
+                    new GenericValueType<StructWithPrimitiveField>().Generic_TypeVar_ReturnGenericTypeWithTypeArg(new StructWithPrimitiveField
+                    {
+                        field1 = 1
+                    });
                     break;
 
                 #endregion
