@@ -58,8 +58,11 @@ HRESULT CValueTracer::EnterWithInfo(FunctionIDOrClientID functionId, COR_PRF_ELT
     ULONG cbArgumentInfo = 0;
     COR_PRF_FUNCTION_ARGUMENT_INFO* argumentInfo = nullptr;
 
-    CLock methodLock(&g_pProfiler->m_MethodMutex);
-    IfFailGo(GetMethodInfoNoLock(functionId, &pMethod));
+    //Lock scope
+    {
+        CLock methodLock(&g_pProfiler->m_MethodMutex);
+        IfFailGo(GetMethodInfoNoLock(functionId, &pMethod));
+    }
 
     if (pMethod->m_NumParameters == 0)
     {
@@ -137,9 +140,11 @@ HRESULT CValueTracer::LeaveWithInfo(FunctionIDOrClientID functionId, COR_PRF_ELT
     long genericIndex = -1;
     CSigType* pType;
 
-    CLock methodLock(&g_pProfiler->m_MethodMutex);
-
-    IfFailGo(GetMethodInfoNoLock(functionId, &pMethod));
+    //Lock scope
+    {
+        CLock methodLock(&g_pProfiler->m_MethodMutex);
+        IfFailGo(GetMethodInfoNoLock(functionId, &pMethod));
+    }
 
     pType = pMethod->m_pRetType;
 

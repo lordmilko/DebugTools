@@ -1296,7 +1296,7 @@ ErrExit:
 ULONG CCorProfilerCallback::GetThreadSequence(
     _In_ ThreadID threadId)
 {
-    CLock threadLock(&m_ThreadIDToSequenceMutex);
+    CLock threadLock(&m_ThreadIDToSequenceMutex, true);
 
     auto match = m_ThreadIDToSequenceMap.find(threadId);
 

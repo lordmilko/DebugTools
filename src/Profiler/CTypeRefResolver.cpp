@@ -162,7 +162,7 @@ HRESULT CTypeRefResolver::ResolveAssemblyRef(
 
     if (m_TypeRef != mdTokenNil)
     {
-        CLock typeRefLock(&m_pModuleInfo->m_TypeRefMutex);
+        CLock typeRefLock(&m_pModuleInfo->m_TypeRefMutex, true);
 
         m_pModuleInfo->m_TypeRefMap[m_TypeRef] = new CModuleIDAndTypeDef(*moduleId, *typeDef, FALSE);
         added = TRUE;
@@ -171,7 +171,7 @@ HRESULT CTypeRefResolver::ResolveAssemblyRef(
 ErrExit:
     if (!added && m_TypeRef != mdTokenNil)
     {
-        CLock typeRefLock(&m_pModuleInfo->m_TypeRefMutex);
+        CLock typeRefLock(&m_pModuleInfo->m_TypeRefMutex, true);
 
         m_pModuleInfo->m_TypeRefMap[m_TypeRef] = new CModuleIDAndTypeDef(0, 0, TRUE);
     }
@@ -210,7 +210,7 @@ HRESULT CTypeRefResolver::ResolveNestedType(
 
     //Lock scope
     {
-        CLock typeRefLock(&m_pModuleInfo->m_TypeRefMutex);
+        CLock typeRefLock(&m_pModuleInfo->m_TypeRefMutex, true);
         m_pModuleInfo->m_TypeRefMap[m_TypeRef] = new CModuleIDAndTypeDef(*moduleId, *typeDef, FALSE);
     }
 
