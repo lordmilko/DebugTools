@@ -18,6 +18,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="$(MSBuildThisFileDirectory)CAssemblyInfo.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)CAssemblyName.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)CClassFactory.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)CClassInfo.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)CClassInfoResolver.h" />
@@ -51,6 +52,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="$(MSBuildThisFileDirectory)CAssemblyInfo.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)CAssemblyName.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)CClassFactory.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)CClassInfoResolver.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)CCommunication.cpp" />

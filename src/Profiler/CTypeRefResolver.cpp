@@ -104,11 +104,10 @@ HRESULT CTypeRefResolver::ResolveAssemblyRef(
     ZeroMemory(&asmMetaData, sizeof(ASSEMBLYMETADATA));
     CorAssemblyFlags asmFlags;
 
-    CAssemblyInfo* pAssemblyInfo;
-    LPWSTR shortAsmName = nullptr;
+    CAssemblyInfo* pAssemblyInfo = nullptr;
     BOOL added = FALSE;
 
-    LPWSTR assemblyName = nullptr;
+    CAssemblyName* pAssemblyName = nullptr;
     IfFailGo(m_pModuleInfo->m_pMDI->QueryInterface(IID_IMetaDataAssemblyImport, (void**)&pMDAI));
 
     IfFailGo(pMDAI->GetAssemblyRefProps(
@@ -124,32 +123,51 @@ HRESULT CTypeRefResolver::ResolveAssemblyRef(
         (DWORD*)&asmFlags
     ));
 
-    shortAsmName = _wcsdup(g_szAssemblyName);
-
     IfFailGo(g_pProfiler->GetAssemblyName(
         chName,
         asmMetaData,
         pbPublicKeyOrToken,
         cbPublicKeyOrToken,
         asmFlags & afPublicKey,
-        &assemblyName
+        &pAssemblyName
     ));
 
     //Lock scope
     {
         CLock assemblyLock(&g_pProfiler->m_AssemblyMutex);
 
-        auto nameMatch = g_pProfiler->m_AssemblyNameMap.find(assemblyName);
+        auto nameMatch = g_pProfiler->m_AssemblyNameMap.find(pAssemblyName->m_szName);
 
         if (nameMatch != g_pProfiler->m_AssemblyNameMap.end())
             pAssemblyInfo = nameMatch->second;
         else
         {
-            auto shortNameMatch = g_pProfiler->m_AssemblyShortNameMap.find(shortAsmName);
+            /* Tryand get the best possible match.First try for an assembly with a higher version,
+             * otherwise fallback to one with a simple name match. Multiple versions of the same assembly could be loaded into
+             * the process (e.g. StreamJsonRpc 1.5 and 2.8). If we were looking for 2.7, it's better to go for 2.8 */
 
-            if (shortNameMatch != g_pProfiler->m_AssemblyShortNameMap.end())
-                pAssemblyInfo = shortNameMatch->second;
-            else
+            for (auto& kv : g_pProfiler->m_AssemblyInfoMap)
+            {
+                if (pAssemblyName->IsMatch(kv.second->m_pAssemblyName, FALSE))
+                {
+                    pAssemblyInfo = kv.second;
+                    break;
+                }
+            }
+
+            if (pAssemblyInfo == nullptr)
+            {
+                for (auto& kv : g_pProfiler->m_AssemblyInfoMap)
+                {
+                    if (pAssemblyName->IsMatch(kv.second->m_pAssemblyName, TRUE))
+                    {
+                        pAssemblyInfo = kv.second;
+                        break;
+                    }
+                }
+            }
+
+            if (pAssemblyInfo == nullptr)
             {
                 hr = E_NOTIMPL;
                 goto ErrExit;
@@ -176,11 +194,8 @@ ErrExit:
         m_pModuleInfo->m_TypeRefMap[m_TypeRef] = new CModuleIDAndTypeDef(0, 0, TRUE);
     }
 
-    if (assemblyName)
-        free(assemblyName);
-
-    if (shortAsmName)
-        free(shortAsmName);
+    if (pAssemblyName)
+        delete pAssemblyName;
 
     if (pMDAI)
         pMDAI->Release();

@@ -252,26 +252,16 @@ $split = $_ -split ' '
         </Expand>
     </Type>
     <Type Name="CAssemblyInfo">
-        <DisplayString>{m_szName,sub}</DisplayString>
+        <DisplayString>{m_pAssemblyName->m_szName,sub}</DisplayString>
 
         <Expand>
-            <Item Name="m_szShortName">m_szShortName</Item>
-            <Item Name="m_szName">m_szName</Item>
+            <Item Name="m_pAssemblyName">m_pAssemblyName</Item>
             <Synthetic Name="m_pbPublicKey">
                 <DisplayString>m_cbPublicKey = {m_cbPublicKey}</DisplayString>
                 <Expand>
                     <IndexListItems>
                         <Size>m_cbPublicKey</Size>
                         <ValueNode>m_pbPublicKey[$i],X</ValueNode>
-                    </IndexListItems>
-                </Expand>
-            </Synthetic>
-            <Synthetic Name="m_pbPublicKeyToken">
-                <DisplayString>SHA-1</DisplayString>
-                <Expand>
-                    <IndexListItems>
-                        <Size>8</Size>
-                        <ValueNode>m_pbPublicKeyToken[$i],X</ValueNode>
                     </IndexListItems>
                 </Expand>
             </Synthetic>
@@ -285,6 +275,9 @@ $split = $_ -split ' '
                 </Expand>
             </Synthetic>
         </Expand>
+    </Type>
+    <Type Name="CAssemblyName">
+        <DisplayString>{m_szName,sub}</DisplayString>
     </Type>
     <Type Name="CArrayInfo">
         <DisplayString Condition="m_Rank == 1">{*m_pElementType}[]</DisplayString>

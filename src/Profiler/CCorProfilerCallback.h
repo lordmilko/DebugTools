@@ -9,6 +9,7 @@
 #include <unordered_map>
 #include <unordered_set>
 #include <shared_mutex>
+#include "CAssemblyName.h"
 #include "CUnknownArray.h"
 #include "CExceptionManager.h"
 #include "CMatchItem.h"
@@ -85,7 +86,7 @@ public:
         _In_ const BYTE* pbPublicKeyOrToken,
         _In_ ULONG cbPublicKeyOrToken,
         _In_ BOOL isPublicKey,
-        _Out_ LPWSTR* szAssemblyName);
+        _Out_ CAssemblyName** ppAssemblyName);
 
     HRESULT GetPublicKeyToken(
         _In_ const void* pbPublicKey,
@@ -205,7 +206,6 @@ public:
 
     std::unordered_map<AssemblyID, CAssemblyInfo*> m_AssemblyInfoMap;
     std::unordered_map<std::wstring_view, CAssemblyInfo*> m_AssemblyNameMap;
-    std::unordered_map<std::wstring_view, CAssemblyInfo*> m_AssemblyShortNameMap;
     std::shared_mutex m_AssemblyMutex;
 
     std::unordered_map<ModuleID, CModuleInfo*> m_ModuleInfoMap;

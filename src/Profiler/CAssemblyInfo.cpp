@@ -4,17 +4,11 @@
 
 CAssemblyInfo::~CAssemblyInfo()
 {
-    if (m_szShortName)
-        free(m_szShortName);
-
-    if (m_szName)
-        free(m_szName);
+    if (m_pAssemblyName)
+        delete m_pAssemblyName;
 
     if (m_pMDAI)
         m_pMDAI->Release();
-
-    if (m_pbPublicKeyToken)
-        free((void*)m_pbPublicKeyToken);
 
     //Don't need to free the modules themselves, we just hold a reference to them
     if (m_Modules)

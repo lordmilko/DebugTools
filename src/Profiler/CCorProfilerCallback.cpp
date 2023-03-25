@@ -174,8 +174,7 @@ HRESULT CCorProfilerCallback::AssemblyUnloadFinished(AssemblyID assemblyId, HRES
         CAssemblyInfo* info = match->second;
 
         m_AssemblyInfoMap.erase(assemblyId);
-        m_AssemblyShortNameMap.erase(info->m_szShortName);
-        m_AssemblyNameMap.erase(info->m_szName);
+        m_AssemblyNameMap.erase(info->m_pAssemblyName->m_szName);
 
         info->Release();
     }
@@ -217,8 +216,8 @@ HRESULT CCorProfilerCallback::ModuleAttachedToAssembly(ModuleID moduleId, Assemb
     //This method only executes in detailed profiling mode and the hrStatus passed to ModuleLoadFinished SUCCEEDED()
 
     HRESULT hr = S_OK;
-    LPWSTR shortAsmName = nullptr;
     CAssemblyInfo* pAssemblyInfo = nullptr;
+    CAssemblyName* pAssemblyName = nullptr;
     IMetaDataImport2* pMDI = nullptr;
     IMetaDataAssemblyImport* pMDAI = nullptr;
 
@@ -228,7 +227,6 @@ HRESULT CCorProfilerCallback::ModuleAttachedToAssembly(ModuleID moduleId, Assemb
     ULONG chName;
     ASSEMBLYMETADATA asmMetaData;
     ZeroMemory(&asmMetaData, sizeof(ASSEMBLYMETADATA));
-    const void* pbPublicKeyToken = nullptr;
     ULONG cbPublicKeyToken = 0;
     LPWSTR assemblyName = nullptr;
 
@@ -271,21 +269,13 @@ HRESULT CCorProfilerCallback::ModuleAttachedToAssembly(ModuleID moduleId, Assemb
             NULL
         ));
 
-        shortAsmName = _wcsdup(g_szAssemblyName);
-
-        if (cbPublicKey)
-        {
-            IfFailGo(GetPublicKeyToken(pbPublicKey, cbPublicKey, &pbPublicKeyToken));
-            cbPublicKeyToken = 8;
-        }
-
         IfFailGo(GetAssemblyName(
             chName,
             asmMetaData,
-            (const BYTE*)pbPublicKeyToken,
-            cbPublicKeyToken,
-            FALSE,
-            &assemblyName
+            (const BYTE*)pbPublicKey,
+            cbPublicKey,
+            cbPublicKey,
+            &pAssemblyName
         ));
     }
     else
@@ -301,17 +291,14 @@ ErrExit:
         if (!pAssemblyInfo)
         {
             pAssemblyInfo = new CAssemblyInfo(
-                shortAsmName,
-                g_szAssemblyName,
+                pAssemblyName,
                 (const BYTE*)pbPublicKey,
                 cbPublicKey,
-                (const BYTE*)pbPublicKeyToken,
                 pMDAI
             );
 
             m_AssemblyInfoMap[assemblyId] = pAssemblyInfo;
-            m_AssemblyShortNameMap[pAssemblyInfo->m_szShortName] = pAssemblyInfo;
-            m_AssemblyNameMap[pAssemblyInfo->m_szName] = pAssemblyInfo;
+            m_AssemblyNameMap[pAssemblyInfo->m_pAssemblyName->m_szName] = pAssemblyInfo;
         }
 
         pAssemblyInfo->AddModule(pModuleInfo);
@@ -324,14 +311,11 @@ ErrExit:
         if (assemblyName)
             free(assemblyName);
 
-        if (pbPublicKeyToken)
-            free((void*)pbPublicKeyToken);
+        if (pAssemblyName)
+            delete pAssemblyName;
 
         dprintf(L"ModuleAttachedToAssembly failed with %d\n", hr);
     }
-
-    if (shortAsmName)
-        free(shortAsmName);
 
     if (pMDI)
         pMDI->Release();
@@ -1318,29 +1302,10 @@ HRESULT CCorProfilerCallback::GetAssemblyName(
     _In_ const BYTE* pbPublicKeyOrToken,
     _In_ ULONG cbPublicKeyOrToken,
     _In_ BOOL isPublicKey,
-    _Out_ LPWSTR* szAssemblyName)
+    _Out_ CAssemblyName** ppAssemblyName)
 {
     HRESULT hr = S_OK;
     const BYTE* pbTempPublicKeyToken = nullptr;
-
-    chName--; //Ignore the null terminator
-
-    chName += swprintf_s(
-        g_szAssemblyName + chName,
-        NAME_BUFFER_SIZE - chName,
-        L", Version=%d.%d.%d.%d, Culture=",
-        asmMetaData.usMajorVersion,
-        asmMetaData.usMinorVersion,
-        asmMetaData.usBuildNumber,
-        asmMetaData.usRevisionNumber
-    );
-
-    chName += swprintf_s(
-        g_szAssemblyName + chName,
-        NAME_BUFFER_SIZE - chName,
-        L"%s",
-        asmMetaData.szLocale == nullptr ? L"neutral" : asmMetaData.szLocale
-    );
 
     if (isPublicKey)
     {
@@ -1350,34 +1315,12 @@ HRESULT CCorProfilerCallback::GetAssemblyName(
         cbPublicKeyOrToken = 8;
     }
 
-    chName += swprintf_s(
-        g_szAssemblyName + chName,
-        NAME_BUFFER_SIZE - chName,
-        L", PublicKeyToken="
+    *ppAssemblyName = new CAssemblyName(
+        chName,
+        asmMetaData,
+        pbPublicKeyOrToken,
+        cbPublicKeyOrToken
     );
-
-    if (cbPublicKeyOrToken)
-    {
-        for (ULONG i = 0; i < cbPublicKeyOrToken; i++)
-        {
-            chName += swprintf_s(
-                g_szAssemblyName + chName,
-                NAME_BUFFER_SIZE - chName,
-                L"%2.2x",
-                pbPublicKeyOrToken[i]
-            );
-        }
-    }
-    else
-    {
-        chName += swprintf_s(
-            g_szAssemblyName + chName,
-            NAME_BUFFER_SIZE - chName,
-            L"null"
-        );
-    }
-
-    *szAssemblyName = _wcsdup(g_szAssemblyName);
 
 ErrExit:
     if (pbTempPublicKeyToken)
