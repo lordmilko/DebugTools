@@ -3,6 +3,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Management.Automation;
+using System.Threading;
 using DebugTools.Profiler;
 
 namespace DebugTools.PowerShell
@@ -107,7 +108,7 @@ namespace DebugTools.PowerShell
             return arr.Select(i => new WildcardPattern(i, WildcardOptions.IgnoreCase)).ToArray();
         }
 
-        public void ProcessFrame(IFrame frame)
+        public void ProcessFrame(IFrame frame, CancellationToken cancellationToken)
         {
             //Even if we have no filters, this has the side effect of adding all of the frames to the includes map
 
@@ -122,6 +123,8 @@ namespace DebugTools.PowerShell
 
             while (queue.Count > 0)
             {
+                cancellationToken.ThrowIfCancellationRequested();
+
                 var query = DequeueAll(queue).AsParallel();
 
 #if DEBUG
@@ -192,7 +195,7 @@ namespace DebugTools.PowerShell
             }
         }
 
-        public List<IFrame> GetSortedFilteredFrameRoots()
+        public List<IFrame> GetSortedFilteredFrameRoots(CancellationToken cancellationToken)
         {
             var newRoots = new List<IFrame>();
 
@@ -207,7 +210,7 @@ namespace DebugTools.PowerShell
 
                 if (options.Unique)
                 {
-                    GetUniqueNewRoots(sortedIncludes, newRoots, knownOriginalFrames);
+                    GetUniqueNewRoots(sortedIncludes, newRoots, knownOriginalFrames, cancellationToken);
                 }
                 else
                 {
@@ -215,7 +218,7 @@ namespace DebugTools.PowerShell
                     {
                         var originalStackTrace = GetOriginalStackTrace(frame);
 
-                        var newRoot = GetNewFrames(originalStackTrace, sortedIncludes, knownOriginalFrames);
+                        var newRoot = GetNewFrames(originalStackTrace, sortedIncludes, knownOriginalFrames, cancellationToken);
 
                         if (newRoot != null)
                             newRoots.Add(newRoot);
@@ -229,7 +232,7 @@ namespace DebugTools.PowerShell
             }
             else
             {
-                GetCalledFromNewRoots(ref newRoots, sortedIncludes);
+                GetCalledFromNewRoots(ref newRoots, sortedIncludes, cancellationToken);
             }
 
             SortFrames(newRoots, false);
@@ -237,7 +240,7 @@ namespace DebugTools.PowerShell
             return newRoots;
         }
 
-        private void GetUniqueNewRoots(IList<IFrame> sortedIncludes, List<IFrame> newRoots, Dictionary<IFrame, IFrame> knownOriginalFrames)
+        private void GetUniqueNewRoots(IList<IFrame> sortedIncludes, List<IFrame> newRoots, Dictionary<IFrame, IFrame> knownOriginalFrames, CancellationToken cancellationToken)
         {
             /* Consider the following stack trace
              *
@@ -295,14 +298,14 @@ namespace DebugTools.PowerShell
 
             foreach (var pair in pairs)
             {
-                var newRoot = GetNewFrames(pair.OriginalTrace, sortedIncludes, knownOriginalFrames);
+                var newRoot = GetNewFrames(pair.OriginalTrace, sortedIncludes, knownOriginalFrames, cancellationToken);
 
                 if (newRoot != null)
                     newRoots.Add(newRoot);
             }
         }
 
-        private void GetCalledFromNewRoots(ref List<IFrame> newRoots, List<IFrame> sortedIncludes)
+        private void GetCalledFromNewRoots(ref List<IFrame> newRoots, List<IFrame> sortedIncludes, CancellationToken cancellationToken)
         {
             if (options.IsCalledFromOnly)
             {
@@ -349,7 +352,7 @@ namespace DebugTools.PowerShell
 
                 foreach (var frame in keys)
                 {
-                    var newFrame = GetNewFramesForCalledFrom((IMethodFrame)frame, null, allParents, sortedIncludes, knownOriginalFrames);
+                    var newFrame = GetNewFramesForCalledFrom((IMethodFrame)frame, null, allParents, sortedIncludes, knownOriginalFrames, cancellationToken);
 
                     if (newFrame != null)
                     {
@@ -466,13 +469,16 @@ namespace DebugTools.PowerShell
         private IRootFrame GetNewFrames(
             List<IFrame> originalStackTrace,
             IList<IFrame> originalSortedIncludes,
-            Dictionary<IFrame, IFrame> knownOriginalFrames)
+            Dictionary<IFrame, IFrame> knownOriginalFrames,
+            CancellationToken cancellationToken)
         {
             IFrame newParent = null;
             IRootFrame newRoot = null;
 
             foreach (var item in originalStackTrace)
             {
+                cancellationToken.ThrowIfCancellationRequested();
+
                 if (!knownOriginalFrames.TryGetValue(item, out var newItem))
                 {
                     if (item is IRootFrame r)
@@ -519,8 +525,11 @@ namespace DebugTools.PowerShell
             IMethodFrame newParent,
             HashSet<IFrame> parents,
             List<IFrame> originalSortedIncludes,
-            Dictionary<IFrame, IFrame> knownOriginalFrames)
+            Dictionary<IFrame, IFrame> knownOriginalFrames,
+            CancellationToken cancellationToken)
         {
+            cancellationToken.ThrowIfCancellationRequested();
+
             if (!knownOriginalFrames.TryGetValue(frame, out var newItem))
             {
                 newItem = frame.CloneWithNewParent(newParent);
@@ -531,7 +540,7 @@ namespace DebugTools.PowerShell
                 {
                     if (parents.Contains(child) || originalSortedIncludes.Contains(child))
                     {
-                        var newChild = GetNewFramesForCalledFrom(child, (IMethodFrame)newItem, parents, originalSortedIncludes, knownOriginalFrames);
+                        var newChild = GetNewFramesForCalledFrom(child, (IMethodFrame)newItem, parents, originalSortedIncludes, knownOriginalFrames, cancellationToken);
 
                         if (newChild != null)
                             newItem.Children.Add(newChild);

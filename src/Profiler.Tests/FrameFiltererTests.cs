@@ -1140,10 +1140,10 @@ void Methods.first(""aaa"")
                 1002
             );
 
-            filter.ProcessFrame(tree2);
-            filter.ProcessFrame(tree1);
+            filter.ProcessFrame(tree2, default);
+            filter.ProcessFrame(tree1, default);
 
-            var results = filter.GetSortedFilteredFrameRoots();
+            var results = filter.GetSortedFilteredFrameRoots(default);
 
             Assert.AreEqual(2, results.Count);
             Assert.AreEqual(tree1, results[0]);
@@ -1291,7 +1291,7 @@ void Methods.first(""aaa"")
         {
             TestDeterministicInternal(options, f =>
             {
-                var roots = f.GetSortedFilteredFrameRoots();
+                var roots = f.GetSortedFilteredFrameRoots(default);
 
                 return roots.SelectMany(v => Flatten(v, true));
             });
@@ -1313,7 +1313,7 @@ void Methods.first(""aaa"")
                     var filterer = new FrameFilterer(options);
 
                     foreach (var thread in v.ThreadStacks)
-                        filterer.ProcessFrame(thread.Root);
+                        filterer.ProcessFrame(thread.Root, default);
 
                     var result = filterer.GetSortedFilteredFrames().ToArray();
 
@@ -1342,7 +1342,7 @@ void Methods.first(""aaa"")
         {
             TestEquivalentInternal(firstOptions, secondOptions, f =>
             {
-                var roots = f.GetSortedFilteredFrameRoots();
+                var roots = f.GetSortedFilteredFrameRoots(default);
 
                 return roots.SelectMany(v => Flatten(v, true));
             }, shouldEqual);
@@ -1362,8 +1362,8 @@ void Methods.first(""aaa"")
 
                 foreach (var thread in v.ThreadStacks)
                 {
-                    firstFilterer.ProcessFrame(thread.Root);
-                    secondFilterer.ProcessFrame(thread.Root);
+                    firstFilterer.ProcessFrame(thread.Root, default);
+                    secondFilterer.ProcessFrame(thread.Root, default);
                     break; //temp
                 }
 
@@ -1427,9 +1427,9 @@ void Methods.first(""aaa"")
 
             var filter = new FrameFilterer(options);
 
-            filter.ProcessFrame(tree);
+            filter.ProcessFrame(tree, default);
 
-            var frames = filter.GetSortedFilteredFrameRoots();
+            var frames = filter.GetSortedFilteredFrameRoots(default);
 
             var methodFrameFormatter = new MethodFrameFormatter(true);
             var methodFrameWriter = new MethodFrameColorWriter(methodFrameFormatter, output, KnownModules)

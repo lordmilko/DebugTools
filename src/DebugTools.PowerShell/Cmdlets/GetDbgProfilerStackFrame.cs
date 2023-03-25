@@ -19,7 +19,7 @@ namespace DebugTools.PowerShell.Cmdlets
 
         protected override void DoProcessRecordEx()
         {
-            filter.ProcessFrame(Frame);
+            filter.ProcessFrame(Frame, CancellationToken);
         }
 
         protected override void EndProcessing()

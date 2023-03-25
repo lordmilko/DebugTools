@@ -42,12 +42,12 @@ namespace DebugTools.PowerShell.Cmdlets
 
         protected override void DoProcessRecordEx()
         {
-            filter.ProcessFrame(Frame);
+            filter.ProcessFrame(Frame, CancellationToken);
         }
 
         protected override void EndProcessing()
         {
-            var outputFrames = filter.GetSortedFilteredFrameRoots();
+            var outputFrames = filter.GetSortedFilteredFrameRoots(CancellationToken);
 
             var methodFrameFormatter = new MethodFrameFormatter(ExcludeNamespace, IncludeSequence);
             var methodFrameWriter = new MethodFrameColorWriter(methodFrameFormatter, output, Session.Modules)
