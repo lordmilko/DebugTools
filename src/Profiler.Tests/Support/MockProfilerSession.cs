@@ -11,6 +11,8 @@ namespace Profiler.Tests
             {
                 Current = f
             }).ToArray();
+
+            Process = System.Diagnostics.Process.GetCurrentProcess();
         }
     }
 }

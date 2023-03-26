@@ -48,10 +48,11 @@ namespace DebugTools.SOS
 
         public static SOSMethodTable GetMethodTable(CLRDATA_ADDRESS methodTable, SOSDacInterface sos)
         {
-            if (sos.TryGetMethodTableName(methodTable, out var name) == HRESULT.S_OK &&
-                sos.TryGetMethodTableData(methodTable, out var data) == HRESULT.S_OK)
+            if (sos.TryGetMethodTableData(methodTable, out var data) == HRESULT.S_OK)
             {
                 var module = SOSModule.GetModule(data.Module, sos);
+
+                sos.TryGetMethodTableName(methodTable, out var name);
 
                 return new SOSMethodTable(module, methodTable, name, data);
             }

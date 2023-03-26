@@ -17,25 +17,40 @@ namespace DebugTools.PowerShell.Cmdlets
 
         protected override void ProcessRecordEx()
         {
-            if (ParameterSetName == ParameterSet.Address)
+            switch (ParameterSetName)
             {
-                var appDomain = HostApp.GetSOSAppDomain(Process, Address);
+                case ParameterSet.Default:
+                    ProcessDefault();
+                    break;
 
-                if (appDomain == null)
-                    WriteWarning($"{Address} is not a valid AppDomain");
-                else
-                    WriteObject(appDomain);
+                case ParameterSet.Address:
+                    ProcessAddress();
+                    break;
+
+                default:
+                    throw new UnknownParameterSetException(ParameterSetName);
             }
+        }
+
+        protected override void ProcessDefault()
+        {
+            IEnumerable<SOSAppDomain> domains = HostApp.GetSOSAppDomains(Process);
+
+            if (Type != null)
+                domains = domains.Where(d => Type.Contains(d.Type));
+
+            foreach (var domain in domains)
+                WriteObject(domain);
+        }
+
+        private void ProcessAddress()
+        {
+            var appDomain = HostApp.GetSOSAppDomain(Process, Address);
+
+            if (appDomain == null)
+                WriteWarning($"{Address} is not a valid AppDomain");
             else
-            {
-                IEnumerable<SOSAppDomain> domains = HostApp.GetSOSAppDomains(Process);
-
-                if (Type != null)
-                    domains = domains.Where(d => Type.Contains(d.Type));
-
-                foreach (var domain in domains)
-                    WriteObject(domain);
-            }
+                WriteObject(appDomain);
         }
     }
 }

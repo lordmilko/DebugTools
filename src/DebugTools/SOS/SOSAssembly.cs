@@ -15,13 +15,18 @@ namespace DebugTools.SOS
 
             var list = new List<SOSAssembly>();
 
-            var assemblyAddresses = sos.GetAssemblyList(appDomain.AppDomainPtr);
+            if (sos.TryGetAssemblyList(appDomain.AppDomainPtr, out var assemblyAddresses) != HRESULT.S_OK)
+                return new SOSAssembly[0];
 
             foreach (var address in assemblyAddresses)
             {
-                var data = sos.GetAssemblyData(appDomain.AppDomainPtr, address);
+                DacpAssemblyData data;
 
-                list.Add(new SOSAssembly(address, appDomain, data, sos));
+                //We observed a strange issue wherein when attempting to read assemblies against the Framework Version String Domain which exists in MSTest, we'd get CORDBG_E_READVIRTUAL_FAILURE
+                //if we attempted to read this domain's assemblies after already having read the method tables of any of our prior modules. Flushing the DAC shows that in fact the target AppDomain
+                //has now been unloaded!
+                if (sos.TryGetAssemblyData(appDomain.AppDomainPtr, address, out data) == HRESULT.S_OK)
+                    list.Add(new SOSAssembly(address, appDomain, data, sos));
             }
 
             return list.ToArray();
@@ -69,7 +74,10 @@ namespace DebugTools.SOS
             if (data.isDynamic)
                 Name = "Dynamic";
             else
-                Name = sos.GetAssemblyName(data.AssemblyPtr);
+            {
+                if (sos.TryGetAssemblyName(data.AssemblyPtr, out var name) == HRESULT.S_OK)
+                    Name = name;
+            }
 
             Location = sos.GetAssemblyLocation(data.AssemblyPtr);
         }

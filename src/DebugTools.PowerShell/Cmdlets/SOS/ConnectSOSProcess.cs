@@ -6,7 +6,7 @@ using System.Management.Automation;
 namespace DebugTools.PowerShell.Cmdlets
 {
     [Cmdlet(VerbsCommunications.Connect, "SOSProcess")]
-    public class ConnectSOSProcess : PSCmdlet
+    public class ConnectSOSProcess : DebugToolsCmdlet
     {
         [Parameter(Mandatory = false, ValueFromPipeline = true, ParameterSetName = ParameterSet.Default)]
         public Process Process { get; set; }
@@ -33,7 +33,7 @@ namespace DebugTools.PowerShell.Cmdlets
             {
                 var hostApp = DebugToolsSessionState.GetDetectedHost(process, Dbg);
 
-                var handle = hostApp.CreateSOSProcess(process.Id);
+                var handle = hostApp.CreateSOSProcess(process.Id, false);
 
                 var sosProcess = new LocalSOSProcess(handle);
 
@@ -54,7 +54,7 @@ namespace DebugTools.PowerShell.Cmdlets
                     return Process.GetProcessById(ProcessId);
 
                 default:
-                    throw new NotImplementedException($"Don't know how to handle parameter set {ParameterSetName}");
+                    throw new UnknownParameterSetException(ParameterSetName);
             }
         }
     }

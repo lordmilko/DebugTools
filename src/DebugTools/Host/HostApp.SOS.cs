@@ -11,19 +11,30 @@ namespace DebugTools.Host
     public partial class HostApp
     {
         [Obsolete]
-        private Dictionary<SOSProcessHandle, SOSProcess> sosProcesses = new Dictionary<SOSProcessHandle, SOSProcess>();
+        private Dictionary<SOSProcessHandle, Lazy<SOSProcess>> sosProcesses = new Dictionary<SOSProcessHandle, Lazy<SOSProcess>>();
 
-        public SOSProcessHandle CreateSOSProcess(int processId)
+        public SOSProcessHandle CreateSOSProcess(int processId, bool lazy)
         {
             var process = Process.GetProcessById(processId);
 
-            var sosProcess = new SOSProcess(process);
+            Lazy<SOSProcess> value;
+
+            //The .NET Unmanaged API does not appreciate it when you create unmanaged interfaces on one thread and consume them on another.
+            //We get told our QueryInterface attempts fail. As such, for our unit tests we allow specifying that the SOSProcess should be
+            //lazily created, so that all the interfaces are created on the PowerShell thread where they are consumed
+            if (lazy)
+                value = new Lazy<SOSProcess>(() => new SOSProcess(process));
+            else
+            {
+                var initial = new SOSProcess(process);
+                value = new Lazy<SOSProcess>(() => initial);
+            }
 
             var handle = new SOSProcessHandle(processId);
 
-#pragma warning disable 612
-            sosProcesses[handle] = sosProcess;
-#pragma warning restore 612
+#pragma warning disable CS0612 // Type or member is obsolete
+            sosProcesses[handle] = value;
+#pragma warning restore CS0612 // Type or member is obsolete
 
             return handle;
         }
@@ -39,7 +50,7 @@ namespace DebugTools.Host
         {
 #pragma warning disable 612
             if (sosProcesses.TryGetValue(handle, out var process))
-                return process;
+                return process.Value;
 #pragma warning restore 612
 
             throw new ArgumentException($"Cannot find SOSProcess with ProcessID {handle.ProcessId}.");

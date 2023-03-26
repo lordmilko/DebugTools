@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Management.Automation;
-using ClrDebug;
+﻿using System.Management.Automation;
 using DebugTools.SOS;
 
 namespace DebugTools.PowerShell.Cmdlets
@@ -36,8 +33,6 @@ namespace DebugTools.PowerShell.Cmdlets
             }
         }
 
-        
-
         private int GetThreadId()
         {
             switch (ParameterSetName)
@@ -49,7 +44,7 @@ namespace DebugTools.PowerShell.Cmdlets
                     return ThreadId;
 
                 default:
-                    throw new NotImplementedException($"Don't know how to handle parameter set '{ParameterSetName}'.");
+                    throw new UnknownParameterSetException(ParameterSetName);
             }
         }
     }

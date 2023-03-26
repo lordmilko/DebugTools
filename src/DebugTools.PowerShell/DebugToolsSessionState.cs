@@ -11,7 +11,7 @@ using Architecture = DebugTools.Host.Architecture;
 
 namespace DebugTools.PowerShell
 {
-    static class DebugToolsSessionState
+    internal static class DebugToolsSessionState
     {
         internal static List<ProfilerSession> ProfilerSessions = new List<ProfilerSession>();
 

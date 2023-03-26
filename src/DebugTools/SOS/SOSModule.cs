@@ -56,20 +56,6 @@ namespace DebugTools.SOS
         public CLRDATA_ADDRESS pThunkHeap { get; }
         public long dwModuleIndex { get; }
 
-        [NonSerialized]
-        private MetaDataImport import;
-
-        internal MetaDataImport GetImport(SOSDacInterface sos)
-        {
-            if (import == null)
-            {
-                var module = sos.GetModule(Address);
-                import = new MetaDataImport((IMetaDataImport)module.Raw);
-            }
-
-            return import;
-        }
-
         private SOSModule(CORDB_ADDRESS address, SOSAssembly assembly, DacpModuleData data, SOSDacInterface sos)
         {
             Assembly = assembly;
@@ -99,7 +85,10 @@ namespace DebugTools.SOS
             if (assembly.isDynamic)
                 FileName = assembly.Name;
             else
-                FileName = module.FileName;
+            {
+                if (module.TryGetFileName(out var name) == HRESULT.S_OK)
+                    FileName = name;
+            }
         }
 
         public override string ToString()
