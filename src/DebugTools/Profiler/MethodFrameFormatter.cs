@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 
 namespace DebugTools.Profiler
 {
@@ -8,12 +9,22 @@ namespace DebugTools.Profiler
         public static readonly MethodFrameFormatter WithoutNamespace = new MethodFrameFormatter(true);
 
         private bool excludeNamespace;
-        private bool includeSequence;
 
-        public MethodFrameFormatter(bool excludeNamespace, bool includeSequence = false)
+        private Action<IMethodFrame, IMethodFrameWriter>[] extras;
+
+        public MethodFrameFormatter(bool excludeNamespace, bool includeSequence = false, bool includeModule = false)
         {
             this.excludeNamespace = excludeNamespace;
-            this.includeSequence = includeSequence;
+
+            List<Action<IMethodFrame, IMethodFrameWriter>> items = new List<Action<IMethodFrame, IMethodFrameWriter>>();
+
+            if (includeSequence)
+                items.Add((f, w) => w.Write(f.Sequence, f, FrameTokenKind.Sequence));
+
+            if (includeModule)
+                items.Add((f, w) => w.Write(f.MethodInfo.ModuleName, f, FrameTokenKind.Sequence));
+
+            extras = items.ToArray();
         }
 
         public void Format(IFrame frame, IMethodFrameWriter writer)
@@ -46,7 +57,7 @@ namespace DebugTools.Profiler
                 writer
                     .Write(GetTypeName(info.TypeName), frame, FrameTokenKind.TypeName)
                     .Write(".", frame, FrameTokenKind.Dot)
-                    .Write(info.MethodName, frame, FrameTokenKind.MethodName);
+                    .Write(GetMethodName(info.MethodName), frame, FrameTokenKind.MethodName);
 
                 writer.Write("(", frame, FrameTokenKind.OpenParen);
 
@@ -67,7 +78,7 @@ namespace DebugTools.Profiler
 
                 writer.Write(")", frame, FrameTokenKind.CloseParen);
 
-                WriteSequence(d, writer);
+                WriteExtra(d, writer);
             }
             else if (frame is IMethodFrame m)
             {
@@ -89,25 +100,37 @@ namespace DebugTools.Profiler
                     writer
                         .Write(GetTypeName(info.TypeName), frame, FrameTokenKind.TypeName)
                         .Write(".", frame, FrameTokenKind.Dot)
-                        .Write(info.MethodName, frame, FrameTokenKind.MethodName);
+                        .Write(GetMethodName(info.MethodName), frame, FrameTokenKind.MethodName);
                 }
 
-                WriteSequence(m, writer);
+                WriteExtra(m, writer);
             }
             else
                 throw new NotImplementedException($"Don't know how to handle frame of type '{frame}'.");
         }
 
-        private void WriteSequence(IMethodFrame frame, IMethodFrameWriter writer)
+        private void WriteExtra(IMethodFrame frame, IMethodFrameWriter writer)
         {
-            if (!includeSequence)
+            if (extras.Length == 0)
                 return;
 
             writer
                 .Write(" ", frame, FrameTokenKind.Space)
-                .Write("(", frame, FrameTokenKind.OpenParen)
-                .Write(frame.Sequence, frame, FrameTokenKind.Sequence)
-                .Write(")", frame, FrameTokenKind.CloseParen);
+                .Write("(", frame, FrameTokenKind.OpenParen);
+
+            for (var i = 0; i < extras.Length; i++)
+            {
+                extras[i](frame, writer);
+
+                if (i < extras.Length - 1)
+                {
+                    writer
+                        .Write(",", frame, FrameTokenKind.Comma)
+                        .Write(" ", frame, FrameTokenKind.Space);
+                }
+            }
+
+            writer.Write(")", frame, FrameTokenKind.CloseParen);
         }
 
         private string GetTypeName(string name)
@@ -121,6 +144,25 @@ namespace DebugTools.Profiler
 
                 if (dot != -1)
                     return name.Substring(dot + 1);
+            }
+
+            return name;
+        }
+
+        private string GetMethodName(string name)
+        {
+            //Interface names may be fully qualified
+
+            if (excludeNamespace && name != null)
+            {
+                var lastDot = name.LastIndexOf('.');
+
+                if (lastDot != -1 && lastDot > 0)
+                {
+                    var secondLastDot = name.LastIndexOf('.', lastDot - 1);
+
+                    name = name.Substring(secondLastDot + 1);
+                }    
             }
 
             return name;

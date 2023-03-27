@@ -87,7 +87,7 @@ namespace Profiler.Tests
 
 #pragma warning restore 0649 //Field is never assigned to, and will always have its default value
 
-    internal static class Methods
+    internal class Methods : IDisposable
     {
         public static void StringArg(string a)
         {
@@ -162,6 +162,10 @@ namespace Profiler.Tests
         }
 
         public static void fourth(object a)
+        {
+        }
+
+        public void Dispose()
         {
         }
     }

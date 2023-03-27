@@ -134,8 +134,13 @@ namespace DebugTools.PowerShell
 
                 query.ForAll(item =>
                 {
-                    if (CheckFrame(item))
+                    Action onSuccess = null;
+
+                    if (CheckFrame(item, ref onSuccess))
+                    {
                         includes[item] = 0;
+                        onSuccess?.Invoke();
+                    }
                     else
                     {
                         if (!anyExcluded && !(item is IRootFrame))
@@ -148,21 +153,21 @@ namespace DebugTools.PowerShell
             }
         }
 
-        private bool CheckFrame(IFrame item)
+        private bool CheckFrame(IFrame item, ref Action onSuccess)
         {
             if (item is IRootFrame r)
             {
-                if (r.ThreadName != null && ShouldInclude(r, (f, w) => w.IsMatch(f.ThreadName)) && !ShouldExclude(r) && !options.HasValueFilter)
+                if (r.ThreadName != null && ShouldInclude(r, (f, w) => w.IsMatch(f.ThreadName), ref onSuccess) && !ShouldExclude(r) && !options.HasValueFilter)
                     return true;
             }
             else if (item is IMethodFrameDetailed d)
             {
-                if (ShouldInclude(d, (f, w) => w.IsMatch(f.MethodInfo.MethodName) || w.IsMatch(f.MethodInfo.TypeName)) && HasValue(d) && !ShouldExclude(d))
+                if (ShouldInclude(d, (f, w) => w.IsMatch(f.MethodInfo.MethodName) || w.IsMatch(f.MethodInfo.TypeName), ref onSuccess) && HasValue(d) && !ShouldExclude(d))
                     return true;
             }
             else if (item is IMethodFrame m)
             {
-                if (ShouldInclude(m, (f, w) => w.IsMatch(f.MethodInfo.MethodName) || w.IsMatch(f.MethodInfo.TypeName)) && !options.HasValueFilter && !ShouldExclude(m))
+                if (ShouldInclude(m, (f, w) => w.IsMatch(f.MethodInfo.MethodName) || w.IsMatch(f.MethodInfo.TypeName), ref onSuccess) && !options.HasValueFilter && !ShouldExclude(m))
                     return true;
             }
 
@@ -439,7 +444,9 @@ namespace DebugTools.PowerShell
             if (includes.ContainsKey(frame))
                 return false;
 
-            var result = CheckFrame(frame);
+            Action onSuccess = null;
+            var result = CheckFrame(frame, ref onSuccess);
+            onSuccess?.Invoke();
 
             if (result)
                 includes[frame] = 0;
@@ -558,7 +565,7 @@ namespace DebugTools.PowerShell
 
         #endregion
 
-        private bool ShouldInclude<T>(T frame, Func<T, WildcardPattern, bool> match) where T : IFrame
+        private bool ShouldInclude<T>(T frame, Func<T, WildcardPattern, bool> match, ref Action onSuccess) where T : IFrame
         {
             bool result = false;
 
@@ -616,7 +623,7 @@ namespace DebugTools.PowerShell
 
         end:
             if (result && calledFromFrame != null)
-                calledFromFrames[calledFromFrame] = 0;
+                onSuccess = () => calledFromFrames[calledFromFrame] = 0;
 
             return result;
         }

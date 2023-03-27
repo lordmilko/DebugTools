@@ -657,6 +657,12 @@ namespace Profiler.Tests
             );
         }
 
+        [TestMethod]
+        public void MethodFrameFormat_InterfaceMethod()
+        {
+            TestArg(() => new Methods().Dispose(), "void Methods.IDisposable.Dispose()");
+        }
+
         private void TestArg(
             Expression<Action> expr,
             string expected,

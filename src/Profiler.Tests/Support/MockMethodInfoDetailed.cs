@@ -31,8 +31,32 @@ namespace Profiler.Tests
 
             ModuleName = Path.GetFileName(methodInfo.DeclaringType.Assembly.Location);
             TypeName = methodInfo.DeclaringType.FullName;
-            MethodName = methodInfo.Name;
+
+            if (TryGetInterface(methodInfo, out var iface))
+                MethodName = iface.FullName + "." + methodInfo.Name;
+            else
+                MethodName = methodInfo.Name;
             SigMethod = MakeSigMethodDef(methodInfo);
+        }
+
+        private bool TryGetInterface(System.Reflection.MethodInfo method, out Type type)
+        {
+            foreach (var iface in method.DeclaringType.GetInterfaces())
+            {
+                var map = method.DeclaringType.GetInterfaceMap(iface);
+
+                foreach(var item in map.TargetMethods)
+                {
+                    if (method == item)
+                    {
+                        type = iface;
+                        return true;
+                    }
+                }
+            }
+
+            type = null;
+            return false;
         }
 
         private unsafe SigMethodDef MakeSigMethodDef(System.Reflection.MethodInfo methodInfo)

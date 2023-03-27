@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Management.Automation;
 using DebugTools.Profiler;
@@ -24,9 +23,13 @@ namespace DebugTools.PowerShell.Cmdlets
         [Parameter(Mandatory = false)]
         public SwitchParameter IncludeSequence { get; set; }
 
-        private WildcardPattern[] highlightMethodNameWildcards;
+        [Parameter(Mandatory = false)]
+        public SwitchParameter IncludeModule { get; set; }
 
-        private List<IFrame> frames = new List<IFrame>();
+        [Parameter(Mandatory = false)]
+        public SwitchParameter Simple { get; set; }
+
+        private WildcardPattern[] highlightMethodNameWildcards;
 
         private FrameFilterer filter;
 
@@ -34,6 +37,12 @@ namespace DebugTools.PowerShell.Cmdlets
 
         protected override void BeginProcessing()
         {
+            if (Simple)
+            {
+                Unique = true;
+                ExcludeNamespace = true;
+            }
+
             if (HighlightMethod != null)
                 highlightMethodNameWildcards = HighlightMethod.Select(h => new WildcardPattern(h, WildcardOptions.IgnoreCase)).ToArray();
 
@@ -49,7 +58,7 @@ namespace DebugTools.PowerShell.Cmdlets
         {
             var outputFrames = filter.GetSortedFilteredFrameRoots(CancellationToken);
 
-            var methodFrameFormatter = new MethodFrameFormatter(ExcludeNamespace, IncludeSequence);
+            var methodFrameFormatter = new MethodFrameFormatter(ExcludeNamespace, IncludeSequence, IncludeModule);
             var methodFrameWriter = new MethodFrameColorWriter(methodFrameFormatter, output, Session.Modules)
             {
                 HighlightValues = filter?.MatchedValues,
