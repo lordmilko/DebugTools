@@ -1,10 +1,15 @@
-﻿using System.Runtime.InteropServices;
+﻿using System;
+using System.Runtime.InteropServices;
 
 namespace DebugTools.Profiler
 {
     class ProfilerException : COMException
     {
         public new PROFILER_HRESULT HResult => (PROFILER_HRESULT) base.HResult;
+
+        public ProfilerException(string message, Exception inner) : base(message, inner)
+        {
+        }
 
         public ProfilerException(PROFILER_HRESULT hr) : base(GetMessage(hr), (int) hr)
         {

@@ -2,6 +2,7 @@
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using System.IO.Pipes;
 using System.Linq;
 using System.Runtime.InteropServices;
@@ -437,11 +438,85 @@ namespace DebugTools.Profiler
                     pipe.ConnectAsync(10000, pipeCTS.Token).GetAwaiter().GetResult();
                 }
             }
-            catch (OperationCanceledException ex)
+            catch (Exception ex) when (ex is OperationCanceledException || ex is TimeoutException)
+            {
+                throw GetPipeTimeoutReason(ex);
+            }
+        }
+
+        private Exception GetPipeTimeoutReason(Exception ex)
+        {
+            var eventLog = new EventLog("Application");
+
+            var logs = eventLog.Entries.Cast<EventLogEntry>().Reverse().TakeWhile(e => e.TimeGenerated > DateTime.Now.AddMinutes(-1)).Where(e => e.Source == ".NET Runtime").ToArray();
+
+            var str = "Timed out waiting for named pipe to connect to profiler.";
+
+            if (logs.Length == 0)
             {
                 if (!Process.HasExited)
-                    throw new TimeoutException("Timed out waiting for named pipe to connect to profiler. Was the profiler correctly loaded into the target process?", ex);
+                {
+                    if (ProfilerWasInjected(ex))
+                        return new ProfilerException($"{str} The runtime did not log an event saying it tried to load the profiler, but the profiler is loaded into the target process.", ex);
+                    else
+                    {
+                        return new ProfilerException($"{str} The profiler was not injected into the target process. It is a managed process. Is the profiler being blocked by your antivirus?", ex);
+                    }
+                }
+                else
+                {
+                    return new ProfilerException($"{str} The runtime did not log an event saying it tried to load the profiler, and the process has already exited.", ex);
+                }
             }
+
+            foreach (var log in logs)
+            {
+                if (IsLogMatch(log))
+                    return new ProfilerException($"{str} The following event was logged: '{log.Message}'", ex);
+            }
+
+            return new TimeoutException($"{str} Was the profiler correctly loaded into the target process?", ex);
+        }
+
+        private bool ProfilerWasInjected(Exception ex)
+        {
+            var modules = Process.GetProcessById(Process.Id).Modules;
+
+            var x86 = Path.GetFileName(ProfilerInfo.Profilerx86);
+            var x64 = Path.GetFileName(ProfilerInfo.Profilerx64);
+
+            bool hasClr = false;
+
+            foreach (ProcessModule module in modules)
+            {
+                if (x86.Equals(module.ModuleName, StringComparison.OrdinalIgnoreCase) || x64.Equals(module.ModuleName, StringComparison.OrdinalIgnoreCase))
+                    return true;
+
+                if (module.ModuleName?.Equals("clr.dll", StringComparison.OrdinalIgnoreCase) == true || module.ModuleName?.Equals("coreclr.dll") == true)
+                    hasClr = true;
+            }
+
+            if (!hasClr)
+                throw new ProfilerException("Could not find clr.dll or coreclr.dll inside the target process. Are you sure this is a managed process?", ex);
+
+            return false;
+        }
+
+        private bool IsLogMatch(EventLogEntry entry)
+        {
+            var pattern = ".+Process ID \\(decimal\\): (\\d+)\\..+";
+
+            var match = Regex.Match(entry.Message, pattern);
+
+            if (match.Success)
+            {
+                var pid = Convert.ToInt32(match.Groups[1].Value);
+
+                if (pid == Process.Id)
+                    return true;
+            }
+
+            return false;
         }
 
         private bool IsTargetingChildProcess(ProfilerSetting[] settings, string processName)
