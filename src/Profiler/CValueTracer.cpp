@@ -860,7 +860,6 @@ HRESULT CValueTracer::TraceGenericType(_In_ UINT_PTR startAddress, _In_ TraceVal
             genericType,
             pContext->GenericInst.GenericType,
             pContext->ValueType.ModuleOfTypeToken,
-            pContext->ValueType.TypeToken,
             pContext->GenericInst.GenericType,
             -1,
             &classId
@@ -1096,7 +1095,6 @@ HRESULT CValueTracer::GetClassId(
     _In_ CClassInfo* pClassInfo, //The current class that any ELEMENT_TYPE_VAR references will be resolved from
     _In_ CSigType* pType,
     _In_ ModuleID moduleOfTypeToken,
-    _In_ mdToken typeToken,
     _In_ CSigGenericType* curGenericType,
     _In_ ULONG curGenericArg,
     _Out_ ClassID* classId)
@@ -1123,7 +1121,6 @@ HRESULT CValueTracer::GetClassId(
                 pClassInfo,
                 current,
                 moduleOfTypeToken,
-                typeToken,
                 pGenericType,
                 i,
                 &childClassId
@@ -1134,8 +1131,7 @@ HRESULT CValueTracer::GetClassId(
 
         ModuleID outerModuleId;
         mdTypeDef outerTypeDef;
-
-        IfFailGo(GetTypeDefAndModule(moduleOfTypeToken, typeToken, &outerModuleId, &outerTypeDef));
+        IfFailGo(GetTypeDefAndModule(moduleOfTypeToken, pGenericType->m_GenericTypeDefinitionToken, &outerModuleId, &outerTypeDef));
 
         CModuleInfo* moduleInfo = g_pProfiler->m_ModuleInfoMap[outerModuleId];
 
@@ -1372,13 +1368,11 @@ HRESULT CValueTracer::GetArrayClassId(
     HRESULT hr = S_OK;
     ISigArrayType* arr = (ISigArrayType*)(pType);
     ClassID elmClassId;
-    mdToken elmToken = GetTypeToken(arr->m_pElementType);
 
     IfFailGo(GetClassId(
         pClassInfo,
         arr->m_pElementType,
         moduleOfTypeToken,
-        elmToken,
         curGenericType,
         curGenericArg,
         &elmClassId

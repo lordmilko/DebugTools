@@ -230,7 +230,7 @@ HRESULT CCorProfilerCallback::ModuleAttachedToAssembly(ModuleID moduleId, Assemb
     ULONG cbPublicKeyToken = 0;
     LPWSTR assemblyName = nullptr;
 
-    /* CTypeRefResolver::Resolve will take a (shared) lock on m_ModuleMutex as long as it is executing .During
+    /* CTypeRefResolver::Resolve will take a (shared) lock on m_ModuleMutex as long as it is executing. During
      * its execution, it may also take a lock on m_AssemblyMutex. If we were to lock m_ModuleMutex in the SUCCEEDED() block below,
      * the following sequence of events could transpire:
      * 

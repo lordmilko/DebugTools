@@ -253,7 +253,6 @@ private:
         _In_ CClassInfo* pClassInfo,
         _In_ CSigType* pType,
         _In_ ModuleID moduleOfTypeToken,
-        _In_ mdToken typeToken,
         _In_ CSigGenericType* curGenericType,
         _In_ ULONG curGenericArg,
         _Out_ ClassID* classId);
