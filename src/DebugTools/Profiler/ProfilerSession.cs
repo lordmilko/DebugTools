@@ -370,7 +370,7 @@ namespace DebugTools.Profiler
             return value;
         }
 
-        public void Start(CancellationToken cancellationToken, string processName, ProfilerSetting[] settings)
+        public void Start(CancellationToken cancellationToken, string processName, ProfilerSetting[] settings, int pipeTimeout = 10000)
         {
             collectStackTrace = settings?.Any(s => s == ProfilerSetting.TraceStart) == true;
             includeUnknownTransitions = settings?.Any(s => s == ProfilerSetting.IncludeUnknownUnmanagedTransitions) == true;
@@ -434,7 +434,7 @@ namespace DebugTools.Profiler
                 {
                     pipe = new NamedPipeClientStream(".", $"DebugToolsProfilerPipe_{Process.Id}", PipeDirection.Out);
 
-                    pipe.ConnectAsync(10000, pipeCTS.Token).GetAwaiter().GetResult();
+                    pipe.ConnectAsync(pipeTimeout, pipeCTS.Token).GetAwaiter().GetResult();
                 }
             }
             catch (Exception ex) when (ex is OperationCanceledException || ex is TimeoutException)
