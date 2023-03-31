@@ -10,10 +10,6 @@ namespace DebugTools.Profiler
 
         public mdMethodDef Token { get; }
 
-        internal byte[] SigBlob { get; }
-
-        internal int SigBlobLength { get; }
-
         private SigMethodDef sigMethod;
 
         unsafe SigMethodDef IMethodInfoDetailed.SigMethod
@@ -22,23 +18,20 @@ namespace DebugTools.Profiler
             {
                 if (sigMethod == null)
                 {
-                    fixed (byte* ptr = SigBlob)
-                    {
-                        var reader = new SigReader((IntPtr) ptr, SigBlobLength, Token, GetMDI());
+                    var props = GetMDI().GetMethodProps(Token);
 
-                        sigMethod = (SigMethodDef) reader.ParseMethod(MethodName, true);
-                    }
+                    var reader = new SigReader(props.ppvSigBlob, props.pcbSigBlob, Token, GetMDI());
+
+                    sigMethod = (SigMethodDef)reader.ParseMethod(MethodName, true);
                 }
 
                 return sigMethod;
             }
         }
 
-        public MethodInfoDetailed(FunctionID functionId, string modulePath, string typeName, string methodName, mdMethodDef token, byte[] sigBlob, int sigBlobLength) : base(functionId, modulePath, typeName, methodName)
+        public MethodInfoDetailed(FunctionID functionId, string modulePath, string typeName, string methodName, mdMethodDef token) : base(functionId, modulePath, typeName, methodName)
         {
             Token = token;
-            SigBlob = sigBlob;
-            SigBlobLength = sigBlobLength;
         }
 
         private MetaDataImport GetMDI()

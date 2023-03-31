@@ -851,7 +851,7 @@ UINT_PTR __stdcall CCorProfilerCallback::RecordFunction(FunctionID funcId, void*
     *pbHookFunction = true;
 
     if (g_pProfiler->m_Detailed)
-        ValidateETW(EventWriteMethodInfoDetailedEvent(funcId, g_szMethodName, g_szTypeName, g_szModuleName, methodDef, cbSigBlob, pSigBlob));
+        ValidateETW(EventWriteMethodInfoDetailedEvent(funcId, g_szMethodName, g_szTypeName, g_szModuleName, methodDef));
     else
         ValidateETW(EventWriteMethodInfoEvent(funcId, g_szMethodName, g_szTypeName, g_szModuleName));
 

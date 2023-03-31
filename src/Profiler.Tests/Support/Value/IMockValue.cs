@@ -17,5 +17,7 @@ namespace Profiler.Tests
         object OuterValue { get; }
 
         object RawValue { get; }
+
+        byte[] RawBytes { get; }
     }
 }

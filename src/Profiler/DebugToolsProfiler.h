@@ -1165,19 +1165,19 @@ _mcgen_CheckContextType_DebugToolsProfiler(_In_ McGenContext_DebugToolsProfiler*
 //
 // Event write macros for event "MethodInfoDetailedEvent"
 //
-#define EventWriteMethodInfoDetailedEvent(FunctionID, MethodName, TypeName, ModuleName, Token, SigBlobLength, SigBlob) \
+#define EventWriteMethodInfoDetailedEvent(FunctionID, MethodName, TypeName, ModuleName, Token) \
         MCGEN_EVENT_ENABLED(MethodInfoDetailedEvent) \
-        ? _mcgen_TEMPLATE_FOR_MethodInfoDetailedEvent(&DebugToolsProfiler_Context, &MethodInfoDetailedEvent, FunctionID, MethodName, TypeName, ModuleName, Token, SigBlobLength, SigBlob) : 0
-#define EventWriteMethodInfoDetailedEvent_AssumeEnabled(FunctionID, MethodName, TypeName, ModuleName, Token, SigBlobLength, SigBlob) \
-        _mcgen_TEMPLATE_FOR_MethodInfoDetailedEvent(&DebugToolsProfiler_Context, &MethodInfoDetailedEvent, FunctionID, MethodName, TypeName, ModuleName, Token, SigBlobLength, SigBlob)
-#define EventWriteMethodInfoDetailedEvent_ForContext(pContext, FunctionID, MethodName, TypeName, ModuleName, Token, SigBlobLength, SigBlob) \
+        ? _mcgen_TEMPLATE_FOR_MethodInfoDetailedEvent(&DebugToolsProfiler_Context, &MethodInfoDetailedEvent, FunctionID, MethodName, TypeName, ModuleName, Token) : 0
+#define EventWriteMethodInfoDetailedEvent_AssumeEnabled(FunctionID, MethodName, TypeName, ModuleName, Token) \
+        _mcgen_TEMPLATE_FOR_MethodInfoDetailedEvent(&DebugToolsProfiler_Context, &MethodInfoDetailedEvent, FunctionID, MethodName, TypeName, ModuleName, Token)
+#define EventWriteMethodInfoDetailedEvent_ForContext(pContext, FunctionID, MethodName, TypeName, ModuleName, Token) \
         MCGEN_EVENT_ENABLED_FORCONTEXT(pContext, MethodInfoDetailedEvent) \
-        ? _mcgen_TEMPLATE_FOR_MethodInfoDetailedEvent(&(pContext)->Context, &MethodInfoDetailedEvent, FunctionID, MethodName, TypeName, ModuleName, Token, SigBlobLength, SigBlob) : 0
-#define EventWriteMethodInfoDetailedEvent_ForContextAssumeEnabled(pContext, FunctionID, MethodName, TypeName, ModuleName, Token, SigBlobLength, SigBlob) \
-        _mcgen_TEMPLATE_FOR_MethodInfoDetailedEvent(&_mcgen_CheckContextType_DebugToolsProfiler(pContext)->Context, &MethodInfoDetailedEvent, FunctionID, MethodName, TypeName, ModuleName, Token, SigBlobLength, SigBlob)
+        ? _mcgen_TEMPLATE_FOR_MethodInfoDetailedEvent(&(pContext)->Context, &MethodInfoDetailedEvent, FunctionID, MethodName, TypeName, ModuleName, Token) : 0
+#define EventWriteMethodInfoDetailedEvent_ForContextAssumeEnabled(pContext, FunctionID, MethodName, TypeName, ModuleName, Token) \
+        _mcgen_TEMPLATE_FOR_MethodInfoDetailedEvent(&_mcgen_CheckContextType_DebugToolsProfiler(pContext)->Context, &MethodInfoDetailedEvent, FunctionID, MethodName, TypeName, ModuleName, Token)
 
 // This macro is for use by MC-generated code and should not be used directly.
-#define _mcgen_TEMPLATE_FOR_MethodInfoDetailedEvent _mcgen_PASTE2(McTemplateU0xzzzqqbr5_, MCGEN_EVENTWRITETRANSFER)
+#define _mcgen_TEMPLATE_FOR_MethodInfoDetailedEvent _mcgen_PASTE2(McTemplateU0xzzzq_, MCGEN_EVENTWRITETRANSFER)
 
 //
 // Enablement check macro for event "ModuleLoadedEvent"
@@ -1579,25 +1579,23 @@ _mcgen_PASTE2(McTemplateU0xzzz_, MCGEN_EVENTWRITETRANSFER)(
 // Function for template "MethodInfoDetailedArgs" (and possibly others).
 // This function is for use by MC-generated code and should not be used directly.
 //
-#ifndef McTemplateU0xzzzqqbr5_def
-#define McTemplateU0xzzzqqbr5_def
+#ifndef McTemplateU0xzzzq_def
+#define McTemplateU0xzzzq_def
 ETW_INLINE
 ULONG
-_mcgen_PASTE2(McTemplateU0xzzzqqbr5_, MCGEN_EVENTWRITETRANSFER)(
+_mcgen_PASTE2(McTemplateU0xzzzq_, MCGEN_EVENTWRITETRANSFER)(
     _In_ PMCGEN_TRACE_CONTEXT Context,
     _In_ PCEVENT_DESCRIPTOR Descriptor,
     _In_ const unsigned __int64  _Arg0,
     _In_opt_ PCWSTR  _Arg1,
     _In_opt_ PCWSTR  _Arg2,
     _In_opt_ PCWSTR  _Arg3,
-    _In_ const unsigned int  _Arg4,
-    _In_ const unsigned int  _Arg5,
-    _In_reads_(_Arg5) const unsigned char*  _Arg6
+    _In_ const unsigned int  _Arg4
     )
 {
-#define McTemplateU0xzzzqqbr5_ARGCOUNT 7
+#define McTemplateU0xzzzq_ARGCOUNT 5
 
-    EVENT_DATA_DESCRIPTOR EventData[McTemplateU0xzzzqqbr5_ARGCOUNT + 1];
+    EVENT_DATA_DESCRIPTOR EventData[McTemplateU0xzzzq_ARGCOUNT + 1];
 
     EventDataDescCreate(&EventData[1],&_Arg0, sizeof(const unsigned __int64)  );
 
@@ -1615,13 +1613,9 @@ _mcgen_PASTE2(McTemplateU0xzzzqqbr5_, MCGEN_EVENTWRITETRANSFER)(
 
     EventDataDescCreate(&EventData[5],&_Arg4, sizeof(const unsigned int)  );
 
-    EventDataDescCreate(&EventData[6],&_Arg5, sizeof(const unsigned int)  );
-
-    EventDataDescCreate(&EventData[7],_Arg6, (ULONG)sizeof(char)*_Arg5);
-
-    return McGenEventWrite(Context, Descriptor, NULL, McTemplateU0xzzzqqbr5_ARGCOUNT + 1, EventData);
+    return McGenEventWrite(Context, Descriptor, NULL, McTemplateU0xzzzq_ARGCOUNT + 1, EventData);
 }
-#endif // McTemplateU0xzzzqqbr5_def
+#endif // McTemplateU0xzzzq_def
 
 #endif // MCGEN_DISABLE_PROVIDER_CODE_GENERATION
 

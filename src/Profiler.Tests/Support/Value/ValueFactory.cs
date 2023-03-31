@@ -179,7 +179,7 @@ namespace Profiler.Tests
 
             return new MockValue<StringValue, string>(
                 CorElementType.String,
-                stream,(r, s) => new StringValue(r)
+                stream, (r, s) => new StringValue(r)
             );
         }
 

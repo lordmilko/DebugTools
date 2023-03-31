@@ -18,10 +18,6 @@ namespace DebugTools.Tracing
 
         public mdMethodDef Token => GetInt32At(SkipUnicodeString(8, 3));
 
-        public int SigBlobLength => GetInt32At(SkipUnicodeString(8, 3) + sizeof(int));
-
-        public byte[] SigBlob => GetByteArrayAt(SkipUnicodeString(8, 3) + sizeof(int) + sizeof(int), SigBlobLength);
-
         private Action<MethodInfoDetailedArgs> action;
 
         internal MethodInfoDetailedArgs(Action<MethodInfoDetailedArgs> action, int eventID, int task, string taskName, Guid taskGuid, int opcode, string opcodeName, Guid providerGuid, string providerName) :
@@ -41,7 +37,7 @@ namespace DebugTools.Tracing
             get
             {
                 if (payloadNames == null)
-                    payloadNames = new[] { nameof(FunctionID), nameof(MethodName), nameof(TypeName), nameof(ModuleName), nameof(Token), nameof(SigBlobLength), nameof(SigBlob) };
+                    payloadNames = new[] { nameof(FunctionID), nameof(MethodName), nameof(TypeName), nameof(ModuleName), nameof(Token) };
 
                 return payloadNames;
             }
@@ -66,12 +62,6 @@ namespace DebugTools.Tracing
                 case 4:
                     return Token;
 
-                case 5:
-                    return SigBlobLength;
-
-                case 6:
-                    return SigBlob;
-
                 default:
                     Debug.Assert(false, $"Unknown payload field '{index}'");
                     return null;
@@ -86,8 +76,6 @@ namespace DebugTools.Tracing
             XmlAttrib(sb, nameof(TypeName), TypeName);
             XmlAttrib(sb, nameof(ModuleName), ModuleName);
             XmlAttrib(sb, nameof(Token), Token);
-            XmlAttrib(sb, nameof(SigBlobLength), SigBlobLength);
-            XmlAttrib(sb, nameof(SigBlob), SigBlob);
             sb.Append("/>");
             return sb;
         }

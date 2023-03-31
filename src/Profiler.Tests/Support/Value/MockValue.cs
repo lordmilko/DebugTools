@@ -15,12 +15,15 @@ namespace Profiler.Tests
 
         public TInnerValue RawValue => OuterValue.Value;
 
+        public byte[] RawBytes { get; }
+
         public MockValue(CorElementType elementType, Stream stream, Func<BinaryReader, ValueSerializer, TOuterValue> makeValue)
         {
             ElementType = elementType;
             Stream = stream;
+            RawBytes = ((MemoryStream) stream).ToArray();
 
-            var serializer = new ValueSerializer(((MemoryStream) stream).ToArray());
+            var serializer = new ValueSerializer(RawBytes);
 
             OuterValue = makeValue(serializer.Reader, serializer);
         }

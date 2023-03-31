@@ -56,8 +56,15 @@ namespace Profiler.Tests
 
         protected IMethodFrameDetailed MakeFrame(System.Reflection.MethodInfo method, object parameter, params IMethodFrame[] children)
         {
+            byte[] enterBytes = null;
+            byte[] exitBytes = null;
+
             if (parameter is IMockValue v)
+            {
                 parameter = v.OuterValue;
+                enterBytes = v.RawBytes;
+                exitBytes = v.RawBytes;
+            }
 
             var parameters = new List<object>();
 
@@ -68,7 +75,11 @@ namespace Profiler.Tests
                 new MockMethodInfoDetailed(method),
                 parameters,
                 VoidValue.Instance
-            );
+            )
+            {
+                EnterValue = enterBytes,
+                ExitValue = exitBytes
+            };
 
             if (children != null)
             {

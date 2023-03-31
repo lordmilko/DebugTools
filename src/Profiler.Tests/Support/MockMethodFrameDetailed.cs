@@ -4,7 +4,7 @@ using DebugTools.Profiler;
 
 namespace Profiler.Tests
 {
-    class MockMethodFrameDetailed : IMethodFrameDetailed
+    class MockMethodFrameDetailed : IMethodFrameDetailedInternal
     {
         public List<object> Parameters { get; }
 
@@ -59,6 +59,9 @@ namespace Profiler.Tests
         public object GetExitResult() => ReturnValue;
 
         #endregion
+
+        public byte[] EnterValue { get; set; }
+        public byte[] ExitValue { get; set; }
 
         public override string ToString()
         {

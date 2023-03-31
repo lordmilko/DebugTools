@@ -11,6 +11,8 @@ namespace DebugTools.Profiler
     {
         FunctionID FunctionID { get; }
 
+        string ModulePath { get; }
+
         string ModuleName { get; }
 
         string TypeName { get; }

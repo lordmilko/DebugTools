@@ -5,7 +5,7 @@ using DebugTools.Tracing;
 
 namespace DebugTools.Profiler
 {
-    public class MethodFrameDetailed : MethodFrame, IMethodFrameDetailed
+    public class MethodFrameDetailed : MethodFrame, IMethodFrameDetailedInternal
     {
         //Conditional weak table is thread safe
         internal static ConditionalWeakTable<IMethodFrameDetailed, List<object>> ParameterCache = new ConditionalWeakTable<IMethodFrameDetailed, List<object>>();
@@ -17,8 +17,20 @@ namespace DebugTools.Profiler
             ReturnCache = new ConditionalWeakTable<IMethodFrameDetailed, object>();
         }
 
-        internal byte[] EnterValue { get; set; }
-        internal byte[] ExitValue { get; set; }
+        byte[] IMethodFrameDetailedInternal.EnterValue { get; set; }
+        byte[] IMethodFrameDetailedInternal.ExitValue { get; set; }
+
+        internal byte[] EnterValue
+        {
+            get => ((IMethodFrameDetailedInternal) this).EnterValue;
+            set => ((IMethodFrameDetailedInternal)this).EnterValue = value;
+        }
+
+        internal byte[] ExitValue
+        {
+            get => ((IMethodFrameDetailedInternal)this).ExitValue;
+            set => ((IMethodFrameDetailedInternal)this).ExitValue = value;
+        }
 
         private List<object> EnterParameters
         {
@@ -61,6 +73,12 @@ namespace DebugTools.Profiler
         {
             EnterValue = originalFrame.EnterValue;
             ExitValue = originalFrame.ExitValue;
+        }
+
+        internal MethodFrameDetailed(IMethodInfo methodInfo, long sequence, byte[] enterBytes, byte[] exitBytes) : base(methodInfo, sequence)
+        {
+            EnterValue = enterBytes;
+            ExitValue = exitBytes;
         }
 
         public List<object> GetEnterParameters() => EnterParameters;

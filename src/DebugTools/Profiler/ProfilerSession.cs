@@ -5,7 +5,6 @@ using System.Diagnostics;
 using System.IO;
 using System.IO.Pipes;
 using System.Linq;
-using System.Runtime.InteropServices;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
@@ -63,7 +62,7 @@ namespace DebugTools.Profiler
         private Either<object, HRESULT> staticFieldValue;
         private AutoResetEvent staticFieldValueEvent = new AutoResetEvent(false);
 
-        public ThreadStack[] LastTrace { get; protected set; }
+        public ThreadStack[] LastTrace { get; internal set; }
 
         public ProfilerSession()
         {
@@ -168,7 +167,7 @@ namespace DebugTools.Profiler
             //If the function was unknown previously (which can occur in weird double unmanaged to managed transitions, such as with
             //Visual Studio's VsAppDomainManager.OnStart()) we'll overwrite it, and be sure to check against the previous instance by looking at the function id,
             //not the object reference
-            Methods[v.FunctionID] = new MethodInfoDetailed(new FunctionID(new IntPtr(v.FunctionID)), v.ModuleName, v.TypeName, v.MethodName, v.Token, v.SigBlob, v.SigBlobLength)
+            Methods[v.FunctionID] = new MethodInfoDetailed(new FunctionID(new IntPtr(v.FunctionID)), v.ModuleName, v.TypeName, v.MethodName, v.Token)
             {
                 WasUnknown = wasUnknown
             };
