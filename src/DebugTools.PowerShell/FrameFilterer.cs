@@ -378,7 +378,9 @@ namespace DebugTools.PowerShell
                 newRoots = dict.Values.Cast<IFrame>().ToList();
             }
 
-            if (!anyExcluded)
+            //If we just do -CalledFrom or -CalledFrom -Unique, all of the frames underneath the frame we're being called from will be included.
+            //We only want to highlight those frames if a filter was specified that actually targets those frames. e.g. -Include, -StringValue, etc
+            if (options.IsCalledFromWithoutSpecificInclude)
                 HighlightFrames.Clear();
         }
 

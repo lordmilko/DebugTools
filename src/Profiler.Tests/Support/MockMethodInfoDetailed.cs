@@ -35,7 +35,7 @@ namespace Profiler.Tests
             ModulePath = methodInfo.DeclaringType.Assembly.Location;
             TypeName = methodInfo.DeclaringType.FullName;
 
-            if (TryGetInterface(methodInfo, out var iface))
+            if (TryGetInterface(methodInfo, out var iface) && iface == typeof(IDisposable))
                 MethodName = iface.FullName + "." + methodInfo.Name;
             else
                 MethodName = methodInfo.Name;

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace DebugTools.PowerShell
 {
@@ -194,6 +195,23 @@ namespace DebugTools.PowerShell
         public bool IsCalledFromOnly => settings.Keys.Count == 1 && settings.ContainsKey(nameof(CalledFrom));
 
         public bool IsUniqueOnly => settings.Keys.Count == 1 && settings.ContainsKey(nameof(Unique));
+
+        public bool IsCalledFromWithoutSpecificInclude
+        {
+            get
+            {
+                var keys = settings.Keys.ToList();
+                keys.Remove(nameof(Exclude));
+
+                var allowed = new[]
+                {
+                    nameof(CalledFrom),
+                    nameof(Unique)
+                };
+
+                return keys.All(k => allowed.Contains(k));
+            }
+        }
 
         public bool HasNoFilters => settings.Keys.Count == 0;
 

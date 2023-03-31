@@ -804,8 +804,8 @@ void Methods.second(""bbb"")
             TestStack(options, tree, @"
 1000
 └─void Methods.second(""bbb"")
-  ├─<Green>void Methods.third(""ccc"")</Green>
-  └─<Green>void Console.ReadLine(""ddd"")</Green>
+  ├─void Methods.third(""ccc"")
+  └─void Console.ReadLine(""ddd"")
 ");
         }
 
@@ -1034,10 +1034,10 @@ void Methods.first(""aaa"")
             TestStack(options, tree, @"
 1000
 └─void Methods.second(""bbb"")
-  ├─<Green>void Methods.third(""ccc"")</Green>
-  ├─<Green>void Methods.third(""ddd"")</Green>
-  │ └─<Green>void Methods.first(""fff"")</Green>
-  └─<Green>void Console.ReadLine(""fff"")</Green>
+  ├─void Methods.third(""ccc"")
+  ├─void Methods.third(""ddd"")
+  │ └─void Methods.first(""fff"")
+  └─void Console.ReadLine(""fff"")
 ");
         }
 
@@ -1115,8 +1115,8 @@ void Methods.first(""aaa"")
             TestStack(options, tree, @"
 1000
 └─void Methods.second(""bbb"")
-  ├─<Green>void Methods.third(""ccc"")</Green>
-  └─<Green>void Console.ReadLine(""fff"")</Green>
+  ├─void Methods.third(""ccc"")
+  └─void Console.ReadLine(""fff"")
 ");
         }
 
