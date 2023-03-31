@@ -3,12 +3,25 @@
 namespace DebugTools.PowerShell.Cmdlets
 {
     [Cmdlet(VerbsCommunications.Disconnect, "SOSProcess")]
-    public class DisconnectSOSProcess : SOSCmdlet
+    public class DisconnectSOSProcess : DebugToolsCmdlet
     {
-        protected override void ProcessRecordEx()
+        [Parameter(Mandatory = false, ValueFromPipeline = true)]
+        public LocalSOSProcess Process { get; set; }
+
+        protected override void ProcessRecord()
         {
-            DebugToolsSessionState.SOSProcesses.Remove(Process);
-            HostApp.RemoveSOSProcess(Process);
+            var process = Process;
+
+            if (process == null)
+                process = DebugToolsSessionState.GetImplicitSOSProcess(false);
+
+            if (process != null)
+            {
+                var host = DebugToolsSessionState.GetOptionalHost(process.Process);
+                host.RemoveSOSProcess(process);
+
+                DebugToolsSessionState.SOSProcesses.Remove(process);
+            }
         }
     }
 }

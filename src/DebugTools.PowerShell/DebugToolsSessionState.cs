@@ -22,7 +22,7 @@ namespace DebugTools.PowerShell
         internal static (HostApp host, Process process) Hostx86;
         internal static (HostApp host, Process process) Hostx64;
 
-        internal static ProfilerSession GetImplicitProfilerSession()
+        internal static ProfilerSession GetImplicitProfilerSession(bool mandatory = true)
         {
             //Check for alive
 
@@ -45,7 +45,10 @@ namespace DebugTools.PowerShell
             if (GlobalProfilerSession != null)
                 return GlobalProfilerSession;
 
-            throw new InvalidOperationException($"Cannot execute cmdlet: no -Session was specified and no global Session could be found in the PowerShell session.");
+            if (mandatory)
+                throw new InvalidOperationException($"Cannot execute cmdlet: no -Session was specified and no global Session could be found in the PowerShell session.");
+
+            return null;
         }
 
         internal static ProfilerSession AcquireGlobalProfilerSession(bool mayCreate = false)
@@ -60,7 +63,7 @@ namespace DebugTools.PowerShell
             return GlobalProfilerSession;
         }
 
-        internal static LocalSOSProcess GetImplicitSOSProcess()
+        internal static LocalSOSProcess GetImplicitSOSProcess(bool mandatory = true)
         {
             //Check for alive
 
@@ -77,7 +80,31 @@ namespace DebugTools.PowerShell
             if (SOSProcesses.Count > 0)
                 throw new InvalidOperationException($"Cannot execute cmdlet: no -Process was specified and all previous SOS Processes have now terminated.");
 
-            throw new InvalidOperationException($"Cannot execute cmdlet: no -Session was specified and no global Session could be found in the PowerShell session.");
+            if (mandatory)
+                throw new InvalidOperationException($"Cannot execute cmdlet: no -Session was specified and no global Session could be found in the PowerShell session.");
+
+            return null;
+        }
+
+        internal static HostApp GetOptionalHost(Process targetProcess)
+        {
+            if (!NativeMethods.IsWow64Process(targetProcess.Handle, out var isWow64))
+                throw new SOSException($"Failed to query {nameof(NativeMethods.IsWow64Process)}: {(HRESULT)Marshal.GetHRForLastWin32Error()}");
+
+            if (isWow64)
+            {
+                if (Hostx86.host == null || Hostx86.process.HasExited)
+                    return null;
+
+                return Hostx86.host;
+            }
+            else
+            {
+                if (Hostx64.host == null || Hostx64.process.HasExited)
+                    return null;
+
+                return Hostx64.host;
+            }
         }
 
         internal static HostApp GetDetectedHost(Process targetProcess, bool needDebug = false)
