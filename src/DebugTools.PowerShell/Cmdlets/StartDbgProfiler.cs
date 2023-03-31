@@ -53,8 +53,14 @@ namespace DebugTools.PowerShell.Cmdlets
         [Parameter(Mandatory = false)]
         public SwitchParameter Minimized { get; set; }
 
+        [Parameter(Mandatory = false)]
+        public SwitchParameter PassThru { get; set; }
+
         protected override void ProcessRecord()
         {
+            if (PassThru && TraceStart)
+                throw new ParameterBindingException($"Cannot specify -{nameof(PassThru)} and -{nameof(TraceStart)} at the same time.");
+
             if (WinDbg)
             {
                 var windbgPath = GetWinDbgAndResolveProcessName();
@@ -62,7 +68,7 @@ namespace DebugTools.PowerShell.Cmdlets
                 ProcessName = $"\"{windbgPath}\" \"{ProcessName}\"";
             }
 
-            var session = new ProfilerSession();
+            var session = new ProfilerSession(ProfilerSessionType.Normal);
             DebugToolsSessionState.ProfilerSessions.Add(session);
 
             var settings = new List<ProfilerSetting>();
@@ -128,8 +134,11 @@ namespace DebugTools.PowerShell.Cmdlets
                     foreach (var item in threadStack)
                         WriteObject(item.Root);
                 }
-
-                
+            }
+            else
+            {
+                if (PassThru)
+                    WriteObject(session);
             }
         }
 

@@ -19,6 +19,29 @@ namespace DebugTools.Profiler
         private static int maxId;
         private const string SessionPrefix = "DebugTools_Profiler_";
 
+        public int PID => Process.Id;
+
+        public string ProcessName => Process.ProcessName;
+
+        public ProfilerSessionType Type { get; }
+
+        private ProfilerSessionStatus? status;
+
+        public ProfilerSessionStatus Status
+        {
+            get
+            {
+                if (status != null)
+                    return status.Value;
+
+                if (Process.HasExited)
+                    return ProfilerSessionStatus.Exited;
+
+                return ProfilerSessionStatus.Active;
+            }
+            internal set { status = value; }
+        }
+
         public Process Process { get; set; }
 
         public TraceEventSession TraceEventSession { get; }
@@ -64,8 +87,9 @@ namespace DebugTools.Profiler
 
         public ThreadStack[] LastTrace { get; internal set; }
 
-        public ProfilerSession()
+        public ProfilerSession(ProfilerSessionType type)
         {
+            Type = type;
             var sessionName = GetNextSessionName();
 
             TryCloseSession(sessionName);

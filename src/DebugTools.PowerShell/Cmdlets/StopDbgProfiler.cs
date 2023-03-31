@@ -27,6 +27,8 @@ namespace DebugTools.PowerShell.Cmdlets
 
             if (session != null)
             {
+                session.Status = ProfilerSessionStatus.Terminated;
+
                 session.Dispose();
                 DebugToolsSessionState.ProfilerSessions.Remove(session);
 

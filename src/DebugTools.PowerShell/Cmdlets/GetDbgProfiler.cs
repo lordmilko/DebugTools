@@ -9,12 +9,19 @@ namespace DebugTools.PowerShell.Cmdlets
     [Cmdlet(VerbsCommon.Get, "DbgProfiler")]
     public class GetDbgProfiler : PSCmdlet
     {
+        [Alias("ProcessName")]
         [Parameter(Mandatory = false, Position = 0)]
         public string[] Name { get; set; }
 
         [Alias("PID")]
         [Parameter(Mandatory = false)]
         public int[] Id { get; set; }
+
+        [Parameter(Mandatory = false)]
+        public ProfilerSessionType[] Type { get; set; }
+
+        [Parameter(Mandatory = false)]
+        public ProfilerSessionStatus[] Status { get; set; }
 
         [Parameter(Mandatory = false)]
         public SwitchParameter Force { get; set; }
@@ -42,6 +49,12 @@ namespace DebugTools.PowerShell.Cmdlets
 
             if (Name != null && Name.Length > 0)
                 sessions = FilterByWildcardArray(Name, sessions, v => v.Process.ProcessName);
+
+            if (Type != null)
+                sessions = sessions.Where(s => Type.Any(t => t == s.Type));
+
+            if (Status != null)
+                sessions = sessions.Where(s => Status.Any(st => st == s.Status));
 
             foreach (var instance in sessions)
                 WriteObject(instance);

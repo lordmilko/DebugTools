@@ -8,6 +8,38 @@
         <View>
             <Name>Default</Name>
             <ViewSelectedBy>
+                <TypeName>DebugTools.Profiler.ProfilerSession</TypeName>
+            </ViewSelectedBy>
+            <TableControl>
+                <TableHeaders>
+                    <TableColumnHeader/> <!-- PID -->
+                    <TableColumnHeader/> <!-- ProcessName -->
+                    <TableColumnHeader/> <!-- Type -->
+                    <TableColumnHeader/> <!-- Status -->
+                </TableHeaders>
+                <TableRowEntries>
+                    <TableRowEntry>
+                        <TableColumnItems>
+                            <TableColumnItem>
+                                <PropertyName>PID</PropertyName>
+                            </TableColumnItem>
+                            <TableColumnItem>
+                                <PropertyName>ProcessName</PropertyName>
+                            </TableColumnItem>
+                            <TableColumnItem>
+                              <PropertyName>Type</PropertyName>
+                            </TableColumnItem>
+                            <TableColumnItem>
+                              <PropertyName>Status</PropertyName>
+                            </TableColumnItem>
+                        </TableColumnItems>
+                    </TableRowEntry>
+                </TableRowEntries>
+            </TableControl>
+        </View>
+        <View>
+            <Name>Default</Name>
+            <ViewSelectedBy>
                 <TypeName>DebugTools.Profiler.RootFrame</TypeName>
             </ViewSelectedBy>
             <TableControl>

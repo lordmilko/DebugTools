@@ -5,7 +5,7 @@ namespace Profiler.Tests
 {
     class MockProfilerSession : ProfilerSession
     {
-        public MockProfilerSession(RootFrame[] frames)
+        public MockProfilerSession(RootFrame[] frames) : base(ProfilerSessionType.Normal)
         {
             LastTrace = frames.Select(f => new ThreadStack(false, 1000)
             {

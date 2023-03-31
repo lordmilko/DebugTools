@@ -267,7 +267,7 @@ namespace Profiler.Tests
             var settingsList = settings.ToList();
             settingsList.Add(ProfilerSetting.TraceStart);
 
-            using (var session = new ProfilerSession())
+            using (var session = new ProfilerSession(ProfilerSessionType.Normal))
             {
                 var waitForCompleted = new AutoResetEvent(false);
                 var waitForMethod = new ManualResetEvent(false);

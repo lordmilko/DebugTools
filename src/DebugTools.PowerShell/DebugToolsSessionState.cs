@@ -55,7 +55,7 @@ namespace DebugTools.PowerShell
         {
             if (GlobalProfilerSession == null)
             {
-                GlobalProfilerSession = new ProfilerSession();
+                GlobalProfilerSession = new ProfilerSession(ProfilerSessionType.Global);
 
                 GlobalProfilerSession.StartGlobal();
             }
