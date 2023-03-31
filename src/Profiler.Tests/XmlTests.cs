@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
 using System.Linq;
 using System.Text;
 using DebugTools.Profiler;
@@ -10,11 +11,13 @@ namespace Profiler.Tests
     [TestClass]
     public class XmlTests : BaseTest
     {
-        private const string str = @"<?xml version=""1.0"" encoding=""utf-8""?>
+        private static string ModulePath => typeof(XmlTests).Assembly.Location;
+
+        private static string str = $@"<?xml version=""1.0"" encoding=""utf-8""?>
 <Root>
   <Methods>
-    <MethodInfoDetailed FunctionID=""8D83D1AC"" MethodName=""first"" TypeName=""Profiler.Tests.Methods"" ModulePath=""D:\Programming\C#\DebugTools\artifacts\bin\Debug\Profiler.Tests.dll"" Token=""600017F"" />
-    <MethodInfoDetailed FunctionID=""D0BE9278"" MethodName=""second"" TypeName=""Profiler.Tests.Methods"" ModulePath=""D:\Programming\C#\DebugTools\artifacts\bin\Debug\Profiler.Tests.dll"" Token=""6000180"" />
+    <MethodInfoDetailed FunctionID=""8D83D1AC"" MethodName=""first"" TypeName=""Profiler.Tests.Methods"" ModulePath=""{ModulePath}"" Token=""600017F"" />
+    <MethodInfoDetailed FunctionID=""D0BE9278"" MethodName=""second"" TypeName=""Profiler.Tests.Methods"" ModulePath=""{ModulePath}"" Token=""6000180"" />
   </Methods>
   <Frames>
     <RootFrame ThreadId=""1000"">
@@ -48,11 +51,13 @@ namespace Profiler.Tests
             {
                 writer.Write(stream);
 
-                var actual = Encoding.UTF8.GetString(stream.ToArray()).TrimStart((char)0xfeff);
-                var expected = str.TrimStart();
+                var actual = Normalize(Encoding.UTF8.GetString(stream.ToArray()).TrimStart((char)0xfeff)).Split('\n');
+                var expected = Normalize(str.TrimStart()).Split('\n');
 
                 Assert.AreEqual(expected.Length, actual.Length);
-                Assert.AreEqual(expected, actual);
+
+                for(var i = 0; i < expected.Length; i++)
+                    Assert.AreEqual(expected[i], actual[i]);
             }
         }
 
@@ -92,6 +97,14 @@ namespace Profiler.Tests
                     Assert.AreEqual(false, value3.Value);
                 }
             }
+        }
+
+        private string Normalize(string str)
+        {
+            //If this is from GitHub using \n as newlines,
+            //the string literal embedded in this file won't have the same newlines
+            //as we'll get from the generated XML
+            return str.Replace("\r\n", "\n").Replace("\r", string.Empty);
         }
     }
 }

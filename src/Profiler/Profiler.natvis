@@ -409,6 +409,9 @@ $split = $_ -split ' '
     <HResult Name="PROFILER_E_STATICFIELD_INVALID_MEMORY">
         <HRValue>0x80041014</HRValue>
     </HResult>
+    <HResult Name="PROFILER_E_STATICFIELD_NOT_INITIALIZED">
+        <HRValue>0x80041015</HRValue>
+    </HResult>
 
     <HResult Name="CEE_E_ENTRYPOINT">
         <HRValue>0x80131000</HRValue>

@@ -118,6 +118,17 @@ extern thread_local BOOL g_DebugBlob;
 
 #define MAKE_ERROR(code) MAKE_HRESULT(SEVERITY_ERROR, FACILITY_ITF, code)
 
+/* ##############################################
+ * ADDING A NEW STATIC FIELD
+ * ##############################################
+ * -ErrorHandling.h
+ * -Profiler.natvis
+ * -PROFILER_HRESULT.cs
+ * -ProfilerException.cs
+ * -If the exception can be safely ignored, ProfilerSession.Validate()
+ * ##############################################
+ */
+
 #define PROFILER_E_BUFFERFULL MAKE_ERROR(0x1001)
 #define PROFILER_E_GENERICCLASSID MAKE_ERROR(0x1002)
 #define PROFILER_E_UNKNOWN_GENERIC_ARRAY MAKE_ERROR(0x1003)
@@ -138,3 +149,4 @@ extern thread_local BOOL g_DebugBlob;
 #define PROFILER_E_STATICFIELD_NEED_THREADID MAKE_ERROR(0x1012)
 #define PROFILER_E_STATICFIELD_THREAD_NOT_FOUND MAKE_ERROR(0x1013)
 #define PROFILER_E_STATICFIELD_INVALID_MEMORY MAKE_ERROR(0x1014)
+#define PROFILER_E_STATICFIELD_NOT_INITIALIZED MAKE_ERROR(0x1015)

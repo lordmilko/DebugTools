@@ -155,9 +155,9 @@ namespace Profiler.Tests
                 //Asking for a generic type will probably return the canonical type. GetAppDomainStaticAddress() will
                 //get upset when you pass the classID of a canonical type in. Therefore, reading fields inside
                 //generic types is not currently supported.
-                AssertEx.Throws<DebugException>(
+                AssertEx.Throws<ProfilerException>(
                     () => s.GetStaticField("GenericStructType`1.staticValue"),
-                    "Error HRESULT CORPROF_E_DATAINCOMPLETE has been returned from a call to a COM component."
+                    "The CLR reported that the field cannot be inspected as it, or its containing class, have not yet been initialized."
                 );
             }, ProfilerSetting.Detailed);
         }

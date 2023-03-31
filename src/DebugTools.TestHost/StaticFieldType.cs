@@ -6,6 +6,13 @@ namespace DebugTools.TestHost
 {
     class StaticFieldType
     {
+        static StaticFieldType()
+        {
+            //In Release builds, it seems that the static fields may not actually get initialized if they aren't actually accessed.
+            //As such, we access one of the fields
+            Console.WriteLine(primitiveType);
+        }
+
 #pragma warning disable IDE0044 // Add readonly modifier
 #pragma warning disable IDE0051 // Remove unused private members
 #pragma warning disable IDE0052 // Remove unread private members

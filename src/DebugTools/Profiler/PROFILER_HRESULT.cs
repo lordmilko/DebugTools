@@ -119,6 +119,11 @@ namespace DebugTools.Profiler
         /// </summary>
         PROFILER_E_STATICFIELD_INVALID_MEMORY = 0x80041014,
 
+        /// <summary>
+        /// The CLR reported that the field cannot be inspected as it, or its containing class, have not yet been initialized.
+        /// </summary>
+        PROFILER_E_STATICFIELD_NOT_INITIALIZED = 0x80041015
+
         #endregion
     }
 }

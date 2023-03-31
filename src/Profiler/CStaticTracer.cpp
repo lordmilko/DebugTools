@@ -271,8 +271,16 @@ HRESULT CStaticTracer::GetFieldAddress(
     *ppAddress = pAddress;
 
 ErrExit:
-    if (hr == E_NOTIMPL)
+    switch (hr)
+    {
+    case E_NOTIMPL:
         hr = PROFILER_E_STATICFIELD_FIELDTYPE_NOT_SUPPORTED;
+        break;
+
+    case CORPROF_E_DATAINCOMPLETE:
+        hr = PROFILER_E_STATICFIELD_NOT_INITIALIZED;
+        break;
+    }
 
     return hr;
 }

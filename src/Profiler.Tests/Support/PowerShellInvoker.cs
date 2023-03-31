@@ -1,5 +1,7 @@
 ﻿using System.Linq;
 using System.Management.Automation;
+using System.Management.Automation.Runspaces;
+using DebugTools.PowerShell.Cmdlets;
 
 namespace Profiler.Tests
 {
@@ -9,7 +11,10 @@ namespace Profiler.Tests
 
         public PowerShellInvoker()
         {
-            powerShell = PowerShell.Create();
+            var initial = InitialSessionState.CreateDefault();
+            initial.ImportPSModule(new[] { typeof(GetDbgProfiler).Assembly.Location });
+
+            powerShell = PowerShell.Create(initial);
         }
 
         public T[] Invoke<T>(string cmdlet, object param, object sessionParam, string inputCmdlet)

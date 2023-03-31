@@ -59,6 +59,9 @@ namespace DebugTools.Profiler
                 case PROFILER_HRESULT.PROFILER_E_STATICFIELD_INVALID_MEMORY:
                     return "A memory read error occurred while attempting to read the specified field. This can indicate a GC occurred while reading the field, causing memory to be moved.";
 
+                case PROFILER_HRESULT.PROFILER_E_STATICFIELD_NOT_INITIALIZED:
+                    return "The CLR reported that the field cannot be inspected as it, or its containing class, have not yet been initialized.";
+
                 default:
                     return $"Error HRESULT {hr} has been returned from a call to a COM component.";
             }

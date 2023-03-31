@@ -12,31 +12,31 @@ namespace Profiler.Tests
         [TestMethod]
         public void ExportPathResolver_DriveRoot()
         {
-            Test("Z:", $"Z:\\StackTrace_{Process.GetCurrentProcess().Id}_testhost.net472.x86_{DateTime.Now:yyyy-MM-dd_HHmm}h.xml");
+            Test("Z:", $"Z:\\StackTrace_{Process.GetCurrentProcess().Id}_{Process.GetCurrentProcess().ProcessName}_{DateTime.Now:yyyy-MM-dd_HHmm}h.xml");
         }
 
         [TestMethod]
         public void ExportPathResolver_DriveRootSlash()
         {
-            Test("Z:\\", $"Z:\\StackTrace_{Process.GetCurrentProcess().Id}_testhost.net472.x86_{DateTime.Now:yyyy-MM-dd_HHmm}h.xml");
+            Test("Z:\\", $"Z:\\StackTrace_{Process.GetCurrentProcess().Id}_{Process.GetCurrentProcess().ProcessName}_{DateTime.Now:yyyy-MM-dd_HHmm}h.xml");
         }
 
         [TestMethod]
         public void ExportPathResolver_FolderNoSlash()
         {
-            Test("Z:\\foo", $"Z:\\foo\\StackTrace_{Process.GetCurrentProcess().Id}_testhost.net472.x86_{DateTime.Now:yyyy-MM-dd_HHmm}h.xml", folderExists: true);
+            Test("Z:\\foo", $"Z:\\foo\\StackTrace_{Process.GetCurrentProcess().Id}_{Process.GetCurrentProcess().ProcessName}_{DateTime.Now:yyyy-MM-dd_HHmm}h.xml", folderExists: true);
         }
 
         [TestMethod]
         public void ExportPathResolver_FolderTrailingSlash_Exists()
         {
-            Test("Z:\\foo\\", $"Z:\\foo\\StackTrace_{Process.GetCurrentProcess().Id}_testhost.net472.x86_{DateTime.Now:yyyy-MM-dd_HHmm}h.xml", folderExists: true);
+            Test("Z:\\foo\\", $"Z:\\foo\\StackTrace_{Process.GetCurrentProcess().Id}_{Process.GetCurrentProcess().ProcessName}_{DateTime.Now:yyyy-MM-dd_HHmm}h.xml", folderExists: true);
         }
 
         [TestMethod]
         public void ExportPathResolver_FolderTrailingSlash_DoesntExist()
         {
-            Test("Z:\\foo\\", $"Z:\\foo\\StackTrace_{Process.GetCurrentProcess().Id}_testhost.net472.x86_{DateTime.Now:yyyy-MM-dd_HHmm}h.xml");
+            Test("Z:\\foo\\", $"Z:\\foo\\StackTrace_{Process.GetCurrentProcess().Id}_{Process.GetCurrentProcess().ProcessName}_{DateTime.Now:yyyy-MM-dd_HHmm}h.xml");
         }
 
         [TestMethod]

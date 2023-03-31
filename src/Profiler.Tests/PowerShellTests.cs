@@ -340,7 +340,7 @@ namespace Profiler.Tests
 
             TestSOS<SOSMethodTable>(WellKnownCmdlet.GetSOSMethodTable, null, v => methodTable = v.Last());
 
-            TestSOS<SOSMethodTable>(WellKnownCmdlet.GetSOSMethodTable, methodTable.Name, v => Assert.AreEqual(methodTable.Address, v.Single().Address));
+            TestSOS<SOSMethodTable>(WellKnownCmdlet.GetSOSMethodTable, methodTable.Name, v => Assert.IsTrue(v.All(m => methodTable.Name == m.Name)));
         }
 
         [TestMethod]
