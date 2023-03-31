@@ -38,6 +38,9 @@ namespace DebugTools.PowerShell.Cmdlets
                     threads.Add(stack);
                 }
 
+                foreach (var kv in reader.Methods)
+                    session.Methods[kv.Key] = (IMethodInfoInternal) kv.Value;
+
                 session.LastTrace = threads.ToArray();
 
                 var existing = DebugToolsSessionState.ProfilerSessions.Select((v, i) => new { v.Name, i }).Where(v => v.Name == Path).LastOrDefault();

@@ -9,7 +9,7 @@ namespace DebugTools.Profiler
 {
     class FrameXmlReader : FrameXmlBase
     {
-        private Dictionary<FunctionID, IMethodInfo> methods = new Dictionary<FunctionID, IMethodInfo>();
+        internal Dictionary<FunctionID, IMethodInfo> Methods { get; } = new Dictionary<FunctionID, IMethodInfo>();
 
         public IFrame[] Read(Stream stream)
         {
@@ -87,7 +87,7 @@ namespace DebugTools.Profiler
                 );
             }
 
-            methods[id] = method;
+            Methods[id] = method;
         }
 
         private IFrame[] ReadFrames(XmlReader reader)
@@ -196,7 +196,7 @@ namespace DebugTools.Profiler
 
             var sequence = reader.GetAttribute(SequenceAttrib);
 
-            if (!methods.TryGetValue(id, out var method))
+            if (!Methods.TryGetValue(id, out var method))
                 throw new InvalidOperationException($"Could not find a method with FunctionID '{id}'.");
 
             var result = makeFrame(method, Convert.ToInt64(sequence));
