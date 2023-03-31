@@ -1,6 +1,8 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Management.Automation;
+using DebugTools.Profiler;
 
 namespace DebugTools.PowerShell.Cmdlets
 {
@@ -9,6 +11,9 @@ namespace DebugTools.PowerShell.Cmdlets
     {
         [Parameter(Mandatory = false)]
         public int[] Sequence { get; set; }
+
+        [Parameter(Mandatory = false)]
+        public SwitchParameter Roots { get; set; }
 
         private FrameFilterer filter;
 
@@ -24,7 +29,11 @@ namespace DebugTools.PowerShell.Cmdlets
 
         protected override void EndProcessing()
         {
-            foreach (var item in filter.GetSortedFilteredFrames())
+            IEnumerable<IFrame> frames = Roots
+                ? filter.GetSortedFilteredFrameRoots(CancellationToken)
+                : filter.GetSortedFilteredFrames();
+
+            foreach (var item in frames)
             {
                 if (MyInvocation.BoundParameters.ContainsKey(nameof(Sequence)))
                 {

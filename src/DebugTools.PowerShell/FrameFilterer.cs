@@ -162,7 +162,8 @@ namespace DebugTools.PowerShell
             }
             else if (item is IMethodFrameDetailed d)
             {
-                if (ShouldInclude(d, (f, w) => w.IsMatch(f.MethodInfo.MethodName) || w.IsMatch(f.MethodInfo.TypeName), ref onSuccess) && HasValue(d) && !ShouldExclude(d))
+                //Note that T needs to be IMethodFrame, otherwise attempting to do CalledFrom against an unmanaged transition frame won't work
+                if (ShouldInclude<IMethodFrame>(d, (f, w) => w.IsMatch(f.MethodInfo.MethodName) || w.IsMatch(f.MethodInfo.TypeName), ref onSuccess) && HasValue(d) && !ShouldExclude(d))
                     return true;
             }
             else if (item is IMethodFrame m)
@@ -500,11 +501,7 @@ namespace DebugTools.PowerShell
                         newItem = d.CloneWithNewParent(newParent);
                         newParent.Children.Add((IMethodFrame)newItem);
 
-                        if (MethodFrameDetailed.ParameterCache.TryGetValue(d, out var parameters))
-                            MethodFrameDetailed.ParameterCache.Add((IMethodFrameDetailed)newItem, parameters);
-
-                        if (MethodFrameDetailed.ReturnCache.TryGetValue(d, out var returnValue))
-                            MethodFrameDetailed.ReturnCache.Add((IMethodFrameDetailed)newItem, returnValue);
+                        RemapCachedValues(d, (IMethodFrameDetailed) newItem);
 
                         newParent = newItem;
                     }
@@ -541,6 +538,9 @@ namespace DebugTools.PowerShell
             {
                 newItem = frame.CloneWithNewParent(newParent);
 
+                if (frame is IMethodFrameDetailed)
+                    RemapCachedValues((IMethodFrameDetailed) frame, (IMethodFrameDetailed) newItem);
+
                 knownOriginalFrames[frame] = newItem;
 
                 foreach (var child in frame.Children)
@@ -561,6 +561,15 @@ namespace DebugTools.PowerShell
                 return null;
 
             return (IMethodFrame) newItem;
+        }
+
+        private void RemapCachedValues(IMethodFrameDetailed oldFrame, IMethodFrameDetailed newFrame)
+        {
+            if (MethodFrameDetailed.ParameterCache.TryGetValue(oldFrame, out var parameters))
+                MethodFrameDetailed.ParameterCache.Add(newFrame, parameters);
+
+            if (MethodFrameDetailed.ReturnCache.TryGetValue(oldFrame, out var returnValue))
+                MethodFrameDetailed.ReturnCache.Add(newFrame, returnValue);
         }
 
         #endregion
