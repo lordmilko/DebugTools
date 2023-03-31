@@ -1,6 +1,8 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
+using System.Linq;
 using System.Management.Automation;
 using DebugTools.Profiler;
 
@@ -9,7 +11,8 @@ namespace DebugTools.PowerShell.Cmdlets
     [Cmdlet(VerbsData.Import, "DbgProfilerStackTrace")]
     public class ImportDbgProfilerStackTrace : ProfilerCmdlet
     {
-        [Parameter(Mandatory = true, Position = 0)]
+        [Alias("FullName")]
+        [Parameter(Mandatory = true, Position = 0, ValueFromPipelineByPropertyName = true)]
         public string Path { get; set; }
 
         protected override void ProcessRecord()
@@ -20,8 +23,34 @@ namespace DebugTools.PowerShell.Cmdlets
             {
                 var results = reader.Read(fs);
 
-                foreach (var result in results)
-                    WriteObject(result);
+                var session = new FileProfilerSession(Path);
+
+                var threads = new List<ThreadStack>();
+
+                foreach (var frame in results)
+                {
+                    ThreadStack stack = frame is IRootFrame r
+                        ? new ThreadStack(false, r.ThreadId)
+                        : new ThreadStack(false, -1);
+
+                    stack.Current = frame;
+
+                    threads.Add(stack);
+                }
+
+                session.LastTrace = threads.ToArray();
+
+                var existing = DebugToolsSessionState.ProfilerSessions.Select((v, i) => new { v.Name, i }).Where(v => v.Name == Path).LastOrDefault();
+
+                if (existing != null)
+                {
+                    WriteWarning($"Overwriting existing session '{existing.Name}'.");
+                    DebugToolsSessionState.ProfilerSessions[existing.i] = session;
+                }
+                else
+                    DebugToolsSessionState.ProfilerSessions.Add(session);
+
+                WriteObject(session);
             }
         }
 

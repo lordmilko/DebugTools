@@ -1,8 +1,10 @@
-﻿using System.Globalization;
+﻿using System;
+using System.Globalization;
 using System.Management.Automation;
 using System.Reflection;
 using ClrDebug;
 using DebugTools.Host;
+using DebugTools.Profiler;
 using DebugTools.SOS;
 
 namespace DebugTools.PowerShell.Cmdlets
@@ -75,7 +77,12 @@ namespace DebugTools.PowerShell.Cmdlets
             {
                 if (DebugToolsSessionState.SOSProcesses.Count == 0 && DebugToolsSessionState.ProfilerSessions.Count > 0)
                 {
-                    var process = DebugToolsSessionState.GetImplicitProfilerSession().Process;
+                    var session = DebugToolsSessionState.GetImplicitProfilerSession();
+
+                    if (session.Type == ProfilerSessionType.File)
+                        throw new InvalidOperationException($"Cannot execute cmdlet: no -Session was specified and no global Session could be found in the PowerShell session.");
+
+                    var process = session.Process;
 
                     HostApp = DebugToolsSessionState.GetDetectedHost(process, Dbg);
 

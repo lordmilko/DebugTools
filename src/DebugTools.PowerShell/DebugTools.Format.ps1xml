@@ -13,7 +13,7 @@
             <TableControl>
                 <TableHeaders>
                     <TableColumnHeader/> <!-- PID -->
-                    <TableColumnHeader/> <!-- ProcessName -->
+                    <TableColumnHeader/> <!-- Name -->
                     <TableColumnHeader/> <!-- Type -->
                     <TableColumnHeader/> <!-- Status -->
                 </TableHeaders>
@@ -24,7 +24,7 @@
                                 <PropertyName>PID</PropertyName>
                             </TableColumnItem>
                             <TableColumnItem>
-                                <PropertyName>ProcessName</PropertyName>
+                                <PropertyName>Name</PropertyName>
                             </TableColumnItem>
                             <TableColumnItem>
                               <PropertyName>Type</PropertyName>

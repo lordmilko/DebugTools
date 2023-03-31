@@ -19,9 +19,9 @@ namespace DebugTools.Profiler
         private static int maxId;
         private const string SessionPrefix = "DebugTools_Profiler_";
 
-        public int PID => Process.Id;
+        public virtual int? PID => Process.Id;
 
-        public string ProcessName => Process.ProcessName;
+        public virtual string Name => Process.ProcessName;
 
         public ProfilerSessionType Type { get; }
 
