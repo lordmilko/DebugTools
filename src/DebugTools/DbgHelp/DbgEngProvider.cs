@@ -8,16 +8,13 @@ namespace DebugTools
 {
     public class DbgEngProvider
     {
-        public static string GetWinDbg(bool is32Bit)
-        {
-            var folder = Path.GetDirectoryName(GetDbgEngPath(is32Bit));
+        public static string GetWinDbg(bool is32Bit) => GetDebuggersFile("windbg.exe", is32Bit);
 
-            return Path.Combine(folder, "windbg.exe");
-        }
+        private static string GetDebuggersFile(string fileName, bool is32Bit) => Path.Combine(GetDebuggersPath(is32Bit), fileName);
 
-        private static string GetDbgEngPath() => GetDbgEngPath(IntPtr.Size == 4);
+        private static string GetDebuggersPath(bool mandatory = true) => GetDebuggersPath(IntPtr.Size == 4, mandatory);
 
-        private static string GetDbgEngPath(bool is32Bit)
+        internal static string GetDebuggersPath(bool is32Bit, bool mandatory = true)
         {
             var programFiles = new[]
             {
@@ -48,16 +45,21 @@ namespace DebugTools
             GetDbgEngDebuggersPath("C:\\", candidates, is32Bit);
 
             if (candidates.Count == 0)
-                throw new NotImplementedException();
+            {
+                if (mandatory)
+                    throw new InvalidOperationException("Could not find Debugging Tools for Windows installation path.");
+
+                return null;
+            }
 
             if (candidates.Count == 1)
-                return candidates[0];
+                return Path.GetDirectoryName(candidates[0]);
 
             var versions = candidates.Select(c => FileVersionInfo.GetVersionInfo(c)).OrderByDescending(v => new Version(v.ProductVersion)).ToArray();
 
             var first = versions.First();
 
-            return first.FileName;
+            return Path.GetDirectoryName(first.FileName);
         }
 
         private static void GetDbgEngDebuggersPath(string parent, List<string> candidates, bool is32Bit)

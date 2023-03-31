@@ -20,8 +20,11 @@ namespace DebugTools.Host
 
         static HostApp()
         {
+            var folder = DbgEngProvider.GetDebuggersPath(false);
+
             //ClrMD will try and load DbgHelp, so we must set the DLL directory before ClrMD is invoked
-            NativeMethods.SetDllDirectory("C:\\Program Files (x86)\\Windows Kits\\10\\Debuggers\\" + (IntPtr.Size == 8 ? "x64" : "x86"));
+            if (folder != null)
+                NativeMethods.SetDllDirectory(folder);
         }
 
         public const string WaitForDebug = "DEBUGTOOLS_HOST_WAITFORDEBUG";

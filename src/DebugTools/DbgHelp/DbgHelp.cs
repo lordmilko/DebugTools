@@ -4,6 +4,7 @@ using ClrDebug;
 
 namespace DebugTools
 {
+    //SetDllDirectory is called in HostApp (before ClrMD is loaded) to set DLL directory to Debugging Tools for Windows folder
     class DbgHelp
     {
         private const int MaxNameLength = 2000; //2000 characters
