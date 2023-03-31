@@ -7,8 +7,11 @@ using DebugTools.Profiler;
 namespace DebugTools.PowerShell.Cmdlets
 {
     [Cmdlet(VerbsData.Export, "DbgProfilerStackTrace")]
-    public class ExportDbgProfilerStackTrace : StackFrameCmdlet
+    public class ExportDbgProfilerStackTrace : ProfilerSessionCmdlet
     {
+        [Parameter(Mandatory = false, ValueFromPipeline = true)]
+        public IFrame Frame { get; set; }
+
         [Parameter(Mandatory = true, Position = 0)]
         public string Path { get; set; }
 
@@ -17,9 +20,17 @@ namespace DebugTools.PowerShell.Cmdlets
 
         private List<IFrame> frames = new List<IFrame>();
 
-        protected override void DoProcessRecordEx()
+        protected override void ProcessRecordEx()
         {
-            frames.Add(Frame);
+            if (Frame != null)
+                frames.Add(Frame);
+            else
+            {
+                foreach (var frame in Session.LastTrace)
+                {
+                    frames.Add(frame.Root);
+                }
+            }
         }
 
         protected override void EndProcessing()
@@ -47,6 +58,11 @@ namespace DebugTools.PowerShell.Cmdlets
 
         private Stream GetStream(string path)
         {
+            var directory = System.IO.Path.GetDirectoryName(path);
+
+            if (!Directory.Exists(directory))
+                Directory.CreateDirectory(directory);
+
             var fs = File.OpenWrite(path);
 
             if (Raw)

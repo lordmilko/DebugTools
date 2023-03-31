@@ -12,31 +12,31 @@ namespace Profiler.Tests
         [TestMethod]
         public void ExportPathResolver_DriveRoot()
         {
-            Test("Z:", $"Z:\\StackTrace_{Process.GetCurrentProcess().Id}_testhost.net472.x86_{DateTime.Now:yyyy-MM-dd HHmm}h.xml");
+            Test("Z:", $"Z:\\StackTrace_{Process.GetCurrentProcess().Id}_testhost.net472.x86_{DateTime.Now:yyyy-MM-dd_HHmm}h.xml");
         }
 
         [TestMethod]
         public void ExportPathResolver_DriveRootSlash()
         {
-            Test("Z:\\", $"Z:\\StackTrace_{Process.GetCurrentProcess().Id}_testhost.net472.x86_{DateTime.Now:yyyy-MM-dd HHmm}h.xml");
+            Test("Z:\\", $"Z:\\StackTrace_{Process.GetCurrentProcess().Id}_testhost.net472.x86_{DateTime.Now:yyyy-MM-dd_HHmm}h.xml");
         }
 
         [TestMethod]
         public void ExportPathResolver_FolderNoSlash()
         {
-            Test("Z:\\foo", $"Z:\\foo\\StackTrace_{Process.GetCurrentProcess().Id}_testhost.net472.x86_{DateTime.Now:yyyy-MM-dd HHmm}h.xml", folderExists: true);
+            Test("Z:\\foo", $"Z:\\foo\\StackTrace_{Process.GetCurrentProcess().Id}_testhost.net472.x86_{DateTime.Now:yyyy-MM-dd_HHmm}h.xml", folderExists: true);
         }
 
         [TestMethod]
         public void ExportPathResolver_FolderTrailingSlash_Exists()
         {
-            Test("Z:\\foo\\", $"Z:\\foo\\StackTrace_{Process.GetCurrentProcess().Id}_testhost.net472.x86_{DateTime.Now:yyyy-MM-dd HHmm}h.xml", folderExists: true);
+            Test("Z:\\foo\\", $"Z:\\foo\\StackTrace_{Process.GetCurrentProcess().Id}_testhost.net472.x86_{DateTime.Now:yyyy-MM-dd_HHmm}h.xml", folderExists: true);
         }
 
         [TestMethod]
         public void ExportPathResolver_FolderTrailingSlash_DoesntExist()
         {
-            Test("Z:\\foo\\", $"Z:\\foo\\StackTrace_{Process.GetCurrentProcess().Id}_testhost.net472.x86_{DateTime.Now:yyyy-MM-dd HHmm}h.xml");
+            Test("Z:\\foo\\", $"Z:\\foo\\StackTrace_{Process.GetCurrentProcess().Id}_testhost.net472.x86_{DateTime.Now:yyyy-MM-dd_HHmm}h.xml");
         }
 
         [TestMethod]
@@ -72,7 +72,7 @@ namespace Profiler.Tests
         [TestMethod]
         public void ExportPathResolver_NullProfilerSession()
         {
-            Test("Z:\\foo\\", $"Z:\\foo\\StackTrace_{DateTime.Now:yyyy-MM-dd HHmm}h.xml", wantSession: false);
+            Test("Z:\\foo\\", $"Z:\\foo\\StackTrace_{DateTime.Now:yyyy-MM-dd_HHmm}h.xml", wantSession: false);
         }
 
         private void Test(string input, string expected, ExportMode mode = ExportMode.Xml, bool wantSession = true, bool fileExists = false, bool folderExists = false)

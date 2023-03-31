@@ -84,9 +84,9 @@ namespace DebugTools.PowerShell
         private string GetRandomFileName()
         {
             if (session == null)
-                return $"StackTrace_{DateTime.Now:yyyy-MM-dd HHmm}h{desiredExtension}";
+                return $"StackTrace_{DateTime.Now:yyyy-MM-dd_HHmm}h{desiredExtension}";
 
-            return $"StackTrace_{session.Process.Id}_{session.Process.ProcessName}_{DateTime.Now:yyyy-MM-dd HHmm}h{desiredExtension}";
+            return $"StackTrace_{session.Process.Id}_{session.Process.ProcessName}_{DateTime.Now:yyyy-MM-dd_HHmm}h{desiredExtension}";
         }
     }
 }
