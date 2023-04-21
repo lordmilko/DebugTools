@@ -86,7 +86,16 @@ namespace DebugTools.PowerShell
             if (session == null)
                 return $"StackTrace_{DateTime.Now:yyyy-MM-dd_HHmm}h{desiredExtension}";
 
-            return $"StackTrace_{session.Process.Id}_{session.Process.ProcessName}_{DateTime.Now:yyyy-MM-dd_HHmm}h{desiredExtension}";
+            var target = session.Target;
+
+            string format = $"StackTrace_{{0}}_{DateTime.Now:yyyy-MM-dd_HHmm}h{desiredExtension}";
+
+            if (target is LiveProfilerTarget t)
+                return string.Format(format, $"{t.Process.Id}_{t.Process.ProcessName}");
+            else if (target is EtwFileProfilerTarget e)
+                return string.Format(format, Path.GetFileName(e.Name));
+            else
+                throw new NotImplementedException($"Don't know how to get export filename for target of type '{target.GetType().Name}'.");
         }
     }
 }

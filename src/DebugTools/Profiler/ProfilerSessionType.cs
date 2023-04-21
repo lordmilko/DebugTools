@@ -4,6 +4,8 @@
     {
         Normal,
         Global,
-        File
+        XmlFile,
+        EtwFile,
+        MMF
     }
 }

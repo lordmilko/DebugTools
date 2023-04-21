@@ -42,13 +42,13 @@ namespace DebugTools.PowerShell.Cmdlets
             }
 
             if (!Force)
-                sessions = sessions.Where(i => !i.Process.HasExited);
+                sessions = sessions.Where(i => i.IsAlive);
 
             if (Id != null && Id.Length > 0)
-                sessions = sessions.Where(i => Id.Any(id => id == i.Process.Id));
+                sessions = sessions.Where(i => Id.Any(id => id == i.Target.ProcessId));
 
             if (Name != null && Name.Length > 0)
-                sessions = FilterByWildcardArray(Name, sessions, v => v.Process.ProcessName);
+                sessions = FilterByWildcardArray(Name, sessions, v => v.Target.Name);
 
             if (Type != null)
                 sessions = sessions.Where(s => Type.Any(t => t == s.Type));

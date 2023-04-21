@@ -130,15 +130,19 @@ namespace Profiler.Tests
             var settingsList = settings.ToList();
             settingsList.Add(ProfilerSetting.TraceStart);
 
-            using (var session = new ProfilerSession(ProfilerSessionType.Normal))
+            var config = new LiveProfilerReaderConfig(ProfilerSessionType.Normal, $"{ProfilerInfo.TestHost} {type} {subType}", settingsList.ToArray());
+
+            using (var session = new ProfilerSession(config))
             {
                 var wait = new AutoResetEvent(false);
 
-                session.TraceEventSession.Source.Completed += () => wait.Set();
+                session.Reader.Completed += () => wait.Set();
 
-                session.Start(CancellationToken.None, $"{ProfilerInfo.TestHost} {type} {subType}", settingsList.ToArray());
+                session.Start(default);
 
-                session.Process.WaitForExit();
+                var liveTarget = (LiveProfilerTarget)session.Target;
+
+                liveTarget.Process.WaitForExit();
 
                 wait.WaitOne();
 
@@ -147,12 +151,12 @@ namespace Profiler.Tests
                 var threadStacks = session.ThreadCache.Values.ToArray();
                 var methods = session.Methods.Values.ToArray();
 
-                if (session.Process.ExitCode != 0)
+                if (liveTarget.Process.ExitCode != 0)
                 {
-                    if (session.Process.ExitCode == 2)
+                    if (liveTarget.Process.ExitCode == 2)
                         throw new InvalidOperationException($"Test '{type}' -> '{subType}' has not been defined in TestHost");
 
-                    throw new InvalidOperationException($"TestHost exited with exit code 0x{session.Process.ExitCode.ToString("X")}");
+                    throw new InvalidOperationException($"TestHost exited with exit code 0x{liveTarget.Process.ExitCode.ToString("X")}");
                 }
 
                 var validator = new Validator(threadStacks, methods);

@@ -267,12 +267,14 @@ namespace Profiler.Tests
             var settingsList = settings.ToList();
             settingsList.Add(ProfilerSetting.TraceStart);
 
-            using (var session = new ProfilerSession(ProfilerSessionType.Normal))
+            var config = new LiveProfilerReaderConfig(ProfilerSessionType.Normal, $"{ProfilerInfo.TestHost} {TestType.StaticField} {type}", settingsList.ToArray());
+
+            using (var session = new ProfilerSession(config))
             {
                 var waitForCompleted = new AutoResetEvent(false);
                 var waitForMethod = new ManualResetEvent(false);
 
-                session.TraceEventSession.Source.Completed += () => waitForCompleted.Set();
+                session.Reader.Completed += () => waitForCompleted.Set();
 
                 void eventHandler<T>(T args) where T : ICallArgs
                 {
@@ -282,10 +284,12 @@ namespace Profiler.Tests
                         waitForMethod.Set();
                 }
 
-                session.Parser.CallEnter += eventHandler;
-                session.Parser.CallEnterDetailed += eventHandler;
+                session.Reader.CallEnter += eventHandler;
+                session.Reader.CallEnterDetailed += eventHandler;
 
-                session.Start(CancellationToken.None, $"{ProfilerInfo.TestHost} {TestType.StaticField} {type}", settingsList.ToArray());
+                session.Start(default);
+
+                var process = ((LiveProfilerTarget) session.Target).Process;
 
                 try
                 {
@@ -296,8 +300,8 @@ namespace Profiler.Tests
                 }
                 finally
                 {
-                    if (!session.Process.HasExited)
-                        session.Process.Kill();
+                    if (!process.HasExited)
+                        process.Kill();
 
                     waitForCompleted.WaitOne();
                 }

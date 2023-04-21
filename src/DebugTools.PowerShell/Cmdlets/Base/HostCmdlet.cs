@@ -1,6 +1,8 @@
-﻿using System.Diagnostics;
+﻿using System;
+using System.Diagnostics;
 using System.Management.Automation;
 using DebugTools.Host;
+using DebugTools.Profiler;
 
 namespace DebugTools.PowerShell.Cmdlets
 {
@@ -23,7 +25,14 @@ namespace DebugTools.PowerShell.Cmdlets
             else
             {
                 if (DebugToolsSessionState.SOSProcesses.Count == 0 && DebugToolsSessionState.ProfilerSessions.Count > 0)
-                    Process = DebugToolsSessionState.GetImplicitProfilerSession().Process;
+                {
+                    var session = DebugToolsSessionState.GetImplicitProfilerSession();
+
+                    if (session.Type == ProfilerSessionType.XmlFile)
+                        throw new InvalidOperationException($"Cannot execute cmdlet: no -Session was specified and no global Session could be found in the PowerShell session.");
+
+                    Process = ((LiveProfilerTarget)session.Target).Process;
+                }
                 else
                     Process = DebugToolsSessionState.GetImplicitSOSProcess().Process;
             }

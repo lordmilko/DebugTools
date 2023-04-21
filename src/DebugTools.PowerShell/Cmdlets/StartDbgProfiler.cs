@@ -68,9 +68,6 @@ namespace DebugTools.PowerShell.Cmdlets
                 ProcessName = $"\"{windbgPath}\" \"{ProcessName}\"";
             }
 
-            var session = new ProfilerSession(ProfilerSessionType.Normal);
-            DebugToolsSessionState.ProfilerSessions.Add(session);
-
             var settings = new List<ProfilerSetting>();
 
             var matcher = new ModuleWildcardMatcher();
@@ -110,7 +107,12 @@ namespace DebugTools.PowerShell.Cmdlets
             if (ModuleWhitelist != null)
                 settings.Add(ProfilerSetting.ModuleWhitelist(matcher.Execute(ModuleWhitelist)));
 
-            session.Start(CancellationToken, ProcessName, settings.ToArray());
+            var config = GetProfilerConfig(settings.ToArray());
+
+            var session = new ProfilerSession(config);
+            DebugToolsSessionState.ProfilerSessions.Add(session);
+
+            session.Start(CancellationToken);
 
             if (TraceStart)
             {
@@ -140,6 +142,11 @@ namespace DebugTools.PowerShell.Cmdlets
                 if (PassThru)
                     WriteObject(session);
             }
+        }
+
+        private IProfilerReaderConfig GetProfilerConfig(ProfilerSetting[] settings)
+        {
+            return new LiveProfilerReaderConfig(ProfilerSessionType.Normal, ProcessName, settings);
         }
 
         private string GetWinDbgAndResolveProcessName()

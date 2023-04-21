@@ -23,7 +23,7 @@ namespace DebugTools.PowerShell.Cmdlets
             {
                 var results = reader.Read(fs);
 
-                var session = new FileProfilerSession(Path);
+                var session = new XmlFileProfilerSession(Path);
 
                 var threads = new List<ThreadStack>();
 
@@ -43,7 +43,7 @@ namespace DebugTools.PowerShell.Cmdlets
 
                 session.LastTrace = threads.ToArray();
 
-                var existing = DebugToolsSessionState.ProfilerSessions.Select((v, i) => new { v.Name, i }).Where(v => v.Name == Path).LastOrDefault();
+                var existing = DebugToolsSessionState.ProfilerSessions.Select((v, i) => new { v.Name, i }).LastOrDefault(v => v.Name == Path);
 
                 if (existing != null)
                 {

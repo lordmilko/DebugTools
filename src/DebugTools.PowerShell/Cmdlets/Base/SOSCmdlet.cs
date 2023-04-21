@@ -79,10 +79,10 @@ namespace DebugTools.PowerShell.Cmdlets
                 {
                     var session = DebugToolsSessionState.GetImplicitProfilerSession();
 
-                    if (session.Type == ProfilerSessionType.File)
+                    if (session.Type == ProfilerSessionType.XmlFile)
                         throw new InvalidOperationException($"Cannot execute cmdlet: no -Session was specified and no global Session could be found in the PowerShell session.");
 
-                    var process = session.Process;
+                    var process = ((LiveProfilerTarget) session.Target).Process;
 
                     HostApp = DebugToolsSessionState.GetDetectedHost(process, Dbg);
 

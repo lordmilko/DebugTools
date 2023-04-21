@@ -26,7 +26,7 @@ namespace DebugTools.PowerShell
         {
             //Check for alive
 
-            var sessions = ProfilerSessions.Where(i => !i.Process.HasExited).ToArray();
+            var sessions = ProfilerSessions.Where(i => i.IsAlive).ToArray();
 
             if (sessions.Length == 1)
                 return sessions[0];
@@ -55,7 +55,7 @@ namespace DebugTools.PowerShell
         {
             if (GlobalProfilerSession == null)
             {
-                GlobalProfilerSession = new ProfilerSession(ProfilerSessionType.Global);
+                GlobalProfilerSession = new ProfilerSession(new LiveProfilerReaderConfig(ProfilerSessionType.Global, null));
 
                 GlobalProfilerSession.StartGlobal();
             }
