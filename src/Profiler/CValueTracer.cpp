@@ -508,6 +508,28 @@ ErrExit:
     return hr;
 }
 
+int wcslen_memSafe(const WCHAR* str)
+{
+    const WCHAR* ptr = str;
+
+    //Unlike wcslen, wcslen_memSafe includes a trailing \0
+
+    __try
+    {
+        while (*ptr) //While its not \0
+        {
+            ptr++;
+        }
+
+        return (int)(ptr - str) + 1;
+    }
+    __except (GetExceptionCode() == EXCEPTION_ACCESS_VIOLATION ? EXCEPTION_EXECUTE_HANDLER : EXCEPTION_CONTINUE_SEARCH)
+    {
+        //The current location of ptr is invalid, so step back 1 character
+        return (int)((ptr - 1) - str);
+    }
+}
+
 HRESULT CValueTracer::TraceChar(
     _In_ UINT_PTR startAddress,
     _In_ TraceValueContext* pContext,
@@ -522,11 +544,14 @@ HRESULT CValueTracer::TraceChar(
         DebugBlob(L"Char*");
         WriteType(ELEMENT_TYPE_CHAR);
 
-        //Any reference to an ELEMENT_TYPE_CHAR could now be
-        //a string. However you could just as easily pass (char*)1.
-        //An invalid pointer would have been validated in TracePtrType()
-
-        ULONG strLen = (ULONG)wcslen(pChar) + 1;
+        /* Any reference to an ELEMENT_TYPE_CHAR could now be
+         * a string. However you could just as easily pass (char*)1.
+         * An invalid pointer would have been validated in TracePtrType().
+         * However, just because the pointer may be valid, doesn't necessarily mean its null terminated.
+         * Microsoft.CodeAnalysis.Workspaces.dll!Microsoft.CodeAnalysis.Host.TemporaryStorageServiceFactory+DirectMemoryAccessStreamReader
+         * takes a char* and a length. The string isn't null terminated, and beyond the end of the string is part of a string that previously existed,
+         * followed by invalid memory */
+        ULONG strLen = (ULONG)wcslen_memSafe(pChar);
 
         WriteValue(&strLen, 4);
         WriteValue(pChar, (strLen - 1) * sizeof(WCHAR));
