@@ -85,7 +85,7 @@ namespace DebugTools.Profiler
                     break;
 
                 case ProfilerSessionType.MMF:
-                    Reader = new MemoryMappedFileProfilerReader();
+                    Reader = new MemoryMappedFileProfilerReader((LiveProfilerReaderConfig) config);
                     break;
 
                 default:

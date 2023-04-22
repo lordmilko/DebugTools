@@ -28,7 +28,7 @@ namespace DebugTools.Profiler
 
         public IFrame Enter(CallArgs args, IMethodInfo method)
         {
-            Validate(args);
+            ValidateSequence(args);
 
             var newFrame = new MethodFrame(method, args.Sequence);
 
@@ -63,7 +63,7 @@ namespace DebugTools.Profiler
 
         public IFrame EnterDetailed(CallDetailedArgs args, IMethodInfo method)
         {
-            Validate(args);
+            ValidateSequence(args);
 
             var newFrame = new MethodFrameDetailed(method, args);
 
@@ -106,7 +106,7 @@ namespace DebugTools.Profiler
 
         internal IFrame EnterUnmanagedTransition(UnmanagedTransitionArgs args, IMethodInfoInternal method, FrameKind kind)
         {
-            Validate(args);
+            ValidateSequence(args);
 
             if (method.WasUnknown && !includeUnknownTransitions)
                 return null;
@@ -127,7 +127,7 @@ namespace DebugTools.Profiler
         {
             if (method.WasUnknown && !includeUnknownTransitions)
             {
-                Validate(args);
+                ValidateSequence(args);
                 return;
             }
 
@@ -151,7 +151,7 @@ namespace DebugTools.Profiler
                 if (method.WasUnknown && !includeUnknownTransitions)
                 {
                     //We never recorded this frame in the first place, so we don't need to unwind it
-                    Validate(args);
+                    ValidateSequence(args);
                     return;
                 }
             }
@@ -182,19 +182,23 @@ namespace DebugTools.Profiler
                 Current = Current.Parent;
         }
 
-        private void Validate(ICallArgs args)
+        private void ValidateSequence(ICallArgs args)
         {
             var expectedNextSequence = lastSequence + 1;
 
             if (lastSequence != 0 && expectedNextSequence != args.Sequence)
-                throw new InvalidOperationException($"Expected sequence: {expectedNextSequence}. Actual: {args.Sequence}. This indicates a general bug in the profiler's bookkeeping that somehow didn't trigger {PROFILER_HRESULT.PROFILER_E_UNKNOWN_FRAME}, an exception occurred in the profiler that messed up the bookkeeping, or ETW dropped an event due to too many events being generated.");
+            {
+                throw new InvalidOperationException($"Expected sequence: {expectedNextSequence}. Actual: {args.Sequence}. This indicates either an exception occurred in the profiler that messed up the bookkeeping, " +
+                                                    $"or ETW dropped an event due to too many events being generated. Consider using synchronous mode to determine whether ETW dropped the event. " +
+                                                    $"Note that the profiler did not detect any frames were lost. If it did, {PROFILER_HRESULT.PROFILER_E_UNKNOWN_FRAME} would have been detected in ProfilerSession.Validate()");
+            }   
 
             lastSequence = args.Sequence;
         }
 
         private void ValidateEnd(ICallArgs args, IMethodInfo method)
         {
-            Validate(args);
+            ValidateSequence(args);
 
             if (Current is IMethodFrame f && method != null)
             {

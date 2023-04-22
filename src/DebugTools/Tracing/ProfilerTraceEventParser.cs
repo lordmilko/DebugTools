@@ -5,7 +5,7 @@ namespace DebugTools.Tracing
 {
     public class ProfilerTraceEventParser : TraceEventParser
     {
-        static class EventId
+        internal static class EventId
         {
             public const int CallEnter = 1;
             public const int CallExit = 2;

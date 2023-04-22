@@ -3,7 +3,7 @@
 #include "CCorProfilerCallback.h"
 #include "CSigReader.h"
 #include "CValueTracer.h"
-#include "DebugToolsProfiler.h"
+#include "Events.h"
 #include <vector>
 
 void CStaticTracer::Trace(LPWSTR szName)

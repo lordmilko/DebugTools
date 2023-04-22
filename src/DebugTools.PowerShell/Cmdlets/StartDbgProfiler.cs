@@ -39,6 +39,9 @@ namespace DebugTools.PowerShell.Cmdlets
         public SwitchParameter IgnoreDefaultBlacklist { get; set; }
 
         [Parameter(Mandatory = false)]
+        public SwitchParameter Synchronous { get; set; }
+
+        [Parameter(Mandatory = false)]
         public string[] ModuleWhitelist { get; set; }
 
         [Parameter(Mandatory = false)]
@@ -101,6 +104,9 @@ namespace DebugTools.PowerShell.Cmdlets
             if (IgnoreDefaultBlacklist)
                 settings.Add(ProfilerSetting.IgnoreDefaultBlacklist);
 
+            if (Synchronous)
+                settings.Add(ProfilerSetting.SynchronousTransfers);
+
             if (ModuleBlacklist != null)
                 settings.Add(ProfilerSetting.ModuleBlacklist(matcher.Execute(ModuleBlacklist)));
 
@@ -146,7 +152,9 @@ namespace DebugTools.PowerShell.Cmdlets
 
         private IProfilerReaderConfig GetProfilerConfig(ProfilerSetting[] settings)
         {
-            return new LiveProfilerReaderConfig(ProfilerSessionType.Normal, ProcessName, settings);
+            var type = Synchronous ? ProfilerSessionType.MMF : ProfilerSessionType.Normal;
+
+            return new LiveProfilerReaderConfig(type, ProcessName, settings);
         }
 
         private string GetWinDbgAndResolveProcessName()

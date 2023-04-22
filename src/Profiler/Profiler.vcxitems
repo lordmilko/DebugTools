@@ -40,6 +40,7 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)CValueTracer.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)DebugToolsProfiler.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)ErrorHandling.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)Events.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)Hooks\EnterHook.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)Hooks\EnterHookWithInfo.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)Hooks\Hooks.h" />
@@ -68,6 +69,7 @@
     <ClCompile Include="$(MSBuildThisFileDirectory)CValueTracer.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)dllmain.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)ErrorHandling.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)Events.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="$(MSBuildThisFileDirectory)DebugToolsProfiler.man" />

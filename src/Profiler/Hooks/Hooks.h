@@ -4,7 +4,7 @@
 //All hooks are the same (info hooks factor in SIZE eltInfo before returning). All hooks can be defined the same in v3 since all 3 take the same number of parameters
 //(unlike v2 where Tailcall takes 3 parameters instead of 4)
 
-#include "DebugToolsProfiler.h"
+#include "Events.h"
 #include "CValueTracer.h"
 
 extern bool g_TracingEnabled;

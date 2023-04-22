@@ -11,6 +11,7 @@
         ModuleWhitelist,
         IgnorePointerValue,
         IgnoreDefaultBlacklist,
+        SynchronousTransfers,
 
         DisablePipe,
         IncludeUnknownUnmanagedTransitions,

@@ -468,6 +468,7 @@ HRESULT CCorProfilerCallback::Initialize(IUnknown* pICorProfilerInfoUnk)
 
     m_Detailed = GetBoolEnv("DEBUGTOOLS_DETAILED");
     g_TracingEnabled = GetBoolEnv("DEBUGTOOLS_TRACESTART");
+    g_IsETW = !GetBoolEnv("DEBUGTOOLS_SYNCHRONOUS_TRANSFERS");
 
     GetMatchItems(L"DEBUGTOOLS_MODULEBLACKLIST", m_ModuleBlacklist);
     GetMatchItems(L"DEBUGTOOLS_MODULEWHITELIST", m_ModuleWhitelist);

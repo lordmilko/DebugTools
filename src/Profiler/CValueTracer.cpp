@@ -1,7 +1,7 @@
 #include "pch.h"
 #include "CValueTracer.h"
 #include "CCorProfilerCallback.h"
-#include "DebugToolsProfiler.h"
+#include "Events.h"
 #include "CTypeRefResolver.h"
 #include "CTypeIdentifier.h"
 #include <unordered_set>

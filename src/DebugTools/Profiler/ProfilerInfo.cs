@@ -135,6 +135,10 @@ namespace DebugTools.Profiler
                             ignoreDefaultBlacklist = true;
                             break;
 
+                        case ProfilerEnvFlags.SynchronousTransfers:
+                            envVariables.Add("DEBUGTOOLS_SYNCHRONOUS_TRANSFERS", "1");
+                            break;
+
                         case ProfilerEnvFlags.Minimized:
                             minimized = true;
                             break;

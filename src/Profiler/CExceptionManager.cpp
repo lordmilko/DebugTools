@@ -2,7 +2,7 @@
 #include "CExceptionManager.h"
 #include "CCorProfilerCallback.h"
 #include "CValueTracer.h"
-#include "DebugToolsProfiler.h"
+#include "Events.h"
 #include "CExceptionInfo.h"
 
 thread_local std::deque<CExceptionInfo*> g_ExceptionQueue;
