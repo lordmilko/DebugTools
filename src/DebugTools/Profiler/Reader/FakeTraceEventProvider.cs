@@ -61,10 +61,9 @@ namespace DebugTools.Profiler
             //As this is static this is never unallocated
             eventRecordBuffer = Marshal.AllocHGlobal(eventRecordSize);
 
-            //the time isnt exactly right, but its good enough
             var source = (ETWTraceEventSource)FormatterServices.GetUninitializedObject(typeof(ETWTraceEventSource));
             source.GetType().GetProperty("IsRealTime").GetSetMethod(true).Invoke(source, new object[] { true });
-            source.GetType().GetField("_QPCFreq", flags).SetValue(source, 1);
+            source.GetType().GetField("_QPCFreq", flags).SetValue(source, Stopwatch.Frequency);
             source.SynchronizeClock();
 
             foreach (var item in events.Skip(1))
@@ -75,18 +74,14 @@ namespace DebugTools.Profiler
         }
 
         public static unsafe TraceEvent GetEvent(
-            int eventType,
-            int threadId,
-            int userDataSize,
+            ref MMFEventHeader header,
             byte* blobPtr)
         {
-            var data = events[eventType];
+            var data = events[header.EventType];
 
-            var ticks = Stopwatch.GetTimestamp();
-
-            Marshal.WriteInt32(eventRecordBuffer, threadIdOffset, threadId);
-            Marshal.WriteInt64(eventRecordBuffer, timeStampOffset, ticks);
-            Marshal.WriteInt32(eventRecordBuffer, userDataLengthOffset, userDataSize);
+            Marshal.WriteInt32(eventRecordBuffer, threadIdOffset, header.ThreadId);
+            Marshal.WriteInt64(eventRecordBuffer, timeStampOffset, header.QPC);
+            Marshal.WriteInt32(eventRecordBuffer, userDataLengthOffset, header.UserDataSize);
             userDataField.SetValue(data, new IntPtr(blobPtr));
 
             return data;

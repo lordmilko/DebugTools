@@ -1,5 +1,24 @@
 #include "pch.h"
 #include "Events.h"
+#include "SafeQueue.h"
+
+#define MMF_BUFFER_SIZE 1000000000
+
+//Get the size of an MMFRecord, factoring in its size and the number of bytes it would take to store the size
+#define RECORD_SIZE(r) (sizeof(DWORD) + (r).Size)
+#define BUFFER_POSITION(ptr) (ptr - g_pEventBuffer)
+
+#define WRITE_RECORD(r) \
+    *(DWORD*)ptr = (r).Size; \
+    ptr += sizeof(DWORD); \
+    memcpy(ptr, record.Ptr, (r).Size); \
+    ptr += record.Size; \
+    free(record.Ptr)
+
+typedef struct MMFRecord {
+    ULONG Size;
+    void* Ptr;
+} MMFRecord;
 
 BOOL g_IsETW = FALSE;
 HANDLE g_hFile = NULL;
@@ -7,30 +26,115 @@ BYTE* g_pEventBuffer = NULL;
 HANDLE g_HasDataEvent = NULL;
 HANDLE g_WasProcessedEvent = NULL;
 
-std::shared_mutex g_WriteMutex;
+BOOL g_Stopping = FALSE;
+SafeQueue<MMFRecord> g_MMFQueue;
+HANDLE g_hMMFThread = NULL;
+
+std::mutex g_WriteMutex;
 
 #pragma region Write
+
+DWORD WINAPI MMFThreadProc
+    (LPVOID lpThreadParameter)
+{
+    HRESULT hr = S_OK;
+
+    while (!g_Stopping)
+    {
+        DWORD numEntries = 1; //There'll always be at least 1
+        BYTE* ptr = g_pEventBuffer + sizeof(DWORD); //Number of entries
+
+        MMFRecord record;
+        g_MMFQueue.Pop(record);
+
+        if (g_Stopping)
+            break;
+
+        WRITE_RECORD(record);
+
+        while (BUFFER_POSITION(ptr) < MMF_BUFFER_SIZE)
+        {
+            MMFRecord* next = g_MMFQueue.Peek();
+
+            if (next == nullptr)
+                break;
+
+            if (BUFFER_POSITION(ptr) + RECORD_SIZE(*next) < MMF_BUFFER_SIZE)
+            {
+                numEntries++;
+                g_MMFQueue.Pop(record);
+
+                if (g_Stopping)
+                    break;
+
+                WRITE_RECORD(record);
+            }
+            else
+                break;
+        }
+
+        size_t size = g_MMFQueue.Size();
+
+        if (size > 10000)
+            dprintf(L"Backlog is %d. Read %d\n", size, numEntries);
+
+        *(DWORD*)g_pEventBuffer = numEntries;
+
+        if (g_Stopping)
+            break;
+
+        DWORD result = SignalObjectAndWait(
+            g_HasDataEvent,
+            g_WasProcessedEvent,
+            INFINITE,
+            FALSE
+        );
+
+        if (result == WAIT_FAILED)
+            ValidateETW(GetLastError());
+    }
+
+    return 0;
+}
+
+typedef struct MMFEventHeader {
+    LONGLONG QPC;
+    DWORD ThreadId;
+    DWORD UserDataSize;
+    USHORT EventType;
+};
 
 ULONG __stdcall EventWriteMMF(
     _In_ PCEVENT_DESCRIPTOR EventDescriptor,
     _In_range_(0, MAX_EVENT_DATA_DESCRIPTORS) ULONG UserDataCount,
     _In_reads_opt_(UserDataCount) PEVENT_DATA_DESCRIPTOR UserData)
 {
-    CLock lock(&g_WriteMutex, true);
+    //Figure out how much space we'll need
 
-    BYTE* ptr = g_pEventBuffer;
+    LARGE_INTEGER qpc;
+    QueryPerformanceCounter(&qpc);
 
-    memcpy(ptr, &EventDescriptor->Id, sizeof(EventDescriptor->Id));
-    ptr += sizeof(EventDescriptor->Id);
+    DWORD userDataSize = 0;
 
-    DWORD threadId = GetCurrentThreadId();
-    memcpy(ptr, &threadId, sizeof(threadId));
-    ptr += sizeof(threadId);
+    for (ULONG i = 1; i < UserDataCount; i++)
+    {
+        EVENT_DATA_DESCRIPTOR data = UserData[i];
 
-    BYTE* userDataPtr = ptr;
-    ptr += 4;
+        userDataSize += data.Size;
+    }
 
-    ULONG userDataSize = 0;
+    MMFEventHeader header = { qpc.QuadPart, GetCurrentThreadId(), userDataSize, EventDescriptor->Id };
+
+    //This value has trailing padding
+    DWORD headerSize = sizeof(MMFEventHeader);
+
+    DWORD recordSize = headerSize + userDataSize;
+
+    void* originalPtr = malloc(recordSize);
+    BYTE* ptr = (BYTE*)originalPtr;
+
+    memcpy(ptr, &header, headerSize);
+    ptr += headerSize;
 
     for (ULONG i = 1; i < UserDataCount; i++)
     {
@@ -38,24 +142,11 @@ ULONG __stdcall EventWriteMMF(
 
         memcpy(ptr, (void*)data.Ptr, data.Size);
         ptr += data.Size;
-        userDataSize += data.Size;
     }
 
-    memcpy(userDataPtr, &userDataSize, sizeof(userDataSize));
+    g_MMFQueue.Push({ recordSize, originalPtr });
 
-    DWORD tid = GetCurrentThreadId();
-
-    DWORD result = SignalObjectAndWait(
-        g_HasDataEvent,
-        g_WasProcessedEvent,
-        INFINITE,
-        FALSE
-    );
-
-    if (result == WAIT_FAILED)
-        return GetLastError();
-
-    return 0;
+    return ERROR_SUCCESS;
 }
 
 FORCEINLINE ULONG __stdcall EventWriteTransferImpl(
@@ -115,13 +206,28 @@ ULONG __stdcall EventRegisterMMF()
     if (g_pEventBuffer == NULL)
         return GetLastError();
 
-    ZeroMemory(g_pEventBuffer, 100000);
+    ZeroMemory(g_pEventBuffer, MMF_BUFFER_SIZE);
 
     g_HasDataEvent = CreateEvent(NULL, FALSE, FALSE, szHasDataEventName);
     g_WasProcessedEvent = CreateEvent(NULL, FALSE, FALSE, szWasProcessedEventName);
 
     if (g_HasDataEvent == NULL || g_WasProcessedEvent == NULL)
         return GetLastError();
+
+    g_hMMFThread = CreateThread(
+        NULL,
+        0,
+        MMFThreadProc,
+        NULL,
+        0,
+        NULL
+    );
+
+    if (g_hMMFThread == NULL)
+        return GetLastError();
+
+    //We won't get unregistered if the REGHANDLE hasn't been initialized!
+    DebugToolsProfilerHandle = 1;
 
     return ERROR_SUCCESS;
 }
@@ -144,6 +250,14 @@ FORCEINLINE ULONG __stdcall EventRegisterImpl(
 
 ULONG __stdcall EventUnregisterMMF()
 {
+    g_Stopping = TRUE;
+    g_MMFQueue.Stop();
+
+    //If we're waiting for the profiler UI to notify us we've been processed, break the wait,
+    //we're shutting down
+    if (g_WasProcessedEvent)
+        SetEvent(g_WasProcessedEvent);
+
     if (g_HasDataEvent)
         CloseHandle(g_HasDataEvent);
 
@@ -155,6 +269,9 @@ ULONG __stdcall EventUnregisterMMF()
 
     if (g_hFile)
         CloseHandle(g_hFile);
+
+    if (g_hMMFThread)
+        CloseHandle(g_hMMFThread);
 
     return ERROR_SUCCESS;
 }

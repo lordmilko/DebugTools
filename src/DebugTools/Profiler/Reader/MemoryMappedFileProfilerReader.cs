@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Diagnostics;
 using System.IO.MemoryMappedFiles;
+using System.Runtime.InteropServices;
 using System.Threading;
 using DebugTools.Tracing;
 using Microsoft.Diagnostics.Tracing;
@@ -53,7 +54,7 @@ namespace DebugTools.Profiler
             var ppid = Process.GetCurrentProcess().Id;
             var pid = LiveConfig.Process.Id;
 
-            mmf = MemoryMappedFile.CreateNew($"DebugToolsMemoryMappedFile_{ppid}_{pid}", 100000);
+            mmf = MemoryMappedFile.CreateNew($"DebugToolsMemoryMappedFile_{ppid}_{pid}", 1000000000);
             mma = mmf.CreateViewAccessor();
 
             hasDataEvent = new EventWaitHandle(false, EventResetMode.AutoReset, $"DebugToolsProfilerHasDataEvent_{ppid}_{pid}");
@@ -76,28 +77,38 @@ namespace DebugTools.Profiler
 
                 var pos = 0;
 
-                var eventType = mma.ReadUInt16(pos);
-                pos += 2;
-
-                var threadId = mma.ReadInt32(pos);
+                var numEntries = mma.ReadUInt32(pos);
                 pos += 4;
 
-                var userDataSize = mma.ReadInt32(pos);
-                pos += 4;
-
-                byte* blobPtr = default;
-                mma.SafeMemoryMappedViewHandle.AcquirePointer(ref blobPtr);
-                blobPtr += pos;
-
-                try
+                for (var i = 0; i < numEntries; i++)
                 {
-                    var data = FakeTraceEventProvider.GetEvent(eventType, threadId, userDataSize, blobPtr);
+                    var entrySize = mma.ReadUInt32(pos);
+                    pos += 4;
 
-                    DispatchEvent(eventType, data);
-                }
-                finally
-                {
-                    mma.SafeMemoryMappedViewHandle.ReleasePointer();
+                    //Both the C++ and C# header have trailing padding
+                    MMFEventHeader header;
+                    mma.Read(pos, out header);
+                    pos += Marshal.SizeOf<MMFEventHeader>();
+
+                    byte* blobPtr = default;
+                    mma.SafeMemoryMappedViewHandle.AcquirePointer(ref blobPtr);
+                    blobPtr += pos;
+
+                    try
+                    {
+                        var data = FakeTraceEventProvider.GetEvent(
+                            ref header,
+                            blobPtr
+                        );
+
+                        DispatchEvent(header.EventType, data);
+                    }
+                    finally
+                    {
+                        mma.SafeMemoryMappedViewHandle.ReleasePointer();
+                    }
+
+                    pos += header.UserDataSize;
                 }
 
                 wasProcessedEvent.Set();

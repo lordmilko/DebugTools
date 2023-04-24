@@ -50,6 +50,7 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)pch.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)Hooks\TailcallHook.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)Hooks\TailcallHookWithInfo.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)SafeQueue.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="$(MSBuildThisFileDirectory)CAssemblyInfo.cpp" />
