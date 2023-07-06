@@ -7,6 +7,7 @@ using ClrDebug;
 using DebugTools.Host;
 using DebugTools.Profiler;
 using DebugTools.SOS;
+using DebugTools.Ui;
 using Architecture = DebugTools.Host.Architecture;
 
 namespace DebugTools.PowerShell
@@ -18,6 +19,8 @@ namespace DebugTools.PowerShell
         internal static ProfilerSession GlobalProfilerSession { get; set; }
 
         internal static List<LocalSOSProcess> SOSProcesses = new List<LocalSOSProcess>();
+
+        internal static List<UiSession> UiSessions = new List<UiSession>();
 
         internal static (HostApp host, Process process) Hostx86;
         internal static (HostApp host, Process process) Hostx64;
@@ -79,6 +82,29 @@ namespace DebugTools.PowerShell
 
             if (SOSProcesses.Count > 0)
                 throw new InvalidOperationException($"Cannot execute cmdlet: no -Process was specified and all previous SOS Processes have now terminated.");
+
+            if (mandatory)
+                throw new InvalidOperationException($"Cannot execute cmdlet: no -Session was specified and no global Session could be found in the PowerShell session.");
+
+            return null;
+        }
+
+        internal static UiSession GetImplicitUiSession(bool mandatory = true)
+        {
+            //Check for alive
+
+            var processes = UiSessions.Where(i => !i.Process.HasExited).ToArray();
+
+            if (processes.Length == 1)
+                return processes[0];
+
+            if (processes.Length > 1)
+                throw new InvalidOperationException($"Cannot execute cmdlet: no -Process was specified and more than one Process belonging to active processes was found in the PowerShell session.");
+
+            //Check for dead
+
+            if (SOSProcesses.Count > 0)
+                throw new InvalidOperationException($"Cannot execute cmdlet: no -Process was specified and all previous UI Processes have now terminated.");
 
             if (mandatory)
                 throw new InvalidOperationException($"Cannot execute cmdlet: no -Session was specified and no global Session could be found in the PowerShell session.");

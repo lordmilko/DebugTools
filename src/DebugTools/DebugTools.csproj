@@ -12,6 +12,8 @@
 
     <PackageReference Include="envdte80" Version="$(EnvDTEVersion)" />
 
+    <PackageReference Include="FlaUI.UIA3" Version="$(FlaUIVersion)" />
+
     <PackageReference Include="Microsoft.Diagnostics.Runtime" Version="$(ClrMDVersion)" />
     <PackageReference Include="Microsoft.Diagnostics.Tracing.TraceEvent" Version="$(TraceEventVersion)">
       <IncludeAssets>all</IncludeAssets>

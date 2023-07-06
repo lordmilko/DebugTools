@@ -8,6 +8,12 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <EmbeddedResource Include="Resources\bullseye.cur" />
+    <EmbeddedResource Include="Resources\bullseyeWindow.ico" />
+    <EmbeddedResource Include="Resources\emptyWindow.ico" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\DebugTools\DebugTools.csproj" />
   </ItemGroup>
 
@@ -28,6 +34,23 @@
     <Reference Include="ClrDebug" Condition="Exists('$(LocalClrDebug)')">
       <HintPath>$(LocalClrDebug)</HintPath>
     </Reference>
+
+    <Reference Include="System.Windows.Forms" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Update="Resource.Designer.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>Resource.resx</DependentUpon>
+    </Compile>
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Update="Resource.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>Resource.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
   </ItemGroup>
 
   <ItemGroup>
