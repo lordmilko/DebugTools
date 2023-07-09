@@ -102,7 +102,7 @@ typedef struct MMFEventHeader {
     DWORD ThreadId;
     DWORD UserDataSize;
     USHORT EventType;
-};
+} MMFEventHeader;
 
 ULONG __stdcall EventWriteMMF(
     _In_ PCEVENT_DESCRIPTOR EventDescriptor,

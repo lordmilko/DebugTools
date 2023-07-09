@@ -33,6 +33,7 @@ namespace DebugTools.Host
 
             var waitHandle = new EventWaitHandle(false, EventResetMode.AutoReset, eventName);
 
+            //Wait for the IPC server to start (see RunIPCServer())
             waitHandle.WaitOne();
 
             var ipcClient = new IpcClient();

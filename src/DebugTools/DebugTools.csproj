@@ -8,6 +8,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Reference Include="Microsoft.CSharp" />
     <Reference Include="System.Runtime.Remoting" />
 
     <PackageReference Include="envdte80" Version="$(EnvDTEVersion)" />

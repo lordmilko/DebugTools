@@ -16,8 +16,8 @@ namespace Profiler.Tests
         private static string str = $@"<?xml version=""1.0"" encoding=""utf-8""?>
 <Root>
   <Methods>
-    <MethodInfoDetailed FunctionID=""8D83D1AC"" MethodName=""first"" TypeName=""Profiler.Tests.Methods"" ModulePath=""{ModulePath}"" Token=""600017F"" />
-    <MethodInfoDetailed FunctionID=""D0BE9278"" MethodName=""second"" TypeName=""Profiler.Tests.Methods"" ModulePath=""{ModulePath}"" Token=""6000180"" />
+    <MethodInfoDetailed FunctionID=""8D83D1AC"" MethodName=""first"" TypeName=""Profiler.Tests.Methods"" ModulePath=""{ModulePath}"" Token=""60001DA"" />
+    <MethodInfoDetailed FunctionID=""D0BE9278"" MethodName=""second"" TypeName=""Profiler.Tests.Methods"" ModulePath=""{ModulePath}"" Token=""60001DB"" />
   </Methods>
   <Frames>
     <RootFrame ThreadId=""1000"">

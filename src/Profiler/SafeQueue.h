@@ -71,7 +71,6 @@ private:
     std::queue<T> queue;
     std::mutex mutex;
     std::condition_variable condition;
-    bool stop;
 
     std::queue<T> m_Queue;
     std::mutex m_Mutex;

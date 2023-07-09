@@ -35,6 +35,8 @@
       <HintPath>$(LocalClrDebug)</HintPath>
     </Reference>
 
+    <Reference Include="Microsoft.CSharp" />
+
     <Reference Include="System.Management.Automation">
       <HintPath>C:\Program Files (x86)\Reference Assemblies\Microsoft\WindowsPowerShell\3.0\System.Management.Automation.dll</HintPath>
     </Reference>

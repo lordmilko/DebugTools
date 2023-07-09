@@ -56,6 +56,9 @@ namespace DebugTools.PowerShell.Cmdlets
 
         protected override void EndProcessing()
         {
+            if (Session == null)
+                return;
+
             var outputFrames = filter.GetSortedFilteredFrameRoots(CancellationToken);
 
             var methodFrameFormatter = new MethodFrameFormatter(ExcludeNamespace, IncludeSequence, IncludeModule);

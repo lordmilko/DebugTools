@@ -117,6 +117,7 @@ namespace DebugTools.Host
 
             var waitHandle = new EventWaitHandle(true, EventResetMode.AutoReset, eventName);
 
+            //After launching the server the client began waiting on an system wide event with the same name as this EventWaitHandle
             waitHandle.Set();
         }
 
