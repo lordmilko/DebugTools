@@ -1,5 +1,6 @@
 ﻿using System.Linq;
 using System.Management.Automation;
+using ClrDebug;
 using DebugTools.Ui;
 using FlaUI.Core.Definitions;
 
@@ -13,6 +14,10 @@ namespace DebugTools.PowerShell.Cmdlets
 
         [Parameter(Mandatory = false, Position = 0)]
         public string[] Name { get; set; }
+        
+        [Alias("hWnd")]
+        [Parameter(Mandatory = true, ParameterSetName = ParameterSet.Manual)]
+        public CORDB_ADDRESS Handle { get; set; }
 
         [Parameter(Mandatory = false)]
         public ControlType[] Type { get; set; }
@@ -22,6 +27,14 @@ namespace DebugTools.PowerShell.Cmdlets
 
         protected override void ProcessRecordEx()
         {
+            if (ParameterSetName == ParameterSet.Manual)
+            {
+                var element = Session.FromHandle(Handle);
+                WriteObject(element);
+
+                return;
+            }
+
             if (Parent == null)
                 Parent = Session.Root;
 

@@ -19,22 +19,10 @@ namespace DebugTools.PowerShell.Cmdlets
         {
             var process = GetProcess();
 
-            var existing = DebugToolsSessionState.UiSessions.FirstOrDefault(p => p.Process.Id == process.Id);
-
-            if (existing != null)
-            {
+            if (!DebugToolsSessionState.Services.TryCreate<LocalUiSession>(Process, false, out var service))
                 WriteWarning($"Cannot connect to process {process.Id}: process is already connected.");
 
-                WriteObject(existing);
-            }
-            else
-            {
-                var session = new UiSession(process);
-
-                DebugToolsSessionState.UiSessions.Add(session);
-
-                WriteObject(session);
-            }
+            WriteObject(service);
         }
 
         private Process GetProcess()

@@ -13,7 +13,7 @@
     <EnvDTEVersion>8.0.3</EnvDTEVersion>
     <ClrMDVersion>1.1.142101</ClrMDVersion>
     <TraceEventVersion>3.0.6</TraceEventVersion>
-    <ClrDebugVersion>0.2.1</ClrDebugVersion>
+    <ClrDebugVersion>0.3.0</ClrDebugVersion>
     <FlaUIVersion>4.0.0</FlaUIVersion>
 
     <BenchmarkDotNetVersion>0.13.4</BenchmarkDotNetVersion>

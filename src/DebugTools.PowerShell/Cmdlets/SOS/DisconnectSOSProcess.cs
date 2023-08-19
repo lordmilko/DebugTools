@@ -13,14 +13,11 @@ namespace DebugTools.PowerShell.Cmdlets
             var process = Process;
 
             if (process == null)
-                process = DebugToolsSessionState.GetImplicitSOSProcess(false);
+                process = DebugToolsSessionState.Services.GetImplicitService<LocalSOSProcess>(false);
 
             if (process != null)
             {
-                var host = DebugToolsSessionState.GetOptionalHost(process.Process);
-                host.RemoveSOSProcess(process);
-
-                DebugToolsSessionState.SOSProcesses.Remove(process);
+                DebugToolsSessionState.Services.Close(process.Process.Id, process);
             }
         }
     }

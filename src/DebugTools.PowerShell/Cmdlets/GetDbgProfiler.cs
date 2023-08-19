@@ -31,12 +31,14 @@ namespace DebugTools.PowerShell.Cmdlets
 
         protected override void ProcessRecord()
         {
-            IEnumerable<ProfilerSession> sessions = DebugToolsSessionState.ProfilerSessions;
+            IEnumerable<ProfilerSession> sessions = DebugToolsSessionState.Services.GetServices<ProfilerSession>();
 
             if (Global)
             {
-                if (DebugToolsSessionState.GlobalProfilerSession != null)
-                    WriteObject(DebugToolsSessionState.GlobalProfilerSession);
+                var global = DebugToolsSessionState.Services.GetOrCreateSpecial<ProfilerSession>(new CreateSpecialProfilerContext(ProfilerSessionType.Global, false, false));
+
+                if (global != null)
+                    WriteObject(global);
 
                 return;
             }

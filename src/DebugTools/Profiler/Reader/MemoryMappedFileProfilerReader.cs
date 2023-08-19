@@ -54,11 +54,11 @@ namespace DebugTools.Profiler
             var ppid = Process.GetCurrentProcess().Id;
             var pid = LiveConfig.Process.Id;
 
-            mmf = MemoryMappedFile.CreateNew($"DebugToolsMemoryMappedFile_{ppid}_{pid}", 1000000000);
+            mmf = MemoryMappedFile.CreateNew($"DebugToolsMemoryMappedFile_Profiler_{ppid}_{pid}", 1000000000);
             mma = mmf.CreateViewAccessor();
 
-            hasDataEvent = new EventWaitHandle(false, EventResetMode.AutoReset, $"DebugToolsProfilerHasDataEvent_{ppid}_{pid}");
-            wasProcessedEvent = new EventWaitHandle(false, EventResetMode.AutoReset, $"DebugToolsProfilerWasProcessedEvent_{ppid}_{pid}");
+            hasDataEvent = new EventWaitHandle(false, EventResetMode.AutoReset, $"DebugToolsProfilerHasDataEvent_Profiler_{ppid}_{pid}");
+            wasProcessedEvent = new EventWaitHandle(false, EventResetMode.AutoReset, $"DebugToolsProfilerWasProcessedEvent_Profiler_{ppid}_{pid}");
         }
 
         public void InitializeGlobal()
@@ -209,6 +209,7 @@ namespace DebugTools.Profiler
 
         public void Dispose()
         {
+            cts.Cancel();
             mma?.Dispose();
             mmf?.Dispose();
             hasDataEvent?.Dispose();

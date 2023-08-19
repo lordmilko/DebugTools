@@ -18,22 +18,21 @@ namespace DebugTools.PowerShell.Cmdlets
             var session = Session;
 
             if (Global)
-                session = DebugToolsSessionState.GlobalProfilerSession;
+                session = DebugToolsSessionState.Services.GetOrCreateSpecial<ProfilerSession>(new CreateSpecialProfilerContext(ProfilerSessionType.Global, false, false));
             else
             {
                 if (session == null)
-                    session = DebugToolsSessionState.GetImplicitProfilerSession(false);
+                    session = DebugToolsSessionState.Services.GetImplicitService<ProfilerSession>(false);
             }
 
             if (session != null)
             {
                 session.Status = ProfilerSessionStatus.Terminated;
 
-                session.Dispose();
-                DebugToolsSessionState.ProfilerSessions.Remove(session);
-
-                if (session == DebugToolsSessionState.GlobalProfilerSession)
-                    DebugToolsSessionState.GlobalProfilerSession = null;
+                DebugToolsSessionState.Services.Close(
+                    session.PID ?? -1,
+                    session
+                );
 
                 GC.Collect();
             }

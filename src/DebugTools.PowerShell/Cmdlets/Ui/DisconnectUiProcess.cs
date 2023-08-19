@@ -7,18 +7,15 @@ namespace DebugTools.PowerShell.Cmdlets
     public class DisconnectUiProcess : DebugToolsCmdlet
     {
         [Parameter(Mandatory = false, ValueFromPipeline = true)]
-        public UiSession Session { get; set; }
+        public LocalUiSession Session { get; set; }
 
         protected override void ProcessRecord()
         {
             if (Session == null)
-                Session = DebugToolsSessionState.GetImplicitUiSession(false);
+                Session = DebugToolsSessionState.Services.GetImplicitService<LocalUiSession>(false);
 
             if (Session != null)
-            {
-                DebugToolsSessionState.UiSessions.Remove(Session);
-                Session.Dispose();
-            }
+                DebugToolsSessionState.Services.Close(Session.Process.Id, Session);
         }
     }
 }

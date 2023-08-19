@@ -116,9 +116,14 @@ namespace DebugTools.PowerShell.Cmdlets
             var config = GetProfilerConfig(settings.ToArray());
 
             var session = new ProfilerSession(config);
-            DebugToolsSessionState.ProfilerSessions.Add(session);
 
             session.Start(CancellationToken);
+
+            //We must wait until after the session is started to actually have a PID
+            if (session.Type == ProfilerSessionType.XmlFile)
+                DebugToolsSessionState.Services.AddSpecial(session);
+            else
+                DebugToolsSessionState.Services.Add(session.PID.Value, session);
 
             if (TraceStart)
             {

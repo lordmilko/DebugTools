@@ -30,8 +30,6 @@ BOOL g_Stopping = FALSE;
 SafeQueue<MMFRecord> g_MMFQueue;
 HANDLE g_hMMFThread = NULL;
 
-std::mutex g_WriteMutex;
-
 #pragma region Write
 
 DWORD WINAPI MMFThreadProc
@@ -182,9 +180,9 @@ ULONG __stdcall EventRegisterMMF()
 
     DWORD pid = GetCurrentProcessId();
 
-    swprintf_s(szMapName, L"DebugToolsMemoryMappedFile_%s_%d", envBuffer, pid);
-    swprintf_s(szHasDataEventName, L"DebugToolsProfilerHasDataEvent_%s_%d", envBuffer, pid);
-    swprintf_s(szWasProcessedEventName, L"DebugToolsProfilerWasProcessedEvent_%s_%d", envBuffer, pid);
+    swprintf_s(szMapName, L"DebugToolsMemoryMappedFile_Profiler_%s_%d", envBuffer, pid);
+    swprintf_s(szHasDataEventName, L"DebugToolsProfilerHasDataEvent_Profiler_%s_%d", envBuffer, pid);
+    swprintf_s(szWasProcessedEventName, L"DebugToolsProfilerWasProcessedEvent_Profiler_%s_%d", envBuffer, pid);
 
     g_hFile = OpenFileMapping(
         FILE_MAP_READ | FILE_MAP_WRITE,

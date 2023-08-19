@@ -10,111 +10,76 @@ namespace DebugTools.Host
 {
     public partial class HostApp
     {
-        [Obsolete]
-        private Dictionary<SOSProcessHandle, Lazy<SOSProcess>> sosProcesses = new Dictionary<SOSProcessHandle, Lazy<SOSProcess>>();
-
-        public SOSProcessHandle CreateSOSProcess(int processId, bool lazy)
+        public DbgSessionHandle CreateSOSProcess(int processId, bool lazy)
         {
-            var process = Process.GetProcessById(processId);
-
-            Lazy<SOSProcess> value;
-
             //The .NET Unmanaged API does not appreciate it when you create unmanaged interfaces on one thread and consume them on another.
             //We get told our QueryInterface attempts fail. As such, for our unit tests we allow specifying that the SOSProcess should be
             //lazily created, so that all the interfaces are created on the PowerShell thread where they are consumed
-            if (lazy)
-                value = new Lazy<SOSProcess>(() => new SOSProcess(process));
-            else
-            {
-                var initial = new SOSProcess(process);
-                value = new Lazy<SOSProcess>(() => initial);
-            }
-
-            var handle = new SOSProcessHandle(processId);
-
-#pragma warning disable CS0612 // Type or member is obsolete
-            sosProcesses[handle] = value;
-#pragma warning restore CS0612 // Type or member is obsolete
-
-            return handle;
+            return sessionFactory.CreateService<SOSProcess>(processId, lazy);
         }
 
-        public void RemoveSOSProcess(SOSProcessHandle handle)
-        {
-#pragma warning disable 612
-            sosProcesses.Remove(handle);
-#pragma warning restore 612
-        }
+        private SOSProcess GetSOSProcess(DbgSessionHandle handle) =>
+            sessionFactory.GetService<SOSProcess>(handle.ProcessId);
 
-        private SOSProcess GetSOSProcess(SOSProcessHandle handle)
-        {
-#pragma warning disable 612
-            if (sosProcesses.TryGetValue(handle, out var process))
-                return process.Value;
-#pragma warning restore 612
-
-            throw new ArgumentException($"Cannot find SOSProcess with ProcessID {handle.ProcessId}.");
-        }
-
-        private SOSDacInterface GetSOS(SOSProcessHandle handle) => GetSOSProcess(handle).SOS;
+        private SOSDacInterface GetSOS(DbgSessionHandle handle) => GetSOSProcess(handle).SOS;
 
         #region GetSOSAppDomain
 
-        public SOSAppDomain GetSOSAppDomain(SOSProcessHandle handle, CLRDATA_ADDRESS address) =>
+        public SOSAppDomain GetSOSAppDomain(DbgSessionHandle handle, CLRDATA_ADDRESS address) =>
             SOSAppDomain.GetAppDomain(address, GetSOS(handle));
 
-        public SOSAppDomain[] GetSOSAppDomains(SOSProcessHandle handle) =>
+        public SOSAppDomain[] GetSOSAppDomains(DbgSessionHandle handle) =>
             SOSAppDomain.GetAppDomains(GetSOS(handle));
 
         #endregion
         #region GetSOSAssembly
 
-        public SOSAssembly GetSOSAssembly(SOSProcessHandle handle, CLRDATA_ADDRESS address) =>
+        public SOSAssembly GetSOSAssembly(DbgSessionHandle handle, CLRDATA_ADDRESS address) =>
             SOSAssembly.GetAssembly(address, GetSOS(handle));
 
-        public SOSAssembly[] GetSOSAssemblies(SOSProcessHandle handle, SOSAppDomain appDomain) =>
+        public SOSAssembly[] GetSOSAssemblies(DbgSessionHandle handle, SOSAppDomain appDomain) =>
             SOSAssembly.GetAssemblies(appDomain, GetSOS(handle));
 
         #endregion
         #region GetSOSFieldDesc
 
-        public SOSFieldDesc GetSOSFieldDesc(SOSProcessHandle handle, CLRDATA_ADDRESS address) =>
+        public SOSFieldDesc GetSOSFieldDesc(DbgSessionHandle handle, CLRDATA_ADDRESS address) =>
             SOSFieldDesc.GetFieldDesc(address, GetSOS(handle));
 
-        public SOSFieldDesc[] GetSOSFieldDescs(SOSProcessHandle handle, SOSMethodTable methodTable) =>
+        public SOSFieldDesc[] GetSOSFieldDescs(DbgSessionHandle handle, SOSMethodTable methodTable) =>
             SOSFieldDesc.GetFieldDescs(methodTable, GetSOS(handle));
 
         #endregion
         #region GetSOSMethodDesc
 
-        public SOSMethodDesc GetSOSMethodDesc(SOSProcessHandle handle, CLRDATA_ADDRESS address) =>
+        public SOSMethodDesc GetSOSMethodDesc(DbgSessionHandle handle, CLRDATA_ADDRESS address) =>
             SOSMethodDesc.GetMethodDesc(address, GetSOS(handle));
 
-        public SOSMethodDesc[] GetSOSMethodDescs(SOSProcessHandle handle, SOSMethodTable methodTable) =>
+        public SOSMethodDesc[] GetSOSMethodDescs(DbgSessionHandle handle, SOSMethodTable methodTable) =>
             SOSMethodDesc.GetMethodDescs(methodTable, GetSOS(handle));
 
         #endregion
         #region GetSOSMethodTable
 
-        public SOSMethodTable GetSOSMethodTable(SOSProcessHandle handle, CLRDATA_ADDRESS address) =>
+        public SOSMethodTable GetSOSMethodTable(DbgSessionHandle handle, CLRDATA_ADDRESS address) =>
             SOSMethodTable.GetMethodTable(address, GetSOS(handle));
 
-        public SOSMethodTable[] GetSOSMethodTables(SOSProcessHandle handle, SOSModule module) =>
+        public SOSMethodTable[] GetSOSMethodTables(DbgSessionHandle handle, SOSModule module) =>
             SOSMethodTable.GetMethodTables(module, GetSOS(handle));
 
         #endregion
         #region GetSOSModule
 
-        public SOSModule GetSOSModule(SOSProcessHandle handle, CLRDATA_ADDRESS address) =>
+        public SOSModule GetSOSModule(DbgSessionHandle handle, CLRDATA_ADDRESS address) =>
             SOSModule.GetModule(address, GetSOS(handle));
 
-        public SOSModule[] GetSOSModules(SOSProcessHandle handle, SOSAssembly assembly) =>
+        public SOSModule[] GetSOSModules(DbgSessionHandle handle, SOSAssembly assembly) =>
             SOSModule.GetModules(assembly, GetSOS(handle));
 
         #endregion
         #region GetSOSThreads
 
-        public SOSThreadInfo[] GetSOSThreads(SOSProcessHandle handle)
+        public SOSThreadInfo[] GetSOSThreads(DbgSessionHandle handle)
         {
             var sos = GetSOS(handle);
 
@@ -139,7 +104,7 @@ namespace DebugTools.Host
         #endregion
         #region Flush
 
-        public void Flush(SOSProcessHandle handle)
+        public void Flush(DbgSessionHandle handle)
         {
             var sosProcess = GetSOSProcess(handle);
 
@@ -149,7 +114,7 @@ namespace DebugTools.Host
         #endregion
         #region GetSOSStackTrace
 
-        public object GetSOSStackTrace(SOSProcessHandle handle, int threadId)
+        public object GetSOSStackTrace(DbgSessionHandle handle, int threadId)
         {
             var sosProcess = GetSOSProcess(handle);
             var sos = sosProcess.SOS;
@@ -246,7 +211,7 @@ namespace DebugTools.Host
         #endregion
         #region
 
-        public MethodTable GetRawMethodTable(SOSProcessHandle handle, CLRDATA_ADDRESS address)
+        public MethodTable GetRawMethodTable(DbgSessionHandle handle, CLRDATA_ADDRESS address)
         {
             var dataTarget = GetSOSProcess(handle).DataTarget;
 
@@ -255,7 +220,7 @@ namespace DebugTools.Host
             return result;
         }
 
-        public unsafe MethodDesc GetRawMethodDesc(SOSProcessHandle handle, CLRDATA_ADDRESS address)
+        public unsafe MethodDesc GetRawMethodDesc(DbgSessionHandle handle, CLRDATA_ADDRESS address)
         {
             var dataTarget = GetSOSProcess(handle).DataTarget;
 

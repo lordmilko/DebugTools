@@ -12,6 +12,8 @@ namespace DebugTools.Profiler
     {
         public static readonly string Profilerx86;
         public static readonly string Profilerx64;
+        public static readonly string Nativex86;
+        public static readonly string Nativex64;
         public static readonly string DebugHostx86;
         public static readonly string DebugHostx64;
         public static readonly string TestHost;
@@ -31,9 +33,12 @@ namespace DebugTools.Profiler
             InstallationRoot = Path.GetDirectoryName(rootStr);
 
             var profilerName = "Profiler.{0}.dll";
+            var nativeName = "DebugTools.Native.{0}.dll";
 
             Profilerx86 = Path.Combine(InstallationRoot, "x86", string.Format(profilerName, "x86"));
             Profilerx64 = Path.Combine(InstallationRoot, "x64", string.Format(profilerName, "x64"));
+            Nativex86 = Path.Combine(InstallationRoot, "x86", string.Format(nativeName, "x86"));
+            Nativex64 = Path.Combine(InstallationRoot, "x64", string.Format(nativeName, "x64"));
             DebugHostx86 = Path.Combine(InstallationRoot, string.Format(DebugHostName, "x86"));
             DebugHostx64 = Path.Combine(InstallationRoot, string.Format(DebugHostName, "x64"));
 
@@ -42,6 +47,8 @@ namespace DebugTools.Profiler
                 //Maybe it's a unit test; look inside the DebugTools folder instead
                 Profilerx86 = Path.Combine(InstallationRoot, "DebugTools", "x86", string.Format(profilerName, "x86"));
                 Profilerx64 = Path.Combine(InstallationRoot, "DebugTools", "x64", string.Format(profilerName, "x64"));
+                Nativex86 = Path.Combine(InstallationRoot, "DebugTools", "x86", string.Format(nativeName, "x86"));
+                Nativex64 = Path.Combine(InstallationRoot, "DebugTools", "x64", string.Format(nativeName, "x64"));
                 DebugHostx86 = Path.Combine(InstallationRoot, "DebugTools", string.Format(DebugHostName, "x86"));
                 DebugHostx64 = Path.Combine(InstallationRoot, "DebugTools", string.Format(DebugHostName, "x64"));
             }
@@ -54,6 +61,15 @@ namespace DebugTools.Profiler
 
             if (Profilerx86 == null && Profilerx64 == null)
                 throw new InvalidOperationException("No profiler DLLs could be found.");
+
+            if (!File.Exists(Nativex86))
+                Nativex86 = null;
+
+            if (!File.Exists(Nativex64))
+                Nativex64 = null;
+
+            if (Nativex86 == null && Nativex64 == null)
+                throw new InvalidOperationException("No native DLLs could be found.");
 
             TestHost = Path.Combine(InstallationRoot, "DebugTools.TestHost.exe");
         }

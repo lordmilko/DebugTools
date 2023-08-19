@@ -8,7 +8,6 @@ using System.Runtime.Remoting.Channels.Ipc;
 using System.Runtime.Serialization.Formatters;
 using System.Text.RegularExpressions;
 using System.Threading;
-using DebugTools.SOS;
 using Microsoft.Diagnostics.Runtime;
 using DataTarget = Microsoft.Diagnostics.Runtime.DataTarget;
 
@@ -16,7 +15,9 @@ namespace DebugTools.Host
 {
     public partial class HostApp : MarshalByRefObject
     {
-        private Dictionary<int, SymbolManager> symbolManagerCache = new Dictionary<int, SymbolManager>();
+        private RemoteDbgSessionProviderFactory sessionFactory = new RemoteDbgSessionProviderFactory();
+
+        public void DisposeService(DbgSessionHandle handle, DbgServiceType type) => sessionFactory.DisposeService(handle, type);
 
         static HostApp()
         {
@@ -138,7 +139,7 @@ namespace DebugTools.Host
 
                 var results = new List<DbgVtblSymbolInfo>();
 
-                var symbolManager = GetSymbolManager(process);
+                var symbolManager = sessionFactory.GetOrCreateService<SymbolManager>(process);
 
                 foreach (var rcw in rcws)
                 {
@@ -161,18 +162,6 @@ namespace DebugTools.Host
 
                 return results.ToArray();
             });
-        }
-
-        private SymbolManager GetSymbolManager(Process process)
-        {
-            if (!symbolManagerCache.TryGetValue(process.Id, out var manager))
-            {
-                manager = new SymbolManager(process);
-
-                symbolManagerCache[process.Id] = manager;
-            }
-
-            return manager;
         }
 
         private T WithClrMD<T>(Process process, Func<ClrRuntime, T> func)

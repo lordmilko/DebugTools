@@ -21,26 +21,10 @@ namespace DebugTools.PowerShell.Cmdlets
         {
             var process = GetProcess();
 
-            var existing = DebugToolsSessionState.SOSProcesses.FirstOrDefault(p => p.Process.Id == process.Id);
-
-            if (existing != null)
-            {
+            if (!DebugToolsSessionState.Services.TryCreate<LocalSOSProcess>(process, Dbg, out var service))
                 WriteWarning($"Cannot connect to process {process.Id}: process is already connected.");
 
-                WriteObject(existing);
-            }
-            else
-            {
-                var hostApp = DebugToolsSessionState.GetDetectedHost(process, Dbg);
-
-                var handle = hostApp.CreateSOSProcess(process.Id, false);
-
-                var sosProcess = new LocalSOSProcess(handle);
-
-                DebugToolsSessionState.SOSProcesses.Add(sosProcess);
-
-                WriteObject(sosProcess);
-            }
+            WriteObject(service);
         }
 
         private Process GetProcess()

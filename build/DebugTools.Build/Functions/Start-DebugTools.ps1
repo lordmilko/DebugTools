@@ -52,12 +52,7 @@ function GetModulePath($configuration)
 
     $bin = Join-PathEx $root artifacts bin
 
-    $targetFolder = CalculateTargetFolder
+    $targetFolder = Join-Path $bin $configuration
 
     return $targetFolder
-}
-
-function CalculateTargetFolder
-{
-    return Join-Path $bin $configuration
 }

@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Diagnostics;
-using DebugTools.PowerShell;
+using DebugTools;
 using DebugTools.Profiler;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -65,6 +65,7 @@ namespace Profiler.Tests
 
         private static object objLock = new object();
         private static LocalSOSProcess cachedSOSProcess;
+        private static LocalDbgSessionStore store = new LocalDbgSessionStore();
 
         private LocalSOSProcess AcquireSOSProcess()
         {
@@ -74,10 +75,10 @@ namespace Profiler.Tests
                 {
                     //CreateSOSProcess will store the process in a dictionary for lookup later on
                     var process = Process.GetCurrentProcess();
-                    var hostApp = DebugToolsSessionState.GetDetectedHost(process);
+                    var hostApp = store.GetDetectedHost(process);
                     var handle = hostApp.CreateSOSProcess(process.Id, true);
 
-                    var sosProcess = new LocalSOSProcess(handle);
+                    var sosProcess = new LocalSOSProcess(handle, hostApp);
 
                     cachedSOSProcess = sosProcess;
                 }

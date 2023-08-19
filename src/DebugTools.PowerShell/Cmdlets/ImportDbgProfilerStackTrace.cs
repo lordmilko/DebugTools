@@ -43,15 +43,15 @@ namespace DebugTools.PowerShell.Cmdlets
 
                 session.LastTrace = threads.ToArray();
 
-                var existing = DebugToolsSessionState.ProfilerSessions.Select((v, i) => new { v.Name, i }).LastOrDefault(v => v.Name == Path);
+                var existing = DebugToolsSessionState.Services.GetServices<ProfilerSession>().LastOrDefault(v => v.Name == Path);
 
                 if (existing != null)
                 {
                     WriteWarning($"Overwriting existing session '{existing.Name}'.");
-                    DebugToolsSessionState.ProfilerSessions[existing.i] = session;
+                    DebugToolsSessionState.Services.ReplaceSpecial(existing, session);
                 }
                 else
-                    DebugToolsSessionState.ProfilerSessions.Add(session);
+                    DebugToolsSessionState.Services.AddSpecial(session);
 
                 WriteObject(session);
             }

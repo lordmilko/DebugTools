@@ -16,7 +16,7 @@ namespace DebugTools.PowerShell.Cmdlets
 
         protected Either<string, CLRDATA_ADDRESS>[] nameOrAddress;
 
-        protected HostApp HostApp { get; private set; }
+        protected HostApp HostApp => Process.HostApp;
 
         [Parameter(Mandatory = false)]
         public SwitchParameter Dbg { get; set; }
@@ -74,31 +74,7 @@ namespace DebugTools.PowerShell.Cmdlets
             FixupNameOrAddress();
 
             if (Process == null)
-            {
-                if (DebugToolsSessionState.SOSProcesses.Count == 0 && DebugToolsSessionState.ProfilerSessions.Count > 0)
-                {
-                    var session = DebugToolsSessionState.GetImplicitProfilerSession();
-
-                    if (session.Type == ProfilerSessionType.XmlFile)
-                        throw new InvalidOperationException($"Cannot execute cmdlet: no -Session was specified and no global Session could be found in the PowerShell session.");
-
-                    var process = ((LiveProfilerTarget) session.Target).Process;
-
-                    HostApp = DebugToolsSessionState.GetDetectedHost(process, Dbg);
-
-                    Process = new LocalSOSProcess(HostApp.CreateSOSProcess(process.Id, false));
-                }
-                else
-                {
-                    Process = DebugToolsSessionState.GetImplicitSOSProcess();
-
-                    HostApp = DebugToolsSessionState.GetDetectedHost(Process.Process, Dbg);
-                }
-            }
-            else
-            {
-                HostApp = DebugToolsSessionState.GetDetectedHost(Process.Process, Dbg);
-            }
+                Process = DebugToolsSessionState.Services.GetImplicitOrFallbackService<LocalSOSProcess>();
 
             ProcessRecordEx();
         }

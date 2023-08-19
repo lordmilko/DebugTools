@@ -6,12 +6,12 @@ namespace DebugTools.PowerShell.Cmdlets
     public abstract class UiCmdlet : DebugToolsCmdlet
     {
         [Parameter(Mandatory = false, ValueFromPipeline = true)]
-        public UiSession Session { get; set; }
+        public LocalUiSession Session { get; set; }
 
         protected override void ProcessRecord()
         {
             if (Session == null)
-                Session = DebugToolsSessionState.GetImplicitUiSession();
+                Session = DebugToolsSessionState.Services.GetImplicitService<LocalUiSession>();
 
             ProcessRecordEx();
         }
