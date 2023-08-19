@@ -5,6 +5,8 @@ using ClrDebug;
 
 namespace DebugTools
 {
+    public delegate IntPtr HOOKPROC(int code, IntPtr wParam, IntPtr lParam);
+
     public delegate bool ConsoleCtrlHandlerRoutine(int controlType);
 
     public delegate bool WNDENUMPROC(IntPtr hwnd, IntPtr lParam);
@@ -239,11 +241,28 @@ namespace DebugTools
         [DllImport(user32, SetLastError = true)]
         public static extern IntPtr SetCapture(IntPtr hWnd);
 
+        [DllImport(user32, SetLastError = true)]
+        public static extern IntPtr SendMessageW(
+            IntPtr hWnd,
+            WM Msg,
+            IntPtr wParam,
+            IntPtr lParam);
+
         [DllImport(user32)]
         public static extern IntPtr SetThreadDpiAwarenessContext(IntPtr dpiContext);
 
         [DllImport(user32, SetLastError = true)]
+        public static extern IntPtr SetWindowsHookEx(
+            HookType idHook,
+            [MarshalAs(UnmanagedType.FunctionPtr)] HOOKPROC lpfn,
+            IntPtr hmod,
+            int dwThreadId);
+
+        [DllImport(user32, SetLastError = true)]
         public static extern bool SetWindowPos(IntPtr hWnd, IntPtr hWndInsertAfter, int X, int Y, int cx, int cy, SetWindowPosFlags uFlags);
+
+        [DllImport(user32, SetLastError = true)]
+        public static extern bool UnhookWindowsHookEx(IntPtr hhk);
 
         [DllImport(user32, SetLastError = true)]
         public static extern IntPtr WindowFromPoint(POINT point);

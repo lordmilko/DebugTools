@@ -6,7 +6,6 @@ using System.Runtime.InteropServices.ComTypes;
 using System.Threading;
 using System.Threading.Tasks;
 using ClrDebug;
-using DebugTools.PowerShell;
 
 namespace DebugTools
 {

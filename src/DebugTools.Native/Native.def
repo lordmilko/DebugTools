@@ -1,0 +1,4 @@
+LIBRARY
+EXPORTS
+    WndProcHook PRIVATE
+    WndProcRetHook PRIVATE

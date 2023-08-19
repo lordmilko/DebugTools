@@ -1,4 +1,5 @@
-﻿using FlaUI.Core.Definitions;
+﻿using System;
+using FlaUI.Core.Definitions;
 
 namespace DebugTools.Ui
 {
@@ -11,5 +12,7 @@ namespace DebugTools.Ui
         IUiElement Parent { get; }
 
         IUiElement[] Children { get; }
+
+        IntPtr Handle { get; }
     }
 }

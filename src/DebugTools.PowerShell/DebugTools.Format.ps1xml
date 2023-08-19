@@ -381,5 +381,42 @@
                 </TableRowEntries>
             </TableControl>
         </View>
+        <View>
+            <Name>Default</Name>
+            <ViewSelectedBy>
+                <TypeName>DebugTools.Ui.WindowMessage</TypeName>
+            </ViewSelectedBy>
+            <TableControl>
+                <TableHeaders>
+                    <TableColumnHeader> <!-- hWnd -->
+                        <Label>Window</Label>
+                        <Width>30</Width>
+                    </TableColumnHeader>
+                    <TableColumnHeader/> <!-- Message -->
+                    <TableColumnHeader/> <!-- wParam -->
+                    <TableColumnHeader/> <!-- lParam -->
+                </TableHeaders>
+                <TableRowEntries>
+                    <TableRowEntry>
+                        <TableColumnItems>
+                            <TableColumnItem>
+                                <ScriptBlock>
+                                    "[$($_.Window.ControlType)] $($_.Window.Name)"
+                                </ScriptBlock>
+                            </TableColumnItem>
+                            <TableColumnItem>
+                                <PropertyName>Message</PropertyName>
+                            </TableColumnItem>
+                            <TableColumnItem>
+                                <PropertyName>wParam</PropertyName>
+                            </TableColumnItem>
+                            <TableColumnItem>
+                                <PropertyName>lParam</PropertyName>
+                            </TableColumnItem>
+                        </TableColumnItems>
+                    </TableRowEntry>
+                </TableRowEntries>
+            </TableControl>
+        </View>
     </ViewDefinitions>
 </Configuration>

@@ -29,8 +29,8 @@ namespace DebugTools.Dynamic
             {
                 var arr = (object[])value;
 
-                for (var i = 0; i < arr.Length; i++)
-                    return IsSerializable(arr[i], seenTypes);
+                foreach (var item in arr)
+                    return IsSerializable(item, seenTypes);
             }
 
             //type.GetElementType() doesn't work for System.Array. Don't know how to get the underlying type,

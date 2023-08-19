@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace DebugTools.PowerShell
+namespace DebugTools
 {
     /// <summary>
     /// Allows performing out-of-proc COM over RPC calls without experiencing exceptions.<para/>
