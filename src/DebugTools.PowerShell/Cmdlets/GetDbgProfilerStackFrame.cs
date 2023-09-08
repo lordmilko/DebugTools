@@ -15,6 +15,9 @@ namespace DebugTools.PowerShell.Cmdlets
         [Parameter(Mandatory = false)]
         public SwitchParameter Roots { get; set; }
 
+        [Parameter(Mandatory = false)]
+        public SwitchParameter MethodInfo { get; set; }
+
         private FrameFilterer filter;
 
         protected override void BeginProcessing()
@@ -41,7 +44,13 @@ namespace DebugTools.PowerShell.Cmdlets
                         continue;
                 }
 
-                WriteObject(item);
+                if (MethodInfo)
+                {
+                    if (item is IMethodFrame m)
+                        WriteObject(m.MethodInfo);
+                }
+                else
+                    WriteObject(item);
             }
         }
 

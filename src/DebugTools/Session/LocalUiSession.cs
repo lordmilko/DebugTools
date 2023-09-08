@@ -7,7 +7,7 @@ using FlaUI.UIA3;
 
 namespace DebugTools.Ui
 {
-    public class LocalUiSession : IDisposable
+    public class LocalUiSession : IHostAppSession, IDisposable
     {
         public Process Process { get; }
 
@@ -36,6 +36,8 @@ namespace DebugTools.Ui
 
         private Func<bool, HostApp> hostAppFactory;
         private HostApp hostApp;
+
+        HostApp IHostAppSession.HostApp => hostApp;
 
         public HostApp GetOrCreateHostApp(bool needDebug)
         {

@@ -1,8 +1,7 @@
 ﻿using System;
 using System.Diagnostics;
-using DebugTools.Ui;
 
-namespace DebugTools.Host
+namespace DebugTools.Ui
 {
     class UiMessageSession : IDisposable
     {

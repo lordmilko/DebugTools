@@ -95,18 +95,24 @@ namespace DebugTools
                 {
                     session.Close(service);
 
-                    var host = GetOptionalHostInfo(Process.GetProcessById(processId));
-
-                    if (host != null)
+                    if (service is IHostAppSession c)
                     {
-                        host.Host.DisposeService(new DbgSessionHandle(processId), serviceType);
-                        
-                        if (host.Release(processId))
+                        var host = c.HostApp;
+
+                        if (host != null)
                         {
-                            if (ReferenceEquals(Hostx86, host))
-                                Hostx86 = null;
-                            else
-                                Hostx64 = null;
+                            host.DisposeService(new DbgSessionHandle(processId), serviceType);
+
+                            if (ReferenceEquals(Hostx86?.Host, host))
+                            {
+                                if (Hostx86.Release(processId))
+                                    Hostx86 = null;
+                            }
+                            else if (ReferenceEquals(Hostx64?.Host, host))
+                            {
+                                if (Hostx64.Release(processId))
+                                    Hostx64 = null;
+                            }
                         }
                     }
                 }

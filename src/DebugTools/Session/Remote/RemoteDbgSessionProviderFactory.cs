@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using DebugTools.Host;
 using DebugTools.SOS;
+using DebugTools.Ui;
 
 namespace DebugTools
 {

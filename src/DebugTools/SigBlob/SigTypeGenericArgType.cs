@@ -3,7 +3,7 @@
 namespace DebugTools
 {
     /// <summary>
-    /// Represents a generic parameter on a member that is part of a generic type. e.g. class Foo<T> { void Bar(T t) {} }. The type is in fact represented as a number.
+    /// Represents a generic parameter on a member that is part of a generic type. e.g. class Foo&lt;T&gt; { void Bar(T t) {} }. The type is in fact represented as a number.
     /// </summary>
     class SigTypeGenericArgType : SigType
     {

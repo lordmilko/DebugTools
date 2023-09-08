@@ -156,7 +156,7 @@ namespace DebugTools.PE
         public ulong SizeOfHeapCommit { get; }
 
         /// <summary>
-        /// The number of data-directory entries in the remainder of the <see cref="PEHeader"/>. Each describes a location and size.
+        /// The number of data-directory entries in the remainder of the <see cref="ImageOptionalHeader"/>. Each describes a location and size.
         /// </summary>
         public int NumberOfRvaAndSizes { get; }
 

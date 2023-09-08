@@ -3,7 +3,7 @@ using DebugTools.Host;
 
 namespace DebugTools
 {
-    public class LocalSOSProcess
+    public class LocalSOSProcess : IHostAppSession
     {
         public Process Process { get; }
 
