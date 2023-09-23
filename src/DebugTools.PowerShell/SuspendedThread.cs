@@ -1,5 +1,5 @@
 ﻿using System;
-using System.Runtime.InteropServices;
+using ChaosLib;
 
 namespace DebugTools.PowerShell
 {
@@ -11,13 +11,7 @@ namespace DebugTools.PowerShell
         {
             var hThread = Kernel32.OpenThread(ThreadAccess.SUSPEND_RESUME, false, threadId);
 
-            if (hThread == IntPtr.Zero)
-                Marshal.ThrowExceptionForHR(Marshal.GetHRForLastWin32Error());
-
-            var result = Kernel32.SuspendThread(hThread);
-
-            if (result == -1)
-                Marshal.ThrowExceptionForHR(Marshal.GetHRForLastWin32Error());
+            Kernel32.SuspendThread(hThread);
 
             this.hThread = hThread;
         }
@@ -25,12 +19,7 @@ namespace DebugTools.PowerShell
         public void Dispose()
         {
             if (hThread != IntPtr.Zero)
-            {
-                var result = Kernel32.ResumeThread(hThread);
-
-                if (result == -1)
-                    Marshal.ThrowExceptionForHR(Marshal.GetHRForLastWin32Error());
-            }
+                Kernel32.ResumeThread(hThread);
         }
     }
 }

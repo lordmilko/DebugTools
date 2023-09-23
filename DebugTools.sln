@@ -43,6 +43,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Profiler.Benchmarks", "src\
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "build", "build", "{BDCBABF3-5EAF-44F7-AF07-463C26D55CD5}"
 	ProjectSection(SolutionItems) = preProject
+		build\ChaosLib.props = build\ChaosLib.props
+		build\ClrDebug.props = build\ClrDebug.props
 		build\NuGet.props = build\NuGet.props
 		build\Version.props = build\Version.props
 	EndProjectSection

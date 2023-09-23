@@ -1,7 +1,5 @@
-﻿using System;
-using System.Diagnostics;
-using System.Runtime.InteropServices;
-using ClrDebug;
+﻿using System.Diagnostics;
+using ChaosLib;
 using DebugTools.Host;
 using Architecture = DebugTools.Host.Architecture;
 
@@ -17,8 +15,7 @@ namespace DebugTools
 
         private HostInfo GetOptionalHostInfo(Process targetProcess)
         {
-            if (!Kernel32.IsWow64Process(targetProcess.Handle, out var isWow64))
-                throw new InvalidOperationException($"Failed to query {nameof(Kernel32.IsWow64Process)}: {(HRESULT)Marshal.GetHRForLastWin32Error()}");
+            var isWow64 = Kernel32.IsWow64Process(targetProcess.Handle);
 
             if (isWow64)
             {
@@ -43,8 +40,7 @@ namespace DebugTools
 
         internal HostInfo GetDetectedHostInfo(Process targetProcess, bool needDebug = false)
         {
-            if (!Kernel32.IsWow64Process(targetProcess.Handle, out var isWow64))
-                throw new InvalidOperationException($"Failed to query {nameof(Kernel32.IsWow64Process)}: {(HRESULT)Marshal.GetHRForLastWin32Error()}");
+            var isWow64 = Kernel32.IsWow64Process(targetProcess.Handle);
 
             if (isWow64)
             {
@@ -83,7 +79,7 @@ namespace DebugTools
             if (!needDebug || host.Host.IsDebuggerAttached || Process.GetCurrentProcess().Id == host.Process.Id)
                 return;
 
-            VsDebugger.Attach(host.Process, "Managed");
+            VsDebugger.Attach(host.Process, VsDebuggerType.Managed);
             host.Host.IsDebuggerAttached = true;
         }
 

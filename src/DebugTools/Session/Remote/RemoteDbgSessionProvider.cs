@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Diagnostics;
+using ChaosLib;
 
 namespace DebugTools
 {
@@ -58,7 +59,7 @@ namespace DebugTools
                 service = CreateServiceInternal(process);
 
                 if (debugTarget)
-                    VsDebugger.Attach(process);
+                    VsDebugger.Attach(process, VsDebuggerType.Native);
             }
 
             session[ServiceType] = service;

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Runtime.InteropServices;
+using ChaosLib;
 using ClrDebug;
 using Microsoft.Diagnostics.Runtime;
 

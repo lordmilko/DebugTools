@@ -1,5 +1,8 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
+  <Import Project="$(Build)ClrDebug.props" />
+  <Import Project="$(Build)ChaosLib.props" />
+  
   <PropertyGroup>
     <TargetFramework>net472</TargetFramework>
       <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
@@ -20,16 +23,6 @@
       <IncludeAssets>all</IncludeAssets>
       <ExcludeAssets>build;buildTransitive</ExcludeAssets>
     </PackageReference>
-  </ItemGroup>
-
-  <ItemGroup>
-    <!-- If ClrDebug has been cloned to the parent directory containing both ClrDebug and DebugTools,
-         prefer the local version for development purposes -->
-    <PackageReference Include="ClrDebug" Version="$(ClrDebugVersion)" Condition="!Exists('$(LocalClrDebug)')" />
-
-    <Reference Include="ClrDebug" Condition="Exists('$(LocalClrDebug)')">
-      <HintPath>$(LocalClrDebug)</HintPath>
-    </Reference>
   </ItemGroup>
 
 </Project>

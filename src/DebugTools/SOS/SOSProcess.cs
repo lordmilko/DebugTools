@@ -3,6 +3,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
+using ChaosLib;
 using ClrDebug;
 using DebugTools.Memory;
 using static ClrDebug.Extensions;
@@ -61,13 +62,7 @@ namespace DebugTools.SOS
 
             var dacLib = Kernel32.LoadLibrary(dacPath);
 
-            if (dacLib == IntPtr.Zero)
-                throw new InvalidOperationException($"Failed to load DAC library '{dacPath}': {(HRESULT)Marshal.GetHRForLastWin32Error()}");
-
             var clrDataCreateInstancePtr = Kernel32.GetProcAddress(dacLib, "CLRDataCreateInstance");
-
-            if (clrDataCreateInstancePtr == IntPtr.Zero)
-                throw new InvalidOperationException($"Failed to find function 'CLRDataCreateInstance': {(HRESULT)Marshal.GetHRForLastWin32Error()}");
 
             var clrDataCreateInstanceDelegate = Marshal.GetDelegateForFunctionPointer<CLRDataCreateInstanceDelegate>(clrDataCreateInstancePtr);
 

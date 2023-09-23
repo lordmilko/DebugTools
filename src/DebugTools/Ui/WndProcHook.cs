@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
+using ChaosLib;
 using DebugTools.Profiler;
 
 namespace DebugTools.Ui
@@ -21,18 +22,8 @@ namespace DebugTools.Ui
             else
                 nativeLib = Kernel32.LoadLibrary(ProfilerInfo.Nativex64);
 
-            if (nativeLib == IntPtr.Zero)
-                throw new InvalidOperationException($"Failed to load DebugTools.Native: {Marshal.GetExceptionForHR(Marshal.GetHRForLastWin32Error()).Message}");
-
             wndProcHook = Kernel32.GetProcAddress(nativeLib, "WndProcHook");
-
-            if (wndProcHook == IntPtr.Zero)
-                throw new InvalidOperationException($"Failed to get address of WndProcHook: {Marshal.GetExceptionForHR(Marshal.GetHRForLastWin32Error()).Message}");
-
             wndProcRetHook = Kernel32.GetProcAddress(nativeLib, "WndProcRetHook");
-
-            if (wndProcRetHook == IntPtr.Zero)
-                throw new InvalidOperationException($"Failed to get address of WndProcRetHook: {Marshal.GetExceptionForHR(Marshal.GetHRForLastWin32Error()).Message}");
         }
 
         public WndProcHook(Process process)

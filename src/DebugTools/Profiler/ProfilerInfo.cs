@@ -5,6 +5,8 @@ using System.Diagnostics;
 using System.IO;
 using System.Runtime.InteropServices;
 using System.Text;
+using ChaosLib;
+using ClrDebug;
 
 namespace DebugTools.Profiler
 {
@@ -172,12 +174,9 @@ namespace DebugTools.Profiler
             if (ignoreDefaultBlacklist)
                 envVariables.Add("DEBUGTOOLS_IGNORE_DEFAULT_BLACKLIST", "1");
 
-            SECURITY_ATTRIBUTES processAttribs = new SECURITY_ATTRIBUTES();
-            SECURITY_ATTRIBUTES threadAttribs = new SECURITY_ATTRIBUTES();
-
-            STARTUPINFO si = new STARTUPINFO
+            STARTUPINFOA si = new STARTUPINFOA
             {
-                cb = Marshal.SizeOf<STARTUPINFO>(),
+                cb = Marshal.SizeOf<STARTUPINFOA>(),
             };
 
             if (minimized)
@@ -185,8 +184,6 @@ namespace DebugTools.Profiler
                 si.dwFlags = STARTF.STARTF_USESHOWWINDOW;
                 si.wShowWindow = ShowWindow.Minimized;
             }
-
-            PROCESS_INFORMATION pi;
 
             //You MUST ensure all global environment variables are defined; otherwise certain programs that assume these variables exist (such as PowerShell) may crash
             foreach (DictionaryEntry environmentVariable in Environment.GetEnvironmentVariables())
@@ -197,24 +194,14 @@ namespace DebugTools.Profiler
 
             try
             {
-                bool result = Kernel32.CreateProcessA(
-                    null,
+                Kernel32.CreateProcessA(
                     processName,
-                    ref processAttribs,
-                    ref threadAttribs,
-                    true,
                     CreateProcessFlags.CREATE_NEW_CONSOLE | CreateProcessFlags.CREATE_SUSPENDED,
                     envPtr,
                     Environment.CurrentDirectory,
                     ref si,
-                    out pi);
-
-                if (!result)
-                {
-                    var err = Marshal.GetHRForLastWin32Error();
-
-                    Marshal.ThrowExceptionForHR(err);
-                }
+                    out var pi
+                );
 
                 var process = Process.GetProcessById(pi.dwProcessId);
 
@@ -226,7 +213,7 @@ namespace DebugTools.Profiler
                 Kernel32.CloseHandle(pi.hThread);
 
                 if (needDebug)
-                    VsDebugger.Attach(process);
+                    VsDebugger.Attach(process, VsDebuggerType.Native);
 
                 return process;
             }

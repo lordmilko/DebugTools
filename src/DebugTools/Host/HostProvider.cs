@@ -4,6 +4,8 @@ using System.Collections.Specialized;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Threading;
+using ChaosLib;
+using ClrDebug;
 using DebugTools.Profiler;
 
 namespace DebugTools.Host
@@ -27,7 +29,7 @@ namespace DebugTools.Host
             var process = StartProcess(architecture, needDebug);
 
             if (needDebug)
-                VsDebugger.Attach(process, "Managed");
+                VsDebugger.Attach(process, VsDebuggerType.Managed);
 
             var eventName = $"{string.Format(ProfilerInfo.DebugHostName.Substring(0, ProfilerInfo.DebugHostName.LastIndexOf('.')), architecture.ToString())}_{process.Id}";
 
@@ -50,17 +52,12 @@ namespace DebugTools.Host
 
         private static Process StartProcess(Architecture architecture, bool needDebug)
         {
-            SECURITY_ATTRIBUTES processAttribs = new SECURITY_ATTRIBUTES();
-            SECURITY_ATTRIBUTES threadAttribs = new SECURITY_ATTRIBUTES();
-
-            STARTUPINFO si = new STARTUPINFO
+            STARTUPINFOA si = new STARTUPINFOA
             {
-                cb = Marshal.SizeOf<STARTUPINFO>(),
+                cb = Marshal.SizeOf<STARTUPINFOA>(),
                 dwFlags = STARTF.STARTF_USESHOWWINDOW,
                 wShowWindow = ShowWindow.Hide
             };
-
-            PROCESS_INFORMATION pi;
 
             var envVariables = new StringDictionary
             {
@@ -77,24 +74,14 @@ namespace DebugTools.Host
             var envHandle = GCHandle.Alloc(ProfilerInfo.GetEnvironmentBytes(envVariables), GCHandleType.Pinned);
             var envPtr = envHandle.AddrOfPinnedObject();
 
-            bool result = Kernel32.CreateProcessA(
-                null,
+            Kernel32.CreateProcessA(
                 architecture == Architecture.x86 ? ProfilerInfo.DebugHostx86 : ProfilerInfo.DebugHostx64,
-                ref processAttribs,
-                ref threadAttribs,
-                true,
                 CreateProcessFlags.CREATE_NEW_CONSOLE | CreateProcessFlags.CREATE_SUSPENDED,
                 envPtr,
                 Environment.CurrentDirectory,
                 ref si,
-                out pi);
-
-            if (!result)
-            {
-                var err = Marshal.GetHRForLastWin32Error();
-
-                Marshal.ThrowExceptionForHR(err);
-            }
+                out var pi
+            );
 
             var process = Process.GetProcessById(pi.dwProcessId);
 

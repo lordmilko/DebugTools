@@ -3,7 +3,9 @@ using System.Diagnostics;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading;
+using ChaosLib;
 using ClrDebug;
+using static ClrDebug.HRESULT;
 
 namespace DebugTools.Memory
 {
@@ -26,8 +28,7 @@ namespace DebugTools.Memory
         {
             this.process = process;
 
-            if (!Kernel32.IsWow64Process(process.Handle, out isWow64))
-                throw new InvalidOperationException($"Failed to query {nameof(Kernel32.IsWow64Process)}: {(HRESULT)Marshal.GetHRForLastWin32Error()}");
+            isWow64 = Kernel32.IsWow64Process(process.Handle);
 
             if (isWow64 && IntPtr.Size == 8)
                 throw new InvalidOperationException("Cannot attach to a 32-bit target from a 64-bit process.");
@@ -56,13 +57,13 @@ namespace DebugTools.Memory
         {
             //This sample assumes Windows
             machineType = isWow64 ? IMAGE_FILE_MACHINE.I386 : IMAGE_FILE_MACHINE.AMD64;
-            return HRESULT.S_OK;
+            return S_OK;
         }
 
         public HRESULT GetPointerSize(out int pointerSize)
         {
             pointerSize = isWow64 ? 4 : 8;
-            return HRESULT.S_OK;
+            return S_OK;
         }
 
         //This method is called to get the base address of certain loaded modules in the target process, principally clr.dll
@@ -87,11 +88,11 @@ namespace DebugTools.Memory
             if (module == null)
             {
                 baseAddress = 0;
-                return HRESULT.E_FAIL;
+                return E_FAIL;
             }
 
             baseAddress = module.BaseAddress.ToInt64();
-            return HRESULT.S_OK;
+            return S_OK;
         }
 
         public unsafe HRESULT ReadVirtual(CLRDATA_ADDRESS address, IntPtr buffer, int bytesRequested, out int bytesRead)
@@ -100,7 +101,7 @@ namespace DebugTools.Memory
             {
                 doFlush?.Invoke();
                 bytesRead = 0;
-                return HRESULT.E_FAIL;
+                return E_FAIL;
             }
 
             //ReadProcessMemory will fail if any part of the region to read does not have read access, which can commonly occur
@@ -111,7 +112,7 @@ namespace DebugTools.Memory
 
             var totalRead = 0;
 
-            HRESULT hr = HRESULT.S_OK;
+            HRESULT hr = S_OK;
 
             //For some reason, when trying to read the optHeaderMagic in GetMachineAndResourceSectionRVA() when trying to establish an SOS
             //against PowerShell 7, when using the buffer provided by mscordaccore, ReadProcessMemory would say it read 2 bytes, but no memory would actually change.
@@ -143,7 +144,7 @@ namespace DebugTools.Memory
                         //pass them back to the DAC and then are asked to read some actual data from these invalid locations, this will naturally fail with ERROR_PARTIAL_COPY,
                         //but really its a total failure
                         if (totalRead > 0)
-                            hr = HRESULT.S_OK;
+                            hr = S_OK;
                         else
                             hr = (HRESULT)Marshal.GetHRForLastWin32Error();
 
@@ -161,7 +162,7 @@ namespace DebugTools.Memory
                 Marshal.FreeHGlobal(innerBuffer);
             }
 
-            if (hr == HRESULT.S_OK)
+            if (hr == S_OK)
                 bytesRead = totalRead;
             else
                 bytesRead = 0;
@@ -200,15 +201,17 @@ namespace DebugTools.Memory
             else
                 ((AMD64_CONTEXT*) context)->ContextFlags = contextFlags;
 
-            var hThread = Kernel32.OpenThread(ThreadAccess.GET_CONTEXT, false, threadID);
+            var hr = Kernel32.TryOpenThread(ThreadAccess.GET_CONTEXT, false, threadID, out var hThread);
 
-            if (hThread == IntPtr.Zero)
-                return (HRESULT) Marshal.GetHRForLastWin32Error();
+            if (hr != S_OK)
+                return hr;
 
-            if (!Kernel32.GetThreadContext(hThread, context))
-                return (HRESULT)Marshal.GetHRForLastWin32Error();
+            hr = Kernel32.TryGetThreadContext(hThread, context);
 
-            return HRESULT.S_OK;
+            if (hr != S_OK)
+                return hr;
+
+            return S_OK;
         }
 
         public HRESULT SetThreadContext(int threadID, int contextSize, IntPtr context)

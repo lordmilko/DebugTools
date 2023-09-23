@@ -8,6 +8,7 @@ using System.Runtime.Remoting.Channels.Ipc;
 using System.Runtime.Serialization.Formatters;
 using System.Text.RegularExpressions;
 using System.Threading;
+using ChaosLib;
 using Microsoft.Diagnostics.Runtime;
 using DataTarget = Microsoft.Diagnostics.Runtime.DataTarget;
 

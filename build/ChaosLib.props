@@ -1,0 +1,15 @@
+<Project>
+  <PropertyGroup>
+    <LocalChaosLib>$(MSBuildThisFileDirectory)\..\..\ChaosLib\src\ChaosLib\bin\Debug\net472\ChaosLib.dll</LocalChaosLib>
+  </PropertyGroup>
+  
+  <ItemGroup>
+    <!-- If ChaosLib has been cloned to the parent directory containing both ChaosLib and ChaosDbg,
+         prefer the local version for development purposes -->
+    <PackageReference Include="ChaosLib" Version="$(ChaosLibVersion)" Condition="!Exists('$(LocalChaosLib)')" />
+
+    <Reference Include="ChaosLib" Condition="Exists('$(LocalChaosLib)')">
+      <HintPath>$(LocalChaosLib)</HintPath>
+    </Reference>
+  </ItemGroup>
+</Project>

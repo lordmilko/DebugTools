@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Runtime.InteropServices;
+using ChaosLib;
 using ClrDebug;
 using DebugTools.SOS;
 using static ClrDebug.HRESULT;

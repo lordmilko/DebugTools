@@ -1,0 +1,15 @@
+<Project>
+  <PropertyGroup>
+    <LocalClrDebug>$(MSBuildThisFileDirectory)\..\..\ClrDebug\ClrDebug\bin\Debug\netstandard2.0\ClrDebug.dll</LocalClrDebug>
+  </PropertyGroup>
+  
+  <ItemGroup>
+    <!-- If ClrDebug has been cloned to the parent directory containing both ClrDebug and ChaosDbg,
+         prefer the local version for development purposes -->
+    <PackageReference Include="ClrDebug" Version="$(ClrDebugVersion)" Condition="!Exists('$(LocalClrDebug)')" />
+
+    <Reference Include="ClrDebug" Condition="Exists('$(LocalClrDebug)')">
+      <HintPath>$(LocalClrDebug)</HintPath>
+    </Reference>
+  </ItemGroup>
+</Project>

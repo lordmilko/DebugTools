@@ -42,19 +42,24 @@ namespace DebugTools.PowerShell.Cmdlets
                     //Implicitly we have at least one -Type as GetShouldRemoveTypeName returned false.
                     //If any of values specified to -Type have more than one property, implicitly all of
                     //those values must have the same properties, hence we operate based on Type[0]
-                    var properties = WindowMessageFormatProvider.Instance.ExtraProperties[Type[0]];
-
-                    if (properties.Length > 0)
+                    if (WindowMessageFormatProvider.Instance.ExtraProperties.TryGetValue(Type[0], out var properties))
                     {
-                        var unifiedFormatSuffix = $"WindowMessage_{string.Join("_", properties)}";
+                        if (properties.Length > 0)
+                        {
+                            //We need to remove all of the specific typenames so we can apply just the unified typename
+                            //we generate here
+                            shouldRemoveTypeName = true;
 
-                        //All our requested types have custom properties, all of which are the same. Generate a custom
-                        //format based on this
-                        var format = generateFormat(Type[0], unifiedFormatSuffix);
+                            var unifiedFormatSuffix = $"WindowMessage_{string.Join("_", properties)}";
 
-                        unifiedFormatName = format.TypeName;
+                            //All our requested types have custom properties, all of which are the same. Generate a custom
+                            //format based on this
+                            var format = generateFormat(Type[0], unifiedFormatSuffix);
 
-                        return format;
+                            unifiedFormatName = format.TypeName;
+
+                            return format;
+                        }
                     }
                 }
 
