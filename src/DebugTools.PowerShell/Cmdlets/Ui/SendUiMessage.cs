@@ -93,7 +93,7 @@ namespace DebugTools.PowerShell.Cmdlets
                         throw new UnknownParameterSetException(ParameterSetName);
                 }
 
-                var result = NativeMethods.SendMessageW(
+                var result = User32.SendMessageW(
                     hWnd,
                     Message,
                     wParamNative,

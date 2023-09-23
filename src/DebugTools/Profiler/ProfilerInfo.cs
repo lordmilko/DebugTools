@@ -197,7 +197,7 @@ namespace DebugTools.Profiler
 
             try
             {
-                bool result = NativeMethods.CreateProcessA(
+                bool result = Kernel32.CreateProcessA(
                     null,
                     processName,
                     ref processAttribs,
@@ -220,10 +220,10 @@ namespace DebugTools.Profiler
 
                 startCallback?.Invoke(process);
 
-                NativeMethods.ResumeThread(pi.hThread);
+                Kernel32.ResumeThread(pi.hThread);
 
-                NativeMethods.CloseHandle(pi.hProcess);
-                NativeMethods.CloseHandle(pi.hThread);
+                Kernel32.CloseHandle(pi.hProcess);
+                Kernel32.CloseHandle(pi.hThread);
 
                 if (needDebug)
                     VsDebugger.Attach(process);

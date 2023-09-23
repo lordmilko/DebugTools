@@ -25,7 +25,7 @@ namespace DebugTools.Host
 
             //ClrMD will try and load DbgHelp, so we must set the DLL directory before ClrMD is invoked
             if (folder != null)
-                NativeMethods.SetDllDirectory(folder);
+                Kernel32.SetDllDirectory(folder);
         }
 
         public const string WaitForDebug = "DEBUGTOOLS_HOST_WAITFORDEBUG";

@@ -2,7 +2,7 @@
 
 namespace DebugTools
 {
-    [Flags()]
+    [Flags]
     public enum SetWindowPosFlags : uint
     {
         ASYNCWINDOWPOS = 0x4000,

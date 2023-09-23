@@ -15,10 +15,10 @@ namespace DebugTools.PowerShell
         public static IntPtr Execute()
         {
             var hWnd = Process.GetCurrentProcess().MainWindowHandle;
-            var original = NativeMethods.GetThreadDpiAwarenessContext();
+            var original = User32.GetThreadDpiAwarenessContext();
 
-            if (original != NativeMethods.DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2)
-                NativeMethods.SetThreadDpiAwarenessContext(NativeMethods.DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2);
+            if (original != User32.DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2)
+                User32.SetThreadDpiAwarenessContext(User32.DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2);
 
             try
             {
@@ -33,8 +33,8 @@ namespace DebugTools.PowerShell
             }
             finally
             {
-                if (original != NativeMethods.DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2)
-                    NativeMethods.SetThreadDpiAwarenessContext(original);
+                if (original != User32.DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2)
+                    User32.SetThreadDpiAwarenessContext(original);
             }
         }
 
@@ -56,8 +56,8 @@ namespace DebugTools.PowerShell
         {
             if (searching)
             {
-                NativeMethods.GetCursorPos(out var cursorPos);
-                var windowUnderMouse = NativeMethods.WindowFromPoint(cursorPos);
+                User32.GetCursorPos(out var cursorPos);
+                var windowUnderMouse = User32.WindowFromPoint(cursorPos);
 
                 if (currentWindow != windowUnderMouse)
                 {
@@ -66,9 +66,9 @@ namespace DebugTools.PowerShell
 
                     if (windowUnderMouse != IntPtr.Zero)
                     {
-                        NativeMethods.GetWindowThreadProcessId(windowUnderMouse, out var pid);
+                        User32.GetWindowThreadProcessId(windowUnderMouse, out var pid);
 
-                        if (pid != Process.GetCurrentProcess().Id && NativeMethods.IsWindow(windowUnderMouse))
+                        if (pid != Process.GetCurrentProcess().Id && User32.IsWindow(windowUnderMouse))
                         {
                             ApplyHighlight(windowUnderMouse);
                             didDraw = true;
@@ -91,7 +91,7 @@ namespace DebugTools.PowerShell
                 img.Image = Resource.bullseyeWindow.ToBitmap();
                 Cursor.Current = DefaultCursor;
 
-                NativeMethods.ReleaseCapture();
+                User32.ReleaseCapture();
 
                 if (currentWindow != IntPtr.Zero)
                 {
@@ -99,9 +99,9 @@ namespace DebugTools.PowerShell
                         ApplyHighlight(currentWindow);
                 }
 
-                NativeMethods.SetWindowPos(
+                User32.SetWindowPos(
                     parent,
-                    NativeMethods.HWND_TOP,
+                    User32.HWND_TOP,
                     0,
                     0,
                     0,
@@ -116,15 +116,15 @@ namespace DebugTools.PowerShell
 
         private void img_MouseDown(object sender, MouseEventArgs e)
         {
-            NativeMethods.SetCapture(img.Handle);
+            User32.SetCapture(img.Handle);
 
             img.Image = Resource.emptyWindow.ToBitmap();
             Cursor.Current = new Cursor(new MemoryStream(Resource.bullseye));
             searching = true;
 
-            NativeMethods.SetWindowPos(
+            User32.SetWindowPos(
                 Handle,
-                NativeMethods.HWND_BOTTOM,
+                User32.HWND_BOTTOM,
                 0,
                 0,
                 0,
@@ -132,9 +132,9 @@ namespace DebugTools.PowerShell
                 SetWindowPosFlags.NOACTIVATE | SetWindowPosFlags.NOMOVE | SetWindowPosFlags.NOSIZE
             );
 
-            NativeMethods.SetWindowPos(
+            User32.SetWindowPos(
                 parent,
-                NativeMethods.HWND_BOTTOM,
+                User32.HWND_BOTTOM,
                 0,
                 0,
                 0,
@@ -145,29 +145,29 @@ namespace DebugTools.PowerShell
 
         private void ApplyHighlight(IntPtr hWnd)
         {
-            NativeMethods.GetWindowRect(hWnd, out var rect);
-            var hdc = NativeMethods.GetWindowDC(hWnd);
+            User32.GetWindowRect(hWnd, out var rect);
+            var hdc = User32.GetWindowDC(hWnd);
 
             if (hdc != IntPtr.Zero)
             {
-                var penWidth = NativeMethods.GetSystemMetrics(SystemMetric.SM_CXBORDER) * 3;
-                var oldDC = NativeMethods.SaveDC(hdc);
+                var penWidth = User32.GetSystemMetrics(SystemMetric.SM_CXBORDER) * 3;
+                var oldDC = Gdi32.SaveDC(hdc);
 
                 //Invert
-                NativeMethods.SetROP2(hdc, NativeMethods.R2_NOT);
+                Gdi32.SetROP2(hdc, Gdi32.R2_NOT);
 
-                var pen = NativeMethods.CreatePen(PenStyle.PS_INSIDEFRAME, penWidth, 0);
-                NativeMethods.SelectObject(hdc, pen);
+                var pen = Gdi32.CreatePen(PenStyle.PS_INSIDEFRAME, penWidth, 0);
+                Gdi32.SelectObject(hdc, pen);
 
-                var brush = NativeMethods.GetStockObject(StockObject.NULL_BRUSH);
-                NativeMethods.SelectObject(hdc, brush);
+                var brush = Gdi32.GetStockObject(StockObject.NULL_BRUSH);
+                Gdi32.SelectObject(hdc, brush);
 
-                NativeMethods.Rectangle(hdc, 0, 0, rect.right - rect.left, rect.bottom - rect.top);
+                Gdi32.Rectangle(hdc, 0, 0, rect.right - rect.left, rect.bottom - rect.top);
 
-                NativeMethods.DeleteObject(pen);
+                Gdi32.DeleteObject(pen);
 
-                NativeMethods.RestoreDC(hdc, oldDC);
-                NativeMethods.ReleaseDC(hWnd, hdc);
+                Gdi32.RestoreDC(hdc, oldDC);
+                User32.ReleaseDC(hWnd, hdc);
             }
         }
     }

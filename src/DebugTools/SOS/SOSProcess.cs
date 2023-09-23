@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
 using ClrDebug;
+using DebugTools.Memory;
 using static ClrDebug.Extensions;
 
 namespace DebugTools.SOS
@@ -58,12 +59,12 @@ namespace DebugTools.SOS
             if (!File.Exists(dacPath))
                 throw new FileNotFoundException($"Cannot find file '{dacPath}'.");
 
-            var dacLib = NativeMethods.LoadLibrary(dacPath);
+            var dacLib = Kernel32.LoadLibrary(dacPath);
 
             if (dacLib == IntPtr.Zero)
                 throw new InvalidOperationException($"Failed to load DAC library '{dacPath}': {(HRESULT)Marshal.GetHRForLastWin32Error()}");
 
-            var clrDataCreateInstancePtr = NativeMethods.GetProcAddress(dacLib, "CLRDataCreateInstance");
+            var clrDataCreateInstancePtr = Kernel32.GetProcAddress(dacLib, "CLRDataCreateInstance");
 
             if (clrDataCreateInstancePtr == IntPtr.Zero)
                 throw new InvalidOperationException($"Failed to find function 'CLRDataCreateInstance': {(HRESULT)Marshal.GetHRForLastWin32Error()}");

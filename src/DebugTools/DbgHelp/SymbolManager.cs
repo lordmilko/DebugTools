@@ -111,7 +111,7 @@ namespace DebugTools
                             break;
                     }
 
-                    var buffer = NativeExtensions.ReadProcessMemory(Process.Handle, new IntPtr(slotAddr), IntPtr.Size);
+                    var buffer = Kernel32.ReadProcessMemory(Process.Handle, new IntPtr(slotAddr), IntPtr.Size);
 
                     var methodAddress = IntPtr.Size == 8 ? BitConverter.ToUInt64(buffer, 0) : BitConverter.ToUInt32(buffer, 0);
 
@@ -126,7 +126,7 @@ namespace DebugTools
             {
                 while (offset < vtbl.Symbol.SymbolInfo.Size)
                 {
-                    var buffer = NativeExtensions.ReadProcessMemory(Process.Handle, new IntPtr((long)rcwData.VTablePointer + offset), IntPtr.Size);
+                    var buffer = Kernel32.ReadProcessMemory(Process.Handle, new IntPtr((long)rcwData.VTablePointer + offset), IntPtr.Size);
 
                     var methodAddress = IntPtr.Size == 8 ? BitConverter.ToUInt64(buffer, 0) : BitConverter.ToUInt32(buffer, 0);
 
@@ -178,13 +178,13 @@ namespace DebugTools
 
         private unsafe List<SymbolModule> GetModules()
         {
-            var buffer = NativeExtensions.RtlCreateQueryDebugBuffer();
+            var buffer = Ntdll.RtlCreateQueryDebugBuffer();
 
             var results = new List<SymbolModule>();
 
             try
             {
-                NativeExtensions.RtlQueryProcessDebugInformation(
+                Ntdll.RtlQueryProcessDebugInformation(
                     Process.Id,
                     RtlQueryProcessFlag.Modules | RtlQueryProcessFlag.NonInvasive,
                     buffer
@@ -205,7 +205,7 @@ namespace DebugTools
             }
             finally
             {
-                NativeExtensions.RtlDestroyQueryDebugBuffer(buffer);
+                Ntdll.RtlDestroyQueryDebugBuffer(buffer);
             }
         }
 

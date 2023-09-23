@@ -1,58 +1,30 @@
-﻿using System;
-using System.Runtime.InteropServices;
+﻿using System.Runtime.InteropServices;
 using ClrDebug;
 
 namespace DebugTools
 {
-    public static class NativeExtensions
+    static class Ntdll
     {
-        #region ReadProcessMemory
-
-        public static byte[] ReadProcessMemory(
-            IntPtr hProcess,
-            IntPtr lpBaseAddress,
-            int dwSize)
+        static class NativeMethods
         {
-            byte[] buffer;
-            TryReadProcessMemory(hProcess, lpBaseAddress, dwSize, out buffer).ThrowOnNotOK();
-            return buffer;
+            private const string ntdll = "ntdll.dll";
+
+            [DllImport(ntdll)]
+            public static extern unsafe RTL_DEBUG_INFORMATION* RtlCreateQueryDebugBuffer(
+                [In] int MaximumCommit,
+                [In] bool UseEventPair);
+
+            [DllImport(ntdll)]
+            public static extern unsafe int RtlDestroyQueryDebugBuffer(
+                [In] RTL_DEBUG_INFORMATION* Buffer);
+
+            [DllImport(ntdll)]
+            public static extern unsafe int RtlQueryProcessDebugInformation(
+                [In] int UniqueProcessId,
+                [In] RtlQueryProcessFlag DebugInfoClassMask,
+                [In, Out] RTL_DEBUG_INFORMATION* DebugBuffer);
         }
 
-        public static HRESULT TryReadProcessMemory(
-            IntPtr hProcess,
-            IntPtr lpBaseAddress,
-            int dwSize,
-            out byte[] buffer)
-        {
-            var buff = Marshal.AllocHGlobal(dwSize);
-
-            try
-            {
-                var result = NativeMethods.ReadProcessMemory(
-                    hProcess,
-                    lpBaseAddress,
-                    buff,
-                    dwSize,
-                    out var lpNumberOfBytesRead
-                );
-
-                if (!result)
-                {
-                    buffer = null;
-                    return (HRESULT)Marshal.GetHRForLastWin32Error();
-                }
-
-                buffer = new byte[lpNumberOfBytesRead];
-                Marshal.Copy(buff, buffer, 0, lpNumberOfBytesRead);
-                return HRESULT.S_OK;
-            }
-            finally
-            {
-                Marshal.FreeHGlobal(buff);
-            }
-        }
-
-        #endregion
         #region RtlCreateQueryDebugBuffer
 
         public static unsafe RTL_DEBUG_INFORMATION* RtlCreateQueryDebugBuffer(
@@ -71,7 +43,7 @@ namespace DebugTools
         {
             buffer = NativeMethods.RtlCreateQueryDebugBuffer(maximumCommit, useEventPair);
 
-            if (buffer == (RTL_DEBUG_INFORMATION*) 0)
+            if (buffer == (RTL_DEBUG_INFORMATION*)0)
                 return HRESULT.ERROR_NOT_ENOUGH_MEMORY;
 
             return HRESULT.S_OK;

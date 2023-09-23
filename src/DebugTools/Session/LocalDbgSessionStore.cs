@@ -17,8 +17,8 @@ namespace DebugTools
 
         private HostInfo GetOptionalHostInfo(Process targetProcess)
         {
-            if (!NativeMethods.IsWow64Process(targetProcess.Handle, out var isWow64))
-                throw new InvalidOperationException($"Failed to query {nameof(NativeMethods.IsWow64Process)}: {(HRESULT)Marshal.GetHRForLastWin32Error()}");
+            if (!Kernel32.IsWow64Process(targetProcess.Handle, out var isWow64))
+                throw new InvalidOperationException($"Failed to query {nameof(Kernel32.IsWow64Process)}: {(HRESULT)Marshal.GetHRForLastWin32Error()}");
 
             if (isWow64)
             {
@@ -43,8 +43,8 @@ namespace DebugTools
 
         internal HostInfo GetDetectedHostInfo(Process targetProcess, bool needDebug = false)
         {
-            if (!NativeMethods.IsWow64Process(targetProcess.Handle, out var isWow64))
-                throw new InvalidOperationException($"Failed to query {nameof(NativeMethods.IsWow64Process)}: {(HRESULT)Marshal.GetHRForLastWin32Error()}");
+            if (!Kernel32.IsWow64Process(targetProcess.Handle, out var isWow64))
+                throw new InvalidOperationException($"Failed to query {nameof(Kernel32.IsWow64Process)}: {(HRESULT)Marshal.GetHRForLastWin32Error()}");
 
             if (isWow64)
             {

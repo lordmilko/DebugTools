@@ -9,12 +9,12 @@ namespace DebugTools.PowerShell
 
         public SuspendedThread(int threadId)
         {
-            var hThread = NativeMethods.OpenThread(ThreadAccess.SUSPEND_RESUME, false, threadId);
+            var hThread = Kernel32.OpenThread(ThreadAccess.SUSPEND_RESUME, false, threadId);
 
             if (hThread == IntPtr.Zero)
                 Marshal.ThrowExceptionForHR(Marshal.GetHRForLastWin32Error());
 
-            var result = NativeMethods.SuspendThread(hThread);
+            var result = Kernel32.SuspendThread(hThread);
 
             if (result == -1)
                 Marshal.ThrowExceptionForHR(Marshal.GetHRForLastWin32Error());
@@ -26,7 +26,7 @@ namespace DebugTools.PowerShell
         {
             if (hThread != IntPtr.Zero)
             {
-                var result = NativeMethods.ResumeThread(hThread);
+                var result = Kernel32.ResumeThread(hThread);
 
                 if (result == -1)
                     Marshal.ThrowExceptionForHR(Marshal.GetHRForLastWin32Error());

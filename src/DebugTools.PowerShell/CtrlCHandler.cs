@@ -17,7 +17,7 @@ namespace DebugTools.PowerShell
              * is executed, the handler list is executed in reverse order, thereby allowing us to ensure that
              * our handler is invoked first. */
             this.routine = routine;
-            NativeMethods.SetConsoleCtrlHandler(routine, true);
+            Kernel32.SetConsoleCtrlHandler(routine, true);
         }
 
         public void Dispose()
@@ -25,7 +25,7 @@ namespace DebugTools.PowerShell
             if (disposed)
                 return;
 
-            NativeMethods.SetConsoleCtrlHandler(routine, false);
+            Kernel32.SetConsoleCtrlHandler(routine, false);
 
             disposed = true;
         }

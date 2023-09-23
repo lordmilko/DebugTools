@@ -95,13 +95,13 @@ namespace DebugTools
             var monikers = new IMoniker[1];
 
             IRunningObjectTable runningObjectTable;
-            NativeMethods.GetRunningObjectTable(0, out runningObjectTable);
+            Ole32.GetRunningObjectTable(0, out runningObjectTable);
 
             IEnumMoniker enumMoniker;
             runningObjectTable.EnumRunning(out enumMoniker);
 
             IBindCtx bindContext;
-            NativeMethods.CreateBindCtx(0, out bindContext);
+            Ole32.CreateBindCtx(0, out bindContext);
 
             do
             {
@@ -110,7 +110,7 @@ namespace DebugTools
                 IntPtr monikersFetched = IntPtr.Zero;
                 var hresult = enumMoniker.Next(1, monikers, monikersFetched);
 
-                if (hresult == NativeMethods.S_FALSE)
+                if (hresult == Kernel32.S_FALSE)
                 {
                     // There's nothing further to enumerate, so fail
                     return null;

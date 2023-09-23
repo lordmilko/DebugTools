@@ -2,6 +2,7 @@
 using System.Diagnostics;
 using System.Threading;
 using ClrDebug;
+using DebugTools.Memory;
 using DebugTools.Profiler;
 using DebugTools.SOS;
 using Microsoft.VisualStudio.TestTools.UnitTesting;

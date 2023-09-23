@@ -225,7 +225,7 @@ namespace DebugTools.Host
             var dataTarget = GetSOSProcess(handle).DataTarget;
 
             var methodDescBuffer = Marshal.AllocHGlobal(Marshal.SizeOf<MethodDesc>());
-            NativeMethods.ZeroMemory(methodDescBuffer, Marshal.SizeOf<MethodDesc>());
+            Kernel32.ZeroMemory(methodDescBuffer, Marshal.SizeOf<MethodDesc>());
 
             try
             {

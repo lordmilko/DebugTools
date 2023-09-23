@@ -1,5 +1,6 @@
 ﻿using System;
 using ClrDebug;
+using DebugTools.Memory;
 
 namespace DebugTools.SOS
 {

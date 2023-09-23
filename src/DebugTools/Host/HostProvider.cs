@@ -77,7 +77,7 @@ namespace DebugTools.Host
             var envHandle = GCHandle.Alloc(ProfilerInfo.GetEnvironmentBytes(envVariables), GCHandleType.Pinned);
             var envPtr = envHandle.AddrOfPinnedObject();
 
-            bool result = NativeMethods.CreateProcessA(
+            bool result = Kernel32.CreateProcessA(
                 null,
                 architecture == Architecture.x86 ? ProfilerInfo.DebugHostx86 : ProfilerInfo.DebugHostx64,
                 ref processAttribs,
@@ -98,10 +98,10 @@ namespace DebugTools.Host
 
             var process = Process.GetProcessById(pi.dwProcessId);
 
-            NativeMethods.ResumeThread(pi.hThread);
+            Kernel32.ResumeThread(pi.hThread);
 
-            NativeMethods.CloseHandle(pi.hProcess);
-            NativeMethods.CloseHandle(pi.hThread);
+            Kernel32.CloseHandle(pi.hProcess);
+            Kernel32.CloseHandle(pi.hThread);
 
             return process;
         }

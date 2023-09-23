@@ -48,7 +48,7 @@ Window                         Message                       wParam             
 Window                         Message                       wParam                        lParam                      
 ------                         -------                       ------                        ------                      
 [Window] Document - WordPad    WM_NULL                       0x1                           0x2",
-                hwnd => NativeMethods.SendMessageW(hwnd, WM.WM_NULL, new IntPtr(1), new IntPtr(2))
+                hwnd => User32.SendMessageW(hwnd, WM.WM_NULL, new IntPtr(1), new IntPtr(2))
             );
         }
 
@@ -65,7 +65,7 @@ Window                         Message                       wParam             
                 {
                     fixed (char* c = "foo")
                     {
-                        NativeMethods.SendMessageW(hwnd, WM.WM_SETTEXT, IntPtr.Zero, (IntPtr) c);
+                        User32.SendMessageW(hwnd, WM.WM_SETTEXT, IntPtr.Zero, (IntPtr) c);
                     }
                 }
             );
@@ -85,8 +85,8 @@ Window                         Message                       wParam             
                 {
                     fixed (char* c = "foo")
                     {
-                        NativeMethods.SendMessageW(hwnd, WM.WM_NULL, new IntPtr(1), new IntPtr(2));
-                        NativeMethods.SendMessageW(hwnd, WM.WM_SETTEXT, IntPtr.Zero, (IntPtr)c);
+                        User32.SendMessageW(hwnd, WM.WM_NULL, new IntPtr(1), new IntPtr(2));
+                        User32.SendMessageW(hwnd, WM.WM_SETTEXT, IntPtr.Zero, (IntPtr)c);
                     }
                 },
                 2
@@ -105,8 +105,8 @@ Window                         Message                wParam                HitT
 [Window] Document - WordPad    WM_MOUSEACTIVATE       0x0                   HTNOWHERE             WM_NULL",
                 hwnd =>
                 {
-                    NativeMethods.SendMessageW(hwnd, WM.WM_SETCURSOR, IntPtr.Zero, IntPtr.Zero);
-                    NativeMethods.SendMessageW(hwnd, WM.WM_MOUSEACTIVATE, IntPtr.Zero, IntPtr.Zero);
+                    User32.SendMessageW(hwnd, WM.WM_SETCURSOR, IntPtr.Zero, IntPtr.Zero);
+                    User32.SendMessageW(hwnd, WM.WM_MOUSEACTIVATE, IntPtr.Zero, IntPtr.Zero);
                 },
                 2
             );

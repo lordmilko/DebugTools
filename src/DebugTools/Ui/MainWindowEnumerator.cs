@@ -12,7 +12,7 @@ namespace DebugTools.Ui
         {
             WNDENUMPROC callback = EnumWindowsCallback;
 
-            NativeMethods.EnumWindows(callback, new IntPtr(pid));
+            User32.EnumWindows(callback, new IntPtr(pid));
 
             GC.KeepAlive(callback);
 
@@ -28,12 +28,12 @@ namespace DebugTools.Ui
 
         private bool EnumWindowsCallback(IntPtr hwnd, IntPtr lParam)
         {
-            NativeMethods.GetWindowThreadProcessId(hwnd, out var pid);
+            User32.GetWindowThreadProcessId(hwnd, out var pid);
 
             if ((int)lParam == pid)
             {
-                var owner = NativeMethods.GetWindow(hwnd, GetWindowType.GW_OWNER);
-                var isVisible = NativeMethods.IsWindowVisible(hwnd);
+                var owner = User32.GetWindow(hwnd, GetWindowType.GW_OWNER);
+                var isVisible = User32.IsWindowVisible(hwnd);
 
                 if (owner != IntPtr.Zero && isVisible)
                 {

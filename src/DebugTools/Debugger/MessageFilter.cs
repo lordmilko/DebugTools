@@ -33,14 +33,14 @@ namespace DebugTools
             _timeout = timeout;
             _retryDelay = retryDelay;
 
-            NativeMethods.CoRegisterMessageFilter(this, out oldFilter);
+            Ole32.CoRegisterMessageFilter(this, out oldFilter);
         }
 
         void IDisposable.Dispose()
         {
             IMessageFilter oldOldFilter = null;
 
-            NativeMethods.CoRegisterMessageFilter(oldFilter, out oldOldFilter);
+            Ole32.CoRegisterMessageFilter(oldFilter, out oldOldFilter);
         }
 
         uint IMessageFilter.HandleInComingCall(uint dwCallType, IntPtr htaskCaller, uint dwTickCount, INTERFACEINFO[] lpInterfaceInfo)

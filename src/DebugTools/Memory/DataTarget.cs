@@ -5,7 +5,7 @@ using System.Runtime.InteropServices;
 using System.Threading;
 using ClrDebug;
 
-namespace DebugTools.SOS
+namespace DebugTools.Memory
 {
     /// <summary>
     /// Represents a simple <see cref="ICLRDataTarget"/> for reading memory from a target process.
@@ -26,8 +26,8 @@ namespace DebugTools.SOS
         {
             this.process = process;
 
-            if (!NativeMethods.IsWow64Process(process.Handle, out isWow64))
-                throw new SOSException($"Failed to query {nameof(NativeMethods.IsWow64Process)}: {(HRESULT)Marshal.GetHRForLastWin32Error()}");
+            if (!Kernel32.IsWow64Process(process.Handle, out isWow64))
+                throw new InvalidOperationException($"Failed to query {nameof(Kernel32.IsWow64Process)}: {(HRESULT)Marshal.GetHRForLastWin32Error()}");
 
             if (isWow64 && IntPtr.Size == 8)
                 throw new InvalidOperationException("Cannot attach to a 32-bit target from a 64-bit process.");
@@ -127,7 +127,7 @@ namespace DebugTools.SOS
                     var readSize = pageSize - (int)(address & (pageSize - 1));
                     readSize = Math.Min(bytesRequested, readSize);
 
-                    var result = NativeMethods.ReadProcessMemory(
+                    var result = Kernel32.ReadProcessMemory(
                         process.Handle,
                         address,
                         innerBuffer,
@@ -193,19 +193,19 @@ namespace DebugTools.SOS
 
         public unsafe HRESULT GetThreadContext(int threadID, ContextFlags contextFlags, int contextSize, IntPtr context)
         {
-            NativeMethods.ZeroMemory(context, contextSize);
+            Kernel32.ZeroMemory(context, contextSize);
 
             if (IntPtr.Size == 4)
                 ((X86_CONTEXT*) context)->ContextFlags = contextFlags;
             else
                 ((AMD64_CONTEXT*) context)->ContextFlags = contextFlags;
 
-            var hThread = NativeMethods.OpenThread(ThreadAccess.GET_CONTEXT, false, threadID);
+            var hThread = Kernel32.OpenThread(ThreadAccess.GET_CONTEXT, false, threadID);
 
             if (hThread == IntPtr.Zero)
                 return (HRESULT) Marshal.GetHRForLastWin32Error();
 
-            if (!NativeMethods.GetThreadContext(hThread, context))
+            if (!Kernel32.GetThreadContext(hThread, context))
                 return (HRESULT)Marshal.GetHRForLastWin32Error();
 
             return HRESULT.S_OK;

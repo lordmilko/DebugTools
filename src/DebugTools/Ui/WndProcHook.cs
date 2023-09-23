@@ -17,19 +17,19 @@ namespace DebugTools.Ui
         static WndProcHook()
         {
             if (IntPtr.Size == 4)
-                nativeLib = NativeMethods.LoadLibrary(ProfilerInfo.Nativex86);
+                nativeLib = Kernel32.LoadLibrary(ProfilerInfo.Nativex86);
             else
-                nativeLib = NativeMethods.LoadLibrary(ProfilerInfo.Nativex64);
+                nativeLib = Kernel32.LoadLibrary(ProfilerInfo.Nativex64);
 
             if (nativeLib == IntPtr.Zero)
                 throw new InvalidOperationException($"Failed to load DebugTools.Native: {Marshal.GetExceptionForHR(Marshal.GetHRForLastWin32Error()).Message}");
 
-            wndProcHook = NativeMethods.GetProcAddress(nativeLib, "WndProcHook");
+            wndProcHook = Kernel32.GetProcAddress(nativeLib, "WndProcHook");
 
             if (wndProcHook == IntPtr.Zero)
                 throw new InvalidOperationException($"Failed to get address of WndProcHook: {Marshal.GetExceptionForHR(Marshal.GetHRForLastWin32Error()).Message}");
 
-            wndProcRetHook = NativeMethods.GetProcAddress(nativeLib, "WndProcRetHook");
+            wndProcRetHook = Kernel32.GetProcAddress(nativeLib, "WndProcRetHook");
 
             if (wndProcRetHook == IntPtr.Zero)
                 throw new InvalidOperationException($"Failed to get address of WndProcRetHook: {Marshal.GetExceptionForHR(Marshal.GetHRForLastWin32Error()).Message}");
@@ -39,9 +39,9 @@ namespace DebugTools.Ui
         {
             //WndProcHook should only be accessed inside of HostApp
 
-            var threadId = NativeMethods.GetWindowThreadProcessId(process.MainWindowHandle, out _);
+            var threadId = User32.GetWindowThreadProcessId(process.MainWindowHandle, out _);
 
-            hhk = NativeMethods.SetWindowsHookEx(
+            hhk = User32.SetWindowsHookEx(
                 HookType.WH_CALLWNDPROC,
                 Marshal.GetDelegateForFunctionPointer<HOOKPROC>(wndProcHook),
                 nativeLib,
@@ -51,7 +51,7 @@ namespace DebugTools.Ui
             if (hhk == IntPtr.Zero)
                 throw new InvalidOperationException($"Failed to install WndProcHook: {Marshal.GetExceptionForHR(Marshal.GetHRForLastWin32Error()).Message}");
 
-            hhkRet = NativeMethods.SetWindowsHookEx(
+            hhkRet = User32.SetWindowsHookEx(
                 HookType.WH_CALLWNDPROCRET,
                 Marshal.GetDelegateForFunctionPointer<HOOKPROC>(wndProcRetHook),
                 nativeLib,
@@ -65,10 +65,10 @@ namespace DebugTools.Ui
         public void Dispose()
         {
             if (hhk != IntPtr.Zero)
-                NativeMethods.UnhookWindowsHookEx(hhk);
+                User32.UnhookWindowsHookEx(hhk);
 
             if (hhkRet != IntPtr.Zero)
-                NativeMethods.UnhookWindowsHookEx(hhkRet);
+                User32.UnhookWindowsHookEx(hhkRet);
         }
     }
 }

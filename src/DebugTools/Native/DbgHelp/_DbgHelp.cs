@@ -9,6 +9,48 @@ namespace DebugTools
     {
         private const int MaxNameLength = 2000; //2000 characters
 
+        static class NativeMethods
+        {
+            private const string dbghelp = "dbghelp.dll";
+
+            [DllImport(dbghelp)]
+            internal static extern bool SymCleanup(
+                [In] IntPtr hProcess);
+
+            [DllImport(dbghelp, EntryPoint = "SymInitializeW", SetLastError = true)]
+            internal static extern bool SymInitialize(
+                [In] IntPtr hProcess,
+                [In] string UserSearchPath,
+                [In] bool fInvadeProcess);
+
+            [DllImport(dbghelp, SetLastError = true)]
+            internal static extern bool SymFromAddr(
+                [In] IntPtr hProcess,
+                [In] ulong address,
+                [Out] out long displacement,
+                [Out] IntPtr pSymbolInfo);
+
+            [DllImport(dbghelp, SetLastError = true)]
+            public static extern bool SymGetTypeInfo(
+                [In] IntPtr hProcess,
+                [In] ulong ModBase,
+                [In] int TypeId,
+                [In] IMAGEHLP_SYMBOL_TYPE_INFO GetType,
+                [Out] out IntPtr pInfo);
+
+            [DllImport(dbghelp, SetLastError = true)]
+            internal static extern ulong SymLoadModuleExW(
+                [In] IntPtr hProcess,
+                [In, Optional] IntPtr hFile,
+                [In, Optional, MarshalAs(UnmanagedType.LPWStr)] string ImageName,
+                [In, Optional, MarshalAs(UnmanagedType.LPWStr)] string ModuleName,
+                [In, Optional] ulong BaseOfDll,
+                [In, Optional] int DllSize,
+                [In, Optional] IntPtr Data,
+                [In, Optional] int Flags
+            );
+        }
+
         #region SymInitialize
 
         public static void SymInitialize(IntPtr hProcess, string userSearchPath = null, bool invadeProcess = false) =>
