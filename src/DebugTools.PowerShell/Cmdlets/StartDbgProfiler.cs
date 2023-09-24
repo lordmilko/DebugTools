@@ -3,7 +3,9 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Management.Automation;
+using ChaosLib.Metadata;
 using DebugTools.Profiler;
+using ChaosPEFile = ChaosLib.Metadata.PEFile;
 
 namespace DebugTools.PowerShell.Cmdlets
 {
@@ -181,9 +183,9 @@ namespace DebugTools.PowerShell.Cmdlets
             {
                 using (var stream = new FileStream(ProcessName, FileMode.Open, FileAccess.Read, FileShare.Read))
                 {
-                    var file = new PE.PEFile(stream, false);
+                    var file = new ChaosPEFile(stream, false);
 
-                    is32BIt = file.OptionalHeader.Magic == PE.PEMagic.PE32;
+                    is32BIt = file.OptionalHeader.Magic == PEMagic.PE32;
                 }
             }
             else
