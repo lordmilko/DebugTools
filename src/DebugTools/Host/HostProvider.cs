@@ -28,6 +28,13 @@ namespace DebugTools.Host
 
             var process = StartProcess(architecture, needDebug);
 
+            return CreateApp(process, needDebug, architecture);
+        }
+
+        internal static HostApp CreateApp(Process process, bool needDebug, Architecture? architecture = null, CancellationToken token = default)
+        {
+            architecture = architecture ?? (Kernel32.IsWow64Process(process.Handle) ? Architecture.x86 : Architecture.x64);
+
             if (needDebug)
                 VsDebugger.Attach(process, VsDebuggerType.Managed);
 
@@ -36,7 +43,9 @@ namespace DebugTools.Host
             var waitHandle = new EventWaitHandle(false, EventResetMode.AutoReset, eventName);
 
             //Wait for the IPC server to start (see RunIPCServer())
-            waitHandle.WaitOne();
+            WaitHandle.WaitAny(new[] { waitHandle, token.WaitHandle });
+
+            token.ThrowIfCancellationRequested();
 
             var ipcClient = new IpcClient();
             ipcClient.Connect(process);

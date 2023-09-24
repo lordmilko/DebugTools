@@ -26,6 +26,7 @@
   <ItemGroup>
     <ClCompile Include="$(MSBuildThisFileDirectory)dllmain.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)Hooks.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)Managed.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)MMF.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)Serialization.cpp" />
   </ItemGroup>

@@ -1,4 +1,5 @@
 LIBRARY
 EXPORTS
+    CallManaged PRIVATE
     WndProcHook PRIVATE
     WndProcRetHook PRIVATE

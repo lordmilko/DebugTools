@@ -12,4 +12,15 @@
 #define WIN32_LEAN_AND_MEAN             // Exclude rarely-used stuff from Windows headers
 #include <Windows.h>
 
+#define IfFailGoto(EXPR, LABEL) \
+    do { \
+        hr = (EXPR); \
+        if(FAILED(hr)) \
+        { \
+            goto LABEL; \
+        } \
+    } while (0)
+
+#define IfFailGo(EXPR) IfFailGoto(EXPR, ErrExit)
+
 #endif //PCH_H

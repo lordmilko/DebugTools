@@ -146,7 +146,7 @@ namespace DebugTools.Memory
                         if (totalRead > 0)
                             hr = S_OK;
                         else
-                            hr = (HRESULT)Marshal.GetHRForLastWin32Error();
+                            hr = (HRESULT) Marshal.GetHRForLastWin32Error();
 
                         break;
                     }
@@ -174,7 +174,10 @@ namespace DebugTools.Memory
 
         public HRESULT WriteVirtual(CLRDATA_ADDRESS address, IntPtr buffer, int bytesRequested, out int bytesWritten)
         {
-            throw new NotImplementedException();
+            if (!Kernel32.WriteProcessMemory(process.Handle, address, buffer, bytesRequested, out bytesWritten))
+                return (HRESULT) Marshal.GetHRForLastWin32Error();
+
+            return S_OK;
         }
 
         public HRESULT GetTLSValue(int threadID, int index, out CLRDATA_ADDRESS value)

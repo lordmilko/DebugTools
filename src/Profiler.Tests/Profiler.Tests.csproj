@@ -1,6 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <Import Project="$(Build)ClrDebug.props" />
+  <Import Project="$(Build)ChaosLib.props" />
 
   <PropertyGroup>
     <TargetFramework>net472</TargetFramework>

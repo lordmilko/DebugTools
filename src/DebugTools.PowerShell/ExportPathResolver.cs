@@ -1,6 +1,7 @@
 ﻿using System;
 using System.ComponentModel;
 using System.IO;
+using ChaosLib;
 using DebugTools.Profiler;
 
 namespace DebugTools.PowerShell

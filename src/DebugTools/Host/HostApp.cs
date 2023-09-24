@@ -43,12 +43,16 @@ namespace DebugTools.Host
 
         public static HostApp GetInstance() => instance;
 
+        private static CancellationTokenSource cts;
+
         #region Server
 
         public int ProcessId => Process.GetCurrentProcess().Id;
 
         public static void Main()
         {
+            cts = new CancellationTokenSource();
+
             instance = new HostApp();
 
             Console.WriteLine("Start");
@@ -57,9 +61,26 @@ namespace DebugTools.Host
             BindLifetimeToParentProcess();
             RunIPCServer();
 
-            while (true)
+            while (!cts.IsCancellationRequested)
                 Thread.Sleep(1);
         }
+
+        public static int MainNative(string args)
+        {
+            if (args.Contains("-debug"))
+            {
+                while (!Debugger.IsAttached)
+                {
+                    Console.WriteLine("Waiting for debugger...");
+                    Thread.Sleep(100);
+                }
+            }
+
+            Main();
+            return 0;
+        }
+
+        public void Exit() => cts?.Cancel();
 
         private static void WaitForDebugger()
         {
@@ -90,8 +111,7 @@ namespace DebugTools.Host
 
         private static void RunIPCServer()
         {
-            var friendlyName = AppDomain.CurrentDomain.FriendlyName;
-            friendlyName = friendlyName.Substring(0, friendlyName.LastIndexOf("."));
+            var friendlyName = $"DebugTools.Host.{(IntPtr.Size == 4 ? "x86" : "x64")}";
 
             var remoteExecutor = new RemoteExecutor();
 

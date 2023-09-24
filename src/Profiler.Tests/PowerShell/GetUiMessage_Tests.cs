@@ -75,7 +75,7 @@ Window                         Message                       wParam             
         public unsafe void PowerShell_UiMessage_TwoTypes_DifferentFormats()
         {
             Test(
-                new { Type = new[]{WM.WM_NULL, WM.WM_SETTEXT} },
+                new { Type = new[] { WM.WM_NULL, WM.WM_SETTEXT } },
                 @"
 Window                         Message                       wParam                        lParam                      
 ------                         -------                       ------                        ------                      
@@ -186,7 +186,7 @@ Window                         Message                wParam                HitT
                 {
                     value = value.Trim();
 
-                    var addresses = Regex.Match(value, "0x2.+$");
+                    var addresses = Regex.Match(value, "0x[1-9].+$");
 
                     if (addresses.Success && addresses.Value.Trim().Length > 4)
                     {
@@ -198,10 +198,13 @@ Window                         Message                wParam                HitT
 
                 var str = Normalize(ui.Buffer.ToString());
 
+                for (var i = 0; i < expected.Length; i++)
+                    expected[i] = Normalize(expected[i]);
+
                 if (expected.Length == 1)
-                    Assert.AreEqual(Normalize(expected[0]), str);
+                    Assert.AreEqual(expected[0], str);
                 else
-                    Assert.IsTrue(expected.Any(e => Normalize(e) == str));
+                    Assert.IsTrue(expected.Any(e => e == str));
             }
             finally
             {

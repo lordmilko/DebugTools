@@ -1,7 +1,7 @@
-﻿using System;
-using System.IO;
+﻿using System.IO;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using DebugTools.Profiler;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using static Profiler.Tests.ValueFactory;
@@ -104,7 +104,12 @@ namespace Profiler.Tests
             //If this is from GitHub using \n as newlines,
             //the string literal embedded in this file won't have the same newlines
             //as we'll get from the generated XML
-            return str.Replace("\r\n", "\n").Replace("\r", string.Empty);
+            str = str.Replace("\r\n", "\n").Replace("\r", string.Empty);
+
+            str = Regex.Replace(str, "FunctionID=\".+?\"", "FunctionID=\"\"");
+            str = Regex.Replace(str, "Token=\".+?\"", "Token=\"\"");
+
+            return str;
         }
     }
 }
