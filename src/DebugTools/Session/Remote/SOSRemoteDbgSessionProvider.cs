@@ -5,9 +5,9 @@ namespace DebugTools
 {
     class SOSRemoteDbgSessionProvider : RemoteDbgSessionProvider<SOSProcess>
     {
-        public override DbgServiceType ServiceType => DbgServiceType.SOS;
+        public override DbgSessionType SessionType => DbgSessionType.SOS;
 
-        protected override SOSProcess CreateServiceInternal(Process process) =>
+        protected override SOSProcess CreateSubSessionInternal(Process process) =>
             new SOSProcess(process);
     }
 }

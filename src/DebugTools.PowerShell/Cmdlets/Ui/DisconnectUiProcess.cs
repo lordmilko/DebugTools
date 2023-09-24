@@ -12,7 +12,7 @@ namespace DebugTools.PowerShell.Cmdlets
         protected override void ProcessRecord()
         {
             if (Session == null)
-                Session = DebugToolsSessionState.Services.GetImplicitService<LocalUiSession>(false);
+                Session = DebugToolsSessionState.Services.GetImplicitSubSession<LocalUiSession>(false);
 
             if (Session != null)
                 DebugToolsSessionState.Services.Close(Session.Process.Id, Session);

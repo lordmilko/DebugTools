@@ -6,12 +6,12 @@ namespace DebugTools
 {
     abstract class LocalDbgSessionProvider<T> : DbgSessionProvider
     {
-        public DbgServiceType ServiceType { get; }
+        public DbgSessionType SessionType { get; }
         private string parameter;
 
-        protected LocalDbgSessionProvider(DbgServiceType serviceType, string parameter)
+        protected LocalDbgSessionProvider(DbgSessionType sessionType, string parameter)
         {
-            ServiceType = serviceType;
+            SessionType = sessionType;
             this.parameter = parameter;
         }
 
@@ -19,56 +19,56 @@ namespace DebugTools
 
         public T Create(Process process, bool debugHost)
         {
-            if (!TryCreate(process, debugHost, out var service))
+            if (!TryCreate(process, debugHost, out var subSession))
                 throw new InvalidOperationException($"Cannot create {typeof(T).Name}: an instance for process '{process.Id}' already exists.");
 
-            return service;
+            return subSession;
         }
 
-        public bool TryCreate(Process process, bool debugHost, out T service)
+        public bool TryCreate(Process process, bool debugHost, out T subSession)
         {
-            if (Store.TryGetValue(process.Id, out var session))
+            if (Store.TryGetValue(process.Id, out var superSession))
             {
-                if (session.TryGetService(ServiceType, out var existing))
+                if (superSession.TryGetSubSession(SessionType, out var existing))
                 {
-                    //Can't create service, one already exists
-                    service = (T) existing;
+                    //Can't create subsession, one already exists
+                    subSession = (T) existing;
                     return false;
                 }
             }
 
-            if (session == null)
-                session = Store.CreateDbgSession(process);
+            if (superSession == null)
+                superSession = Store.CreateDbgSuperSession(process);
 
-            service = CreateServiceInternal(process, debugHost);
+            subSession = CreateSubSessionInternal(process, debugHost);
 
-            session[ServiceType] = service;
+            superSession[SessionType] = subSession;
             return true;
         }
 
-        public bool TryAdd(int processId, T service)
+        public bool TryAdd(int processId, T subSession)
         {
             var process = Process.GetProcessById(processId);
 
-            if (Store.TryGetValue(process.Id, out var session))
+            if (Store.TryGetValue(process.Id, out var superSession))
             {
-                if (session.TryGetService(ServiceType, out _))
+                if (superSession.TryGetSubSession(SessionType, out _))
                 {
-                    //Can't add service, one already exists
+                    //Can't add subsession, one already exists
                     return false;
                 }
             }
 
-            if (session == null)
-                session = Store.CreateDbgSession(process);
+            if (superSession == null)
+                superSession = Store.CreateDbgSuperSession(process);
 
-            session[ServiceType] = service;
+            superSession[SessionType] = subSession;
             return true;
         }
 
-        public T GetImplicitService(bool mandatory = true)
+        public T GetImplicitSubSession(bool mandatory = true)
         {
-            var candidates = Store.GetServices<T>(ServiceType);
+            var candidates = Store.GetSubSessions<T>(SessionType);
 
             //Check for alive
 
@@ -82,8 +82,8 @@ namespace DebugTools
 
             //Check for dead
 
-            if (TryGetFallbackService(candidates, out var service))
-                return service;
+            if (TryGetFallbackSubSession(candidates, out var subSession))
+                return subSession;
 
             if (mandatory)
                 throw new InvalidOperationException($"Cannot execute cmdlet: no -{parameter} was specified and no global {parameter} could be found in the PowerShell session.");
@@ -91,27 +91,27 @@ namespace DebugTools
             return default;
         }
 
-        protected abstract T CreateServiceInternal(Process process, bool debugHost);
+        protected abstract T CreateSubSessionInternal(Process process, bool debugHost);
 
-        public virtual void AddSpecial(T service) => throw new NotSupportedException();
-        public virtual void ReplaceSpecial(T oldService, T newService) => throw new NotSupportedException();
+        public virtual void AddSpecial(T subSession) => throw new NotSupportedException();
+        public virtual void ReplaceSpecial(T oldSubSession, T newSubSession) => throw new NotSupportedException();
         public virtual T GetOrCreateSpecial(object context) => throw new NotSupportedException();
-        protected virtual bool TryCloseSpecial(T service) => false;
+        protected virtual bool TryCloseSpecial(T subSession) => false;
 
-        public void Close(int processId, T service)
+        public void Close(int processId, T subSession)
         {
-            if (!TryCloseSpecial(service))
-                Store.Close(processId, ServiceType, service);
+            if (!TryCloseSpecial(subSession))
+                Store.Close(processId, SessionType, subSession);
         }
 
-        protected abstract bool IsAlive(T service);
+        protected abstract bool IsAlive(T subSession);
 
-        protected virtual bool TryGetFallbackService(T[] dead, out T service)
+        protected virtual bool TryGetFallbackSubSession(T[] dead, out T subSession)
         {
             if (dead.Length > 0)
                 throw new InvalidOperationException($"Cannot execute cmdlet: no -Process was specified and all previous {typeof(T).Name} instances have now terminated.");
 
-            service = default;
+            subSession = default;
             return false;
         }
 

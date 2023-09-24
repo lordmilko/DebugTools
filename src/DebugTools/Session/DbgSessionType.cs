@@ -1,6 +1,6 @@
 ﻿namespace DebugTools
 {
-    public enum DbgServiceType
+    public enum DbgSessionType
     {
         SOS,
         SymbolManager,

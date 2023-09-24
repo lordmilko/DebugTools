@@ -51,7 +51,7 @@ namespace DebugTools.PowerShell.Cmdlets
         {
             if (MyInvocation.BoundParameters.ContainsKey(nameof(hWnd)))
             {
-                var session = DebugToolsSessionState.Services.GetImplicitService<LocalUiSession>(false);
+                var session = DebugToolsSessionState.Services.GetImplicitSubSession<LocalUiSession>(false);
 
                 if (session == null)
                     throw new ParameterBindingException($"-{nameof(hWnd)} must be specified when there is no active UI Session");

@@ -6,83 +6,83 @@ namespace DebugTools
 {
     abstract class RemoteDbgSessionProvider<T> : DbgSessionProvider
     {
-        public abstract DbgServiceType ServiceType { get; }
+        public abstract DbgSessionType SessionType { get; }
 
-        public T GetOrCreateService(Process process)
+        public T GetOrCreateSubSession(Process process)
         {
-            object service;
+            object subSession;
 
-            if (Store.TryGetValue(process.Id, out var session))
+            if (Store.TryGetValue(process.Id, out var superSession))
             {
-                if (session.TryGetService(ServiceType, out service))
-                    return (T)service;
+                if (superSession.TryGetSubSession(SessionType, out subSession))
+                    return (T)subSession;
             }
 
-            if (session == null)
-                session = Store.CreateDbgSession(process);
+            if (superSession == null)
+                superSession = Store.CreateDbgSuperSession(process);
 
-            service = CreateServiceInternal(process);
+            subSession = CreateSubSessionInternal(process);
 
-            session[ServiceType] = service;
+            superSession[SessionType] = subSession;
 
-            return (T)service;
+            return (T)subSession;
         }
 
-        public DbgSessionHandle CreateService(int processId, bool lazy = false, bool debugTarget = false)
+        public DbgSessionHandle CreateSubSession(int processId, bool lazy = false, bool debugTarget = false)
         {
             var process = Process.GetProcessById(processId);
 
-            if (!Store.TryGetValue(process.Id, out var session))
-                session = Store.CreateDbgSession(process);
+            if (!Store.TryGetValue(process.Id, out var superSession))
+                superSession = Store.CreateDbgSuperSession(process);
             else
             {
-                if (session.TryGetService(ServiceType, out _))
+                if (superSession.TryGetSubSession(SessionType, out _))
                     throw new InvalidOperationException($"Cannot create {typeof(T).Name}: an instance for process ID {processId} already exists.");
             }
 
-            object service;
+            object subSession;
 
             if (lazy)
             {
-                service = new Lazy<T>(() =>
+                subSession = new Lazy<T>(() =>
                 {
-                    var result = CreateServiceInternal(process);
+                    var result = CreateSubSessionInternal(process);
 
                     if (debugTarget)
-                        throw new NotImplementedException("Debugging a lazily created service has not been tested");
+                        throw new NotImplementedException("Debugging a lazily created subsession has not been tested");
 
                     return result;
                 });
             }
             else
             {
-                service = CreateServiceInternal(process);
+                subSession = CreateSubSessionInternal(process);
 
                 if (debugTarget)
                     VsDebugger.Attach(process, VsDebuggerType.Native);
             }
 
-            session[ServiceType] = service;
+            superSession[SessionType] = subSession;
 
             return new DbgSessionHandle(process.Id);
         }
 
-        public T GetService(int processId)
+        public T GetSubSession(int processId)
         {
-            if (Store.TryGetValue(processId, out var session))
+            if (Store.TryGetValue(processId, out var superSession))
             {
-                if (session.TryGetService(ServiceType, out var service))
+                if (superSession.TryGetSubSession(SessionType, out var subSession))
                 {
-                    if (service is Lazy<T> l)
+                    if (subSession is Lazy<T> l)
                         return l.Value;
 
-                    return (T) service;
+                    return (T) subSession;
                 }
             }
 
             throw new InvalidOperationException($"Failed to find an existing {typeof(T).Name} for process ID {processId}");
         }
 
-        protected abstract T CreateServiceInternal(Process process);
+        protected abstract T CreateSubSessionInternal(Process process);
     }
 }

@@ -25,35 +25,35 @@ namespace DebugTools
                 kv.Value.Store = store;
         }
 
-        public T GetOrCreateService<T>(Process process)
+        public T GetOrCreateSubSession<T>(Process process)
         {
             var provider = GetProvider<T>();
 
-            var result = provider.GetOrCreateService(process);
+            var result = provider.GetOrCreateSubSession(process);
 
             return result;
         }
 
-        public DbgSessionHandle CreateService<T>(int processId, bool lazy = false, bool debugTarget = false)
+        public DbgSessionHandle CreateSubSession<T>(int processId, bool lazy = false, bool debugTarget = false)
         {
             var provider = GetProvider<T>();
 
-            var result = provider.CreateService(processId, lazy, debugTarget);
+            var result = provider.CreateSubSession(processId, lazy, debugTarget);
 
             return result;
         }
 
-        public T GetService<T>(int processId)
+        public T GetSubSession<T>(int processId)
         {
             var provider = GetProvider<T>();
 
-            var result = provider.GetService(processId);
+            var result = provider.GetSubSession(processId);
 
             return result;
         }
 
-        public void DisposeService(DbgSessionHandle handle, DbgServiceType type) =>
-            store.DisposeService(handle, type);
+        public void DisposeSubSession(DbgSessionHandle handle, DbgSessionType type) =>
+            store.DisposeSubSession(handle, type);
 
         private RemoteDbgSessionProvider<T> GetProvider<T>()
         {

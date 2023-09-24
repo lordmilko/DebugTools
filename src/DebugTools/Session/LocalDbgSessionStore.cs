@@ -83,21 +83,21 @@ namespace DebugTools
             host.Host.IsDebuggerAttached = true;
         }
 
-        public void Close(int processId, DbgServiceType serviceType, object service)
+        public void Close(int processId, DbgSessionType sessionType, object subSession)
         {
-            if (sessions.TryGetValue(processId, out var session))
+            if (superSessions.TryGetValue(processId, out var session))
             {
-                if (session.Contains(service))
+                if (session.Contains(subSession))
                 {
-                    session.Close(service);
+                    session.Close(subSession);
 
-                    if (service is IHostAppSession c)
+                    if (subSession is IHostAppSession c)
                     {
                         var host = c.HostApp;
 
                         if (host != null)
                         {
-                            host.DisposeService(new DbgSessionHandle(processId), serviceType);
+                            host.DisposeSubSession(new DbgSessionHandle(processId), sessionType);
 
                             if (ReferenceEquals(Hostx86?.Host, host))
                             {

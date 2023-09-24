@@ -29,7 +29,7 @@ namespace DebugTools
                 kv.Value.Store = store;
         }
 
-        public T[] GetServices<T>() => store.GetServices<T>();
+        public T[] GetSubSessions<T>() => store.GetSubSessions<T>();
 
         public T Create<T>(Process process, bool debugHost)
         {
@@ -74,11 +74,11 @@ namespace DebugTools
             return provider.GetOrCreateSpecial(context);
         }
 
-        public T GetImplicitService<T>(bool mandatory = true)
+        public T GetImplicitSubSession<T>(bool mandatory = true)
         {
             var provider = GetProvider<T>();
 
-            return provider.GetImplicitService(mandatory);
+            return provider.GetImplicitSubSession(mandatory);
         }
 
         public void Close<T>(int processId, T service)
@@ -103,7 +103,7 @@ namespace DebugTools
                 //do that however, because we may actually have a proper service with the same process ID
                 //that is responsible for releasing the reference count on the HostApp, not us
 
-                var targets = store.GetServiceTargets();
+                var targets = store.GetSessionTargets();
 
                 if (!targets.Contains(pid))
                 {
@@ -116,7 +116,7 @@ namespace DebugTools
 
         public Process GetImplicitOrFallbackProcess()
         {
-            var targets = store.GetServiceTargets();
+            var targets = store.GetSessionTargets();
 
             var processes = Process.GetProcesses().ToDictionary(p => p.Id);
 
@@ -133,14 +133,14 @@ namespace DebugTools
         {
             var provider = GetProvider<T>();
 
-            var services = store.GetServices<T>(provider.ServiceType);            
+            var services = store.GetSubSessions<T>(provider.SessionType);            
 
             if (services.Length == 0)
             {
                 //We don't have any instances of the desired service. Have we created any other types of services?
                 //If so we can fallback to using that
 
-                var pid = store.GetServiceTargets().Cast<int?>().FirstOrDefault();
+                var pid = store.GetSessionTargets().Cast<int?>().FirstOrDefault();
 
                 if (pid != null)
                 {
@@ -157,7 +157,7 @@ namespace DebugTools
             //We have at least one instance of the specified service type, or we failed to find a fallback service to use
             //above. Use the normal service resolution logic, which will either find a service to use, or throw an appropriate
             //exception
-            return provider.GetImplicitService();
+            return provider.GetImplicitSubSession();
         }
 
         private LocalDbgSessionProvider<T> GetProvider<T>()

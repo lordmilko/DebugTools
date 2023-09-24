@@ -160,7 +160,7 @@ namespace DebugTools.Host
 
                 var results = new List<DbgVtblSymbolInfo>();
 
-                var symbolManager = sessionFactory.GetOrCreateService<SymbolManager>(process);
+                var symbolManager = sessionFactory.GetOrCreateSubSession<SymbolManager>(process);
 
                 foreach (var rcw in rcws)
                 {

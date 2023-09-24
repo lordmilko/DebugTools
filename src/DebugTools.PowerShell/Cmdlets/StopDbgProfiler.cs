@@ -22,7 +22,7 @@ namespace DebugTools.PowerShell.Cmdlets
             else
             {
                 if (session == null)
-                    session = DebugToolsSessionState.Services.GetImplicitService<ProfilerSession>(false);
+                    session = DebugToolsSessionState.Services.GetImplicitSubSession<ProfilerSession>(false);
             }
 
             if (session != null)

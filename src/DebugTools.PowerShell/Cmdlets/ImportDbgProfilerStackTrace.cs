@@ -43,7 +43,7 @@ namespace DebugTools.PowerShell.Cmdlets
 
                 session.LastTrace = threads.ToArray();
 
-                var existing = DebugToolsSessionState.Services.GetServices<ProfilerSession>().LastOrDefault(v => v.Name == Path);
+                var existing = DebugToolsSessionState.Services.GetSubSessions<ProfilerSession>().LastOrDefault(v => v.Name == Path);
 
                 if (existing != null)
                 {

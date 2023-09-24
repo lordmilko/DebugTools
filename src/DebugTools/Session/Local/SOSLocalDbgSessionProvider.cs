@@ -4,11 +4,11 @@ namespace DebugTools
 {
     class SOSLocalDbgSessionProvider : LocalDbgSessionProvider<LocalSOSProcess>
     {
-        public SOSLocalDbgSessionProvider() : base(DbgServiceType.SOS, "Process")
+        public SOSLocalDbgSessionProvider() : base(DbgSessionType.SOS, "Process")
         {
         }
 
-        protected override LocalSOSProcess CreateServiceInternal(Process process, bool debugTarget)
+        protected override LocalSOSProcess CreateSubSessionInternal(Process process, bool debugTarget)
         {
             var hostApp = Store.GetDetectedHost(process, debugTarget);
 
@@ -17,6 +17,6 @@ namespace DebugTools
             return new LocalSOSProcess(handle, hostApp);
         }
 
-        protected override bool IsAlive(LocalSOSProcess service) => !service.Process.HasExited;
+        protected override bool IsAlive(LocalSOSProcess subSession) => !subSession.Process.HasExited;
     }
 }

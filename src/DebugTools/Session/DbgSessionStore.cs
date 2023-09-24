@@ -7,57 +7,57 @@ namespace DebugTools
 {
     class DbgSessionStore
     {
-        protected Dictionary<int, DbgSession> sessions = new Dictionary<int, DbgSession>();
+        protected Dictionary<int, DbgSuperSession> superSessions = new Dictionary<int, DbgSuperSession>();
 
-        public DbgSession CreateDbgSession(Process process)
+        public DbgSuperSession CreateDbgSuperSession(Process process)
         {
             if (process.HasExited)
-                throw new ArgumentException($"Cannot create {nameof(DbgSession)} for process {process.ProcessName} (PID: {process.Id}): process has exited");
+                throw new ArgumentException($"Cannot create {nameof(DbgSuperSession)} for process {process.ProcessName} (PID: {process.Id}): process has exited");
 
             var pid = process.Id;
 
-            var session = new DbgSession(pid);
+            var superSession = new DbgSuperSession(pid);
 
-            sessions.Add(pid, session);
+            superSessions.Add(pid, superSession);
             process.EnableRaisingEvents = true;
             process.Exited += (s, e) =>
             {
-                if (sessions.TryGetValue(pid, out var val))
+                if (superSessions.TryGetValue(pid, out var val))
                     val.Dispose();
 
-                sessions.Remove(pid);
+                superSessions.Remove(pid);
             };
 
-            return session;
+            return superSession;
         }
 
-        public int[] GetServiceTargets() => sessions.Keys.ToArray();
+        public int[] GetSessionTargets() => superSessions.Keys.ToArray();
 
-        public T[] GetServices<T>(DbgServiceType type)
+        public T[] GetSubSessions<T>(DbgSessionType type)
         {
             var results = new List<T>();
 
-            foreach (var kv in sessions)
+            foreach (var kv in superSessions)
             {
-                if (kv.Value.TryGetService(type, out var service))
-                    results.Add((T) service);
+                if (kv.Value.TryGetSubSession(type, out var subSession))
+                    results.Add((T) subSession);
             }
 
             return results.ToArray();
         }
 
-        public T[] GetServices<T>() => sessions.SelectMany(s => s.Value.GetServices<T>()).ToArray();
+        public T[] GetSubSessions<T>() => superSessions.SelectMany(s => s.Value.GetSubSessions<T>()).ToArray();
 
-        public bool TryGetValue(int processId, out DbgSession session) =>
-            sessions.TryGetValue(processId, out session);
+        public bool TryGetValue(int processId, out DbgSuperSession session) =>
+            superSessions.TryGetValue(processId, out session);
 
-        public void DisposeService(DbgSessionHandle handle, DbgServiceType type)
+        public void DisposeSubSession(DbgSessionHandle handle, DbgSessionType type)
         {
-            if (sessions.TryGetValue(handle.ProcessId, out var session))
+            if (superSessions.TryGetValue(handle.ProcessId, out var superSession))
             {
-                if (session.TryGetService(type, out var service))
+                if (superSession.TryGetSubSession(type, out var subSession))
                 {
-                    if (service is IDisposable d)
+                    if (subSession is IDisposable d)
                         d.Dispose();
                 }
             }

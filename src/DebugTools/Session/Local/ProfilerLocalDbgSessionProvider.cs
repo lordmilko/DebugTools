@@ -24,26 +24,26 @@ namespace DebugTools
     {
         private List<ProfilerSession> specialSessions = new List<ProfilerSession>();
 
-        public ProfilerLocalDbgSessionProvider() : base(DbgServiceType.Profiler, "Session")
+        public ProfilerLocalDbgSessionProvider() : base(DbgSessionType.Profiler, "Session")
         {
         }
 
-        protected override ProfilerSession CreateServiceInternal(Process process, bool debugHost) => throw new NotSupportedException();
+        protected override ProfilerSession CreateSubSessionInternal(Process process, bool debugHost) => throw new NotSupportedException();
 
         public override void AddSpecial(ProfilerSession session)
         {
             specialSessions.Add(session);
         }
 
-        public override void ReplaceSpecial(ProfilerSession oldService, ProfilerSession newService)
+        public override void ReplaceSpecial(ProfilerSession oldSubSession, ProfilerSession newSubSession)
         {
-            var index = specialSessions.IndexOf(oldService);
+            var index = specialSessions.IndexOf(oldSubSession);
 
             if (index == -1)
-                throw new InvalidOperationException($"Attempted to replace non-existent {nameof(ProfilerSession)} '{oldService}' with session '{newService}'. This should be impossible.");
+                throw new InvalidOperationException($"Attempted to replace non-existent {nameof(ProfilerSession)} '{oldSubSession}' with session '{newSubSession}'. This should be impossible.");
 
-            oldService.Dispose();
-            specialSessions[index] = newService;
+            oldSubSession.Dispose();
+            specialSessions[index] = newSubSession;
         }
 
         public override ProfilerSession GetOrCreateSpecial(object context)
@@ -51,7 +51,7 @@ namespace DebugTools
             var profilerContext = (CreateSpecialProfilerContext) context;
 
             if (profilerContext.Type != ProfilerSessionType.Global)
-                throw new NotImplementedException("Only retrieving the global profiler service is currently supported");
+                throw new NotImplementedException("Only retrieving the global profiler session is currently supported");
 
             var global = specialSessions.SingleOrDefault(v => v.Type == profilerContext.Type);
 
@@ -73,13 +73,13 @@ namespace DebugTools
             return global;
         }
 
-        protected override bool TryCloseSpecial(ProfilerSession service)
+        protected override bool TryCloseSpecial(ProfilerSession subSession)
         {
-            var index = specialSessions.IndexOf(service);
+            var index = specialSessions.IndexOf(subSession);
 
             if (index != -1)
             {
-                service.Dispose();
+                subSession.Dispose();
                 specialSessions.RemoveAt(index);
                 return true;
             }
@@ -92,20 +92,20 @@ namespace DebugTools
 
         }
 
-        protected override bool IsAlive(ProfilerSession service) =>
-            service.IsAlive;
+        protected override bool IsAlive(ProfilerSession subSession) =>
+            subSession.IsAlive;
 
-        protected override bool TryGetFallbackService(ProfilerSession[] dead, out ProfilerSession service)
+        protected override bool TryGetFallbackSubSession(ProfilerSession[] dead, out ProfilerSession subSession)
         {
             if (dead.Length == 1)
             {
-                service = dead[0];
+                subSession = dead[0];
                 return true;
             }
 
             if (dead.Length > 0)
             {
-                service = dead.Last(); //All of the sessions have ended, so take the last one
+                subSession = dead.Last(); //All of the sessions have ended, so take the last one
                 return true;
             }
 
@@ -116,11 +116,11 @@ namespace DebugTools
 
             if (global != null)
             {
-                service = global;
+                subSession = global;
                 return true;
             }
 
-            service = null;
+            subSession = null;
             return false;
         }
     }

@@ -5,9 +5,9 @@ namespace DebugTools
 {
     class UiMessageRemoteDbgSessionProvider : RemoteDbgSessionProvider<UiMessageSession>
     {
-        public override DbgServiceType ServiceType => DbgServiceType.Ui;
+        public override DbgSessionType SessionType => DbgSessionType.Ui;
 
-        protected override UiMessageSession CreateServiceInternal(Process process) =>
+        protected override UiMessageSession CreateSubSessionInternal(Process process) =>
             new UiMessageSession(process);
     }
 }

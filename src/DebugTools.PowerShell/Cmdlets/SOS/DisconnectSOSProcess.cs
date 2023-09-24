@@ -13,7 +13,7 @@ namespace DebugTools.PowerShell.Cmdlets
             var process = Process;
 
             if (process == null)
-                process = DebugToolsSessionState.Services.GetImplicitService<LocalSOSProcess>(false);
+                process = DebugToolsSessionState.Services.GetImplicitSubSession<LocalSOSProcess>(false);
 
             if (process != null)
             {

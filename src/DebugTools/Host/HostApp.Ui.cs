@@ -5,10 +5,10 @@ namespace DebugTools.Host
     public partial class HostApp
     {
         public DbgSessionHandle CreateUiMessageSession(int processId, bool debugTarget) =>
-            sessionFactory.CreateService<UiMessageSession>(processId, debugTarget: debugTarget);
+            sessionFactory.CreateSubSession<UiMessageSession>(processId, debugTarget: debugTarget);
 
         private UiMessageSession GetUiProcess(int processId) =>
-            sessionFactory.GetService<UiMessageSession>(processId);
+            sessionFactory.GetSubSession<UiMessageSession>(processId);
 
         public bool TryReadMessage(int processId, out WindowMessage message)
         {

@@ -31,7 +31,7 @@ namespace DebugTools.PowerShell.Cmdlets
 
         protected override void ProcessRecord()
         {
-            IEnumerable<ProfilerSession> sessions = DebugToolsSessionState.Services.GetServices<ProfilerSession>();
+            IEnumerable<ProfilerSession> sessions = DebugToolsSessionState.Services.GetSubSessions<ProfilerSession>();
 
             if (Global)
             {

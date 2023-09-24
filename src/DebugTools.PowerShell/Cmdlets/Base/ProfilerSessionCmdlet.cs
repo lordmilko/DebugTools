@@ -27,7 +27,7 @@ namespace DebugTools.PowerShell.Cmdlets
                 if (Global)
                     Session = DebugToolsSessionState.Services.GetOrCreateSpecial<ProfilerSession>(new CreateSpecialProfilerContext(ProfilerSessionType.Global, true, mayCreateGlobalSession));
                 else
-                    Session = DebugToolsSessionState.Services.GetImplicitService<ProfilerSession>();
+                    Session = DebugToolsSessionState.Services.GetImplicitSubSession<ProfilerSession>();
             }
 
             ProcessRecordEx();

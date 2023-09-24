@@ -4,9 +4,9 @@ namespace DebugTools
 {
     class SymbolManagerRemoteDbgSessionProvider : RemoteDbgSessionProvider<SymbolManager>
     {
-        public override DbgServiceType ServiceType => DbgServiceType.SymbolManager;
+        public override DbgSessionType SessionType => DbgSessionType.SymbolManager;
 
-        protected override SymbolManager CreateServiceInternal(Process process) =>
+        protected override SymbolManager CreateSubSessionInternal(Process process) =>
             new SymbolManager(process);
     }
 }

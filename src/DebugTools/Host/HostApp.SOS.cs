@@ -15,11 +15,11 @@ namespace DebugTools.Host
             //The .NET Unmanaged API does not appreciate it when you create unmanaged interfaces on one thread and consume them on another.
             //We get told our QueryInterface attempts fail. As such, for our unit tests we allow specifying that the SOSProcess should be
             //lazily created, so that all the interfaces are created on the PowerShell thread where they are consumed
-            return sessionFactory.CreateService<SOSProcess>(processId, lazy);
+            return sessionFactory.CreateSubSession<SOSProcess>(processId, lazy);
         }
 
         private SOSProcess GetSOSProcess(DbgSessionHandle handle) =>
-            sessionFactory.GetService<SOSProcess>(handle.ProcessId);
+            sessionFactory.GetSubSession<SOSProcess>(handle.ProcessId);
 
         private SOSDacInterface GetSOS(DbgSessionHandle handle) => GetSOSProcess(handle).SOS;
 

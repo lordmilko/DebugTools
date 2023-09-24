@@ -5,11 +5,11 @@ namespace DebugTools
 {
     class UiLocalDbgSessionProvider : LocalDbgSessionProvider<LocalUiSession>
     {
-        public UiLocalDbgSessionProvider() : base(DbgServiceType.Ui, "Process")
+        public UiLocalDbgSessionProvider() : base(DbgSessionType.Ui, "Process")
         {
         }
 
-        protected override LocalUiSession CreateServiceInternal(Process process, bool debugHost)
+        protected override LocalUiSession CreateSubSessionInternal(Process process, bool debugHost)
         {
             var pid = process.Id;
 
@@ -30,6 +30,6 @@ namespace DebugTools
             );
         }
 
-        protected override bool IsAlive(LocalUiSession service) => !service.Process.HasExited;
+        protected override bool IsAlive(LocalUiSession subSession) => !subSession.Process.HasExited;
     }
 }
