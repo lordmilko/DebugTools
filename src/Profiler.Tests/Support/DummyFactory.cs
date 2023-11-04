@@ -14,7 +14,7 @@ namespace Profiler.Tests
 
             var instance = Activator.CreateInstance(type);
 
-            return RemoteProxyStub.New(instance);
+            return RemoteProxyStub.New(instance, NullRemotingMarshaller.Instance);
         }
 
         public override object InitializeLifetimeService() => null;

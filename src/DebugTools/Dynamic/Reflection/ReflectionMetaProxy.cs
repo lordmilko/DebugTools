@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Dynamic;
@@ -26,7 +25,7 @@ namespace DebugTools.Dynamic
                 {
                     var data = GetData(instance);
 
-                    var match = GetBestIndexer(data, indexes);
+                    var match = ReflectionProvider.GetBestIndexer(data, indexes);
 
                     if (match != null)
                     {
@@ -49,7 +48,7 @@ namespace DebugTools.Dynamic
                 {
                     var data = GetData(instance);
 
-                    var match = GetBestIndexer(data, indexes);
+                    var match = ReflectionProvider.GetBestIndexer(data, indexes);
 
                     if (match != null)
                     {
@@ -70,29 +69,6 @@ namespace DebugTools.Dynamic
                 {
                     throw GetRemotableException(ex);
                 }
-            }
-
-            private IndexerAndParameters? GetBestIndexer(ReflectionCache data, object[] indexes)
-            {
-                var matches = data.Indexers.Where(v => MatchesIndexes(v.Parameters, indexes)).ToArray();
-
-                if (matches.Length == 0)
-                    return null;
-
-                if (matches.Length == 1)
-                    return matches[0];
-
-                if (typeof(IList).IsAssignableFrom(data.Type))
-                {
-                    var ifaceMap = data.Type.GetInterfaceMap(typeof(IList));
-
-                    var nonIListMatches = matches.Where(m => !ifaceMap.TargetMethods.Contains(m.GetIndex)).ToArray();
-
-                    if (nonIListMatches.Length == 1)
-                        return nonIListMatches[0];
-                }
-
-                throw new NotImplementedException("Disambiguating between multiple potentially valid indexer overloads is not implemented");
             }
 
             #endregion
@@ -192,7 +168,7 @@ namespace DebugTools.Dynamic
 
                     if (data.Methods.TryGetValue(binder.Name, out var candidates))
                     {
-                        var bestMethod = FindBestMethod(candidates, parameterTypes);
+                        var bestMethod = ReflectionProvider.FindBestMethod(candidates, parameterTypes);
 
                         if (bestMethod != null)
                         {
@@ -206,7 +182,7 @@ namespace DebugTools.Dynamic
                     {
                         if (data.MethodsIgnoreCase.TryGetValue(binder.Name, out candidates))
                         {
-                            var bestMethod = FindBestMethod(candidates, parameterTypes);
+                            var bestMethod = ReflectionProvider.FindBestMethod(candidates, parameterTypes);
 
                             if (bestMethod != null)
                             {
@@ -226,7 +202,7 @@ namespace DebugTools.Dynamic
                 }
             }
 
-            private object[] BuildMethodInvocationArgs(MethodInfoAndParameters info, object[] userArgs)
+            private object[] BuildMethodInvocationArgs(MethodInfoAndParameterRanks info, object[] userArgs)
             {
                 var outputArgs = new List<object>();
 
@@ -234,13 +210,13 @@ namespace DebugTools.Dynamic
                 {
                     var parameter = info.Parameters[i];
 
-                    var isParams = parameter.GetCustomAttribute<ParamArrayAttribute>() != null;
+                    var isParams = parameter.Info.GetCustomAttribute<ParamArrayAttribute>() != null;
 
                     if (isParams)
                     {
                         var paramsArgs = userArgs.Skip(i).ToArray();
 
-                        var paramsArray = Array.CreateInstance(parameter.ParameterType.GetElementType(), paramsArgs.Length);
+                        var paramsArray = Array.CreateInstance(parameter.Info.ParameterType.GetElementType(), paramsArgs.Length);
 
                         if (paramsArgs.Length > 0)
                             Array.Copy(paramsArgs, paramsArray, paramsArgs.Length);
@@ -251,14 +227,14 @@ namespace DebugTools.Dynamic
                     else
                     {
                         if (i < userArgs.Length)
-                            outputArgs.Add(userArgs[i]);
+                            outputArgs.Add(ConvertValue(userArgs[i], parameter.Info.ParameterType, parameter.Rank));
                         else
                         {
-                            if (parameter.HasDefaultValue)
+                            if (parameter.Info.HasDefaultValue)
                                 outputArgs.Add(Type.Missing);
                             else
                             {
-                                throw new ArgumentException($"Expected a value for parameter '{parameter}' however none was specified.");
+                                throw new ArgumentException($"Expected a value for parameter '{parameter.Info}' however none was specified.");
                             }
                         }
                     }
@@ -267,93 +243,38 @@ namespace DebugTools.Dynamic
                 return outputArgs.ToArray();
             }
 
+            private object ConvertValue(object value, Type desiredType, ConversionRank? rank)
+            {
+                if (rank == null)
+                {
+                    //There was only 1 method overload
+                    rank = ReflectionProvider.IsAssignableTo(desiredType, value?.GetType() ?? typeof(object));
+                }
+
+                switch (rank.Value)
+                {
+                    case ConversionRank.ImplementsInterface:
+                    case ConversionRank.AssignableFrom:
+                    case ConversionRank.Exact:
+                        return value;
+                    
+                    case ConversionRank.SimpleToString:
+                        return value.ToString();
+
+                    case ConversionRank.StringToPrimitive:
+                        return System.Convert.ChangeType(value, desiredType);
+
+                    case ConversionRank.StringToEnum:
+                    case ConversionRank.EnumUnderlying:
+                        return Enum.Parse(desiredType, value.ToString(), false);
+
+                    case ConversionRank.None:
+                    default:
+                        throw new NotImplementedException($"Don't know how to handle {nameof(ConversionRank)} '{rank.Value}'.");
+                }
+            }
+
             #endregion
-
-            private bool MatchesIndexes(ParameterInfo[] parameters, object[] indexes)
-            {
-                if (parameters.Length != indexes.Length)
-                    return false;
-
-                for (var i = 0; i < parameters.Length; i++)
-                {
-                    var parameter = parameters[i];
-                    var value = indexes[i];
-
-                    var valueType = value?.GetType() ?? typeof(object);
-
-                    if (!IsAssignableTo(parameter.ParameterType, valueType))
-                        return false;
-                }
-
-                return true;
-            }
-
-            private MethodInfoAndParameters? FindBestMethod(MethodInfoAndParameters[] candidates, Type[] parameterTypes)
-            {
-                if (candidates.Length == 1)
-                    return candidates[0];
-
-                var matches = new List<MethodInfoAndParameters>();
-
-                foreach (var candidate in candidates)
-                {
-                    var bad = false;
-
-                    //If the method doesn't expect any parameters at all but some where specified, we've already failed
-                    if (candidate.Parameters.Length == 0 && parameterTypes.Length > 0)
-                        continue;
-
-                    for (var i = 0; i < candidate.Parameters.Length; i++)
-                    {
-                        var parameter = candidate.Parameters[i];
-
-                        var isParams = parameter.GetCustomAttribute<ParamArrayAttribute>() != null;
-
-                        if (i < parameterTypes.Length)
-                        {
-                            var userType = parameterTypes[i];
-
-                            if (isParams)
-                            {
-                                if (!IsAssignableTo(parameter.ParameterType.GetElementType(), userType))
-                                {
-                                    bad = true;
-                                    break;
-                                }
-                            }
-                            else
-                            {
-                                if (!IsAssignableTo(parameter.ParameterType, userType))
-                                {
-                                    bad = true;
-                                    break;
-                                }
-                            }
-                        }
-                        else
-                        {
-                            //There's more parameters defined on the method than there were arguments. All these remaining parameters better be optional!
-
-                            if (!parameter.HasDefaultValue && !isParams)
-                            {
-                                bad = true;
-                                break;
-                            }
-                        }
-                    }
-
-                    if (!bad)
-                        matches.Add(candidate);
-                }
-
-                if (matches.Count == 0)
-                    return null;
-
-                if (matches.Count == 1)
-                    return matches[0];
-
-                throw new NotImplementedException("Disambiguating between multiple potentially valid overloads is not implemented");
-            }
 
             private Exception GetRemotableException(Exception ex)
             {
@@ -364,31 +285,6 @@ namespace DebugTools.Dynamic
                     return ex;
 
                 return new RemoteException(ex.Message, ex.GetType());
-            }
-
-            private static bool IsAssignableTo(Type parameterType, Type valueType)
-            {
-                if (parameterType == valueType)
-                    return true;
-
-                if (parameterType.IsAssignableFrom(valueType))
-                    return true;
-
-                if (parameterType.IsEnum && valueType == typeof(int))
-                    return true;
-
-                if (!parameterType.IsInterface)
-                    return false;
-
-                var ifaces = valueType.GetInterfaces();
-
-                foreach (var iface in ifaces)
-                {
-                    if (iface == parameterType)
-                        return true;
-                }
-
-                return false;
             }
 
             public override IEnumerable<string> GetDynamicMemberNames(ReflectionProxy instance)

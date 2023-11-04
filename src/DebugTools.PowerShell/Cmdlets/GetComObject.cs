@@ -17,21 +17,9 @@ namespace DebugTools.PowerShell.Cmdlets
 
         protected override void ProcessRecordEx()
         {
-            string[] interfaceNameRegexes = null;
+            var interfaceNameRegex = GetWildcardRegex(InterfaceName);
 
-            if (InterfaceName != null)
-            {
-                var wildcards = InterfaceName.Select(n => new WildcardPattern(n, WildcardOptions.IgnoreCase)).ToArray();
-
-                var property = typeof(WildcardPattern).GetProperty("PatternConvertedToRegex", BindingFlags.Instance | BindingFlags.NonPublic);
-
-                if (property == null)
-                    throw new InvalidOperationException("Could not find property PatternConvertedToRegex");
-
-                interfaceNameRegexes = wildcards.Select(w => (string) property.GetValue(w)).ToArray();
-            }
-
-            IEnumerable<DbgVtblSymbolInfo> results = HostApp.GetComObjects(Process.Id, interfaceNameRegexes);
+            IEnumerable<DbgVtblSymbolInfo> results = HostApp.GetComObjects(Process.Id, interfaceNameRegex);
 
             if (SymbolName != null)
             {

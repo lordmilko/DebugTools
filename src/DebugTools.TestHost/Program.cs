@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Profiler.Tests;
@@ -46,7 +47,7 @@ namespace DebugTools.TestHost
                     break;
 
                 case TestType.StaticField:
-                    ProcessStaticFieldTest(args[1]);
+                    ProcessStaticFieldTest(args[1], args.Skip(2).ToArray());
                     break;
 
                 case TestType.SOS:
@@ -1191,7 +1192,7 @@ namespace DebugTools.TestHost
             }
         }
 
-        private static void ProcessStaticFieldTest(string subType)
+        private static void ProcessStaticFieldTest(string subType, string[] additionalArgs)
         {
             var test = (StaticFieldTestType)Enum.Parse(typeof(StaticFieldTestType), subType);
 
@@ -1203,6 +1204,13 @@ namespace DebugTools.TestHost
             {
                 case StaticFieldTestType.Normal:
                     instance.Normal();
+                    break;
+
+                case StaticFieldTestType.NotifyNormal:
+                    if (additionalArgs.Length == 0)
+                        throw new InvalidOperationException("Expected the global event name to signal to be specified.");
+
+                    instance.NotifyNormal(additionalArgs[0]);
                     break;
 
                 default:

@@ -115,6 +115,6 @@ namespace DebugTools
             return false;
         }
 
-        
+        internal virtual bool IsValidFallback(int? pid) => true;
     }
 }

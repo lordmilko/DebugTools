@@ -7,7 +7,9 @@ namespace DebugTools
     {
         public Process Process { get; }
 
-        public HostApp HostApp { get; }
+        HostApp IHostAppSession.HostApp => HostApp;
+
+        internal HostApp HostApp { get; }
 
         private DbgSessionHandle handle;
 

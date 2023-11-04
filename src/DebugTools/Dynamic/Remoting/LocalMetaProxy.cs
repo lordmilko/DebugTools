@@ -19,7 +19,7 @@ namespace DebugTools.Dynamic
 
                 if (result)
                 {
-                    value = WrapOutput(remoteValue);
+                    value = WrapOutput(instance, remoteValue);
                     return true;
                 }
 
@@ -38,7 +38,7 @@ namespace DebugTools.Dynamic
 
                 if (result)
                 {
-                    value = WrapOutput(remoteValue);
+                    value = WrapOutput(instance, remoteValue);
                     return true;
                 }
 
@@ -57,7 +57,7 @@ namespace DebugTools.Dynamic
 
                 if (result)
                 {
-                    value = WrapOutput(remoteValue);
+                    value = WrapOutput(instance, remoteValue);
                     return true;
                 }
 
@@ -88,10 +88,10 @@ namespace DebugTools.Dynamic
                 return unwrapped;
             }
 
-            private object WrapOutput(object value)
+            private object WrapOutput(LocalProxyStub localProxyStub, object value)
             {
                 if (value is RemoteProxyStub r)
-                    return New(r);
+                    return New(r, localProxyStub.notifier);
 
                 return value;
             }

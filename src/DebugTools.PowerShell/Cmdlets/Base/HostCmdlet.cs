@@ -6,8 +6,9 @@ using DebugTools.Profiler;
 
 namespace DebugTools.PowerShell.Cmdlets
 {
-    public abstract class HostCmdlet : PSCmdlet
+    public abstract class HostCmdlet : DebugToolsCmdlet
     {
+        [Parameter(Mandatory = false, ValueFromPipeline = true)]
         public Process Process { get; set; }
 
         [Parameter(Mandatory = false)]
@@ -24,7 +25,8 @@ namespace DebugTools.PowerShell.Cmdlets
                 Process = Process.GetProcessById(ProcessId);
             else
             {
-                Process = DebugToolsSessionState.Services.GetImplicitOrFallbackProcess();
+                if (Process == null)
+                    Process = DebugToolsSessionState.Services.GetImplicitOrFallbackProcess();
             }
 
             HostApp = DebugToolsSessionState.Services.GetDetectedHost(Process, Dbg);

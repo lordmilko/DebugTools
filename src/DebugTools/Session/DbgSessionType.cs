@@ -5,6 +5,7 @@
         SOS,
         SymbolManager,
         Ui,
-        Profiler
+        Profiler,
+        InProcess
     }
 }

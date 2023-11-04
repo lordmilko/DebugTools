@@ -156,9 +156,9 @@ namespace Profiler.Tests
         {
             Test<DummyClass_Index_PrimitiveKey_PrimitiveValue>(value =>
             {
-                AssertEx.Throws<RuntimeBinderException>(
+                AssertEx.Throws<ArgumentException>(
                     () => _ = value["test"],
-                    "Cannot apply indexing with [System.String] to an expression of type 'Profiler.Tests.DummyClass_Index_PrimitiveKey_PrimitiveValue'"
+                    "Object of type 'System.String' cannot be converted to type 'System.Int32'."
                 );
             });
         }

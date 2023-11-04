@@ -1,24 +1,52 @@
 ﻿using System;
 using System.Collections;
-using System.Collections.ObjectModel;
 using System.Dynamic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Management.Automation;
 using System.Runtime.CompilerServices;
+using DebugTools.Dynamic;
 using Microsoft.CSharp.RuntimeBinder;
 
 namespace DebugTools.PowerShell
 {
+    class PowerShellLocalProxyNotifier : ILocalProxyNotifier
+    {
+        public static readonly PowerShellLocalProxyNotifier Instance = new PowerShellLocalProxyNotifier();
+
+        public void Notify(LocalProxyStub localProxyStub)
+        {
+            PSObjectDynamicContainer.EnsurePSObject(localProxyStub);
+        }
+
+        public IDisposable DisableEnumeration() => new DisableEnumerationScope();
+    }
+
+    class DisableEnumerationScope : IDisposable
+    {
+        public DisableEnumerationScope()
+        {
+            PSObjectDynamicContainer.EnumerationEnabled = false;
+        }
+
+        public void Dispose()
+        {
+            PSObjectDynamicContainer.EnumerationEnabled = true;
+        }
+    }
+
     class PSObjectDynamicContainer
     {
         private static ConditionalWeakTable<object, PSObject> cache = new ConditionalWeakTable<object, PSObject>();
+
+        [ThreadStatic]
+        internal static bool EnumerationEnabled = true;
 
         public static void EnsurePSObject(object obj)
         {
             if (obj is IDynamicMetaObjectProvider provider)
             {
-                if (obj is IEnumerable e)
+                if (EnumerationEnabled && obj is IEnumerable e)
                 {
                     foreach (var item in e)
                         EnsurePSObject(item);
@@ -28,24 +56,32 @@ namespace DebugTools.PowerShell
                 {
                     existing = new PSObject(provider);
 
+                    cache.Add(provider, existing);
+
                     var metaObject = provider.GetMetaObject(Expression.Parameter(provider.GetType()));
                     var properties = metaObject.GetDynamicMemberNames().ToArray();
 
                     foreach (var property in properties)
                     {
-                        var value = GetProperty(provider, property);
-
                         var variable = new PSVariableEx(
                             property,
-                            value,
-                            () => GetProperty(provider, property),
+                            null,
+                            () =>
+                            {
+                                try
+                                {
+                                    return GetProperty(provider, property);
+                                }
+                                catch
+                                {
+                                    return null;
+                                }
+                            },
                             v => SetProperty(provider, property, v)
                         );
 
                         existing.Properties.Add(new PSVariableProperty(variable));
                     }
-
-                    cache.Add(provider, existing);
                 }
             }
         }

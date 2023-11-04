@@ -6,7 +6,7 @@ using System.Runtime.Remoting;
 
 namespace DebugTools.Host
 {
-    internal class RemoteExecutor : MarshalByRefObject
+    internal class RemoteExecutor : MarshalByRefObject, IRemotingMarshaller
     {
         #region Local
 
@@ -28,6 +28,24 @@ namespace DebugTools.Host
 
             if (objectUri == null)
                 throw new InvalidOperationException($"Failed to execute method '{type.FullName}.{methodName}' in remote process. Verify the method is static and returns void.");
+
+            return (T)Activator.GetObject(typeof(T), $"{BaseUri}/{objectUri}");
+        }
+
+        public T Marshal<T>(T value) where T : MarshalByRefObject
+        {
+            // Create a unique URL for each object returned, so that we can communicate with each object individually
+            var resultType = value.GetType();
+
+            var marshallableResult = (MarshalByRefObject)value;
+            var objectUri = $"{resultType.FullName}_{Guid.NewGuid()}";
+
+            var marshalledObject = RemotingServices.Marshal(marshallableResult, objectUri, resultType);
+
+            if (!marshalledObjects.TryAdd(objectUri, marshalledObject))
+            {
+                throw new InvalidOperationException($"An object with the specified URI has already been marshalled. (URI: {objectUri})");
+            }
 
             return (T)Activator.GetObject(typeof(T), $"{BaseUri}/{objectUri}");
         }

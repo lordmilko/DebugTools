@@ -27,7 +27,7 @@ namespace DebugTools.Dynamic
 
             if (type.IsArray)
             {
-                var arr = (object[])value;
+                var arr = (Array)value;
 
                 foreach (var item in arr)
                     return IsSerializable(item, seenTypes);

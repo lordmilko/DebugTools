@@ -4,7 +4,6 @@ using System.Linq;
 using System.Threading;
 using ClrDebug;
 using DebugTools.Host;
-using DebugTools.Memory;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace Profiler.Tests
@@ -38,7 +37,7 @@ namespace Profiler.Tests
         {
             AssertEx.Throws<DebugException>(
                 () => Test("wordpad", false),
-                "E_FAIL"
+                "HOST_E_CLRNOTAVAILABLE"
             );
         }
 
@@ -49,38 +48,9 @@ namespace Profiler.Tests
             if (expectCLR)
                 WaitForCLR(process);
 
-            Exception exception = null;
-
             try
             {
-                var injector = new DllInjector(process);
-                
-                var cts = new CancellationTokenSource();
-
-                var thread = new Thread(() =>
-                {
-                    try
-                    {
-                        injector.Inject(typeof(HostApp).GetMethod("MainNative"), debug ? "-debug" : string.Empty);
-                    }
-                    catch(Exception ex)
-                    {
-                        exception = ex;
-                        cts.Cancel();
-                    }
-                });
-                thread.Start();
-                var app = HostProvider.CreateApp(process, debug, token: cts.Token);
-
-                app.Exit();
-                thread.Join();
-            }
-            catch (OperationCanceledException)
-            {
-                if (exception != null)
-                    throw exception;
-
-                throw;
+                new InjectedHostSession(process, debug).Dispose();
             }
             finally
             {

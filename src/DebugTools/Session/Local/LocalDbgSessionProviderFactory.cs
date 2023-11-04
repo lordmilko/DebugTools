@@ -20,7 +20,8 @@ namespace DebugTools
             {
                 { typeof(LocalSOSProcess), new SOSLocalDbgSessionProvider() },
                 { typeof(ProfilerSession), new ProfilerLocalDbgSessionProvider() },
-                { typeof(LocalUiSession), new UiLocalDbgSessionProvider() }
+                { typeof(LocalUiSession), new UiLocalDbgSessionProvider() },
+                { typeof(InjectedHostSession), new InProessLocalDbgSessionProvider() }
             };
 
             store = new LocalDbgSessionStore();
@@ -65,6 +66,18 @@ namespace DebugTools
             var provider = GetProvider<T>();
 
             provider.ReplaceSpecial(oldService, newService);
+        }
+
+        public T GetOrCreate<T>(Process process, bool debugHost)
+        {
+            //TryCreate should simply return the existing service if one already exists
+            TryCreate<T>(process, debugHost, out var service);
+
+            //Assert that the above statement is actually true
+            if (service == null)
+                throw new InvalidOperationException("Should have returned an existing service if one already existed");
+
+            return service;
         }
 
         public T GetOrCreateSpecial<T>(object context)
@@ -129,7 +142,7 @@ namespace DebugTools
             throw new InvalidOperationException("Could not identify the process to implicitly use, and no explicit process was specified.");
         }
 
-        public T GetImplicitOrFallbackService<T>()
+        public T GetImplicitOrFallbackService<T>(bool debugHost = false)
         {
             var provider = GetProvider<T>();
 
@@ -140,14 +153,14 @@ namespace DebugTools
                 //We don't have any instances of the desired service. Have we created any other types of services?
                 //If so we can fallback to using that
 
-                var pid = store.GetSessionTargets().Cast<int?>().FirstOrDefault();
+                var pid = store.GetSessionTargets().Cast<int?>().FirstOrDefault(provider.IsValidFallback);
 
                 if (pid != null)
                 {
                     var process = Process.GetProcessById(pid.Value);
 
                     //We already checked above there were no instances of type T, so it's implied we must be creating the first T here
-                    if (!provider.TryCreate(process, false, out var service))
+                    if (!provider.TryCreate(process, debugHost, out var service))
                         throw new InvalidOperationException($"Failed to register {typeof(T).Name} for a process because an instance already existed. This should be impossible");
 
                     return service;

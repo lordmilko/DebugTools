@@ -8,9 +8,10 @@ using DebugTools.PowerShell.Cmdlets;
 
 namespace Profiler.Tests
 {
-    class PowerShellInvoker
+    class PowerShellInvoker : IDisposable
     {
-        private PowerShell powerShell;
+        protected PowerShell powerShell;
+        protected InitialSessionState initialSessionState;
 
         public PowerShellInvoker(Func<InitialSessionState, Runspace> runspace = null)
         {
@@ -20,6 +21,8 @@ namespace Profiler.Tests
 
             var initial = InitialSessionState.CreateDefault();
             initial.ImportPSModule(new[] { module });
+
+            initialSessionState = initial;
 
             if (runspace == null)
                 powerShell = PowerShell.Create(initial);
@@ -55,7 +58,14 @@ namespace Profiler.Tests
                     }
                 }
 
-                var result = powerShell.Invoke().Select(v => v.BaseObject).ToArray();
+                var raw = powerShell.Invoke();
+
+                object[] result;
+
+                if (typeof(T) == typeof(PSObject))
+                    result = raw.Cast<object>().ToArray();
+                else
+                    result = raw.Select(v => v.BaseObject).ToArray();
 
                 var errors = powerShell.Streams.Error.ToArray();
 
@@ -70,6 +80,8 @@ namespace Profiler.Tests
             }
         }
 
+        public string[] GetWarnings() => powerShell.Streams.Warning.Select(v => v.Message).ToArray();
+
         private void AddParameters(object param)
         {
             if (param != null)
@@ -82,13 +94,17 @@ namespace Profiler.Tests
                     {
                         var value = prop.GetValue(param);
 
-                        powerShell.AddParameter(prop.Name, value);
+                        if (value != null)
+                            powerShell.AddParameter(prop.Name, value);
                     }
                 }
                 else if (param is IDictionary d)
                 {
                     foreach (DictionaryEntry kv in d)
-                        powerShell.AddParameter(kv.Key.ToString(), kv.Value);
+                    {
+                        if (kv.Value != null)
+                            powerShell.AddParameter(kv.Key.ToString(), kv.Value);
+                    }
                 }
                 else
                 {
@@ -96,6 +112,11 @@ namespace Profiler.Tests
                     powerShell.AddArgument(param);
                 }
             }
+        }
+
+        public void Dispose()
+        {
+            powerShell?.Dispose();
         }
     }
 }

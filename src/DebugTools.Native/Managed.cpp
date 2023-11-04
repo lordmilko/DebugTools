@@ -1,5 +1,6 @@
 #include "pch.h"
 #include <metahost.h>
+#include <CorError.h>
 
 #pragma comment(lib, "mscoree.lib")
 
@@ -94,7 +95,7 @@ ErrExit:
             pRuntimeInfo->Release();
     }
     else
-        hr = E_FAIL;
+        hr = HOST_E_CLRNOTAVAILABLE;
 
     return hr;
 }
@@ -155,7 +156,7 @@ ErrExit:
             pRuntimeInfo->Release();
     }
     else
-        hr = E_FAIL;
+        hr = HOST_E_CLRNOTAVAILABLE;
 
     return hr;
 }
