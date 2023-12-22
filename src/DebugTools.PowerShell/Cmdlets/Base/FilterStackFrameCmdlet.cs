@@ -1,5 +1,7 @@
 ﻿using System;
+using System.Linq;
 using System.Management.Automation;
+using DebugTools.Profiler;
 
 namespace DebugTools.PowerShell.Cmdlets
 {
@@ -94,13 +96,17 @@ namespace DebugTools.PowerShell.Cmdlets
         [Parameter(Mandatory = false, ParameterSetName = ParameterSet.Filter)]
         public string[] ParentMethodName { get; set; }
 
+        private FrameFilterOptions options;
+
+        protected FrameFilterOptions Options => options ?? (options = GetFrameFilterOptions());
+
         protected FilterStackFrameCmdlet(bool mayCreateGlobalSession = false) : base(mayCreateGlobalSession)
         {
         }
 
-        protected FrameFilterOptions GetFrameFilterOptions()
+        private FrameFilterOptions GetFrameFilterOptions()
         {
-            var options = new FrameFilterOptions
+            return new FrameFilterOptions
             {
                 Unique = Unique,
                 Include = Include,
@@ -132,8 +138,17 @@ namespace DebugTools.PowerShell.Cmdlets
                 ParentMethodTypeName = ParentMethodTypeName,
                 ParentMethodName = ParentMethodName
             };
+        }
 
-            return options;
+        public void ValidateIsDetailedForValueFilter()
+        {
+            if (Options.HasValueFilter)
+            {
+                var method = Session.Methods.Values.FirstOrDefault();
+
+                if (!(method is IMethodInfoDetailed))
+                    WriteWarning("A value filter was specified, however the captured trace was not -Detailed");
+            }
         }
     }
 }

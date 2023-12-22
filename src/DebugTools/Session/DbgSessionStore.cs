@@ -22,10 +22,11 @@ namespace DebugTools
             process.EnableRaisingEvents = true;
             process.Exited += (s, e) =>
             {
+                //Dispose the session, but don't remove it. If we've just been profiling a process, we may still
+                //want to analyze our collected results!
+
                 if (superSessions.TryGetValue(pid, out var val))
                     val.Dispose();
-
-                superSessions.Remove(pid);
             };
 
             return superSession;

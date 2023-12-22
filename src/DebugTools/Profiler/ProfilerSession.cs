@@ -185,6 +185,10 @@ namespace DebugTools.Profiler
                 else
                     Thread.Sleep(100);
             }
+
+            //If we haven't already cancelled, do so now
+            traceCTS?.Cancel();
+            cancelIfTimeoutNoEvents = false;
         }
 
         private void ThreadProc()

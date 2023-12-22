@@ -1,5 +1,6 @@
 using System;
 using System.Linq;
+using System.Threading;
 using ClrDebug;
 using DebugTools.Profiler;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -932,10 +933,24 @@ namespace Profiler.Tests
 
         internal void Test(ValueTestType type, Action<FrameVerifier> validate, params ProfilerSetting[] settings)
         {
-            var settingsList = settings.ToList();
-            settingsList.Add(ProfilerSetting.Detailed);
+            void DoTest()
+            {
+                var settingsList = settings.ToList();
+                settingsList.Add(ProfilerSetting.Detailed);
 
-            TestInternal(TestType.Value, type.ToString(), v => validate(v.FindFrame(type.ToString()).Verify()), settingsList.ToArray());
+                TestInternal(TestType.Value, type.ToString(), v => validate(v.FindFrame(type.ToString()).Verify()), settingsList.ToArray());
+            }
+
+            try
+            {
+                DoTest();
+            }
+            catch (Exception ex) when (ex.Message.Contains("Timed out waiting for named pipe"))
+            {
+                Thread.Sleep(5000);
+
+                DoTest();
+            }
         }
     }
 }

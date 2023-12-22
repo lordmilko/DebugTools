@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using System;
+using System.Linq;
 using DebugTools.SOS;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -30,7 +31,11 @@ namespace Profiler.Tests
 
             TestSOS<SOSMethodDesc>(WellKnownCmdlet.GetSOSMethodDesc, null, v => method = v.Last());
 
-            TestSOS<SOSMethodDesc>(WellKnownCmdlet.GetSOSMethodDesc, method.Name, v => Assert.IsTrue(v.All(m => m.Name == method.Name)));
+            TestSOS<SOSMethodDesc>(WellKnownCmdlet.GetSOSMethodDesc, method.Name, v =>
+            {
+                Assert.IsTrue(v.Length > 0, "Did not have any results");
+                Assert.IsTrue(v.All(m => StringComparer.OrdinalIgnoreCase.Equals(m.Name, method.Name)));
+            });
         }
 
         [TestMethod]

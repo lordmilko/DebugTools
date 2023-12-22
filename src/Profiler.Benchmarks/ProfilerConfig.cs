@@ -33,7 +33,7 @@ namespace Profiler.Benchmarks
             var root = dll.Host + dll.PathAndQuery + dll.Fragment;
             var rootStr = Uri.UnescapeDataString(root);
 
-            var installationRoot = Path.GetDirectoryName(rootStr);
+            var installationRoot = Path.GetFullPath(Path.Combine(Path.GetDirectoryName(rootStr), ".."));
 
             var profilerName = "Profiler.{0}.dll";
 

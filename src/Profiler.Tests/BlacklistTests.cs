@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Linq;
+using System.Threading;
 using DebugTools.Profiler;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -8,6 +9,8 @@ namespace Profiler.Tests
     [TestClass]
     public class BlacklistTests : BaseTest
     {
+        private static Random random = new Random();
+
         [TestMethod]
         public void Blacklist_WithDefaultBlacklist()
         {
@@ -259,12 +262,25 @@ namespace Profiler.Tests
 
         private void Test(BlacklistTestType type, Action<BlacklistVerifier> validate, params ProfilerSetting[] settings)
         {
-            TestInternal(TestType.Blacklist, type.ToString(), v =>
+            void DoTest()
             {
-                var modules = v.Methods.Where(m => !(m is UnknownMethodInfo)).Select(m => m.ModuleName).Distinct().ToArray();
+                TestInternal(TestType.Blacklist, type.ToString(), v =>
+                {
+                    var modules = v.Methods.Where(m => !(m is UnknownMethodInfo)).Select(m => m.ModuleName).Distinct().ToArray();
 
-                validate(modules.Verify());
-            }, settings);
+                    validate(modules.Verify());
+                }, settings);
+            }
+
+            try
+            {
+                DoTest();
+            }
+            catch (Exception ex) when (ex.Message.Contains("The instance name passed was not recognized"))
+            {
+                //Sleep a random amount between 5-30 seconds and try again
+                Thread.Sleep(random.Next(5000, 30000));
+            }
         }
     }
 }

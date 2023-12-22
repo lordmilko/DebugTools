@@ -186,14 +186,14 @@ Window                         Message                wParam                HitT
                 {
                     value = value.Trim();
 
-                    var addresses = Regex.Match(value, "0x[1-9].+$");
+                    var addresses = Regex.Match(value, "0x[1-9A-F].+$");
 
                     if (addresses.Success && addresses.Value.Trim().Length > 4)
                     {
                         value = value.Replace(addresses.Value, "<address>");
                     }
 
-                    return value;
+                    return value.Replace("\r\n", "\n").Replace(" ", "\\s").Replace("\n", "\\n").Replace("\r", "\\r").Replace("\t", "\\t");
                 }
 
                 var str = Normalize(ui.Buffer.ToString());

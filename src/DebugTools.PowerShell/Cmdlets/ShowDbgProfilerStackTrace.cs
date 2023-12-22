@@ -46,7 +46,7 @@ namespace DebugTools.PowerShell.Cmdlets
             if (HighlightMethod != null)
                 highlightMethodNameWildcards = HighlightMethod.Select(h => new WildcardPattern(h, WildcardOptions.IgnoreCase)).ToArray();
 
-            filter = new FrameFilterer(GetFrameFilterOptions());
+            filter = new FrameFilterer(Options);
         }
 
         protected override void DoProcessRecordEx()

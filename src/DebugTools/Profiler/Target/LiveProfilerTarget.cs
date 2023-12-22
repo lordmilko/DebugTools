@@ -14,7 +14,7 @@ namespace DebugTools.Profiler
         public Process Process => config.Process;
         private NamedPipeClientStream pipe;
 
-        public string Name => Process.ProcessName;
+        public string Name => Process.HasExited ? null : Process.ProcessName;
 
         public int? ProcessId => Process.Id;
 
@@ -40,6 +40,9 @@ namespace DebugTools.Profiler
                 startCallback();
             }, config.Settings);
 
+            var sw = new Stopwatch();
+            sw.Start();
+
             //This will wait for the pipe to be created if it doesn't exist yet
             try
             {
@@ -48,11 +51,15 @@ namespace DebugTools.Profiler
                     pipe = new NamedPipeClientStream(".", $"DebugToolsProfilerPipe_{Process.Id}", PipeDirection.Out);
 
                     pipe.ConnectAsync(config.PipeTimeout, pipeCTS.Token).GetAwaiter().GetResult();
+
+                    sw.Stop();
                 }
             }
             catch (Exception ex) when (ex is OperationCanceledException || ex is TimeoutException)
             {
-                throw GetPipeTimeoutReason(ex);
+                sw.Stop();
+
+                throw GetPipeTimeoutReason(ex, sw.ElapsedMilliseconds);
             }
         }
 
@@ -67,13 +74,13 @@ namespace DebugTools.Profiler
             };
         }
 
-        private Exception GetPipeTimeoutReason(Exception ex)
+        private Exception GetPipeTimeoutReason(Exception ex, long elapsed)
         {
             var eventLog = new EventLog("Application");
 
             var logs = eventLog.Entries.Cast<EventLogEntry>().Reverse().TakeWhile(e => e.TimeGenerated > DateTime.Now.AddMinutes(-1)).Where(e => e.Source == ".NET Runtime").ToArray();
 
-            var str = "Timed out waiting for named pipe to connect to profiler.";
+            var str = $"Timed out waiting for named pipe to connect to profiler after {elapsed} ms.";
 
             if (logs.Length == 0)
             {
@@ -90,6 +97,13 @@ namespace DebugTools.Profiler
                 {
                     return new ProfilerException($"{str} The runtime did not log an event saying it tried to load the profiler, and the process has already exited.", ex);
                 }
+            }
+            else
+            {
+                if (IsAlive)
+                    str += " The target is still alive.";
+                else
+                    str += $" The target is no longer alive. Exit Code: {Process.ExitCode}.";
             }
 
             foreach (var log in logs)

@@ -4,7 +4,10 @@
     <OutputType>Exe</OutputType>
     <TargetFramework>net472</TargetFramework>
     <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
-    <OutputPath>$(SolutionDir)artifacts\bin\$(Configuration)</OutputPath>
+
+    <!-- Put this in a different folder because BenchmarkDotnet depends on TraceEvent 3.0.2, and if we try and force that to be a different version
+         we get errors about the version of System.Reflection.Metadata -->
+    <OutputPath>$(SolutionDir)artifacts\bin\$(Configuration)\Benchmark</OutputPath>
 
     <IsPackable>false</IsPackable>
     <IsPublishable>false</IsPublishable>

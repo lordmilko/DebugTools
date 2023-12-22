@@ -121,3 +121,12 @@ C:\> Get-ComObject *solution*
 ```
 
 Note: due to issues encountered using newer versions of ClrMD, this feature currently uses an older version of ClrMD, and as such may or may not support newer .NET Core runtime versions.
+
+## Other
+
+Trying to reverse something, and need to know what types/assemblies implement a specific interface? The `Get-ClrType` cmdlet can help you out!
+
+```powershell
+# Get all types that implement the IServiceProvider interface that contain "Ole" in their names
+Get-ClrType "C:\Program Files (x86)\Microsoft Visual Studio\2019" -Interface IServiceProvider -Name *Ole*
+```

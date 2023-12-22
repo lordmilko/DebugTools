@@ -29,7 +29,7 @@ namespace DebugTools.PowerShell.Cmdlets
                     WriteProgress(record);
                 }
 
-                var filter = new FrameFilterer(GetFrameFilterOptions());
+                var filter = new FrameFilterer(Options);
 
                 var methodFrameFormatter = new MethodFrameFormatter(ExcludeNamespace);
                 var writer = new MethodFrameStringWriter(methodFrameFormatter);

@@ -22,7 +22,7 @@ namespace DebugTools.PowerShell.Cmdlets
 
         protected override void BeginProcessing()
         {
-            filter = new FrameFilterer(GetFrameFilterOptions());
+            filter = new FrameFilterer(Options);
         }
 
         protected override void DoProcessRecordEx()
