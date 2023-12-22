@@ -86,6 +86,17 @@ namespace Profiler.Tests
             });
         }
 
+        [TestMethod]
+        public void Profiler_DynamicModule()
+        {
+            Test(ProfilerTestType.DynamicModule, v =>
+            {
+                var dynamicMethod = (IMethodInfoDetailed) v.Methods.First(m => m.ModuleName == "Microsoft.GeneratedCode");
+
+                Assert.IsNull(dynamicMethod.SigMethod);
+            }, ProfilerSetting.Detailed);
+        }
+
         internal void Test(ProfilerTestType type, Action<Validator> validate, params ProfilerSetting[] settings) =>
             TestInternal(TestType.Profiler, type.ToString(), validate, settings);
     }

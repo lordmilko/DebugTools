@@ -4,7 +4,7 @@
     {
     }
 
-    class Class1WithField
+    public class Class1WithField
     {
         public int field1;
     }

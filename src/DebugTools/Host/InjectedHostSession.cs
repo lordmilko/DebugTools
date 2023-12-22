@@ -51,8 +51,15 @@ namespace DebugTools.Host
 
         public void Dispose()
         {
-            if (App != null)
-                App.Exit();
+            try
+            {
+                if (App != null)
+                    App.Exit();
+            }
+            catch
+            {
+                //If the app is already shutting down, ignore
+            }
 
             //Wait for the injector thread to exit
             injectorThread.Join();

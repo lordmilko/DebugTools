@@ -50,7 +50,7 @@ namespace DebugTools
                 LoadModuleSymbols(module);
             }
 
-            var hr = DbgHelp.TrySymFromAddr(Process.Handle, address, out var result);
+            var hr = DbgHelp.TrySymFromAddr(Process.Handle, (long) address, out var result);
 
             if (hr != HRESULT.S_OK)
             {

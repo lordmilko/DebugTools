@@ -28,7 +28,7 @@ namespace Profiler.Tests
             Test("*TestHost*", "*GenericStructType", validate: (f, w) =>
             {
                 Assert.AreEqual(
-                    "Cannot get static generic 'DebugTools.TestHost.GenericStructType<T>.staticValue'",
+                    "Cannot get generic type static field 'DebugTools.TestHost.GenericStructType<T>.staticValue'",
                     w.Single()
                 );
             });

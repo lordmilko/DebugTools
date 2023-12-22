@@ -1,5 +1,6 @@
-﻿using ClrDebug;
-using System;
+﻿using System;
+using ChaosLib;
+using ClrDebug;
 
 namespace DebugTools
 {

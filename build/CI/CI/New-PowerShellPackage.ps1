@@ -83,6 +83,7 @@ function New-PowerShellPackageInternal($modulePath)
         "*.lib"
         "DebugTools.xml"
         "DebugTools.PowerShell.xml"
+        "ChaosLib.xml"
         "ClrDebug.xml"
         "DebugTools.Host.*.config"
     )

@@ -16,6 +16,7 @@ namespace DebugTools
             providers = new Dictionary<Type, DbgSessionProvider>
             {
                 { typeof(SOSProcess), new SOSRemoteDbgSessionProvider() },
+                { typeof(SymbolManager), new SymbolManagerRemoteDbgSessionProvider() },
                 { typeof(UiMessageSession), new UiMessageRemoteDbgSessionProvider() }
             };
 

@@ -133,6 +133,7 @@ function Test-PowerShellPackageContents($config, $extractFolder)
     )
 
     $required += @(
+        "ChaosLib.dll"
         "ClrDebug.dll"
         "DebugTools.dll"
         "DebugTools.PowerShell.dll"
@@ -140,17 +141,24 @@ function Test-PowerShellPackageContents($config, $extractFolder)
         "DebugTools.Host.x86.exe"
         "DebugTools.Host.x64.exe"
 
+        "x86\DebugTools.Native.x86.dll"
+        "x64\DebugTools.Native.x64.dll"
         "x86\Profiler.x86.dll"
         "x64\Profiler.x64.dll"
 
         "Dia2Lib.dll"
+        "FlaUI.Core.dll"
+        "FlaUI.UIA3.dll"
         "EnvDTE.dll"
         "EnvDTE80.dll"
+        "Interop.UIAutomationClient.dll"
         "Microsoft.Diagnostics.FastSerialization.dll"
         "Microsoft.Diagnostics.Runtime.dll"
         "Microsoft.Diagnostics.Tracing.TraceEvent.dll"
-        "OSExtensions.dll"
+        "Microsoft.Win32.Registry.dll"
         "stdole.dll"
+        "System.Security.AccessControl.dll"
+        "System.Security.Principal.Windows.dll"
         "System.Runtime.CompilerServices.Unsafe.dll"
         "TraceReloggerLib.dll"
     )
@@ -209,7 +217,7 @@ function Test-PowerShellPackageInstallsInternal($edition, $module = "DebugTools"
 
     $resultCmdlet =   (& $exe -command "&{ import-module '$module'; try { Get-SOSAppDomain } catch [exception] { `$_.exception.message }}")
 
-    if($resultCmdlet -ne "Cannot execute cmdlet: no -Session was specified and no global Session could be found in the PowerShell session.")
+    if($resultCmdlet -ne "Cannot execute cmdlet: no -Process was specified and no global Process could be found in the PowerShell session.")
     {
         throw $resultCmdlet
     }
@@ -466,11 +474,14 @@ function Test-RedistributablePackage($config)
 function Test-RedistributablePackageContents($config, $extractFolder)
 {
     $optional = @(
+        "ChaosLib.pdb"
+        "ChaosLib.xml"
         "ClrDebug.pdb"
         "ClrDebug.xml"
     )
 
     $required = @(
+        "ChaosLib.dll"
         "ClrDebug.dll"
         "DebugTools.cmd"
         "DebugTools.Format.ps1xml"
@@ -487,6 +498,14 @@ function Test-RedistributablePackageContents($config, $extractFolder)
         "DebugTools.Host.x86.exe.config"
         "DebugTools.Host.x64.exe.config"
 
+        "x64\DebugTools.Native.x64.dll"
+        "x64\DebugTools.Native.x64.exp"
+        "x64\DebugTools.Native.x64.lib"
+        "x64\DebugTools.Native.x64.pdb"
+        "x86\DebugTools.Native.x86.dll"
+        "x86\DebugTools.Native.x86.exp"
+        "x86\DebugTools.Native.x86.lib"
+        "x86\DebugTools.Native.x86.pdb"
         "x86\Profiler.x86.dll"
         "x64\Profiler.x64.dll"
         "x86\Profiler.x86.pdb"
@@ -499,11 +518,16 @@ function Test-RedistributablePackageContents($config, $extractFolder)
         "Dia2Lib.dll"
         "EnvDTE.dll"
         "EnvDTE80.dll"
+        "FlaUI.COre.dll"
+        "FlaUI.UIA3.dll"
+        "Interop.UIAutomationClient.dll"
         "Microsoft.Diagnostics.FastSerialization.dll"
         "Microsoft.Diagnostics.Runtime.dll"
         "Microsoft.Diagnostics.Tracing.TraceEvent.dll"
-        "OSExtensions.dll"
+        "Microsoft.Win32.Registry.dll"
         "stdole.dll"
+        "System.Security.AccessControl.dll"
+        "System.Security.Principal.Windows.dll"
         "System.Runtime.CompilerServices.Unsafe.dll"
         "TraceReloggerLib.dll"
     )
@@ -643,7 +667,7 @@ function Test-PackageContents($folder, $required, $optional = $null)
 
             if(!$match)
             {
-                $newIllegal += $match
+                $newIllegal += $item
             }
         }
 

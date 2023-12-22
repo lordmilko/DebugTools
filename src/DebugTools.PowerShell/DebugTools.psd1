@@ -12,7 +12,7 @@
 RootModule = 'DebugTools.PowerShell.dll'
 
 # Version number of this module.
-ModuleVersion = '0.2.0'
+ModuleVersion = '0.3.0'
 
 # Supported PSEditions
 # CompatiblePSEditions = @()
@@ -107,7 +107,7 @@ PrivateData = @{
         # IconUri = ''
 
         # ReleaseNotes of this module
-        ReleaseNotes = 'Release Notes: https://github.com/lordmilko/DebugTools/releases/tag/v0.2.0
+        ReleaseNotes = 'Release Notes: https://github.com/lordmilko/DebugTools/releases/tag/v0.3.0
 ---
 
 DebugTools is a PowerShell library for reverse engineering .NET applications. DebugTools contains a variety of cmdlets for performing deep introspection of .NET programs.

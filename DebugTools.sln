@@ -45,7 +45,6 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "build", "build", "{BDCBABF3
 	ProjectSection(SolutionItems) = preProject
 		build\ChaosLib.props = build\ChaosLib.props
 		build\ClrDebug.props = build\ClrDebug.props
-		build\NuGet.props = build\NuGet.props
 		build\Version.props = build\Version.props
 	EndProjectSection
 EndProject
@@ -278,6 +277,7 @@ Global
 		{1267D984-DF0A-4D4C-98F5-3BC28A0967AC}.Debug|x86.ActiveCfg = Debug|Win32
 		{1267D984-DF0A-4D4C-98F5-3BC28A0967AC}.Debug|x86.Build.0 = Debug|Win32
 		{1267D984-DF0A-4D4C-98F5-3BC28A0967AC}.Release|Any CPU.ActiveCfg = Release|Win32
+		{1267D984-DF0A-4D4C-98F5-3BC28A0967AC}.Release|Any CPU.Build.0 = Release|Win32
 		{1267D984-DF0A-4D4C-98F5-3BC28A0967AC}.Release|x64.ActiveCfg = Release|x64
 		{1267D984-DF0A-4D4C-98F5-3BC28A0967AC}.Release|x64.Build.0 = Release|x64
 		{1267D984-DF0A-4D4C-98F5-3BC28A0967AC}.Release|x86.ActiveCfg = Release|Win32

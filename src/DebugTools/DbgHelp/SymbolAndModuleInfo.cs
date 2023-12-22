@@ -1,4 +1,5 @@
 ﻿using System;
+using ChaosLib;
 using ClrDebug;
 
 namespace DebugTools

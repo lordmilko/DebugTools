@@ -46,6 +46,8 @@ function Invoke-CICSharpTestFull($dll, $BuildFolder, $Configuration, $Additional
 {
     $vsTestArgs = @(
         $dll
+        "/platform:x86"
+        "/InIsolation"
     )
 
     if($AdditionalArgs)

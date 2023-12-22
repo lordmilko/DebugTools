@@ -221,7 +221,9 @@ namespace Profiler.Tests
 
         Thread_NameAfterCreate,
         Thread_NameBeforeCreate,
-        Thread_NamedAndNeverStarted
+        Thread_NamedAndNeverStarted,
+
+        DynamicModule
     }
 
     enum ExceptionTestType
@@ -270,6 +272,7 @@ namespace Profiler.Tests
 
     enum StaticFieldTestType
     {
-        Normal
+        Normal,
+        NotifyNormal
     }
 }

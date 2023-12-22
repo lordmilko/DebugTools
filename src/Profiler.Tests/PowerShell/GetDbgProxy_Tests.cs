@@ -236,9 +236,42 @@ namespace Profiler.Tests
             }
         }
 
+        private static object objLock = new object();
+
         private void TestOutOfProc(Action<dynamic> validate)
         {
             var outOfProc = new OutOfProcPowerShellInvoker();
+
+            lock (objLock)
+            {
+                try
+                {
+                    //For some reason powerShell.AddParameter() doesn't work when we try and add a switch parameter (so we can do Get-Module PrtgAPI -ListAvailable),
+                    //so plan B: import the module, check whether there was any issue, and if so install it and then reimport
+                    outOfProc.Invoke<object>("Import-Module", new { Name = "PrtgAPI" });
+                }
+                catch
+                {
+                    //Not installed, the above threw an exception
+
+                    try
+                    {
+                        outOfProc.Invoke<object>("Install-Package", new { Name = "PrtgAPI", ForceBootstrap = true, Force = true, Source = "PSGallery" });
+                    }
+                    catch
+                    {
+                        //For some reason, no matter what, it just insists that the module doesn't exist, even though Process Monitor
+                        //clearly shows PowerShell is now literally seeing all of the files in the module. Replacing our OutOfProcPowerShellInvoker
+                        //with a fresh one seems to resolve the issue
+
+                        outOfProc.Dispose();
+
+                        outOfProc = new OutOfProcPowerShellInvoker();
+
+                        outOfProc.Invoke<object>("Import-Module", new { Name = "PrtgAPI" });
+                    }
+                }
+            }
 
             var ss = new SecureString();
 

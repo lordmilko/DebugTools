@@ -1,9 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Xml.Serialization;
 using Profiler.Tests;
 
 namespace DebugTools.TestHost
@@ -1059,6 +1061,18 @@ namespace DebugTools.TestHost
                 {
                     var thread = new Thread(instance.SingleChild);
                     thread.Name = "NamedAndNeverStarted";
+                    break;
+                }
+
+                case ProfilerTestType.DynamicModule:
+                {
+                    var xml = "<Class1WithField><field1>1</field1></Class1WithField>";
+                    var root = new XmlRootAttribute
+                    {
+                        ElementName = "Class1WithField"
+                    };
+
+                    var result = new XmlSerializer(typeof(Class1WithField), root).Deserialize(new StringReader(xml));
                     break;
                 }
 

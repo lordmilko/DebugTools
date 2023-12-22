@@ -12,15 +12,20 @@ namespace DebugTools.Profiler
 
         private SigMethodDef sigMethod;
 
-        unsafe SigMethodDef IMethodInfoDetailed.SigMethod
+        SigMethodDef IMethodInfoDetailed.SigMethod
         {
             get
             {
                 if (sigMethod == null)
                 {
+                    var mdi = GetMDI();
+
+                    if (mdi == null)
+                        return null;
+
                     var props = GetMDI().GetMethodProps(Token);
 
-                    var reader = new SigReader(props.ppvSigBlob, props.pcbSigBlob, Token, GetMDI());
+                    var reader = new SigReader(props.ppvSigBlob, props.pcbSigBlob, Token, mdi);
 
                     sigMethod = (SigMethodDef)reader.ParseMethod(MethodName, true);
                 }
@@ -38,9 +43,11 @@ namespace DebugTools.Profiler
         {
             if (!mdiCache.TryGetValue(ModulePath, out var mdi))
             {
+                //I'm not sure whether we should use the same dispenser for every module, or create a new one for each one. I guess this is safer?
                 var dispenser = new MetaDataDispenserEx();
 
-                mdi = dispenser.OpenScope<MetaDataImport>(ModulePath, CorOpenFlags.ofReadOnly);
+                //If it succeeds, we get an MDI. Otherwise, we get null. We only expect to see failure on dynamic modules
+                dispenser.TryOpenScope(ModulePath, CorOpenFlags.ofReadOnly, out mdi);
 
                 mdiCache[ModulePath] = mdi;
             }
