@@ -23,7 +23,8 @@ namespace DebugTools.PowerShell.Cmdlets
             {
                 var results = reader.Read(fs);
 
-                var session = new XmlFileProfilerSession(Path);
+                var session = new ProfilerSession(new FileXmlProfilerReaderConfig(Path));
+                session.Start(default);
 
                 var threads = new List<ThreadStack>();
 

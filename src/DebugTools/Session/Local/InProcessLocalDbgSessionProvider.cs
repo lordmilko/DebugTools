@@ -5,9 +5,9 @@ using DebugTools.Host;
 
 namespace DebugTools
 {
-    class InProessLocalDbgSessionProvider : LocalDbgSessionProvider<InjectedHostSession>
+    class InProcessLocalDbgSessionProvider : LocalDbgSessionProvider<InjectedHostSession>
     {
-        public InProessLocalDbgSessionProvider() : base(DbgSessionType.InProcess, "Process")
+        public InProcessLocalDbgSessionProvider() : base(DbgSessionType.InProcess, "Process")
         {
         }
 

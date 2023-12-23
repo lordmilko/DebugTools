@@ -21,7 +21,7 @@ namespace DebugTools
                 { typeof(LocalSOSProcess), new SOSLocalDbgSessionProvider() },
                 { typeof(ProfilerSession), new ProfilerLocalDbgSessionProvider() },
                 { typeof(LocalUiSession), new UiLocalDbgSessionProvider() },
-                { typeof(InjectedHostSession), new InProessLocalDbgSessionProvider() }
+                { typeof(InjectedHostSession), new InProcessLocalDbgSessionProvider() }
             };
 
             store = new LocalDbgSessionStore();

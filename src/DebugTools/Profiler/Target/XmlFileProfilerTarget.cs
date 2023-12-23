@@ -3,22 +3,21 @@ using System.Threading;
 
 namespace DebugTools.Profiler
 {
-    class EtwFileProfilerTarget : IProfilerTarget
+    class XmlFileProfilerTarget : IProfilerTarget
     {
-        public string Name => config.FileName;
+        public string Name => config.Path;
         public int? ProcessId => null;
-        public bool IsAlive => false; //Must be false so that GetImplicitProfilerSession doesn't see us
+        public bool IsAlive => false;
 
-        private FileEtwProfilerReaderConfig config;
+        private FileXmlProfilerReaderConfig config;
 
-        public EtwFileProfilerTarget(FileEtwProfilerReaderConfig config)
+        public XmlFileProfilerTarget(FileXmlProfilerReaderConfig config)
         {
             this.config = config;
         }
 
         public void Start(Action startCallback, CancellationToken cancellationToken)
         {
-            startCallback();
         }
 
         public void SetExitHandler(Action<bool> onTargetExit)

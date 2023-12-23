@@ -57,7 +57,7 @@ We can assume that the "gci" command we executed was passed as a string to a var
 ```powershell
 # Show the call stacks of any methods where the value "gci" was passed in (either as a raw string or
 # a sub-member). Only show the first invocation of each method, and exclude namespace gunk from the
-# resulting output
+# resulting output (Tip: you can also specify parameter -Simple which implies -Unique -ExcludeNamespace)
 C:\> Show-DbgProfilerStackTrace -StringValue gci -Unique -ExcludeNamespace
 ```
 

@@ -21,12 +21,6 @@ namespace DebugTools.Memory
         private DataTargetMemoryStream dataTargetStream;
         private Dictionary<string, ChaosPEFile> peFiles = new Dictionary<string, ChaosPEFile>();
 
-        public static int Test(string args)
-        {
-            Debug.WriteLine("success!");
-            return 0;
-        }
-
         public DllInjector(Process process)
         {
             this.process = process;

@@ -20,14 +20,19 @@ namespace DebugTools.PowerShell.Cmdlets
             {
                 var frames = Session.LastTrace;
 
-                foreach (var frame in frames)
+                if (frames == null)
+                    WriteWarning("Last trace is empty. Did you forget to record a trace?");
+                else
                 {
-                    Frame = frame.Root;
+                    foreach (var frame in frames)
+                    {
+                        Frame = frame.Root;
 
-                    if (ShouldIgnore())
-                        continue;
+                        if (ShouldIgnore())
+                            continue;
 
-                    DoProcessRecordEx();
+                        DoProcessRecordEx();
+                    }
                 }
             }
         }

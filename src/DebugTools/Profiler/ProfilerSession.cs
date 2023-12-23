@@ -10,9 +10,9 @@ namespace DebugTools.Profiler
 {
     public partial class ProfilerSession : IDisposable
     {
-        public virtual int? PID => Target.ProcessId;
+        public int? PID => Target.ProcessId;
 
-        public virtual string Name => Target.Name;
+        public string Name => Target.Name;
 
         public ProfilerSessionType Type { get; }
 
@@ -80,6 +80,15 @@ namespace DebugTools.Profiler
 
             switch (config.SessionType)
             {
+                case ProfilerSessionType.Normal:
+                case ProfilerSessionType.Global:
+                    Reader = new LiveEtwProfilerReader((LiveProfilerReaderConfig) config);
+                    break;
+
+                case ProfilerSessionType.XmlFile:
+                    Reader = new FileXmlProfilerReader((FileXmlProfilerReaderConfig) config);
+                    break;
+
                 case ProfilerSessionType.EtwFile:
                     Reader = new FileEtwProfilerReader((FileEtwProfilerReaderConfig) config);
                     break;
@@ -89,8 +98,7 @@ namespace DebugTools.Profiler
                     break;
 
                 default:
-                    Reader = new LiveEtwProfilerReader((LiveProfilerReaderConfig) config);
-                    break;
+                    throw new NotImplementedException($"Don't know how to handle {nameof(ProfilerSessionType)} '{config.SessionType}'.");
             }
 
             SetEventHandlers();

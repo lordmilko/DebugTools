@@ -26,9 +26,14 @@ namespace DebugTools.PowerShell.Cmdlets
                 frames.Add(Frame);
             else
             {
-                foreach (var frame in Session.LastTrace)
+                if (Session.LastTrace == null)
+                    WriteWarning("Last trace is empty. Did you forget to record a trace?");
+                else
                 {
-                    frames.Add(frame.Root);
+                    foreach (var frame in Session.LastTrace)
+                    {
+                        frames.Add(frame.Root);
+                    }
                 }
             }
         }

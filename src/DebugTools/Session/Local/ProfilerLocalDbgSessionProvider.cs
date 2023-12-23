@@ -67,7 +67,7 @@ namespace DebugTools
             else
             {
                 if (profilerContext.Mandatory)
-                    throw new InvalidOperationException("Attempted to retrieve a the global profiler session, however one did not exist");
+                    throw new InvalidOperationException("Attempted to retrieve the global profiler session, however one did not exist");
             }
 
             return global;
@@ -109,14 +109,23 @@ namespace DebugTools
                 return true;
             }
 
-            //Special sessions are either file based or global. We don't want to allow implicitly returning file
-            //sessions, so we only check for global
+            //Special sessions are either file based or global. First, prefer global if it exists
 
             var global = specialSessions.SingleOrDefault(s => s.Type == ProfilerSessionType.Global);
 
             if (global != null)
             {
                 subSession = global;
+                return true;
+            }
+
+            //No global, we'll take anything we can get
+
+            var special = specialSessions.FirstOrDefault();
+
+            if (special != null)
+            {
+                subSession = special;
                 return true;
             }
 

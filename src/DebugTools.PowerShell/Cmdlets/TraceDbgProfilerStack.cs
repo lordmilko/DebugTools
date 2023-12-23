@@ -6,6 +6,10 @@ namespace DebugTools.PowerShell.Cmdlets
     [Cmdlet(VerbsDiagnostic.Trace, "DbgProfilerStack")]
     public class TraceDbgProfilerStack : ProfilerSessionCmdlet
     {
+        public TraceDbgProfilerStack() : base(true)
+        {
+        }
+
         protected override void ProcessRecordEx()
         {
             using (CtrlCHandler())
